@@ -1,0 +1,1 @@
+// Authentication & roles (Super Admin, Company Admin, Worker)

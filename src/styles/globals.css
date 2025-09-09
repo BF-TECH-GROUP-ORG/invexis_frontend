@@ -112,6 +112,21 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@font-face {
+  font-family: "Arial";
+  src: url("/fonts/Arial.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Metropolis";
+  src: url("/fonts/Metropolis.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Display";
+  src: url("/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype");
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -119,4 +134,22 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .font-arial {
+    font-family: "Arial", sans-serif;
+  }
+
+  .font-metropolis {
+    font-family: "Metropolis", sans-serif;
+  }
+
+  .font-display {
+    font-family: "Display", sans-serif;
+  }
+}
+
+@layer components {
+}
+
+@layer utilities {
 }
