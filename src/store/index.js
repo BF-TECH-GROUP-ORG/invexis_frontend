@@ -7,6 +7,7 @@ import stockReducer from "../features/stock/stockSlice";
 import salesReducer from "../features/sales/salesSlice";
 import reportReducer from "../features/reports/reportSlice";
 import settingsReducer from "../features/settings/settingsSlice";
+import onboardingReducer from "../features/onboarding/onboardingSlice";
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     sales: salesReducer,
     reports: reportReducer,
     settings: settingsReducer,
+    onboarding: onboardingReducer,
   },
 });
 
