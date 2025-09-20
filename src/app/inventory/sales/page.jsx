@@ -2,70 +2,63 @@
 import { Button , TextField } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
+import NavBar from '@/components/layouts/NavBar'
+import SideBar from "@/components/layouts/SideBar";
+import { Trash ,DownloadCloud } from "lucide-react";
+import { Inter, Roboto } from "next/font/google";
+
+const roboto = Inter({
+  subsets: ["latin"],
+  weight: "400", // single weight
+});
 
 const rows = [
   {
     id: 1,
-    name: "Alice",
-    age: 24,
-    email: "alice@example.com",
-    phone: "+250788111111",
-    country: "Rwanda",
-    city: "Kigali",
-    status: "Active",
-    role: "Developer",
-    joined: "2023-01-10",
+    ProductName: "Alice",
+    Category: 24,
+    UnitPrice: 100,
+    InStock: 10,
+    Discount: "20%",
+    Date: "12/09/2024",
+    TotalValue: 40,
+    action:"more"
   },
   {
     id: 2,
-    name: "Bob",
-    age: 30,
-    email: "bob@example.com",
-    phone: "+250788222222",
-    country: "Kenya",
-    city: "Nairobi",
-    status: "Inactive",
-    role: "Designer",
-    joined: "2022-11-20",
-  },
-  // ... add more rows
-  {
-    id: 3,
-    name: "Alice",
-    age: 24,
-    email: "alice@example.com",
-    phone: "+250788111111",
-    country: "Rwanda",
-    city: "Kigali",
-    status: "Active",
-    role: "Developer",
-    joined: "2023-01-10",
+    ProductName: "Alice",
+    Category: 24,
+    UnitPrice: 100,
+    InStock: 10,
+    Discount: "20%",
+    Date: "12/09/2024",
+    TotalValue: 40,
+    action:"more"
   },
   {
     id: 4,
-    name: "Bob",
-    age: 30,
-    email: "bob@example.com",
-    phone: "+250788222222",
-    country: "Kenya",
-    city: "Nairobi",
-    status: "Inactive",
-    role: "Designer",
-    joined: "2022-11-20",
+    ProductName: "Alice",
+    Category: 24,
+    UnitPrice: 100,
+    InStock: 10,
+    Discount: "20%",
+    Date: "12/09/2024",
+    TotalValue: 40,
+    action:"more"
   },
+  
 ];
 
 const columns = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "name", headerName: "Name", width: 130 },
-  { field: "age", headerName: "Age", width: 90 },
-  { field: "email", headerName: "Email", width: 200 },
-  { field: "phone", headerName: "Phone", width: 160 },
-  { field: "country", headerName: "Country", width: 120 },
-  { field: "city", headerName: "City", width: 120 },
-  { field: "status", headerName: "Status", width: 120 },
-  { field: "role", headerName: "Role", width: 150 },
-  { field: "joined", headerName: "Joined Date", width: 150 },
+  { field: "id", headerName: "Sale", width: 70 },
+  { field: "ProductName", headerName: "Product Name", width: 130 },
+  { field: "Category", headerName: "Category", width: 90 },
+  { field: "UnitPrice", headerName: "Unit Price (FRW)", width: 200 },
+  { field: "InStock", headerName: "In Stock", width: 160 },
+  { field: "Discount", headerName: "Discount", width: 120 },
+  { field: "Date", headerName: "Date", width: 120 },
+  { field: "TotalValue", headerName: "Total Value", width: 120 },
+  { field: "action", headerName: "View", width: 10 },
 ];
 
 
@@ -73,76 +66,34 @@ const columns = [
 
 const SalesPage = () =>{
     const myfilter = [
-        {id:1,name:"All"},
-        {id:2,name:"Pending"},
-        {id:3,name:"Completed"},
-        {id:4,name:"Cancelled"}
+        {id:1,name:"Delete",icon:<Trash size={18} />},
+        {id:2,name:"Export",icon:<DownloadCloud size={18} />},
     ]
 
     const navigation = useRouter()
     return(
         <>
-         <section className="py-16 sm:py-20 px-5 sm:px-10 md:px-16 lg:px-20">
-           <div className="space-y-5">
-             <h1 className="text-2xl font-bold">Orders</h1>
-            <ul className="flex space-x-5 text-md">
-                <li>Dashboard</li>
-                <li><p className="space-x-5"><span>.</span>  <span>Orders</span></p></li>
-            </ul>
+        <NavBar />
+        <SideBar />
+         <section className={`${roboto.className} px-2 sm:px-5 md:px-5 lg:px-20 transition-all duration-300 ml-20 z-40`}>
+           <div className="space-y-3 sm:text-center md:text-left">
+             <h1 className="text-2xl font-bold text-orange-600">Top Selling Items</h1>
+              <p className="space-x-2 text-md"><span>Dashboard</span><span>/</span><span>Sales</span><span>/</span><span className="text-gray-400">List</span></p>
            </div>
 
            <div className="w-full  border border-gray-300 shadow-lg shadow-gray-100 mt-10 rounded-3xl">
             <div className="w-ful">
-               <div className="border-b border-gray-300">
-                  <ul>
+               <div className="border-b justify-end flex w-full  bg-amber-600">
+                  <ul className="space-x-2">
                     {
                         myfilter.map((content , index)=>(
-                           <Button key={index}  sx={{textTransform:"none",color:"gray",height:50, paddingX:5,":focus":{color:"black"}}} variant="text" >{content.name}</Button>
+                           <Button key={index}  sx={{textTransform:"none",color:"white",borderRadius:10,":focus":{color:"white"}}} variant="text" className="space-x-3 bg-orange-600" ><i>{content.icon}</i><span> {content.name}</span></Button>
                         ))
                     }
                 </ul>
                </div>
-                <div className="mt-5 p-4 gap-3 grid md:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2">
-                    <div className=" gap-3 grid md:grid-cols-2 sm:grid-cols-1 lg:grid-cols-2">
-                       <div><TextField
-                            fullWidth
-                            label="Start Date"
-                            placeholder="DD/MM/YY"
-                            variant="outlined"
-                            color="orange"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {
-                                 borderColor: "orange", 
-                                },
-                                },
-                            }}
-                            />
-                        </div>
-                       <div>
-                        <TextField
-                            fullWidth
-                            label="Start Date"
-                            placeholder="DD/MM/YY"
-                            variant="outlined"
-                            color="gray"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                "&.Mui-focused fieldset": {
-                                 borderColor: "orange", 
-                                },
-                                },
-                            }}
-                            />
-                       </div>
-                    </div>
-                    <div className="w-full">
-                        <TextField  placeholder="Search customer or order number" fullWidth color="gray" />
-                    </div>
-                </div>
-
+                
                  <DataGrid
-                  
                   rows={rows}
                   columns={columns}
                   pageSize={5}
@@ -151,20 +102,20 @@ const SalesPage = () =>{
                   }}
                   rowHeight={60}
                     sx={{
-    "& .MuiDataGrid-columnHeaders": {
-      backgroundColor: "#1976d2",
-      color: "gray",
-      fontSize: 16,
-      fontWeight: "extrabold",
-    },
-    "& .MuiDataGrid-row:hover": {
-      backgroundColor: "#f5f5f5",
-      color:"black"
-    },
-    "& .MuiDataGrid-cell": {
-      borderBottom: "1px solid #ddd",
-    },
-  }}
+                         "& .MuiDataGrid-columnHeaders": {
+                         backgroundColor: "#1976d2",
+                         color: "gray",
+                         fontSize: 16,
+                         fontWeight: "extrabold",
+                       },
+                       "& .MuiDataGrid-row:hover": {
+                         backgroundColor: "#f5f5f5",
+                         color:"black"
+                       },
+                       "& .MuiDataGrid-cell": {
+                         borderBottom: "1px solid #ddd",
+                       },
+                     }}
                 />
                  
                 </div>
