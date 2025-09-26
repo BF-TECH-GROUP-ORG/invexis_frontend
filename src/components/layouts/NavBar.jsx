@@ -178,7 +178,6 @@ export default function TopNavBar({ expanded = true }) {
                   </button>
                 </div>
               </div>
-
               {/* Navigation */}
               <nav className="mt-10 px-4">
                 <button className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100">
@@ -197,12 +196,22 @@ export default function TopNavBar({ expanded = true }) {
                   <Shield className="w-5 h-5 text-gray-500" /> Security
                 </button>
                 <button className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100">
-                  <Settings className="w-5 h-5 text-gray-500" /> Account settings
+                  <Settings className="w-5 h-5 text-gray-500" /> Account
+                  settings
                 </button>
               </nav>
 
+              {/* Upgrade Box */}
+              <div className="m-4 p-8 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-lg text-center">
+                <h4 className="text-sm font-semibold">35% OFF</h4>
+                <p className="text-m">Power up Productivity!</p>
+                <button className="mt-4 px-3 py-1 bg-yellow-400 text-black rounded font-bold">
+                  Upgrade to Pro
+                </button>
+              </div>
+
               {/* Logout */}
-              <div className="px-4 py-10">
+              <div className="px-4 py-15">
                 <button className="w-full text-center py-2 bg-red-500 text-white font-semibold rounded hover:bg-white hover:text-red-500 hover:border-red-500 hover:border-2">
                   Logout
                 </button>
