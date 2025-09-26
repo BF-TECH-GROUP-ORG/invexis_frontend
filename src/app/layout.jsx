@@ -1,4 +1,3 @@
-import store from "@/store";
 import "../styles/globals.css";
 import ClientProviders from "./ClientProviders";
 
@@ -7,7 +6,7 @@ export const metadata = {
   description: "An Inventory Management System",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }){
   return (
     <html lang="en">
       <body className={`antialiased`}>

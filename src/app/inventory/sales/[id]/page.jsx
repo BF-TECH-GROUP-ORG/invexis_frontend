@@ -1,156 +1,70 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import TopNavBar from "@/components/layouts/NavBar";
 import SideBar from "@/components/layouts/SideBar";
+import Image from "next/image";
+import ProductDes from "./productdes";
 
 const OrderDetails = () => {
-  // Simulated API data
-  const [order, setOrder] = useState(null);
+  // Mock data arrays (you can replace later with API calls)
+  const productInfo = {
+    id: "P-001",
+    name: "Iphone 15 Pro max",
+    soldDate: "Sep 20, 2025",
+    category: "Electronic devices",
+    price: "$12.50",
+    buyer: "John Doe",
+    description:
+      "Appel mobile phone version 15 pro max",
+    productimage:
+      "https://i.pinimg.com/1200x/81/d0/62/81d0626ebf5f866987d4f613e09fe780.jpg", // Example from Pinterest
+  };
 
-  useEffect(() => {
-    // Simulate fetching from API
-    const fakeOrder = {
-      id: 6010,
-      status: "Refunded",
-      date: "20 Sep 2025 11:08 pm",
-      products: [
-        {
-          id: "16H9UR0",
-          name: "Urban Explorer Sneakers",
-          qty: 1,
-          price: 83.74,
-          img: "https://via.placeholder.com/80x80.png?text=Sneakers",
-        },
-        {
-          id: "16H9UR1",
-          name: "Classic Leather Loafers",
-          qty: 2,
-          price: 97.14,
-          img: "https://via.placeholder.com/80x80.png?text=Loafers",
-        },
-        {
-          id: "16H9UR2",
-          name: "Mountain Trekking Boots",
-          qty: 3,
-          price: 68.71,
-          img: "https://via.placeholder.com/80x80.png?text=Boots",
-        },
-      ],
-      subtotal: 484.15,
-      customer: {
-        name: "Jayvion Simon",
-        email: "nannie.abernathy70@yahoo.com",
-        ip: "192.158.1.38",
-        avatar: "https://via.placeholder.com/80.png?text=JS",
-      },
-      delivery: {
-        shipBy: "DHL",
-        speed: "Standard",
-        tracking: "SPX03739199373",
-      },
-    };
+  const salesHistory = [
+    { id: "#S001", date: "Sep 20, 2025", customer: "Alice M.", qty: 10, amount: "$125" },
+    { id: "#S002", date: "Sep 18, 2025", customer: "David K.", qty: 5, amount: "$62.50" },
+    { id: "#S003", date: "Sep 16, 2025", customer: "Jane P.", qty: 12, amount: "$150" },
+  ];
 
-    setOrder(fakeOrder);
-  }, []);
+  const reviews = [
+    { user: "John D.", rating: 5, comment: "Excellent paper quality!" },
+    { user: "Martha L.", rating: 4, comment: "Good value, but packaging could improve." },
+    { user: "Kevin O.", rating: 5, comment: "Perfect for my office printing needs." },
+  ];
 
-  if (!order) return <p className="text-center py-10">Loading...</p>;
+  let  ctaButtons = [
+    {name:"Print",icon:"print"},
+    {name:"Share",icon:"print"},
+    {name:"Reciept",icon:"print"}
+  ]
 
   return (
-    <div className="relative z-30 sm:px-5   transition-all duration-300 ml-20">
-      <TopNavBar />
+    <>
+     <TopNavBar />
       <SideBar />
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-        <h1 className="text-2xl font-bold">
-          Order #{order.id}{" "}
-          <span className="ml-2 px-2 py-1 text-sm rounded bg-gray-200 text-gray-600">
-            {order.status}
-          </span>
-        </h1>
-        <p className="text-gray-500 mt-2 sm:mt-0">{order.date}</p>
-      </div>
+    <section className=" px-32">
+      <div className="flex w-full justify-between">
+   
+          <div>
+            <h1 className="text-2xl font-bold text-orange-600">{productInfo.name}</h1>
+            <p className="text-gray-800 font-semibold">Sold On <span className="text-gray-600">{productInfo.soldDate}</span></p>
+          </div>
+          <div className="space-x-3">
+            {
+              ctaButtons.map((content , index)=>(
+                <button key={index}  className="border px-4 py-2 text-black rounded hover:bg-orange-200 hover:cursor-pointer  hover:text-orange-600" >{content.name}</button>
+              ))
+            }
+        </div>    
+     </div>
 
-      {/* Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Left: Products */}
-        <div className="col-span-2 bg-white p-4 rounded-lg shadow">
-          <h2 className="font-semibold mb-4">Details</h2>
-          <div className="space-y-4">
-            {order.products.map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center justify-between border-b pb-3"
-              >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={product.img}
-                    alt={product.name}
-                    className="w-16 h-16 rounded-md object-cover"
-                  />
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-gray-500">{product.id}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm">x{product.qty}</p>
-                  <p className="font-semibold">${product.price.toFixed(2)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-end mt-4">
-            <p className="font-semibold">
-              Subtotal: ${order.subtotal.toFixed(2)}
-            </p>
-          </div>
-        </div>
+      {/* End of navigation bar */}
 
-        {/* Right: Customer + Delivery */}
-        <div className="space-y-6">
-          {/* Customer */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="font-semibold mb-4">Customer</h2>
-            <div className="flex items-center gap-4">
-              <img
-                src={order.customer.avatar}
-                alt={order.customer.name}
-                className="w-12 h-12 rounded-full"
-              />
-              <div>
-                <p className="font-medium">{order.customer.name}</p>
-                <p className="text-sm text-gray-500">{order.customer.email}</p>
-                <p className="text-xs text-gray-400">
-                  IP: {order.customer.ip}
-                </p>
-              </div>
-            </div>
-            <button className="mt-3 text-red-600 text-sm font-medium hover:underline">
-              + Add to blacklist
-            </button>
-          </div>
 
-          {/* Delivery */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="font-semibold mb-4">Delivery</h2>
-            <p>
-              <span className="font-medium">Ship by:</span> {order.delivery.shipBy}
-            </p>
-            <p>
-              <span className="font-medium">Speedy:</span> {order.delivery.speed}
-            </p>
-            <p>
-              <span className="font-medium">Tracking No:</span>{" "}
-              <a
-                href="#"
-                className="text-blue-600 hover:underline"
-              >
-                {order.delivery.tracking}
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+     <ProductDes productDescription={productInfo} />
+    </section>
+    
+    </>
   );
 };
 
