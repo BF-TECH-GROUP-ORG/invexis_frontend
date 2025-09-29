@@ -1,193 +1,127 @@
-import { DataGrid } from "@mui/x-data-grid";
+"use client";
 import { useRouter } from "next/navigation";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Toolbar,
+  IconButton,
+  Typography,
+  TextField,
+  Box,
+} from "@mui/material";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import GetAppIcon from "@mui/icons-material/GetApp";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SearchIcon from "@mui/icons-material/Search";
+import { useState } from "react";
 
 const rows = [
-  {
-    id: 1,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 2,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 3,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-    {
-    id: 4,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 5,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 6,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-
-  {
-    id: 7,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 8,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 9,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-    {
-    id: 10,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 11,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  {
-    id: 12,
-    ProductName: "John Doe theBadman",
-    Category: 24,
-    UnitPrice: 100,
-    InStock: 10,
-    Discount: "20%",
-    Date: "12/09/2024",
-    TotalValue: 40,
-    action:"more"
-  },
-  
-  
+  { id: 1, ProductName: "John Doe theBadman", Category: "Electronics", UnitPrice: 100, InStock: 10, Discount: "20%", Date: "12/09/2024", TotalValue: 40, action: "more" },
+  { id: 2, ProductName: "Jane Smith", Category: "Electronics", UnitPrice: 450, InStock: 20, Discount: "15%", Date: "10/09/2024", TotalValue: 9000, action: "more" },
+  { id: 3, ProductName: "Gaming Chair", Category: "Furniture", UnitPrice: 250, InStock: 5, Discount: "5%", Date: "01/09/2024", TotalValue: 1250, action: "more" },
+  { id: 4, ProductName: "Shoes Nike Air", Category: "Fashion", UnitPrice: 75, InStock: 40, Discount: "10%", Date: "18/08/2024", TotalValue: 3000, action: "more" },
 ];
 
-const columns = [
-  { field: "id", headerName: "Sale", width: 70 },
-  { field: "ProductName", headerName: "Product Name", width: 130 },
-  { field: "Category", headerName: "Category", width: 90 },
-  { field: "UnitPrice", headerName: "Unit Price (FRW)", width: 200 },
-  { field: "InStock", headerName: "In Stock", width: 160 },
-  { field: "Discount", headerName: "Discount", width: 120 },
-  { field: "Date", headerName: "Date", width: 120 },
-  { field: "TotalValue", headerName: "Total Value", width: 120 },
-  { field: "action", headerName: "View", width: 10 },
-];
+const DataTable = () => {
+  const navigation = useRouter();
+  const [search, setSearch] = useState("");
 
+  const handleRowClick = (id) => {
+    navigation.push(`/inventory/sales/${id}`);
+  };
 
+  const filteredRows = rows.filter((row) =>
+    row.ProductName.toLowerCase().includes(search.toLowerCase())
+  );
 
-const DataTable = () =>{
+  return (
+    <Paper sx={{ width: "100%", overflow: "hidden" }}>
+      {/* Toolbar Header */}
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          borderBottom: "1px solid #ddd",
+          background: "#fafafa",
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          Sales Records
+        </Typography>
 
-    const navigation = useRouter()
-    return(<>
-       <DataGrid
-                  rows={rows}
-                  columns={columns}
-                  hideFooter={true}
-                  autoPageSize={false}
-                  disableColumnResize
-                  disableRowSelectionOnClick
-                  onRowClick={(params)=>{
-                  navigation.push(`/inventory/sales/${params.id}`)
-                  }}
-                  rowHeight={40}
-                    sx={{
-                         "& .MuiDataGrid-columnHeaders": {
-                         backgroundColor: "#1976d2",
-                         color: "gray",
-                         fontSize: 16,
-                         fontWeight: "extrabold",
-                       },
-                       "& .MuiDataGrid-row:hover": {
-                         backgroundColor: "#f5f5f5",
-                         color:"black"
-                       },
-                       "& .MuiDataGrid-cell": {
-                         borderBottom: "1px solid #ddd",
-                       },
-                     }}
-                />
-    
-    
-    </>)
-}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {/* Search box */}
+          <TextField
+            size="small"
+            variant="outlined"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+            }}
+          />
 
-export default DataTable
+          {/* Action Icons */}
+          <IconButton><ViewColumnIcon /></IconButton>
+          <IconButton><FilterListIcon /></IconButton>
+          <IconButton><GetAppIcon /></IconButton>
+          <IconButton><SettingsIcon /></IconButton>
+        </Box>
+      </Toolbar>
+
+      {/* Table */}
+      <TableContainer sx={{ maxHeight: 600 }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#1976d2" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Sale</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Product Name</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Category</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Unit Price (FRW)</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>In Stock</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Discount</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Date</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Total Value</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>View</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {filteredRows.map((row) => (
+              <TableRow
+                key={row.id}
+                hover
+                sx={{
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#f5f5f5" },
+                }}
+                onClick={() => handleRowClick(row.id)}
+              >
+                <TableCell>{row.id}</TableCell>
+                <TableCell>{row.ProductName}</TableCell>
+                <TableCell>{row.Category}</TableCell>
+                <TableCell>{row.UnitPrice}</TableCell>
+                <TableCell>{row.InStock}</TableCell>
+                <TableCell>{row.Discount}</TableCell>
+                <TableCell>{row.Date}</TableCell>
+                <TableCell>{row.TotalValue}</TableCell>
+                <TableCell sx={{ color: "blue", fontWeight: "bold" }}>
+                  {row.action}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Paper>
+  );
+};
+
+export default DataTable;

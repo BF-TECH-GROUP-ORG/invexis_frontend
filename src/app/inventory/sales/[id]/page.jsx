@@ -40,8 +40,6 @@ const OrderDetails = () => {
 
   return (
     <>
-     <TopNavBar />
-      <SideBar />
     <section className="">
 
       <div className="flex justify-between">
