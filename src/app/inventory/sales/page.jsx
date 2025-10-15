@@ -1,6 +1,4 @@
 "use client";
-import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
 import { Trash, DownloadCloud } from "lucide-react";
 import { Jost } from "next/font/google";
 import DataTable from "./table";
@@ -16,11 +14,9 @@ const SalesPage = () => {
     { id: 2, name: "Export", icon: <DownloadCloud size={18} /> },
   ];
 
-  const navigation = useRouter();
 
   return (
     <>
-     
      <section className="w-full  inline-grid" >
       <div className="space-y-10" >
       <div className="space-y-5">
