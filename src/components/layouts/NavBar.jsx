@@ -186,12 +186,7 @@ export default function TopNavBar({ expanded = true }) {
                 <button className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100">
                   <User className="w-5 h-5 text-gray-500" /> Profile
                 </button>
-                <button className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100">
-                  <Folder className="w-5 h-5 text-gray-500" /> Projects
-                  <span className="ml-auto text-xs bg-red-100 text-red-600 px-2 rounded-full">
-                    3
-                  </span>
-                </button>
+
                 <button className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100">
                   <Shield className="w-5 h-5 text-gray-500" /> Security
                 </button>

@@ -42,14 +42,14 @@ const navItems = [
       { title: "Details", path: "/inventory/products/details" }
     ],
   },
-  //   {
-  //   title: "Sales",
-  //   icon: <ShoppingBag size={22} />,
-  //   children: [
-  //     { title: "List", path: "/inventory/sales" },
-  //     { title: "Details", path: "/inventory/blog/post" }
-  //   ],
-  // },
+    {
+    title: "Sales",
+    icon: <ShoppingBag size={22} />,
+    children: [
+      { title: "List", path: "/inventory/sales" },
+      { title: "Details", path: "/inventory/blog/post" }
+    ],
+  },
     {
     title: "Purchase",
     icon: <Briefcase size={22} />,
@@ -63,7 +63,7 @@ const navItems = [
     icon: <ShoppingCart size={22} />,
     children: [
       { title: "Orders", path: "/inventory/orders/list" },
-      { title: "Products", path: "/inventory/orders/details" }
+      { title: "Products", path: "/inventory/products" }
     ],
   },
   {

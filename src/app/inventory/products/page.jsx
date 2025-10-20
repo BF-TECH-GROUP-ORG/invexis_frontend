@@ -1,5 +1,5 @@
 "use client";
-import useProducts from "../../hooks/useProducts";
+import useProducts from "@/hooks/useProducts";
 
 export default function ProductsPage() {
   const { products, loading, addProduct, removeProduct } = useProducts();

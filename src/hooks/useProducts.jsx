@@ -1,7 +1,7 @@
 // fetch/create/update/delete products.
 
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts, addProduct, removeProduct } from "../features/products/productSlice";
+import { fetchProducts, addProduct} from "@/features/products/productSlice";
 import { useEffect } from "react";
 
 export default function useProducts() {
