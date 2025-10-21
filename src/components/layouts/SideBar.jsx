@@ -15,24 +15,24 @@ import {
   Map,
   Menu,
   ChevronDown,
+  AlertCircle
 } from "lucide-react";
 
 const navItems = [
-  { title: "App", icon: <LayoutDashboard size={22} /> },
+  { title: "Dashboard", icon: <LayoutDashboard size={22} /> },
   { title: "Ecommerce", icon: <ShoppingBag size={22} /> },
   { title: "Analytics", icon: <BarChart3 size={22} /> },
-  { title: "Banking", icon: <Users size={22} /> },
-  { title: "Booking", icon: <Package size={22} /> },
-  { title: "File", icon: <FileSpreadsheet size={22} /> },
-  { title: "Course", icon: <Briefcase size={22} /> },
+  { title: "Companies", icon: <Users size={22} /> },
+  { title: "Billng & Payments", icon: <Package size={22} /> },
+  { title: "Reports", icon: <FileSpreadsheet size={22} /> },
 
   {
-    title: "User",
+    title: "Users",
     icon: <Users size={22} />,
     children: [{ title: "List" }, { title: "Profile" }],
   },
   {
-    title: "Product",
+    title: "Products",
     icon: <Package size={22} />,
     children: [{ title: "List" }, { title: "Details" }],
   },
@@ -52,13 +52,13 @@ const navItems = [
     children: [{ title: "List" }, { title: "Post" }],
   },
   {
-    title: "Job",
+    title: "Audit Logs",
     icon: <Briefcase size={22} />,
     children: [{ title: "List" }, { title: "Details" }],
   },
   {
-    title: "Tour",
-    icon: <Map size={22} />,
+    title: "Announcements",
+    icon: <AlertCircle size={22} />,
     children: [{ title: "List" }, { title: "Details" }],
   },
 ];
@@ -113,8 +113,8 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
     <>
       <aside
         className={`${
-          expanded ? "w-64" : "w-20"
-        } h-screen bg-white border-r flex flex-col fixed top-0 left-0 overflow-y-auto transition-[width] duration-400 ease-in-out scrollbar-thin scrollbar-thumb-gray-300 z-30`}
+          expanded ? "w-64" : "w-16"
+        } h-screen bg-[#081422] border-r flex flex-col fixed top-0 left-0 overflow-y-auto overflow-x-hidden transition-[width] duration-400 ease-in-out scrollbar-thin scrollbar-thumb-gray-300 z-30`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b">
@@ -122,7 +122,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
             <button
               aria-label="toggle sidebar"
               onClick={() => setExpanded(!expanded)}
-              className="p-1 rounded hover:bg-gray-100 transition-transform duration-200 active:scale-95"
+              className="p-1 rounded text-white hover:bg-gray-100 hover:text-gray-900 transition-transform duration-200 active:scale-95"
             >
               <Menu size={22} />
             </button>
@@ -133,17 +133,17 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                   : "opacity-0 -translate-x-4 w-0"
               }`}
             >
-              <span className="font-bold text-lg select-none whitespace-nowrap">
-                STOCK <span className="text-orange-600 font-extrabold">IT</span>
+              <span className="font-bold text-lg text-white select-none whitespace-nowrap">
+                STOCK <span className="text-orange-500 font-extrabold">IT</span>
               </span>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-2 py-4 text-gray-700">
+        <nav className="flex-1 px-2 py-4 text-white">
           <h3
-            className={`text-xs font-semibold text-gray-400 px-2 mb-2 transition-opacity duration-300 ${
+            className={`text-xs font-semibold text-gray-400 px-3 mb-2 transition-opacity duration-300 ${
               expanded ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -154,10 +154,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
             <div
               key={item.title}
               onClick={() => setActive(item.title)}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors duration-200 ${
+              className={`flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-colors duration-200 ${
                 active === item.title
-                  ? "bg-orange-100 text-orange-600 font-semibold"
-                  : "hover:bg-gray-100"
+                  ? "bg-orange-500 text-white font-semibold"
+                  : "hover:bg-orange-500 "
               }`}
             >
               {item.icon}
@@ -189,7 +189,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
               onMouseLeave={handleHoverLeave}
             >
               <div
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-orange-500 cursor-pointer transition-colors duration-200"
                 onClick={() => expanded && item.children && toggleMenu(item.title)}
               >
                 <div className="flex items-center gap-3">
@@ -225,7 +225,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                       className={`text-left px-3 py-1 text-sm rounded cursor-pointer transition-colors duration-200 ${
                         active === child.title
                           ? "bg-orange-100 text-orange-600 font-semibold"
-                          : "text-gray-600 hover:bg-gray-50"
+                          : "text-gray-400 hover:bg-orange-500 hover:text-white"
                       }`}
                     >
                       {child.title}
@@ -244,10 +244,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
         createPortal(
           <div
             style={{ position: "fixed", top: hoverPosition.top, left: "80px" }}
-            className="w-44 bg-white shadow-lg border rounded-lg py-2 z-50 animate-fade-in"
+            className="w-44 bg-white  border rounded-lg py-2 z-50 animate-fade-in"
           >
             <div className="px-3 pb-2 border-b">
-              <div className="text-sm font-medium text-gray-700">{hoverMenu}</div>
+              <div className="text-sm font-bold text-gray-700">{hoverMenu}</div>
             </div>
             <div className="flex flex-col mt-2">
               {navItems

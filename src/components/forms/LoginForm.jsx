@@ -1,21 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
-import { IconButton, InputAdornment } from "@mui/material";
+import { IconButton, InputAdornment, CircularProgress } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
+import { loginUser } from "@/store/authActions";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(true); // default true until we check token
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  // 🚀 Check localStorage for token before rendering form
+  useEffect(() => {
+    const token = localStorage.getItem("auth")
+      ? JSON.parse(localStorage.getItem("auth"))?.token
+      : null;
+
+    if (token) {
+      router.replace("/inventory"); // redirect logged-in users
+    } else {
+      setLoading(false); // no token, show login form
+    }
+  }, [router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Email:", email, "Password:", password);
+    setError("");
+    setLoading(true);
+
+    try {
+      await dispatch(loginUser(email, password));
+      router.push("/inventory");
+    } catch (err) {
+      setError(err.message || "Login failed");
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center">
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
     <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white">
@@ -36,7 +74,7 @@ const LoginPage = () => {
         <FormWrapper
           title="Sign In"
           onSubmit={handleSubmit}
-          submitLabel="Sign In"
+          submitLabel={loading ? "Signing In..." : "Sign In"}
           submitIcon={<HiArrowRight />}
           fields={[
             {
@@ -84,6 +122,8 @@ const LoginPage = () => {
             },
           ]}
         />
+
+        {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
     </div>
   );

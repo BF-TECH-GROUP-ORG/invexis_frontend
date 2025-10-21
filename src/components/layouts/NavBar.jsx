@@ -1,107 +1,270 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Search,
-         Bell,
-         Users,
-         Settings,
-         ChevronDown,
-         } from "lucide-react";
+import { useState } from "react";
+import {
+  Search,
+  Bell,
+  Settings,
+  X,
+  Home,
+  User,
+  Shield,
+  Folder,
+} from "lucide-react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { logoutUser } from "@/store/authActions";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function TopNavBar({ expanded = true }) {
-  const [notifications] = useState(4);
+  const { user } = useSelector((state) => state.auth);
+  const [notifications] = useState([
+    {
+      id: 1,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
+    {
+      id: 2,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
+    {
+      id: 3,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
+  ]);
   const [profileOpen, setProfileOpen] = useState(false);
-  const profileRef = useRef(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const dispatch = useDispatch();
+  const router = useRouter();
 
-  useEffect(() => {
-    function onDocClick(e) {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
-
-  const sidebarRem = expanded ? 16 : 5;
-  const style = {
-    width: `calc(100% - ${sidebarRem}rem)`,
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    router.push("/auth/login");
   };
 
   return (
-    <header
-      className={`sticky top-0 z-40 flex items-center justify-between px-3 md:px-4 py-4
-        transition-all duration-300 ease-in-out bg-white/80 backdrop-blur-sm left-80`}
-      style={style}
-    >
-      <div className="flex items-center gap-2 min-w-0">
-        <div className="hidden sm:flex items-center gap-2 whitespace-nowrap min-w-0">
-          <span className="ml-1 px-2 py-1 font-semibold text-l rounded bg-gray-100 text-gray-600">
-            Admin
+    <>
+      {/* TOP NAVBAR */}
+      <header
+        className={`sticky top-0 z-40 flex items-center justify-between px-3 md:px-4 py-4 transition-all duration-300 ease-in-out bg-white/80 backdrop-blur-sm`}
+        style={{ marginLeft: expanded ? "16rem" : "5rem" }}
+      >
+        {/* Left */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="ml-1 px-2 py-1 font-semibold text-lg text-gray-600">
+            Welcome {user?.username || "USER"} !
           </span>
         </div>
-      </div>
 
-      <div className="flex-1" />
+        <div className="flex-1" />
 
-      <div className="flex items-center gap-4">
-        <div className="relative hidden sm:block">
-          <input
-            type="text"
-            placeholder="Search"
-            className="pl-8 pr-3 py-1 rounded bg-gray-100 text-sm 
-                       focus:outline-none focus:ring-2 focus:ring-orange-200 transition w-36 md:w-48 lg:w-64"
-            aria-label="Search"
-          />
-          <Search className="absolute left-2 top-1.5 w-4 h-4 text-gray-400" />
+        {/* Right */}
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <div className="relative hidden sm:block">
+            <input
+              type="text"
+              placeholder="Search"
+              className="pl-8 pr-3 py-2 rounded bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 transition w-36 md:w-48 lg:w-64"
+              aria-label="Search"
+            />
+            <Search className="absolute left-2 top-2 w-4 h-4 text-gray-400" />
+          </div>
+
+          {/* Notifications */}
+          <div className="relative">
+            <Bell
+              className="w-7 h-7 text-gray-500 hover:text-orange-500 cursor-pointer"
+              onClick={() => setNotifOpen(true)}
+            />
+            {notifications.length > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full px-1.5 py-1 flex items-center justify-center leading-none transform translate-x-1 animate-pulse"
+                aria-hidden
+              >
+                {notifications.length}
+              </span>
+            )}
+          </div>
+
+          {/* Settings */}
+          <Settings className="hidden md:block w-7 h-7 text-gray-500 hover:text-orange-500 cursor-pointer" />
+
+          {/* Profile */}
+          <div>
+            <Image
+              src={user?.profileImage || "/images/user3.jpg"}
+              alt={user?.username || "User Avatar"}
+              width={40}
+              height={40}
+              className="w-12 h-12 rounded-full border-2 border-orange-200 cursor-pointer object-cover"
+              onClick={() => setProfileOpen(true)}
+            />
+          </div>
         </div>
-   
+      </header>
 
-        {/* Notifications */}
-        <div className="relative">
-          <Bell className="w-5 h-5 text-gray-500" />
-          {notifications > 0 && (
-            <span
-              className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full 
-                         px-1.5 leading-none transform translate-x-1 animate-pulse"
-              aria-hidden
+      {/* ================= PROFILE SIDEBAR ================= */}
+      <AnimatePresence>
+        {profileOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/0 z-40"
+              onClick={() => setProfileOpen(false)}
+            />
+
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
+              className="fixed top-0 right-0 w-full sm:w-96 md:w-80 h-full bg-white shadow-lg z-50 overflow-y-auto"
             >
-              {notifications}
-            </span>
-          )}
-        </div>
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b">
+                <h2 className="text-lg font-semibold">Profile</h2>
+                <button onClick={() => setProfileOpen(false)}>
+                  <X className="w-6 h-6 text-gray-600 hover:text-orange-500" />
+                </button>
+              </div>
 
-        {/* Users & Settings (hide settings on xs) */}
-        <Settings className="hidden md:block w-5 h-5 text-gray-500" />
+              {/* User Info */}
+              <div className="flex flex-col items-center mt-6">
+                <Image
+                  src={user?.profileImage || "/images/user3.jpg"}
+                  alt={user?.username || "User Avatar"}
+                  width={90}
+                  height={90}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-orange-500"
+                />
+                <h3 className="mt-3 text-lg font-bold">
+                  {user?.username || "Guest User"}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {user?.email || "No email available"}
+                </p>
 
-        {/* Profile */}
-        <div className="relative" ref={profileRef}>
-          <img
-            src="/avatar.jpg"
-            alt="Profile"
-            className="w-8 h-8 rounded-full border-2 border-orange-200 cursor-pointer"
-            onClick={() => setProfileOpen((s) => !s)}
-          />
+                {/* Extra Avatars (optional fallback) */}
+                <div className="flex gap-2 mt-4">
+                  {user?.team?.length
+                    ? user.team.map((member, idx) => (
+                        <Image
+                          key={idx}
+                          src={
+                            member.profileImage || "/images/user3.jpg"
+                          }
+                          alt={member.username || "Team member"}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ))
+                    : [1, 2, 3].map((_, idx) => (
+                        <Image
+                          key={idx}
+                          src="/images/default-avatar.png"
+                          alt="Team placeholder"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ))}
+                  <button className="w-8 h-8 flex items-center justify-center border rounded-full text-gray-500">
+                    +
+                  </button>
+                </div>
+              </div>
 
-          {profileOpen && (
-            <div
-              className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50 transition-opacity duration-200"
-              role="menu"
+              {/* Navigation */}
+              <nav className="mt-10 px-4">
+                <Link
+                  href="/"
+                  className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100"
+                >
+                  <Home className="w-5 h-5 text-gray-500" /> Home
+                </Link>
+                <Link
+                  href="/users/profile"
+                  className="flex items-center gap-3 w-full px-4 py-2 rounded hover:bg-gray-100"
+                >
+                  <User className="w-5 h-5 text-gray-500" /> Profile
+                </Link>
+              </nav>
+
+              {/* Logout */}
+              <div className="px-4 py-10">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-center py-2 bg-red-500 text-white font-semibold hover:bg-white hover:text-red-500 hover:border-red-500 hover:border-2 rounded-lg"
+                >
+                  Logout
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ================= NOTIFICATION SIDEBAR ================= */}
+      <AnimatePresence>
+        {notifOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/0 z-40"
+              onClick={() => setNotifOpen(false)}
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
+              className="fixed top-0 right-0 w-full sm:w-96 md:w-80 h-full bg-white shadow-lg z-50 overflow-y-auto"
             >
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Profile
-              </button>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Settings
-              </button>
-              <div className="border-t" />
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
+              <div className="flex items-center justify-between p-5 border-b">
+                <h2 className="text-lg font-semibold">Notifications</h2>
+                <button onClick={() => setNotifOpen(false)}>
+                  <X className="w-6 h-6 text-gray-600 hover:text-orange-500" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
+                  >
+                    <div className="w-12 h-12 bg-gray-300 rounded-lg" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm">{n.title}</h4>
+                      <p className="text-xs text-gray-500">{n.desc}</p>
+                    </div>
+                    <span className="text-xs text-gray-400">{n.time}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
