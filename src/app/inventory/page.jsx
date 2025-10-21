@@ -1,5 +1,6 @@
-"use client";
+import React from "react";
 
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import SideBar from "@/components/layouts/SideBar";
 import NavBar from "@/components/layouts/NavBar";
@@ -43,4 +44,12 @@ export default function Layouts({ children }) {
       </div>
     </ProtectedRoute>
   );
+=======
+function Inventory() {
+  return(
+  <div>
+    <p>The Overview Dashboard</p>
+  </div>);
+>>>>>>> 07d06139c6103b5435546a7f990fd24df9d7efdf
 }
+export default Inventory;

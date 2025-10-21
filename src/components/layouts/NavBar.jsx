@@ -63,6 +63,7 @@ export default function TopNavBar({ expanded = true }) {
             Welcome {user?.username || "USER"} !
           </span>
         </div>
+        
 
         <div className="flex-1" />
 
