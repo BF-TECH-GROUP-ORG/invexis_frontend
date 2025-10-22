@@ -1,11 +1,25 @@
+import { BarChart } from "@mui/icons-material"
+import Link from "next/link"
 const FirstCard = () =>{
     return(
         <>
-         <div className="ring ring-gray-200 p-4 rounded space-y-5 bg-white">
-            <h1 className="">total Stock value (frw) </h1>
-            <p className="text-2xl font-black">40,000,000</p>
-            <p className="text-gray-400">Now Our Inventory is on <span className="px-2 py-1 rounded-full text-green-600 bg-green-200">60%</span> </p>
-         </div>
+         <div className="ring  flex  ring-gray-200 p-4 rounded  bg-white">
+                 <div className="w-full grid grid-rows-1">
+                     <div className=" h-full">
+                           <BarChart className="text-orange-400  text-xl" />
+                     </div>
+                     <div>
+                              <h1>Total Stock Revenue</h1>
+                              <p className="text-2xl font-black">5,000,000</p>
+                          </div>
+                    
+                 </div>
+                     
+                 <div className="w-full flex justify-end items-end">
+                   <Link href={`/inventory/products/list`}  ><button className="cursor-pointer hover:text-gray-500">Inventory</button> </Link>
+                 </div>
+         
+                  </div>
         </>
     )
 }
