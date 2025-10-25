@@ -18,6 +18,7 @@ const [printReceipt, setPrintReceipt] = useState(false);
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [modalType, setModalType] = useState("");
 const [modalMessage, setModalMessage] = useState("");
+//git 
 // Validation errors
 const [errors, setErrors] = useState({});
 

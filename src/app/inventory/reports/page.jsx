@@ -111,7 +111,7 @@ export default function ReportDashboard() {
   const handlePrint = () => window.print();
 
   return (
-    <div className="min-h-screen bg-[#f9fafc] text-gray-800 px-4 sm:px-5 md:px-8 py-6 overflow-hidden">
+    <div className="min-h-screen bg-[#f9fafc] text-gray-800 px-1 sm:px-1 md:px-1 py-6 overflow-hidden">
       {/* ───────── HEADER ───────── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-lg sm:text-2xl font-semibold">Report Dashboard</h1>

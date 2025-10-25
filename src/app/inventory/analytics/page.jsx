@@ -1,4 +1,7 @@
 import AnalyticsCards from "@/components/visuals/analyticsCards"
+import GraphSection from "@/components/visuals/graphsPage"
+import TopSellingProducts from "./tsp/page"
+
 
 const AnalyticsPage = () =>{
     return(
@@ -8,6 +11,13 @@ const AnalyticsPage = () =>{
         <div>
             <AnalyticsCards />
         </div>
+        <div>
+            <GraphSection />
+        </div>
+        <div>
+            <TopSellingProducts />
+        </div>
+
         </section>
         </>
     )
