@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   IconButton,
   InputAdornment,
@@ -12,12 +14,16 @@ import {
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
 import { loginUser } from "@/store/authActions";
-import { useRouter } from "next/navigation";
 import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
+import { selectTheme } from "@/features/settings/settingsSlice";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("auth");
+  const tForm = useTranslations("form");
+  const theme = useSelector(selectTheme); // Get theme from Redux
 
   const [identifier, setIdentifier] = useState(""); 
   const [password, setPassword] = useState("");
@@ -46,9 +52,9 @@ const LoginPage = () => {
       ? JSON.parse(localStorage.getItem("auth"))?.token
       : null;
 
-    if (token) router.replace("/inventory");
+    if (token) router.replace(`/${locale}/inventory`);
     else setLoading(false);
-  }, [router]);
+  }, [router, locale]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,7 +68,7 @@ const LoginPage = () => {
     setSubmitting(true);
     try {
       await dispatch(loginUser(identifier, password));
-      router.push("/inventory");
+      router.push(`/${locale}/inventory`);
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -95,30 +101,30 @@ const LoginPage = () => {
       {/* Right Side - Login Form */}
       <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center items-center p-6 md:p-10">
         <FormWrapper
-          title="Welcome Back 👋"
-          desc="Sign in with your account credentials"
+          title={t("login.title")}
+          desc={t("login.subtitle")}
           onSubmit={handleSubmit}
-          submitLabel={submitting ? "Signing In..." : "Sign In"}
+          submitLabel={submitting ? "Signing In..." : t("loginButton")}
           submitIcon={<HiArrowRight />}
           isLoading={submitting}
           error={error}
           oauthOptions={["google", "apple", "phone", "otp"]}
           extraLinks={[
-            { href: "/signup", label: "Don't have an account? Sign Up" },
+            { href: `/${locale}/auth/signup`, label: "Don't have an account? Sign Up" },
           ]}
           showTerms={true}
           acceptedTerms={acceptTerms}
-          onAcceptTerms={handleTermsClick} // trigger popup here
+          onAcceptTerms={handleTermsClick}
           fields={[
             {
-              label: "Email or Username",
+              label: tForm("email"),
               type: "text",
               value: identifier,
               onChange: (e) => setIdentifier(e.target.value),
               required: true,
             },
             {
-              label: "Password",
+              label: tForm("password"),
               type: showPassword ? "text" : "password",
               value: password,
               onChange: (e) => setPassword(e.target.value),
@@ -126,10 +132,10 @@ const LoginPage = () => {
               before: (
                 <div className="flex justify-end -mb-2">
                   <Link
-                    href="/auth/reset-password/request"
+                    href={`/${locale}/auth/reset-password/request`}
                     className="text-sm text-blue-600 hover:underline font-metropolis"
                   >
-                    Forgot your password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
               ),

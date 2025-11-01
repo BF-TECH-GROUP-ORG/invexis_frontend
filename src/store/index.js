@@ -6,7 +6,7 @@ import productReducer from "../features/products/productSlice";
 import stockReducer from "../features/stock/stockSlice";
 import salesReducer from "../features/sales/salesSlice";
 import reportReducer from "../features/reports/reportSlice";
-import settingsReducer from "../features/settings/settingsSlice";
+import settingsReducer from "@/features/settings/settingsSlice";
 import onboardingReducer from "../features/onboarding/onboardingSlice";
 import sessionReducer from "../features/session/sessionSlice";
 
