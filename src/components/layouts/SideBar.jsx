@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "next-intl"
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -30,7 +31,7 @@ const navItems = [
     title: "Workers",
     icon: <Users size={22} />,
     children: [
-      { title: "List", path: "/inventory/users/list" },
+      { title: "List", path: "/inventory/workers/list" },
       { title: "Profile", path: "/inventory/users/profile" }
     ],
   },
@@ -95,6 +96,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
   const [hoverPosition, setHoverPosition] = useState({ top: 0 });
 
   const pathname = usePathname();
+  const locale = useLocale();
 
   useEffect(() => {
     if (!isControlled) {
@@ -136,7 +138,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
     <>
       <aside
         className={`${
-          expanded ? "w-64" : "w-20"
+          expanded ? "w-64" : "w-16"
         } h-screen bg-white border-r flex flex-col fixed top-0 left-0 overflow-y-auto transition-[width] duration-400 ease-in-out scrollbar-thin scrollbar-thumb-gray-300 z-30`}
       >
         {/* Header */}
@@ -157,7 +159,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
               }`}
             >
               <span className="font-bold text-lg text-gray-950 select-none whitespace-nowrap">
-                Invex<span className="text-orange-500 font-extrabold">Is</span>
+                INVEX<span className="text-orange-500 font-extrabold">iS</span>
               </span>
             </div>
           </div>
@@ -175,7 +177,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
           {navItems.slice(0, 6).map((item) => (
             <div className="p-0.5" key={item.title}>
               <Link
-                href={item.path}
+                href={`/${locale}${item.path}`}
                 className={`flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-colors duration-200 ${
                   pathname === item.path
                     ? "bg-orange-500 text-white font-semibold"
@@ -244,7 +246,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                   {item.children.map((child) => (
                     <Link
                       key={child.title}
-                      href={child.path}
+                      href={`/${locale}${child.path}`}
                       className={`text-left px-3 py-1 text-sm rounded cursor-pointer transition-colors duration-200 ${
                         pathname === child.path
                           ? "bg-orange-100 text-orange-600 font-semibold"

@@ -1,0 +1,225 @@
+{
+  "app": {
+    "title": "Invexis"
+  },
+  "nav": {
+    "dashboard": "Dashibodi",
+    "inventory": "Ububiko",
+    "companies": "Amasosiyete",
+    "products": "Ibicuruzwa",
+    "reports": "Raporo",
+    "sales": "Ubucuruzi",
+    "settings": "Igenamiterere",
+    "stock": "Imbiko",
+    "workers": "Abakozi",
+    "language": "Ururimi"
+  },
+  "welcome": {
+    "title": "Murakaza neza"
+  },
+  "onboarding": {
+    "skip": "Simbuka",
+    "back": "Garuka",
+    "next": "Komeza",
+    "getStarted": "Tangira",
+    "welcomeTitle": "Murakaza neza muri Invexis",
+    "welcomeDesc": "Cunga ibicuruzwa, imbiko, n'ubucuruzi byose kuri platform imwe.",
+    "smartTitle": "Ububiko & Ubucuruzi bw'Ubwenge",
+    "smartDesc": "Kurikirana imbiko zinjira/zasohotse, kora fagitire, kandi ukurikire raporo.",
+    "rolesTitle": "Imirimo & Ubufatanye",
+    "rolesDesc": "Super Admin, Umuyobozi w'Isosiyete, n'Abakozi — buri wese afite uruhare rwe.",
+    "growTitle": "Kura Ubucuruzi Bwawe",
+    "growDesc": "Fungura e-commerce, ibitekerezo bya AI, n'ibikoresho byo kwamamaza uko ukura."
+  },
+  "dashboard": {
+    "title": "Dashibodi"
+  },
+  "account": {
+    "profile": {
+      "title": "Umwirondoro"
+    },
+    "editProfile": {
+      "title": "Hindura umwirondoro"
+    },
+    "sessions": {
+      "title": "Amasessiyo"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Kwinjira",
+      "subtitle": "Shyiramo amakuru yawe kugirango ukomeze"
+    },
+    "signup": {
+      "title": "Kwiyandikisha",
+      "subtitle": "Hanga konti nshya",
+      "noAccount": "Nta konti ufite? Iyandikishe"
+    },
+    "verifyEmail": {
+      "title": "Emeza imeyili",
+      "subtitle": "Turi kugenzura aderesi ya imeyili yawe...",
+      "verifying": "Kugenzura..."
+    },
+    "googleCallback": {
+      "title": "Kwinjira ukoresheje Google"
+    },
+    "otp": {
+      "request": {
+        "title": "Saba OTP",
+        "subtitle": "Shyiramo imeyili cyangwa telefoni yawe kugira ngo wakire ijambo ry'ibanga ry'igihe kimwe",
+        "label": "Imeyili cyangwa Telefoni",
+        "sendButton": "Ohereza OTP",
+        "sending": "Kohereza..."
+      },
+      "verify": {
+        "title": "Emeza OTP",
+        "subtitle": "Shyiramo OTP yoherejwe ku imeyili cyangwa telefoni yawe",
+        "label": "Ijambo ry'ibanga ry'igihe kimwe",
+        "verifyButton": "Emeza OTP",
+        "verifying": "Kugenzura..."
+      }
+    },
+    "reset": {
+      "request": {
+        "title": "Saba guhindura ijambo ry'ibanga",
+        "subtitle": "Nyamuneka shyiramo aderesi ya imeyili yahujwe n'ikonti yawe kandi tuzakohereza kiungo cyo gusubiramo ijambo ry'ibanga ryawe.",
+        "sendButton": "Ohereza Kiungo",
+        "sending": "Kohereza..."
+      },
+      "reset": {
+        "title": "Hindura ijambo ry'ibanga",
+        "subtitle": "Shyiramo ijambo ry'ibanga rishya ryawe hepfo",
+        "newPassword": "Ijambo ry'ibanga Rishya",
+        "confirmNewPassword": "Emeza Ijambo ry'ibanga Rishya",
+        "resetButton": "Subiramo Ijambo ry'ibanga",
+        "resetting": "Kusubiramo..."
+      }
+    },
+    "loginButton": "Injira",
+    "signupButton": "Iyandikishe",
+    "logout": "Sohoka",
+    "forgotPassword": "Wibagiwe ijambo ry'ibanga?",
+    "rememberMe": "Wibuke",
+    "returnToLogin": "Subira ku Kwinjira"
+  },
+  "inventory": {
+    "title": "Ububiko",
+    "analytics": {
+      "title": "Isesengura"
+    },
+    "companies": {
+      "title": "Amasosiyete",
+      "listTitle": "Urutonde rw'amasosiyete",
+      "detailsTitle": "Amakuru y'isosiyete"
+    },
+    "products": {
+      "title": "Ibicuruzwa",
+      "listTitle": "Urutonde rw'ibicuruzwa",
+      "detailsTitle": "Ibisobanuro by'igicuruzwa",
+      "addTitle": "Ongeraho igicuruzwa",
+      "editTitle": "Hindura igicuruzwa"
+    },
+    "reports": {
+      "title": "Raporo"
+    },
+    "sales": {
+      "title": "Ubucuruzi"
+    },
+    "settings": {
+      "title": "Igenamiterere ry'ububiko"
+    },
+    "stock": {
+      "title": "Imbiko"
+    },
+    "workers": {
+      "title": "Abakozi"
+    }
+  },
+  "pages": {
+    "editProfile": {
+      "title": "Hindura umwirondoro"
+    },
+    "requestOtp": {
+      "title": "Saba OTP"
+    },
+    "requestResetPassword": {
+      "title": "Saba guhindura ijambo ry'ibanga"
+    },
+    "resetPassword": {
+      "title": "Hindura ijambo ry'ibanga"
+    },
+    "verifyEmail": {
+      "title": "Emeza imeyili"
+    },
+    "verifyOtp": {
+      "title": "Emeza OTP"
+    },
+    "workersList": {
+      "title": "Abakozi"
+    }
+  },
+  "form": {
+    "email": "Imeyili",
+    "password": "Ijambo ry'ibanga",
+    "confirmPassword": "Emeza ijambo ry'ibanga",
+    "name": "Amazina",
+    "company": "Isosiyete",
+    "phone": "Telefoni",
+    "search": "Shakisha",
+    "submit": "Ohereza",
+    "save": "Bika",
+    "cancel": "Hagarika",
+    "add": "Ongeraho",
+    "edit": "Hindura",
+    "delete": "Siba",
+    "needHelp": "Ukeneye ubufasha?",
+    "termsOfService": "Amabwiriza y'serivisi",
+    "privacyPolicy": "Politiki y'ibanga",
+    "agreeTo": "Nemeye",
+    "and": "na",
+    "or": "cyangwa"
+  },
+  "toast": {
+    "saved": "Byabitswe neza",
+    "deleted": "Byasibwe neza",
+    "error": "Habaye ikosa"
+  },
+  "labels": {
+    "twoFaEnabled": "2FA yashyizweho"
+  },
+  "buttons": {
+    "enable": "Shyiraho",
+    "disable": "Hakuweho",
+    "agree": "Emeza",
+    "cancel": "Hagarika"
+  },
+  "common": {
+    "noData": "Nta makuru aboneka",
+    "loading": "Birimo gupakira...",
+    "ok": "OK"
+  },
+  "home": {
+    "login": "Injira",
+    "register": "Iyandikishe",
+    "home": "Ahabanza",
+    "about": "Ibitwerekeye",
+    "faq": "FAQ",
+    "services": "Serivisi",
+    "hero": {
+      "title1": "Reka gupfusha ubusa igihe",
+      "title2": "mu byanditswe by'intoki",
+      "subtitle": "Ongera umusaruro, ubone umwanya n'amafaranga ukoresheje ubu buryo bwo gucunga ububiko.",
+      "getStarted": "Tangira"
+    },
+    "stats": {
+      "users": "Abakoresha",
+      "system": "Sisitemu",
+      "satisfaction": "Urwego rwo kunyurwa",
+      "uptime": "Garanti yo gukora"
+    }
+  },
+  "termsPopup": {
+    "title": "Amategeko & Itegeko ry'Ibanga",
+    "description": "Nyamuneka soma kandi wemere Amategeko yacu & Amabwiriza hamwe Itegeko ry'Ibanga mbere yo kuendelea."
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "app": {
+    "title": "Invexis"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "inventory": "Inventaire",
+    "companies": "Entreprises",
+    "products": "Produits",
+    "reports": "Rapports",
+    "sales": "Ventes",
+    "settings": "Paramètres",
+    "stock": "Stock",
+    "workers": "Employés",
+    "language": "Langue"
+  },
+  "welcome": {
+    "title": "Bienvenue"
+  },
+  "onboarding": {
+    "skip": "Passer",
+    "back": "Précédent",
+    "next": "Suivant",
+    "getStarted": "Commencer",
+    "welcomeTitle": "Bienvenue sur Invexis",
+    "welcomeDesc": "Gérez produits, stocks et ventes sur une seule plateforme.",
+    "smartTitle": "Inventaire & Ventes intelligents",
+    "smartDesc": "Suivez les entrées/sorties, générez des factures et surveillez les rapports.",
+    "rolesTitle": "Rôles & Collaboration",
+    "rolesDesc": "Super Admin, Admin Entreprise et Employés — chacun a son rôle.",
+    "growTitle": "Faites grandir votre entreprise",
+    "growDesc": "Débloquez l’e-commerce, l’IA et les outils marketing en grandissant."
+  },
+  "dashboard": {
+    "title": "Tableau de bord"
+  },
+  "account": {
+    "profile": {
+      "title": "Profil"
+    },
+    "editProfile": {
+      "title": "Modifier le profil"
+    },
+    "sessions": {
+      "title": "Sessions"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Entrez vos identifiants pour continuer"
+    },
+    "signup": {
+      "title": "Inscription",
+      "subtitle": "Créer un nouveau compte",
+      "noAccount": "Vous n'avez pas de compte ? Inscrivez-vous"
+    },
+    "verifyEmail": {
+      "title": "Vérifier l'e-mail",
+      "subtitle": "Nous vérifions votre adresse e-mail...",
+      "verifying": "Vérification..."
+    },
+    "googleCallback": {
+      "title": "Connexion avec Google"
+    },
+    "otp": {
+      "request": {
+        "title": "Demander un OTP",
+        "subtitle": "Entrez votre e-mail ou téléphone pour recevoir un mot de passe à usage unique",
+        "label": "E-mail ou Téléphone",
+        "sendButton": "Envoyer OTP",
+        "sending": "Envoi en cours..."
+      },
+      "verify": {
+        "title": "Vérifier l'OTP",
+        "subtitle": "Entrez l'OTP envoyé à votre e-mail ou téléphone",
+        "label": "Mot de passe à usage unique",
+        "verifyButton": "Vérifier OTP",
+        "verifying": "Vérification..."
+      }
+    },
+    "reset": {
+      "request": {
+        "title": "Réinitialiser le mot de passe",
+        "subtitle": "Veuillez entrer l'adresse e-mail associée à votre compte et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+        "sendButton": "Envoyer le lien",
+        "sending": "Envoi en cours..."
+      },
+      "reset": {
+        "title": "Réinitialiser le mot de passe",
+        "subtitle": "Entrez votre nouveau mot de passe ci-dessous",
+        "newPassword": "Nouveau mot de passe",
+        "confirmNewPassword": "Confirmer le nouveau mot de passe",
+        "resetButton": "Réinitialiser le mot de passe",
+        "resetting": "Réinitialisation..."
+      }
+    },
+    "loginButton": "Se connecter",
+    "signupButton": "S'inscrire",
+    "logout": "Se déconnecter",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "returnToLogin": "Retour à la connexion"
+  },
+  "inventory": {
+    "title": "Inventaire",
+    "analytics": {
+      "title": "Analyses"
+    },
+    "companies": {
+      "title": "Entreprises",
+      "listTitle": "Liste des entreprises",
+      "detailsTitle": "Détails de l'entreprise"
+    },
+    "products": {
+      "title": "Produits",
+      "listTitle": "Liste des produits",
+      "detailsTitle": "Détails du produit",
+      "addTitle": "Ajouter un produit",
+      "editTitle": "Modifier le produit"
+    },
+    "reports": {
+      "title": "Rapports"
+    },
+    "sales": {
+      "title": "Ventes"
+    },
+    "settings": {
+      "title": "Paramètres d'inventaire"
+    },
+    "stock": {
+      "title": "Stock"
+    },
+    "workers": {
+      "title": "Employés"
+    }
+  },
+  "pages": {
+    "editProfile": {
+      "title": "Modifier le profil"
+    },
+    "requestOtp": {
+      "title": "Demander un OTP"
+    },
+    "requestResetPassword": {
+      "title": "Demander la réinitialisation du mot de passe"
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe"
+    },
+    "verifyEmail": {
+      "title": "Vérifier l'e-mail"
+    },
+    "verifyOtp": {
+      "title": "Vérifier l'OTP"
+    },
+    "workersList": {
+      "title": "Employés"
+    }
+  },
+  "form": {
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "name": "Nom",
+    "company": "Entreprise",
+    "phone": "Téléphone",
+    "search": "Rechercher",
+    "submit": "Soumettre",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "needHelp": "Besoin d'aide ?",
+    "termsOfService": "Conditions d'utilisation",
+    "privacyPolicy": "Politique de confidentialité",
+    "agreeTo": "J'accepte les",
+    "and": "et",
+    "or": "ou"
+  },
+  "toast": {
+    "saved": "Enregistré avec succès",
+    "deleted": "Supprimé avec succès",
+    "error": "Une erreur est survenue"
+  },
+  "labels": {
+    "twoFaEnabled": "2FA activé"
+  },
+  "buttons": {
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "agree": "Accepter",
+    "cancel": "Annuler"
+  },
+  "common": {
+    "noData": "Aucune donnée disponible",
+    "loading": "Chargement...",
+    "ok": "OK"
+  },
+  "home": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "home": "Accueil",
+    "about": "À propos",
+    "faq": "FAQ",
+    "services": "Services",
+    "hero": {
+      "title1": "Arrêtez de perdre du temps",
+      "title2": "dans les enregistrements manuels",
+      "subtitle": "Augmentez l'efficacité, économisez du temps et de l'argent avec ce système de gestion des stocks.",
+      "getStarted": "Commencer"
+    },
+    "stats": {
+      "users": "Utilisateurs",
+      "system": "Système",
+      "satisfaction": "Taux de satisfaction",
+      "uptime": "Garantie de disponibilité"
+    }
+  },
+  "termsPopup": {
+    "title": "Conditions générales et politique de confidentialité",
+    "description": "Veuillez consulter et accepter nos Conditions générales et notre Politique de confidentialité avant de continuer."
+  }
+}

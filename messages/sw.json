@@ -1,0 +1,225 @@
+{
+  "app": {
+    "title": "Invexis"
+  },
+  "nav": {
+    "dashboard": "Dashibodi",
+    "inventory": "Hesabu",
+    "companies": "Makampuni",
+    "products": "Bidhaa",
+    "reports": "Ripoti",
+    "sales": "Mauzo",
+    "settings": "Mipangilio",
+    "stock": "Hisa",
+    "workers": "Wafanyakazi",
+    "language": "Lugha"
+  },
+  "welcome": {
+    "title": "Karibu"
+  },
+  "onboarding": {
+    "skip": "Ruka",
+    "back": "Rudi nyuma",
+    "next": "Mbele",
+    "getStarted": "Anza",
+    "welcomeTitle": "Karibu Invexis",
+    "welcomeDesc": "Dhibiti bidhaa, hisa na mauzo yote kwenye jukwaa moja.",
+    "smartTitle": "Hesabu & Mauzo ya Akili",
+    "smartDesc": "Fuatilia hisa zinazoingia/nje, toa ankara na uangalie ripoti.",
+    "rolesTitle": "Majukumu & Ushirikiano",
+    "rolesDesc": "Msimamizi Mkuu, Msimamizi wa Kampuni na Wafanyakazi — kila mtu ana jukumu lake.",
+    "growTitle": "Kuza Biashara Yako",
+    "growDesc": "Fungua e-commerce, maarifa ya AI na zana za masoko unapokua."
+  },
+  "dashboard": {
+    "title": "Dashibodi"
+  },
+  "account": {
+    "profile": {
+      "title": "Profaili"
+    },
+    "editProfile": {
+      "title": "Hariri Profaili"
+    },
+    "sessions": {
+      "title": "Vikao"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Ingia",
+      "subtitle": "Weka taarifa zako ili kuendelea"
+    },
+    "signup": {
+      "title": "Jisajili",
+      "subtitle": "Unda akaunti mpya",
+      "noAccount": "Huna akaunti? Sajili"
+    },
+    "verifyEmail": {
+      "title": "Thibitisha Barua Pepe",
+      "subtitle": "Tunathibitisha anwani yako ya barua pepe...",
+      "verifying": "Tunathibitisha..."
+    },
+    "googleCallback": {
+      "title": "Kuingia kwa Google"
+    },
+    "otp": {
+      "request": {
+        "title": "Omba OTP",
+        "subtitle": "Ingiza barua pepe au nambari ya simu ili kupokea nenosiri la mara moja",
+        "label": "Barua pepe au Simu",
+        "sendButton": "Tuma OTP",
+        "sending": "Tunatumia..."
+      },
+      "verify": {
+        "title": "Thibitisha OTP",
+        "subtitle": "Ingiza OTP iliyotumwa kwa barua pepe au simu yako",
+        "label": "Nenosiri la Mara Moja",
+        "verifyButton": "Thibitisha OTP",
+        "verifying": "Tunathibitisha..."
+      }
+    },
+    "reset": {
+      "request": {
+        "title": "Omba Urejeshaji wa Nenosiri",
+        "subtitle": "Tafadhali ingiza anwani ya barua pepe iliyohusishwa na akaunti yako na tutakuwasilisha kiungo ili kurekebisha nenosiri lako.",
+        "sendButton": "Tuma Kiungo",
+        "sending": "Tunatumia..."
+      },
+      "reset": {
+        "title": "Badilisha Nenosiri",
+        "subtitle": "Ingiza nenosiri lako jipya hapa chini",
+        "newPassword": "Nenosiri Jipya",
+        "confirmNewPassword": "Thibitisha Nenosiri Jipya",
+        "resetButton": "Rekebisha Nenosiri",
+        "resetting": "Tunarekebisha..."
+      }
+    },
+    "loginButton": "Ingia",
+    "signupButton": "Jisajili",
+    "logout": "Ondoka",
+    "forgotPassword": "Umesahau nenosiri?",
+    "rememberMe": "Nikumbuke",
+    "returnToLogin": "Rudi kwa Kuingia"
+  },
+  "inventory": {
+    "title": "Hesabu",
+    "analytics": {
+      "title": "Uchambuzi"
+    },
+    "companies": {
+      "title": "Makampuni",
+      "listTitle": "Orodha ya Makampuni",
+      "detailsTitle": "Maelezo ya Kampuni"
+    },
+    "products": {
+      "title": "Bidhaa",
+      "listTitle": "Orodha ya Bidhaa",
+      "detailsTitle": "Maelezo ya Bidhaa",
+      "addTitle": "Ongeza Bidhaa",
+      "editTitle": "Hariri Bidhaa"
+    },
+    "reports": {
+      "title": "Ripoti"
+    },
+    "sales": {
+      "title": "Mauzo"
+    },
+    "settings": {
+      "title": "Mipangilio ya Hesabu"
+    },
+    "stock": {
+      "title": "Hisa"
+    },
+    "workers": {
+      "title": "Wafanyakazi"
+    }
+  },
+  "pages": {
+    "editProfile": {
+      "title": "Hariri Profaili"
+    },
+    "requestOtp": {
+      "title": "Omba OTP"
+    },
+    "requestResetPassword": {
+      "title": "Omba Urejeshaji wa Nenosiri"
+    },
+    "resetPassword": {
+      "title": "Badilisha Nenosiri"
+    },
+    "verifyEmail": {
+      "title": "Thibitisha Barua Pepe"
+    },
+    "verifyOtp": {
+      "title": "Thibitisha OTP"
+    },
+    "workersList": {
+      "title": "Wafanyakazi"
+    }
+  },
+  "form": {
+    "email": "Barua pepe",
+    "password": "Nenosiri",
+    "confirmPassword": "Thibitisha Nenosiri",
+    "name": "Jina",
+    "company": "Kampuni",
+    "phone": "Nambari ya Simu",
+    "search": "Tafuta",
+    "submit": "Tuma",
+    "save": "Hifadhi",
+    "cancel": "Ghairi",
+    "add": "Ongeza",
+    "edit": "Hariri",
+    "delete": "Futa",
+    "needHelp": "Unahitaji Msaada?",
+    "termsOfService": "Sheria na Masharti",
+    "privacyPolicy": "Sera ya Faragha",
+    "agreeTo": "Ninakubaliana na",
+    "and": "na",
+    "or": "au"
+  },
+  "toast": {
+    "saved": "Imehifadhiwa kwa mafanikio",
+    "deleted": "Imefutwa kwa mafanikio",
+    "error": "Kuna tatizo"
+  },
+  "labels": {
+    "twoFaEnabled": "2FA Imewezeshwa"
+  },
+  "buttons": {
+    "enable": "Washa",
+    "disable": "Zima",
+    "agree": "Kubali",
+    "cancel": "Ghairi"
+  },
+  "common": {
+    "noData": "Hakuna data inapatikana",
+    "loading": "Inapakia...",
+    "ok": "Sawa"
+  },
+  "home": {
+    "login": "Ingia",
+    "register": "Jisajili",
+    "home": "Nyumbani",
+    "about": "Kuhusu",
+    "faq": "Maswali Yanayoulizwa Mara kwa Mara",
+    "services": "Huduma",
+    "hero": {
+      "title1": "Acha kupoteza muda",
+      "title2": "katika rekodi za mikono",
+      "subtitle": "Ongeza ufanisi, okoa muda na pesa na mfumo huu wa usimamizi wa hisa.",
+      "getStarted": "Anza"
+    },
+    "stats": {
+      "users": "Watumiaji",
+      "system": "Mfumo",
+      "satisfaction": "Kiwango cha Kuridhika",
+      "uptime": "Dhamana ya Upatikanaji"
+    }
+  },
+  "termsPopup": {
+    "title": "Sheria na Sera ya Faragha",
+    "description": "Tafadhali angalia na kukubali Sheria na Masharti yetu na Sera ya Faragha kabla ya kuendelea."
+  }
+}

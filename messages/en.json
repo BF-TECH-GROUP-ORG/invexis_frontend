@@ -1,0 +1,225 @@
+{
+  "app": {
+    "title": "Invexis"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "companies": "Companies",
+    "products": "Products",
+    "reports": "Reports",
+    "sales": "Sales",
+    "settings": "Settings",
+    "stock": "Stock",
+    "workers": "Workers",
+    "language": "Language"
+  },
+  "welcome": {
+    "title": "Welcome"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "welcomeTitle": "Welcome to Invexis",
+    "welcomeDesc": "Manage products, stock, and sales all in one platform.",
+    "smartTitle": "Smart Inventory & Sales",
+    "smartDesc": "Track stock in/out, generate invoices, and monitor reports.",
+    "rolesTitle": "Roles & Collaboration",
+    "rolesDesc": "Super Admin, Company Admin, and Workers — everyone has their role.",
+    "growTitle": "Grow Your Business",
+    "growDesc": "Unlock ecommerce, AI insights, and marketing tools as you scale."
+  },
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "account": {
+    "profile": {
+      "title": "Profile"
+    },
+    "editProfile": {
+      "title": "Edit Profile"
+    },
+    "sessions": {
+      "title": "Sessions"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Enter your credentials to continue"
+    },
+    "signup": {
+      "title": "Sign up",
+      "subtitle": "Create a new account",
+      "noAccount": "Don't have an account? Sign Up"
+    },
+    "verifyEmail": {
+      "title": "Verify Email",
+      "subtitle": "We are verifying your email address...",
+      "verifying": "Verifying..."
+    },
+    "googleCallback": {
+      "title": "Signing in with Google"
+    },
+    "otp": {
+      "request": {
+        "title": "Request OTP",
+        "subtitle": "Enter your email or phone to receive a one-time password",
+        "label": "Email or Phone",
+        "sendButton": "Send OTP",
+        "sending": "Sending..."
+      },
+      "verify": {
+        "title": "Verify OTP",
+        "subtitle": "Enter the OTP sent to your email or phone",
+        "label": "One-Time Password",
+        "verifyButton": "Verify OTP",
+        "verifying": "Verifying..."
+      }
+    },
+    "reset": {
+      "request": {
+        "title": "Reset Password",
+        "subtitle": "Please enter the email address associated with your account and we'll email you a link to reset your password.",
+        "sendButton": "Send Link",
+        "sending": "Sending..."
+      },
+      "reset": {
+        "title": "Reset Password",
+        "subtitle": "Enter your new password below",
+        "newPassword": "New Password",
+        "confirmNewPassword": "Confirm New Password",
+        "resetButton": "Reset Password",
+        "resetting": "Resetting..."
+      }
+    },
+    "loginButton": "Log in",
+    "signupButton": "Sign up",
+    "logout": "Log out",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me",
+    "returnToLogin": "Return to Login"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "analytics": {
+      "title": "Analytics"
+    },
+    "companies": {
+      "title": "Companies",
+      "listTitle": "Company List",
+      "detailsTitle": "Company Details"
+    },
+    "products": {
+      "title": "Products",
+      "listTitle": "Product List",
+      "detailsTitle": "Product Details",
+      "addTitle": "Add Product",
+      "editTitle": "Edit Product"
+    },
+    "reports": {
+      "title": "Reports"
+    },
+    "sales": {
+      "title": "Sales"
+    },
+    "settings": {
+      "title": "Inventory Settings"
+    },
+    "stock": {
+      "title": "Stock"
+    },
+    "workers": {
+      "title": "Workers"
+    }
+  },
+  "pages": {
+    "editProfile": {
+      "title": "Edit Profile"
+    },
+    "requestOtp": {
+      "title": "Request OTP"
+    },
+    "requestResetPassword": {
+      "title": "Request Reset Password"
+    },
+    "resetPassword": {
+      "title": "Reset Password"
+    },
+    "verifyEmail": {
+      "title": "Verify Email"
+    },
+    "verifyOtp": {
+      "title": "Verify OTP"
+    },
+    "workersList": {
+      "title": "Workers"
+    }
+  },
+  "form": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "name": "Name",
+    "company": "Company",
+    "phone": "Phone",
+    "search": "Search",
+    "submit": "Submit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "needHelp": "Need Help?",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "agreeTo": "I agree to the",
+    "and": "and",
+    "or": "or"
+  },
+  "toast": {
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "error": "Something went wrong"
+  },
+  "labels": {
+    "twoFaEnabled": "2FA Enabled"
+  },
+  "buttons": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "agree": "Agree",
+    "cancel": "Cancel"
+  },
+  "common": {
+    "noData": "No data available",
+    "loading": "Loading...",
+    "ok": "OK"
+  },
+  "home": {
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "about": "About",
+    "faq": "F&Q",
+    "services": "Services",
+    "hero": {
+      "title1": "Stop wasting time",
+      "title2": "in manual recordings",
+      "subtitle": "Boost efficiency, save time & money with this stock management system.",
+      "getStarted": "Get started"
+    },
+    "stats": {
+      "users": "Users",
+      "system": "System",
+      "satisfaction": "Satisfaction Rate",
+      "uptime": "Uptime Guarantee"
+    }
+  },
+  "termsPopup": {
+    "title": "Terms & Privacy Policy",
+    "description": "Please review and accept our Terms & Conditions and Privacy Policy before proceeding."
+  }
+}
