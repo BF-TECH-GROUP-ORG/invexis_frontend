@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import {Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Paper,Toolbar,IconButton,Typography,TextField,Box,Menu,MenuItem,ListItemIcon,ListItemText,Popover,Select,InputLabel,FormControl,CircularProgress,Chip,} from "@mui/material";
-
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
@@ -11,15 +10,16 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { Button } from "@/components/shared/button";
-
 import { useState, useMemo, useEffect } from "react";
 import { getAllProducts } from "@/services/salesService"; // Make sure this path is correct
+import { useLocale } from "next-intl";
 
 // Row Actions Menu (Sale + View)
 const RowActionsMenu = ({ productId }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
+  const locale = useLocale();
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -30,12 +30,12 @@ const RowActionsMenu = ({ productId }) => {
 
   const handleSale = (e) => {
     e.stopPropagation();
-    router.push(`/inventory/sales/sellProduct/sale/${productId}`);
+    router.push(`/${locale}/inventory/sales/sellProduct/sale/${productId}`);
   };
 
   const handleView = (e) => {
     e.stopPropagation();
-    router.push(`/inventory/products/${productId}`);
+    router.push(`/${locale}/inventory/products/${productId}`);
   };
 
   return (

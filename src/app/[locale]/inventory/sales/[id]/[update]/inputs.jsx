@@ -2,6 +2,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { TextField } from "@mui/material";
 
 const UpdateInputs = () => {
   const [form, setForm] = useState({
@@ -15,6 +17,8 @@ const UpdateInputs = () => {
     soldDate: "",
     paymentMethod: "",
   });
+
+  const t = useTranslations("updateProduct");
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -47,135 +51,154 @@ const UpdateInputs = () => {
     }
 
     try {
-    //   const res = await axios.post("/api/update-sale", cleaned);
-    //   alert("✅ Sent successfully!");
+      // const res = await axios.post("/api/update-sale", cleaned);
+      // alert("✅ Sent successfully!");
       console.log(cleaned);
     } catch {
       alert("❌ Failed to send data");
     }
   };
 
-  const navigate = useRouter()
+  const navigate = useRouter();
 
   return (
-    <>
-      <div className="flex ">
-        <div className="space-y-5">
-          <div className="space-x-5">
-            <input
-              type="text"
-              id="productName"
-              placeholder="product name"
-              value={form.productName}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-            <input
-              type="text"
-              id="productCategory"
-              placeholder="category"
-              value={form.productCategory}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-          </div>
+    <div className="flex justify-center py-3">
+      <div className="w-full max-w-4xl space-y-4"> {/* Main vertical spacing */}
 
-          <div className="space-x-5">
-            <input
-              type="number"
-              id="quantity"
-              placeholder="Quantity"
-              value={form.quantity}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-            <input
-              type="text"
-              id="sellingPrice"
-              placeholder="Selling Price"
-              value={form.sellingPrice}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-          </div>
+        {/* Product Name + Category */}
+        <div className="flex gap-5">
+          <TextField
+            type="text"
+            id="productName"
+            label="Product Name"
+            value={form.productName}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+          <TextField
+            type="text"
+            id="productCategory"
+            label="Category"
+            value={form.productCategory}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+        </div>
 
-          <div className="space-x-5">
-            <input
-              type="text"
-              id="discount"
-              placeholder="Discount"
-              value={form.discount}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-            <input
-              type="text"
-              id="productCategory"
-              placeholder="category"
-              value={form.productCategory}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-          </div>
+        {/* Quantity + Selling Price */}
+        <div className="flex gap-5">
+          <TextField
+            type="number"
+            id="quantity"
+            label="Quantity"
+            value={form.quantity}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+          <TextField
+            type="number"
+            id="sellingPrice"
+            label="Selling Price"
+            value={form.sellingPrice}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+        </div>
 
-          <h1 className="text-xl font-bold text-center">Customer Information</h1>
+        {/* Discount + (fixed duplicate field) */}
+        <div className="flex gap-5">
+          <TextField
+            type="number"
+            id="discount"
+            label="Discount"
+            value={form.discount}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+          {/* You had a duplicate productCategory field here – replace with whatever you need */}
+          <TextField
+            type="text"
+            label="Additional Field (optional)"
+            placeholder="e.g., Notes"
+            className="flex-1"
+            variant="outlined"
+          />
+        </div>
 
-          <div className="space-x-5">
-            <input
-              type="text"
-              id="customerName"
-              placeholder="Customer Name"
-              value={form.customerName}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-            <input
-              type="text"
-              id="customerContact"
-              placeholder="Customer Contact"
-              value={form.customerContact}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-          </div>
+        <h1 className="text-2xl font-bold text-center">
+          {t("customerInformation")}
+        </h1>
 
-          <div className="space-x-5">
-            <input
-              type="date"
-              id="soldDate"
-              placeholder="Sold Date"
-              value={form.soldDate}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-            <input
-              type="text"
-              id="paymentMethod"
-              placeholder="Payment Method"
-              value={form.paymentMethod}
-              onChange={handleChange}
-              className="w-96 border-2 border-gray-300 p-2 rounded outline-none focus:outline-none focus:ring-0 "
-            />
-          </div>
+        {/* Customer Name + Contact */}
+        <div className="flex gap-5">
+          <TextField
+            type="text"
+            id="customerName"
+            label="Customer Name"
+            value={form.customerName}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+          <TextField
+            type="text"
+            id="customerContact"
+            label="Customer Contact"
+            value={form.customerContact}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+        </div>
 
-          <div className="flex justify-between pt-4">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-orange-400 cursor-pointer text-white px-6 py-2 rounded">
-              Update Sale
-            </button>
+        {/* Sold Date + Payment Method */}
+        <div className="flex gap-5">
+          <TextField
+            type="date"
+            id="soldDate"
+            label="Sold Date"
+            value={form.soldDate}
+            onChange={handleChange}
+            InputLabelProps={{ shrink: true }}
+            className="flex-1"
+            variant="outlined"
+          />
+          <TextField
+            type="text"
+            id="paymentMethod"
+            label="Payment Method"
+            value={form.paymentMethod}
+            onChange={handleChange}
+            className="flex-1"
+            variant="outlined"
+          />
+        </div>
 
-            <button
-              type="button"
-              onClick={()=>{navigate.back()}}
-              className="border-orange-400 border text-orange-400 cursor-pointer px-6 py-2 rounded">
-              cancel
-            </button>
-          </div>
+        {/* Buttons */}
+        <div className="flex justify-between pt-5">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition"
+          >
+            {t("updateButton")}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate.back()}
+            className="border border-orange-500 text-orange-500 hover:bg-orange-50 px-8 py-3 rounded-lg transition"
+          >
+            {t("cancelButton")}
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

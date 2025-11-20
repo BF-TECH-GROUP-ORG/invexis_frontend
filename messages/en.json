@@ -256,6 +256,27 @@
   "warranty": "Warranty",
   "buyerDetails": "Buyer Details",
   "buyer": "Buyer",
-  "buyerPhoneNumber": "Buyer Phone Number"
-}
+  "buyerPhoneNumber": "Buyer Phone Number",
+  "print": "Print",
+  "edit": "Edit"
+},
+"updateProduct": {
+    "pageTitle": "Edit Sales",
+    "pageSubtitle": "Update this sale’s information including product details, payment, and customer data.",
+    "sectionCustomer": "Customer Information",
+    "updateButton": "Update Sale",
+    "cancelButton": "Cancel",
+    "productName": "Product Name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "sellingPrice": "Selling Price",
+    "discount": "Discount",
+    "customerName": "Customer Name",
+    "customerContact": "Customer Contact",
+    "paymentMethod": "Payment Method",
+    "customerInformation": "Customer Information"
+  }
+
+
+
 }

@@ -1,295 +1,256 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "../shared/button";
 import SaleNotificationModal from "../shared/saleComfPop";
 import jsPDF from "jspdf";
+import { singleProductFetch, SellProduct } from "@/services/salesService";
 
-const SellProductsInputs = () => {
-const navigateBack = () => console.log("Simulating navigation back...");
+const paymentMethods = ["cash", "card", "mobile", "wallet", "bank_transfer"];
 
-// States for Inputs
-const [soldPrice, setSoldPrice] = useState("");
-const [quantitySold, setQuantitySold] = useState("");
-const [customerName, setCustomerName] = useState("");
-const [customerPhone, setCustomerPhone] = useState("");
-const [printReceipt, setPrintReceipt] = useState(false);
+const SellProductsInputs = ({ id }) => {
+  const [productName, setProductName] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [soldPrice, setSoldPrice] = useState("");
+  const [quantitySold, setQuantitySold] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState(""); // New optional field
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [discount, setDiscount] = useState(""); // Item-level discount
+  const [printReceipt, setPrintReceipt] = useState(false);
+  const [companyId, setCompanyId] = useState(""); // Fixed setter name
 
-// States for Modal
-const [isModalOpen, setIsModalOpen] = useState(false);
-const [modalType, setModalType] = useState("");
-const [modalMessage, setModalMessage] = useState("");
-//git 
-// Validation errors
-const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [modalMessage, setModalMessage504] = useState("");
 
-const closeModal = useCallback(() => {
-setIsModalOpen(false);
-setModalMessage("");
-}, []);
+  useEffect(() => {
+    const getProduct = async () => {
+      try {
+        const product = await singleProductFetch(id);
+        setProductName(product?.data?.name || "Unknown Product");
+        setProductPrice(product?.data?.pricing?.salePrice || 0);
+        setCompanyId(product?.data?.companyId || "");
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setProductName("Unknown Product");
+      }
+    };
+    if (id) getProduct();
+  }, [id]);
 
-const showModal = (type, message) => {
-setModalType(type);
-setModalMessage(message);
-setIsModalOpen(true);
-};
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setModalMessage504("");
+  }, []);
 
-// Validation rules
-const validateField = (name, value) => {
-let errorMsg = "";
+  const showModal = (type, message) => {
+    setModalType(type);
+    setModalMessage504(message);
+    setIsModalOpen(true);
+  };
 
-
-switch (name) {
-  case "soldPrice":
-    const price = parseFloat(value);
-    if (!value) errorMsg = "Sold price is required.";
-    else if (isNaN(price) || price <= 0)
-      errorMsg = "Sold price must be a positive number.";
-    break;
-
-  case "quantitySold":
-    const quantity = parseInt(value, 10);
-    if (!value) errorMsg = "Quantity sold is required.";
-    else if (isNaN(quantity) || quantity <= 0)
-      errorMsg = "Quantity must be a positive whole number.";
-    break;
-
-  case "customerName":
-    if (!value.trim()) errorMsg = "Customer name is required.";
-    else if (value.trim().length < 3)
-      errorMsg = "Name must be at least 3 characters.";
-    break;
-
-  case "customerPhone":
-    if (!value.trim()) errorMsg = "Phone number is required.";
-    else if (!/^[0-9]{10,15}$/.test(value.trim()))
-      errorMsg = "Phone number must be between 10 and 15 digits.";
-    break;
-
-  default:
-    break;
-}
-
-setErrors((prev) => ({ ...prev, [name]: errorMsg }));
-return errorMsg;
-
-
-};
-
-const handleSubmit = async () => {
-let formValid = true;
-let newErrors = {};
-
-
-const fields = { soldPrice, quantitySold, customerName, customerPhone };
-for (const [name, value] of Object.entries(fields)) {
-  const error = validateField(name, value);
-  if (error) {
-    formValid = false;
-    newErrors[name] = error;
-  }
-}
-
-if (!soldPrice || !quantitySold || !customerName || !customerPhone) {
-  formValid = false;
-}
-
-if (Object.values(newErrors).some((err) => err !== "")) {
-  formValid = false;
-}
-
-setErrors(newErrors);
-
-if (!formValid) {
-  showModal(
-    "error",
-    "Please fill all required fields correctly before submitting the sale."
-  );
-  return;
-}
-
-const data = {
-  soldPrice: parseFloat(soldPrice),
-  quantitySold: parseInt(quantitySold, 10),
-  customerName: customerName.trim(),
-  customerPhone: customerPhone.trim(),
-  printReceipt,
-};
-
-try {
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // ✅ Generate and print receipt if checkbox is checked
-  if (printReceipt) {
-    const doc = new jsPDF();
-    const total = (data.soldPrice * data.quantitySold).toFixed(2);
-
-    doc.setFontSize(18);
-    doc.text("Sales Receipt", 20, 20);
-    doc.setFontSize(12);
-    doc.text("Date: " + new Date().toLocaleDateString(), 20, 30);
-    doc.text("Customer: " + data.customerName, 20, 40);
-    doc.text("Phone: " + data.customerPhone, 20, 50);
-    doc.text("Product: Iphone 14 Pro Max", 20, 60);
-    doc.text("Quantity: " + data.quantitySold, 20, 70);
-    doc.text("Sold Price: $" + data.soldPrice.toFixed(2), 20, 80);
-    doc.text("Total: $" + total, 20, 90);
-    doc.text("Thank you for your purchase!", 20, 110);
-
-    // Open PDF in a new tab and print automatically
-    const pdfBlob = doc.output("bloburl");
-    const newWindow = window.open(pdfBlob);
-    if (newWindow) {
-      newWindow.onload = function () {
-        newWindow.print();
-      };
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "soldPrice":
+        const price = parseFloat(value);
+        if (!value) error = "Sold price is required.";
+        else if (isNaN(price) || price <= 0) error = "Sold price must be positive.";
+        break;
+      case "quantitySold":
+        const qty = parseInt(value, 10);
+        if (!value) error = "Quantity is required.";
+        else if (isNaN(qty) || qty <= 0) error = "Quantity must be positive.";
+        break;
+      case "customerName":
+        if (!value.trim()) error = "Customer name is required.";
+        break;
+      case "customerPhone":
+        if (!value.trim()) error = "Phone is required.";
+        else if (!/^[0-9+\-\s]{10,20}$/.test(value.trim())) error = "Invalid phone format.";
+        break;
+      case "discount":
+        if (value && (isNaN(value) || parseFloat(value) < 0)) error = "Discount must be ≥ 0.";
+        break;
+      default:
+        break;
     }
-  }
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    return error;
+  };
 
-  showModal(
-    "success",
-    "Sale recorded successfully! The transaction details have been logged."
-  );
+  const handleSubmit = async () => {
+    const fields = { soldPrice, quantitySold, customerName, customerPhone };
+    let valid = true;
+    const newErrors = {};
 
-  setSoldPrice("");
-  setQuantitySold("");
-  setCustomerName("");
-  setCustomerPhone("");
-  setErrors({});
-  setPrintReceipt(false);
-} catch (err) {
-  console.error("Submission Error:", err);
-  showModal(
-    "error",
-    "An unexpected error occurred while recording the sale. Please check the console for details."
-  );
-}
+    Object.entries(fields).forEach(([name, val]) => {
+      const err = validateField(name, val);
+      if (err) {
+        valid = false;
+        newErrors[name] = err;
+      }
+    });
 
-};
+    setErrors(newErrors);
+    if (!valid) {
+      showModal("error", "Please fix the errors above.");
+      return;
+    }
 
-const inputClass =
-"w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-orange-400 focus:border-orange-400 transition duration-150";
+    const unitPrice = parseFloat(soldPrice);
+    const quantity = parseInt(quantitySold, 10);
+    const itemDiscount = parseFloat(discount) || 0;
 
-return ( 
-<div className=" flex items-center justify-center font-sans"> 
-  <div className="space-y-6 p-8 "> 
-    <div> 
-      <h1 className="text-3xl font-extrabold text-gray-800">Stock-Out <span className="text-orange-500">Iphone 14 pro max</span> </h1> 
-      <p className="text-gray-500 mt-1">cord a new product sale transaction. </p> </div>
-    <div className="space-y-4">
-      {/* Sold Price */}
-      <div>
-        <input
-          type="number"
-          placeholder="Sold Price (e.g., 99.99)"
-          value={soldPrice}
-          onChange={(e) => setSoldPrice(e.target.value)}
-          onBlur={(e) => validateField("soldPrice", e.target.value)}
-          className={inputClass}
-        />
-        {errors.soldPrice && (
-          <p className="text-red-500 text-xs mt-1">{errors.soldPrice}</p>
-        )}
-      </div>
+    const subtotal = unitPrice * quantity;
+    const totalAfterDiscount = subtotal - itemDiscount;
 
-      {/* Quantity */}
-      <div>
-        <input
-          type="number"
-          placeholder="Quantity Sold"
-          value={quantitySold}
-          onChange={(e) => setQuantitySold(e.target.value)}
-          onBlur={(e) => validateField("quantitySold", e.target.value)}
-          className={inputClass}
-        />
-        {errors.quantitySold && (
-          <p className="text-red-500 text-xs mt-1">
-            {errors.quantitySold}
+    // EXACT PAYLOAD YOUR BACKEND EXPECTS
+    const payload = {
+      companyId: companyId,
+      customerId: "", // optional, can be generated on backend
+      customerName: customerName.trim(),
+      customerEmail: customerEmail.trim() || null, // optional
+      customerPhone: customerPhone.trim(),
+      items: [
+        {
+          productId: id,
+          productName: productName,
+          quantity: quantity,
+          unitPrice: unitPrice,
+          discount: itemDiscount // discount per item/line
+        }
+      ],
+      paymentMethod: paymentMethod, // matches your options: cash, wallet, etc.
+      // totalAmount not needed if backend calculates it
+    };
+
+    console.log("Sending payload:", payload); // For debugging
+
+    try {
+      await SellProduct(payload); // Now matches backend exactly
+
+      if (printReceipt) {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text("Sales Receipt", 105, 20, { align: "center" });
+        doc.setFontSize(12);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 30);
+        doc.text(`Customer: ${customerName}`, 20, 40);
+        doc.text(`Phone: ${customerPhone}`, 20, 50);
+        doc.text(`Product: ${productName}`, 20, 60);
+        doc.text(`Qty: ${quantity} × $${unitPrice.toFixed(2)}`, 20, 70);
+        doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, 80);
+        if (itemDiscount > 0) doc.text(`Discount: -$${itemDiscount.toFixed(2)}`, 20, 90);
+        doc.text(`Total: $${totalAfterDiscount.toFixed(2)}`, 20, itemDiscount > 0 ? 100 : 90);
+        doc.text(`Payment: ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1).replace("_", " ")}`, 20, itemDiscount > 0 ? 110 : 100);
+        doc.text("Thank you!", 105, itemDiscount > 0 ? 130 : 120, { align: "center" });
+
+        const pdfUrl = doc.output("bloburl");
+        const win = window.open(pdfUrl);
+        if (win) win.onload = () => win.print();
+      }
+
+      showModal("success", "Sale recorded successfully!");
+      // Reset form
+      setSoldPrice("");
+      setQuantitySold("");
+      setCustomerName("");
+      setCustomerPhone("");
+      setCustomerEmail("");
+      setDiscount("");
+      setPaymentMethod("cash");
+      setPrintReceipt(false);
+      setErrors({});
+    } catch (err) {
+      console.error("Sale failed:", err);
+      showModal("error", "Failed to record sale. Please try again.");
+    }
+  };
+
+  const inputClass = "w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-orange-400 focus:border-orange-400 transition";
+  const selectClass = "w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-orange-400 focus:border-orange-400 bg-white";
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 font-sans">
+      <div className="w-full max-w-lg space-y-8 rounded-2xl bg-white p-10 shadow-xl">
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold text-gray-800">
+            Stock-Out <span className="text-orange-500">{productName}</span>
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Standard Price: ${parseFloat(productPrice || 0).toFixed(2)}
           </p>
-        )}
-      </div>
+        </div>
 
-      <div className="h-px bg-gray-200 my-6"></div>
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Sold Price <span className="text-red-500">*</span></label>
+            <input type="number" step="0.01" placeholder="e.g. 99.99" value={soldPrice} onChange={(e) => setSoldPrice(e.target.value)} onBlur={(e) => validateField("soldPrice", e.target.value)} className={inputClass} />
+            {errors.soldPrice && <p className="mt-1 text-xs text-red-500">{errors.soldPrice}</p>}
+          </div>
 
-      {/* Customer Name */}
-      <div>
-        <input
-          type="text"
-          placeholder="Customer Full Name"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          onBlur={(e) => validateField("customerName", e.target.value)}
-          className={inputClass}
-        />
-        {errors.customerName && (
-          <p className="text-red-500 text-xs mt-1">
-            {errors.customerName}
-          </p>
-        )}
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Quantity Sold <span className="text-red-500">*</span></label>
+            <input type="number" placeholder="e.g. 2" value={quantitySold} onChange={(e) => setQuantitySold(e.target.value)} onBlur={(e) => validateField("quantitySold", e.target.value)} className={inputClass} />
+            {errors.quantitySold && <p className="mt-1 text-xs text-red-500">{errors.quantitySold}</p>}
+          </div>
 
-      {/* Customer Phone */}
-      <div>
-        <input
-          type="tel"
-          placeholder="Customer Phone Number (10-15 digits)"
-          value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-          onBlur={(e) => validateField("customerPhone", e.target.value)}
-          className={inputClass}
-        />
-        {errors.customerPhone && (
-          <p className="text-red-500 text-xs mt-1">
-            {errors.customerPhone}
-          </p>
-        )}
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Discount (optional)</label>
+            <input type="number" step="0.01" min="0" placeholder="0.00" value={discount} onChange={(e) => setDiscount(e.target.value)} onBlur={(e) => validateField("discount", e.target.value)} className={inputClass} />
+            {errors.discount && <p className="mt-1 text-xs text-red-500">{errors.discount}</p>}
+          </div>
 
-      {/* Checkbox */}
-      <div className="flex items-center space-x-3 pt-2">
-        <input
-          type="checkbox"
-          id="mycheck"
-          checked={printReceipt}
-          onChange={(e) => setPrintReceipt(e.target.checked)}
-          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-        />
-        <label
-          htmlFor="mycheck"
-          className="text-sm font-medium text-gray-600 cursor-pointer select-none"
-        >
-          Print receipt after sale
-        </label>
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Payment Method <span className="text-red-500">*</span></label>
+            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className={selectClass}>
+              {paymentMethods.map((method) => (
+                <option key={method} value={method}>
+                  {method.charAt(0).toUpperCase() + method.slice(1).replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/* Buttons */}
-      <div className="flex justify-between pt-6 space-x-4">
-        <Button
-          type="button"
-          className="bg-gray-200 text-gray-700 hover:bg-gray-300 flex-1"
-          onClick={navigateBack}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          className="bg-orange-500 hover:bg-orange-600 text-white flex-1"
-        >
-          Confirm Sale
-        </Button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Customer Name <span className="text-red-500">*</span></label>
+            <input type="text" placeholder="John Doe" value={customerName} onChange={(e) => setCustomerName(e.target.value)} onBlur={(e) => validateField("customerName", e.target.value)} className={inputClass} />
+            {errors.customerName && <p className="mt-1 text-xs text-red-500">{errors.customerName}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Customer Phone <span className="text-red-500">*</span></label>
+            <input type="tel" placeholder="+250788123456" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} onBlur={(e) => validateField("customerPhone", e.target.value)} className={inputClass} />
+            {errors.customerPhone && <p className="mt-1 text-xs text-red-500">{errors.customerPhone}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Customer Email (optional)</label>
+            <input type="email" placeholder="john@example.com" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className={inputClass} />
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <input type="checkbox" id="printReceipt" checked={printReceipt} onChange={(e) => setPrintReceipt(e.target.checked)} className="h-5 w-5 rounded border-gray-300 text-orange-500" />
+            <label htmlFor="printReceipt" className="text-sm font-medium text-gray-700 cursor-pointer">Print receipt after sale</label>
+          </div>
+
+          <div className="flex space-x-4 pt-6">
+            <Button type="button" onClick={() => window.history.back()} className="flex-1 bg-gray-200 py-3 text-gray-700 hover:bg-gray-300">
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleSubmit} className="flex-1 bg-orange-500 py-3 text-white hover:bg-orange-600">
+              Confirm Sale
+            </Button>
+          </div>
+        </div>
+
+        <SaleNotificationModal isOpen={isModalOpen} onClose={closeModal} type={modalType}  />
       </div>
     </div>
+  );
+};
 
-    {/* Modal */}
-    <SaleNotificationModal
-      isOpen={isModalOpen}
-      onClose={closeModal}
-      type={modalType}
-      message={modalMessage}
-    />
-  </div>
-</div>
-)}
-
-export default SellProductsInputs
-
+export default SellProductsInputs;

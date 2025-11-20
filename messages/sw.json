@@ -245,18 +245,23 @@
   "back": "Rudi",
   "Edit": "Hariri",
   "Delete": "Futa",
-  "view": "Tazama Zaidi",
-  
-  "reciept":{
-  "quantitySold": "Idadi Iliyouzwa",
-  "soldPrice": "Bei Iliyouzwa (RwF)",
-  "discount": "Punguzo",
-  "soldDate": "Tarehe Iliyouzwa",
-  "isReturned": "Imerudishwa?",
-  "warranty": "Dhamana",
-  "buyerDetails": "Maelezo ya Mnunuzi",
-  "buyer": "Mnunuzi",
-  "buyerPhoneNumber": "Namba ya Simu ya Mnunuzi"
-}
+  "view": "Tazama Zaidi"
+},
+"reciept": {
+    "quantitySold": "Idadi Iliyouzwa",
+    "soldPrice": "Bei ya Kuuza (RWF)",
+    "discount": "Punguzo",
+    "soldDate": "Tarehe ya Kuuza",
+    "isReturned": "Imerudishwa",
+    "warranty": "Dhamana",
+    "buyerDetails": "Maelezo ya Mnunuzi",
+    "buyer": "Mnunuzi",
+    "buyerPhoneNumber": "Namba ya Simu ya Mnunuzi",
+    "print": "Chapisha",
+    "edit": "Hariri",
+    "productDetails": "Maelezo ya Bidhaa",
+    "customerInformation": "Taarifa za Mteja"
   }
+
 }
+

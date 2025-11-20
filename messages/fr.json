@@ -245,18 +245,38 @@
   "back": "Retour",
   "Edit": "Modifier",
   "Delete": "Supprimer",
-  "view": "Voir Plus",
-  
-  "reciept":{
-  "quantitySold": "Quantité Vendue",
-  "soldPrice": "Prix de Vente (RwF)",
-  "discount": "Remise",
-  "soldDate": "Date de Vente",
-  "isReturned": "Retourné ?",
-  "warranty": "Garantie",
-  "buyerDetails": "Détails de l'Acheteur",
-  "buyer": "Acheteur",
-  "buyerPhoneNumber": "Numéro de Téléphone de l'Acheteur"
-}
+  "view": "Voir Plus"
+  },
+  "reciept": {
+    "quantitySold": "Quantité vendue",
+    "soldPrice": "Prix de vente (RWF)",
+    "discount": "Remise",
+    "soldDate": "Date de vente",
+    "isReturned": "Est retourné",
+    "warranty": "Garantie",
+    "buyerDetails": "Détails de l'acheteur",
+    "buyer": "Acheteur",
+    "buyerPhoneNumber": "Numéro de téléphone de l'acheteur",
+    "print": "Imprimer",
+    "edit": "Modifier",
+    "productDetails": "Détails du produit"
+  },
+  "updateProduct": {
+    "pageTitle": "Modifier la vente",
+    "pageSubtitle": "Mettez à jour les informations de cette vente, y compris les détails du produit, le paiement et les données client.",
+    "sectionCustomer": "Informations client",
+    "updateButton": "Mettre à jour la vente",
+    "cancelButton": "Annuler",
+    "productName": "Nom du produit",
+    "category": "Catégorie",
+    "quantity": "Quantité",
+    "sellingPrice": "Prix de vente",
+    "discount": "Remise",
+    "customerName": "Nom du client",
+    "customerContact": "Contact du client",
+    "paymentMethod": "Mode de paiement",
+    "customerInformation": "Informations du Client"
   }
+  
+  
 }

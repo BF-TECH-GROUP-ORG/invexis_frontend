@@ -1,8 +1,9 @@
 // lib/api/products.js   ← Replace your current file with this
-
 import axios from 'axios';
 
-const URL = 'https://45803585dad0.ngrok-free.app/api/inventory/inventory/v1/products';
+
+const URL = process.env.NEXT_PUBLIC_INVENTORY_API_URL
+const SALES_URL = process.env.NEXT_PUBLIC_SALES_API_URL
 
 export const getAllProducts = async () => {
   try {
@@ -42,3 +43,37 @@ export const getAllProducts = async () => {
     return [];
   }
 };
+
+
+export const singleProductFetch = async (productId) => {
+  try{
+    const response = await axios.get(`${URL}/${productId}`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+    console.log('Single product fetched:', response.data);
+    return response.data;
+  }catch(error){
+    console.log('Failed to fetch single product:', error.message);
+    return null;
+  }
+}
+
+
+export const SellProduct = async (saleData,sellPrice) => {
+  try{
+    console.log('Selling product with data:', saleData);
+    console.log('Using sell price:', sellPrice);
+    const sendData = axios.post(SALES_URL, saleData, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+    console.log('Product sold successfully:', sendData.data);
+    return sendData.data;
+  }catch(error){
+    console.log('Failed to sell product:', error.message);
+  }
+
+}
