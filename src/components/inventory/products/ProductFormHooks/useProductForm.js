@@ -7,6 +7,9 @@ const INITIAL_FORM_DATA = {
   name: "",
   sku: "",
   category: "",
+  subcategory: "",
+  subSubcategory: "",
+  slug: "",
   // pricing moved to nested object to match backend shape
   pricing: {
     basePrice: "",
@@ -19,6 +22,7 @@ const INITIAL_FORM_DATA = {
   costPrice: "",
   description: "",
   supplier: "",
+  manufacturer: "",
 
   // Inventory
   stock: "",
@@ -38,6 +42,13 @@ const INITIAL_FORM_DATA = {
   // Media
   images: [],
   tags: [],
+
+  // Variants / variations
+  variants: [],
+  variations: [],
+
+  condition: 'new',
+  availability: 'in_stock',
 
   // Advanced
   status: "active",
@@ -68,6 +79,17 @@ const INITIAL_FORM_DATA = {
     restockingFee: false,
     restockingFeePercent: "",
   },
+  // SEO
+  seo: {
+    metaTitle: "",
+    metaDescription: "",
+    keywords: [],
+  },
+  // Optional product flags
+  featured: false,
+  isActive: true,
+  sortOrder: 0,
+  browseNodeId: "",
 };
 
 export default function useProductForm(initialData = null) {
@@ -92,6 +114,12 @@ export default function useProductForm(initialData = null) {
       },
       images: Array.isArray(src.images) ? src.images : src.images ? [src.images] : [],
       tags: Array.isArray(src.tags) ? src.tags : src.tags ? [src.tags] : [],
+      manufacturer: src.manufacturer || INITIAL_FORM_DATA.manufacturer,
+      upc: src.upc || INITIAL_FORM_DATA.upc,
+      bulletPoints: Array.isArray(src.bulletPoints) ? src.bulletPoints : src.bulletPoints ? [src.bulletPoints] : INITIAL_FORM_DATA.bulletPoints,
+      variants: Array.isArray(src.variants) ? src.variants : INITIAL_FORM_DATA.variants,
+      variations: Array.isArray(src.variations) ? src.variations : INITIAL_FORM_DATA.variations,
+      seo: { ...INITIAL_FORM_DATA.seo, ...(src.seo || {}) },
       price: src.price ?? (src.pricing && src.pricing.basePrice) ?? INITIAL_FORM_DATA.price,
       costPrice: src.costPrice ?? (src.pricing && src.pricing.cost) ?? INITIAL_FORM_DATA.costPrice,
       stock: src.stock ?? (src.inventory && src.inventory.quantity) ?? INITIAL_FORM_DATA.stock,

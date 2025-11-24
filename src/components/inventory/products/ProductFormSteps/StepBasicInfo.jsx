@@ -91,6 +91,44 @@ export default function StepBasicInfo({
         </div>
       </div>
 
+      {/* UPC & Manufacturer */}
+      <div className="grid md:grid-cols-2 gap-6 mt-4">
+        <div>
+          <label className="block text-sm font-medium text-[#333] mb-2">UPC</label>
+          <input
+            type="text"
+            value={formData.upc || ""}
+            onChange={(e) => updateFormData({ upc: e.target.value })}
+            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            placeholder="e.g., 017817830452"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#333] mb-2">Manufacturer</label>
+          <input
+            type="text"
+            value={formData.manufacturer || ""}
+            onChange={(e) => updateFormData({ manufacturer: e.target.value })}
+            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            placeholder="e.g., Bose Corporation"
+          />
+        </div>
+      </div>
+
+      {/* Bullet Points */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-[#333] mb-2">Bullet Points (one per line)</label>
+        <textarea
+          value={(formData.bulletPoints || []).join('\n')}
+          onChange={(e) => updateFormData({ bulletPoints: e.target.value.split('\n').map(l => l.trim()).filter(Boolean) })}
+          className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+          placeholder={"World-class noise cancellation\n24-hour battery life\nTouch controls"}
+          rows={4}
+        />
+        <p className="text-xs text-[#666] mt-1">Each line becomes a bullet point</p>
+      </div>
+
       {/* Brand & Tags */}
       <div className="grid md:grid-cols-2 gap-6">
         <div>
@@ -140,6 +178,35 @@ export default function StepBasicInfo({
         </select>
         {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
       </div>
+
+        {/* Condition & Availability */}
+        <div className="grid md:grid-cols-2 gap-6 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">Condition</label>
+            <select
+              value={formData.condition || 'new'}
+              onChange={(e) => updateFormData({ condition: e.target.value })}
+              className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            >
+              <option value="new">New</option>
+              <option value="refurbished">Refurbished</option>
+              <option value="used">Used</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">Availability</label>
+            <select
+              value={formData.availability || 'in_stock'}
+              onChange={(e) => updateFormData({ availability: e.target.value })}
+              className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            >
+              <option value="in_stock">In Stock</option>
+              <option value="out_of_stock">Out of Stock</option>
+              <option value="preorder">Preorder</option>
+            </select>
+          </div>
+        </div>
 
       {/* Currency + Price */}
       <div className="grid md:grid-cols-2 gap-6">
