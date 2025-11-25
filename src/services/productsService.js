@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Prefer a local proxy base when available (NEXT_PUBLIC_API_URL), otherwise use the explicit inventory API URL.
 // This allows local dev to set `NEXT_PUBLIC_API_URL=/api/inventory/v1` and use Next.js rewrites to avoid CORS.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'https://7b7c32582a1a.ngrok-free.app/api/inventory/v1/';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'https://6f48f759ca9d.ngrok-free.app/api/inventory/v1/';
 
 // Helpful console hint so you can verify which base is being used at runtime
 if (typeof window !== 'undefined') {

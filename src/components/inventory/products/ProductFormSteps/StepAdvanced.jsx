@@ -1,3 +1,4 @@
+// src/components/inventory/products/ProductFormSteps/StepAdvanced.jsx
 "use client";
 
 import { motion } from "framer-motion";
@@ -5,11 +6,11 @@ import { Shield, TrendingUp } from "lucide-react";
 import DiscountSettings from "../ProductFormComponents/DiscountSettings";
 import ReturnPolicySettings from "../ProductFormComponents/ReturnPolicySettings";
 
-export default function StepAdvanced({ 
-  formData, 
-  updateFormData, 
+export default function StepAdvanced({
+  formData,
+  updateFormData,
   updateNestedField,
-  errors 
+  errors
 }) {
   return (
     <motion.div
@@ -115,9 +116,86 @@ export default function StepAdvanced({
         </div>
       </div>
 
+      {/* SEO Settings */}
+      <div className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp size={20} className="text-orange-500" />
+          SEO Settings
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">Meta Title <span className="text-gray-400 font-normal">(Optional)</span></label>
+            <input
+              type="text"
+              value={formData.seo?.metaTitle || ""}
+              onChange={(e) => updateNestedField("seo", "metaTitle", e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="SEO Title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Meta Description <span className="text-gray-400 font-normal">(Optional)</span></label>
+            <textarea
+              value={formData.seo?.metaDescription || ""}
+              onChange={(e) => updateNestedField("seo", "metaDescription", e.target.value)}
+              rows={3}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="SEO Description"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Keywords (comma separated) <span className="text-gray-400 font-normal">(Optional)</span></label>
+            <input
+              type="text"
+              value={(formData.seo?.keywords || []).join(", ")}
+              onChange={(e) => updateNestedField("seo", "keywords", e.target.value.split(",").map(k => k.trim()).filter(Boolean))}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="keyword1, keyword2"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Video URLs */}
+      <div className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50">
+        <h3 className="font-semibold mb-4">Video URLs <span className="text-gray-400 font-normal text-sm">(Optional)</span></h3>
+        <div className="space-y-3">
+          {(formData.videoUrls || []).map((url, index) => (
+            <div key={index} className="flex gap-2">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => {
+                  const newUrls = [...(formData.videoUrls || [])];
+                  newUrls[index] = e.target.value;
+                  updateFormData({ videoUrls: newUrls });
+                }}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                placeholder="https://youtube.com/..."
+              />
+              <button
+                onClick={() => {
+                  const newUrls = (formData.videoUrls || []).filter((_, i) => i !== index);
+                  updateFormData({ videoUrls: newUrls });
+                }}
+                className="text-red-500 hover:text-red-700 font-bold px-2"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => updateFormData({ videoUrls: [...(formData.videoUrls || []), ""] })}
+            className="text-sm text-orange-600 font-semibold hover:text-orange-700"
+          >
+            + Add Video URL
+          </button>
+        </div>
+      </div>
+
       {/* Notes */}
       <div>
-        <label className="block text-sm font-semibold mb-2">Internal Notes</label>
+        <label className="block text-sm font-semibold mb-2">Internal Notes <span className="text-gray-400 font-normal">(Optional)</span></label>
         <textarea
           value={formData.notes}
           onChange={(e) => updateFormData({ notes: e.target.value })}

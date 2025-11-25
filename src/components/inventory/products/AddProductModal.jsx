@@ -1,3 +1,4 @@
+// src/components/inventory/products/AddProductModal.jsx
 "use client";
 
 import { X, ChevronRight, ChevronLeft, Plus } from "lucide-react";
@@ -7,10 +8,11 @@ import ProgressSteps from "./ProductFormComponents/ProgressSteps";
 import StepBasicInfo from "./ProductFormSteps/StepBasicInfo";
 import StepInventory from "./ProductFormSteps/StepInventory";
 import StepMedia from "./ProductFormSteps/StepMedia";
+import StepVariations from "./ProductFormSteps/StepVariations";
 import StepAdvanced from "./ProductFormSteps/StepAdvanced";
 import useProductForm from "./ProductFormHooks/useProductForm";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export default function AddProductModal({ onClose, editData = null }) {
   const {
@@ -21,10 +23,10 @@ export default function AddProductModal({ onClose, editData = null }) {
     updateNestedField,
     errors,
     loading,
-    categories = [],           // ← Default to empty array
-    warehouses = [],           // ← Default to empty array
-    isLoadingCategories,       // ← We'll add this in the hook (or default false)
-    isLoadingWarehouses,       // ← Same
+    categories = [],
+    warehouses = [],
+    isLoadingCategories,
+    isLoadingWarehouses,
     handleSubmit,
     validateStep,
     handleImageUpload,
@@ -77,8 +79,8 @@ export default function AddProductModal({ onClose, editData = null }) {
                 Step {currentStep} of {TOTAL_STEPS}
               </p>
             </div>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-full transition"
             >
               <X size={24} />
@@ -128,10 +130,20 @@ export default function AddProductModal({ onClose, editData = null }) {
                   removeTag={removeTag}
                   tagInput={tagInput}
                   setTagInput={setTagInput}
+                  updateFormData={updateFormData}
+                  updateNestedField={updateNestedField}
                 />
               )}
 
               {currentStep === 4 && (
+                <StepVariations
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  errors={errors}
+                />
+              )}
+
+              {currentStep === 5 && (
                 <StepAdvanced
                   formData={formData}
                   updateFormData={updateFormData}
@@ -164,7 +176,7 @@ export default function AddProductModal({ onClose, editData = null }) {
               <span className="text-sm text-gray-600">
                 Step {currentStep} of {TOTAL_STEPS}
               </span>
-              
+
               {currentStep < TOTAL_STEPS ? (
                 <button
                   onClick={handleNext}
