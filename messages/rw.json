@@ -260,21 +260,37 @@
   "print": "Sohora dokima",
   "edit": "Hindura"
   },
-  "updateProduct": {
-    "pageTitle": "Hindura igurishwa",
-    "pageSubtitle": "Emeza amakuru y’iki igurishwa harimo iby’ikigurishijwe, uburyo bwishyurwa n’amakuru y’umuguzi.",
-    "sectionCustomer": "Amakuru y’umuguzi",
-    "updateButton": "Emeza igurishwa",
-    "cancelButton": "Bireke",
-    "productName": "Izina ry’ikigurishijwe",
-    "category": "Itsinda",
-    "quantity": "Ingano",
-    "sellingPrice": "Igiciro cyo kugurisha",
-    "discount": "Kugabanyirizwa",
-    "customerName": "Amazina y’umuguzi",
-    "customerContact": "Telefone y’umuguzi",
-    "paymentMethod": "Uburyo bw’ishyura",
-    "customerInformation": "Amakuru y'Umukiriya"
+  "debtsPage": {
+    "title": "Umuyobozi w'Imyenda n'Igihembo",
+    "subtitle": "Kurikirana imyenda isigaye n'igihe cyo kwishyura neza.",
+    "totalDebts": "Imyenda Yose",
+    "clearedDebts": "Imyenda Yishyuwe",
+    "upcomingPayments": "Amafaranga Azishyurwa",
+    "verifiedDebtors": "Abishyuwe Bemejwe",
+    "repay": "Kwishyura",
+    "cancel": "Guhagarika",
+    "confirm": "Emeza",
+    "actionView": "Reba Amakuru",
+    "cancelDebt": "Hagarika Imyenda",
+    "searchPlaceholder": "Shakisha izina ry'umwenda cyangwa telefone...",
+    "confirmCancelTitle": "Hagarika Imyenda",
+    "confirmCancelMessage": "Urashaka koko guhagarika iyi myenda? Iyi ntambwe ntishobora gusubirwaho.",
+    "markPayed":"Shyira mu byishyuwe"
+  },
+
+  "Debtstable": {
+    "no": "Oya",
+    "debtorName": "Izina ry'Umwenda",
+    "contact": "Kontaki",
+    "totalDebt": "Imyenda Yose",
+    "amountPaid": "Amafaranga Yishyuwe",
+    "remainingDebt": "Imyenda Isigaye",
+    "dueDate": "Itariki Yo Kwishyura",
+    "action": "Igikorwa",
+    "isDebtCleared": "Imiterere",
+    "cleared": "Yishyuwe",
+    "pending": "Itegereje"
   }
+
 
 }
