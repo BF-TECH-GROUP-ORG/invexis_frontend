@@ -205,7 +205,13 @@ function DetailInner({ id }) {
 
                   <div className="bg-white border rounded-lg p-4">
                     <h3 className="text-sm text-gray-600 mb-2">Description</h3>
-                    <p className="text-sm text-gray-700">{product.description || 'No description provided.'}</p>
+                    <p className="text-sm text-gray-700">
+                      {typeof product.description === 'object' && product.description?.short
+                        ? product.description.short
+                        : typeof product.description === 'string'
+                          ? product.description
+                          : 'No description provided.'}
+                    </p>
                   </div>
                 </div>
               )}

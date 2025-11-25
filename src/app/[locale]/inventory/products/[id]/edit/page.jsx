@@ -15,7 +15,10 @@ import StepAdvanced from "@/components/inventory/products/ProductFormSteps/StepA
 import { AnimatePresence } from "framer-motion";
 
 export default function EditProductPage({ params }) {
-  const { id } = params;
+  // Unwrap params Promise using React.use()
+  const unwrappedParams = React.use(params);
+  const { id, locale } = unwrappedParams;
+
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -62,15 +65,15 @@ export default function EditProductPage({ params }) {
       formData.pricing?.basePrice !== undefined && formData.pricing?.basePrice !== ""
         ? Number(formData.pricing.basePrice)
         : formData.price
-        ? Number(formData.price)
-        : null;
+          ? Number(formData.price)
+          : null;
 
     const costPrice =
       formData.pricing?.cost !== undefined && formData.pricing?.cost !== ""
         ? Number(formData.pricing.cost)
         : formData.costPrice
-        ? Number(formData.costPrice)
-        : null;
+          ? Number(formData.costPrice)
+          : null;
 
     const normalizedStock = formData.stock !== undefined && formData.stock !== "" ? Number(formData.stock) : null;
 
@@ -144,7 +147,7 @@ export default function EditProductPage({ params }) {
       await dispatch(updateProduct({ id, updates: fullProductData })).unwrap();
       toast.success("Product updated successfully");
       // Navigate back to product detail
-      router.push(`/${(params?.locale || 'en')}/inventory/products/${id}`);
+      router.push(`/${(locale || 'en')}/inventory/products/${id}`);
     } catch (err) {
       console.error("Update failed:", err);
       toast.error(err?.message || 'Failed to update product');
@@ -213,9 +216,8 @@ export default function EditProductPage({ params }) {
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
-                    currentStep === 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "border-2 border-gray-300 text-[#081422] hover:border-[#FB923C]"
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${currentStep === 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "border-2 border-gray-300 text-[#081422] hover:border-[#FB923C]"
+                    }`}
                 >
                   Previous
                 </button>
