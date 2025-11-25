@@ -12,16 +12,16 @@ const MOCK_WAREHOUSES = [
   { _id: "wh4", name: "Central Hub", location: { city: "Kigali" } },
 ];
 
-export default function StepInventory({ 
-  formData, 
-  updateFormData, 
-  updateNestedField, 
-  errors, 
+export default function StepInventory({
+  formData,
+  updateFormData,
+  updateNestedField,
+  errors,
   warehouses = [] // can be undefined
 }) {
   // BULLETPROOF: Always use a valid array
-  const safeWarehouses = Array.isArray(warehouses) && warehouses.length > 0 
-    ? warehouses 
+  const safeWarehouses = Array.isArray(warehouses) && warehouses.length > 0
+    ? warehouses
     : MOCK_WAREHOUSES;
 
   return (
@@ -39,11 +39,10 @@ export default function StepInventory({
           </label>
           <input
             type="number"
-            value={formData.stock || ""}
+            value={formData.stock !== undefined && formData.stock !== null ? formData.stock : ""}
             onChange={(e) => updateFormData({ stock: e.target.value })}
-            className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${
-              errors.stock ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.stock ? "border-red-500" : "border-gray-300"
+              }`}
             placeholder="0"
             min="0"
           />
@@ -52,7 +51,7 @@ export default function StepInventory({
 
         <div>
           <label className="block text-sm font-medium text-[#333] mb-2">
-            Min Stock Level
+            Min Stock Level <span className="text-gray-400 font-normal">(Optional)</span>
           </label>
           <input
             type="number"
@@ -66,7 +65,7 @@ export default function StepInventory({
 
         <div>
           <label className="block text-sm font-medium text-[#333] mb-2">
-            Max Stock Level
+            Max Stock Level <span className="text-gray-400 font-normal">(Optional)</span>
           </label>
           <input
             type="number"
@@ -87,9 +86,8 @@ export default function StepInventory({
         <select
           value={formData.warehouse || ""}
           onChange={(e) => updateFormData({ warehouse: e.target.value })}
-          className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${
-            errors.warehouse ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.warehouse ? "border-red-500" : "border-gray-300"
+            }`}
         >
           <option value="">Select Warehouse</option>
           {safeWarehouses.map((wh) => (
@@ -101,18 +99,122 @@ export default function StepInventory({
         {errors.warehouse && <p className="text-red-500 text-xs mt-1">{errors.warehouse}</p>}
       </div>
 
-      {/* Expiry Date */}
+      {/* Expiry Date & Scheduled Availability */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-[#333] mb-2">
+            Expiry Date (Optional)
+          </label>
+          <input
+            type="date"
+            value={formData.expiryDate || ""}
+            onChange={(e) => updateFormData({ expiryDate: e.target.value })}
+            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            min={new Date().toISOString().split("T")[0]}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#333] mb-2">
+            Scheduled Availability Date <span className="text-gray-400 font-normal">(Optional)</span>
+          </label>
+          <input
+            type="date"
+            value={formData.scheduledAvailabilityDate || ""}
+            onChange={(e) => updateFormData({ scheduledAvailabilityDate: e.target.value })}
+            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            min={new Date().toISOString().split("T")[0]}
+          />
+        </div>
+      </div>
+
+      {/* Low Stock Threshold */}
       <div>
         <label className="block text-sm font-medium text-[#333] mb-2">
-          Expiry Date (Optional)
+          Low Stock Threshold <span className="text-gray-400 font-normal">(Optional)</span>
         </label>
         <input
-          type="date"
-          value={formData.expiryDate || ""}
-          onChange={(e) => updateFormData({ expiryDate: e.target.value })}
+          type="number"
+          value={formData.inventory?.lowStockThreshold ?? formData.minStockLevel ?? ""}
+          onChange={(e) => updateFormData({ inventory: { ...formData.inventory, lowStockThreshold: e.target.value }, minStockLevel: e.target.value })}
           className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-          min={new Date().toISOString().split("T")[0]}
+          placeholder="Alert when stock is below..."
+          min="0"
         />
+      </div>
+
+      {/* Physical Properties */}
+      <div className="border border-gray-200 rounded-2xl bg-white p-8">
+        <h3 className="text-xl font-semibold text-[#1F1F1F] mb-6 flex items-center gap-3">
+          <Package size={24} className="text-[#FB923C]" />
+          Physical Properties
+        </h3>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">Weight <span className="text-gray-400 font-normal">(Optional)</span></label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={formData.weight?.value || ""}
+                onChange={(e) => updateNestedField("weight", "value", e.target.value)}
+                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+                placeholder="0.0"
+                step="0.01"
+              />
+              <select
+                value={formData.weight?.unit || "lb"}
+                onChange={(e) => updateNestedField("weight", "unit", e.target.value)}
+                className="w-24 px-3 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+              >
+                <option value="lb">lb</option>
+                <option value="kg">kg</option>
+                <option value="oz">oz</option>
+                <option value="g">g</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="md:col-span-4">
+            <label className="block text-sm font-medium text-[#333] mb-2">Dimensions <span className="text-gray-400 font-normal">(Optional)</span></label>
+          </div>
+          <input
+            type="number"
+            value={formData.dimensions?.length || ""}
+            onChange={(e) => updateNestedField("dimensions", "length", e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            placeholder="Length"
+            step="0.01"
+          />
+          <input
+            type="number"
+            value={formData.dimensions?.width || ""}
+            onChange={(e) => updateNestedField("dimensions", "width", e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            placeholder="Width"
+            step="0.01"
+          />
+          <input
+            type="number"
+            value={formData.dimensions?.height || ""}
+            onChange={(e) => updateNestedField("dimensions", "height", e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            placeholder="Height"
+            step="0.01"
+          />
+          <select
+            value={formData.dimensions?.unit || "in"}
+            onChange={(e) => updateNestedField("dimensions", "unit", e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+          >
+            <option value="in">in</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+            <option value="m">m</option>
+          </select>
+        </div>
       </div>
 
       {/* Specifications */}
