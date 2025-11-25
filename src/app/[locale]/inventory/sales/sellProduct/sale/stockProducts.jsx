@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Paper,Toolbar,IconButton,Typography,TextField,Box,Menu,MenuItem,ListItemIcon,ListItemText,Popover,Select,InputLabel,FormControl,CircularProgress,Chip,} from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, CircularProgress, Chip, } from "@mui/material";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
@@ -141,6 +141,11 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
 };
 
 // Main Component
+import { useQuery } from "@tanstack/react-query";
+
+// ... imports ...
+
+// Main Component
 const CurrentInventory = () => {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -151,19 +156,11 @@ const CurrentInventory = () => {
     value: "",
   });
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch real products
-  useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true);
-      const data = await getAllProducts();
-      setProducts(data);
-      setLoading(false);
-    };
-    loadProducts();
-  }, []);
+  const { data: products = [], isLoading: loading } = useQuery({
+    queryKey: ["allProducts"],
+    queryFn: getAllProducts,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   // Filter + Search Logic
   const filteredProducts = useMemo(() => {
