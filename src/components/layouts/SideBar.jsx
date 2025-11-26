@@ -36,7 +36,7 @@ const navItems = [
     children: [
       { title: "Staff List", path: "/inventory/workers/list" },
       { title: "Branches", path: "/inventory/companies" },
-      { title: "Worker Profile", path: "/inventory/users/profile" },
+      // { title: "Worker Profile", path: "/inventory/users/profile" },
     ],
   },
   {
@@ -59,7 +59,7 @@ const navItems = [
     title: "Debts",
     icon: <Wallet size={22} />,
     children: [
-      { title: "Debts List", path: "/inventory/Debts/list" },
+      { title: "Debts List", path: "/inventory/debts" },
       { title: "Debts Details", path: "/inventory/Debts/details" },
     ],
   },

@@ -32,10 +32,10 @@ export default async function RootLayout({ children, params }) {
   setRequestLocale(locale);
 
   // Get messages for the locale
-  
+
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className="font-metropolis antialiased">
         <NextIntlClientProvider>
           <ClientProviders>

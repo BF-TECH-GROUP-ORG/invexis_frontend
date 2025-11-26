@@ -1,14 +1,13 @@
 "use client";
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { TextField } from "@mui/material";
+import { useLocale } from "next-intl";
+import { TextField, CircularProgress } from "@mui/material";
+import { updateSale } from "@/services/salesService";
 
-const UpdateInputs = () => {
+const UpdateInputs = ({ saleData, saleId }) => {
   const [form, setForm] = useState({
-    productName: "",
-    productCategory: "",
     quantity: "",
     sellingPrice: "",
     discount: "",
@@ -18,7 +17,37 @@ const UpdateInputs = () => {
     paymentMethod: "",
   });
 
+  const [loading, setLoading] = useState(false);
   const t = useTranslations("updateProduct");
+  const navigate = useRouter();
+  const locale = useLocale();
+
+  // Populate form with existing sale data
+  useEffect(() => {
+    if (saleData) {
+      const item = saleData.items && saleData.items.length > 0 ? saleData.items[0] : {};
+      const customer = saleData.knownUser || {};
+
+      // Format date to YYYY-MM-DD for input type="date"
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0];
+      };
+
+      setForm({
+        productName: item.productName || "",
+        productCategory: "N/A", // Not available in API
+        quantity: item.quantity?.toString() || "",
+        sellingPrice: item.unitPrice?.toString() || "",
+        discount: item.discount?.toString() || "",
+        customerName: customer.customerName || "",
+        customerContact: customer.customerPhone || "",
+        soldDate: formatDate(saleData.createdAt),
+        paymentMethod: saleData.paymentMethod || "",
+      });
+    }
+  }, [saleData]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -32,7 +61,6 @@ const UpdateInputs = () => {
     const errors = [];
 
     if (!cleaned.productName) errors.push("Product name required");
-    if (!cleaned.productCategory) errors.push("Category required");
     if (!cleaned.quantity || Number(cleaned.quantity) <= 0)
       errors.push("Quantity must be positive");
     if (!cleaned.sellingPrice || Number(cleaned.sellingPrice) <= 0)
@@ -50,43 +78,48 @@ const UpdateInputs = () => {
       return;
     }
 
+    setLoading(true);
+
     try {
-      // const res = await axios.post("/api/update-sale", cleaned);
-      // alert("✅ Sent successfully!");
-      console.log(cleaned);
-    } catch {
-      alert("❌ Failed to send data");
+      // Prepare update payload matching API structure
+      const updatePayload = {
+        items: [
+          {
+            productName: cleaned.productName,
+            quantity: Number(cleaned.quantity),
+            unitPrice: Number(cleaned.sellingPrice),
+            discount: Number(cleaned.discount) || 0,
+          }
+        ],
+        knownUser: {
+          customerName: cleaned.customerName,
+          customerPhone: cleaned.customerContact,
+        },
+        paymentMethod: cleaned.paymentMethod,
+        // Calculate totals
+        subTotal: Number(cleaned.quantity) * Number(cleaned.sellingPrice),
+        discountTotal: Number(cleaned.discount) || 0,
+        totalAmount: (Number(cleaned.quantity) * Number(cleaned.sellingPrice)) - (Number(cleaned.discount) || 0),
+      };
+
+      await updateSale(saleId, updatePayload);
+      alert("✅ Sale updated successfully!");
+
+      // Redirect to sale detail page
+      navigate.push(`/${locale}/inventory/sales/${saleId}`);
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("❌ Failed to update sale: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const navigate = useRouter();
-
   return (
     <div className="flex justify-center py-3">
-      <div className="w-full max-w-4xl space-y-4"> {/* Main vertical spacing */}
-
+      <div className="w-full max-w-4xl space-y-4">
         {/* Product Name + Category */}
-        <div className="flex gap-5">
-          <TextField
-            type="text"
-            id="productName"
-            label="Product Name"
-            value={form.productName}
-            onChange={handleChange}
-            className="flex-1"
-            variant="outlined"
-          />
-          <TextField
-            type="text"
-            id="productCategory"
-            label="Category"
-            value={form.productCategory}
-            onChange={handleChange}
-            className="flex-1"
-            variant="outlined"
-          />
-        </div>
-
+       
         {/* Quantity + Selling Price */}
         <div className="flex gap-5">
           <TextField
@@ -109,7 +142,7 @@ const UpdateInputs = () => {
           />
         </div>
 
-        {/* Discount + (fixed duplicate field) */}
+        {/* Discount + Payment Method */}
         <div className="flex gap-5">
           <TextField
             type="number"
@@ -120,11 +153,12 @@ const UpdateInputs = () => {
             className="flex-1"
             variant="outlined"
           />
-          {/* You had a duplicate productCategory field here – replace with whatever you need */}
           <TextField
             type="text"
-            label="Additional Field (optional)"
-            placeholder="e.g., Notes"
+            id="paymentMethod"
+            label="Payment Method"
+            value={form.paymentMethod}
+            onChange={handleChange}
             className="flex-1"
             variant="outlined"
           />
@@ -156,7 +190,7 @@ const UpdateInputs = () => {
           />
         </div>
 
-        {/* Sold Date + Payment Method */}
+        {/* Sold Date */}
         <div className="flex gap-5">
           <TextField
             type="date"
@@ -168,15 +202,6 @@ const UpdateInputs = () => {
             className="flex-1"
             variant="outlined"
           />
-          <TextField
-            type="text"
-            id="paymentMethod"
-            label="Payment Method"
-            value={form.paymentMethod}
-            onChange={handleChange}
-            className="flex-1"
-            variant="outlined"
-          />
         </div>
 
         {/* Buttons */}
@@ -184,14 +209,18 @@ const UpdateInputs = () => {
           <button
             type="button"
             onClick={handleSubmit}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition"
+            disabled={loading}
+            className={`bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg transition flex items-center gap-2 ${loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
           >
-            {t("updateButton")}
+            {loading && <CircularProgress size={20} color="inherit" />}
+            {loading ? "Updating..." : t("updateButton")}
           </button>
 
           <button
             type="button"
             onClick={() => navigate.back()}
+            disabled={loading}
             className="border border-orange-500 text-orange-500 hover:bg-orange-50 px-8 py-3 rounded-lg transition"
           >
             {t("cancelButton")}

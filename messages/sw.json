@@ -261,7 +261,40 @@
     "edit": "Hariri",
     "productDetails": "Maelezo ya Bidhaa",
     "customerInformation": "Taarifa za Mteja"
+  },
+
+  "debtsPage": {
+    "title": "Kifuatilia Deni na Malipo",
+    "subtitle": "Fuatilia madeni yasiyolipwa na ratiba za malipo kwa ufanisi.",
+    "totalDebts": "Jumla ya Madeni",
+    "clearedDebts": "Madeni Yalilipwa",
+    "upcomingPayments": "Malipo Yanayokuja",
+    "verifiedDebtors": "Wakopaji Waliothibitishwa",
+    "repay": "Lipa",
+    "cancel": "Futa",
+    "confirm": "Thibitisha",
+    "actionView": "Angalia Maelezo",
+    "cancelDebt": "Futa Deni",
+    "searchPlaceholder": "Tafuta kwa jina la mkopaji au namba ya simu...",
+    "confirmCancelTitle": "Futa Deni",
+    "confirmCancelMessage": "Una uhakika unataka kufuta deni hili? Kitendo hiki hakiwezi kurudiwa.",
+    "markPayed":"Weka ImeLipwa"
+  },
+
+  "Debtstable": {
+    "no": "Namba",
+    "debtorName": "Jina la Mkopaji",
+    "contact": "Mawasiliano",
+    "totalDebt": "Jumla ya Deni",
+    "amountPaid": "Kiasi Kilicholipwa",
+    "remainingDebt": "Deni Lilisalia",
+    "dueDate": "Tarehe ya Malipo",
+    "action": "Kitendo",
+    "isDebtCleared": "Hali",
+    "cleared": "Iliyolipwa",
+    "pending": "Inasubiri"
   }
+
 
 }
 

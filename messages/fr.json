@@ -276,7 +276,40 @@
     "customerContact": "Contact du client",
     "paymentMethod": "Mode de paiement",
     "customerInformation": "Informations du Client"
-  }
+  },
   
+  "debtsPage": {
+    "title": "Suivi des Dettes et Remboursements",
+    "subtitle": "Surveillez efficacement les dettes en cours et les échéances de remboursement.",
+    "totalDebts": "Total des Dettes",
+    "clearedDebts": "Dettes Payées",
+    "upcomingPayments": "Paiements à Venir",
+    "verifiedDebtors": "Débiteurs Vérifiés",
+    "repay": "Rembourser",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "actionView": "Voir les Détails",
+    "cancelDebt": "Annuler la Dette",
+    "searchPlaceholder": "Rechercher par nom ou téléphone du débiteur...",
+    "confirmCancelTitle": "Annuler la Dette",
+    "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette dette ? Cette action est irréversible.",
+    "markPayed":"Marquer comme Payé"
+  },
+
+  "Debtstable": {
+    "no": "N°",
+    "debtorName": "Nom du Débiteur",
+    "contact": "Contact",
+    "totalDebt": "Dette Totale",
+    "amountPaid": "Montant Payé",
+    "remainingDebt": "Dette Restante",
+    "dueDate": "Date d'Échéance",
+    "action": "Action",
+    "isDebtCleared": "Statut",
+    "cleared": "Payée",
+    "pending": "En Attente"
+  }
+
+
   
 }
