@@ -1,9 +1,8 @@
 // Company Admin, Workers
 import { createSlice } from "@reduxjs/toolkit";
-import db from "@/db/users.json";
 
 const initialState = {
-  users: db || [],
+  users: [],
 };
 
 const userSlice = createSlice({

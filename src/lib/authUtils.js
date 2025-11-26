@@ -1,31 +1,93 @@
-import fs from "fs";
-import path from "path";
-import usersDb from "@/db/users.json";
-import companiesDb from "@/db/companies.json";
+/**
+ * Authentication Utilities
+ * Handles token storage and retrieval from localStorage
+ */
 
-export const getUserFromToken = (token) => {
-  if (!token || !token.startsWith("fake-jwt-")) return null;
-  const userId = token.replace("fake-jwt-", "");
+const ACCESS_TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+const USER_KEY = "user";
 
-  const user = usersDb.find((u) => u._id === userId);
-
-  if (!user) return null;
-
-  const company = companiesDb.find((c) => c.id === user.company_id);
-  return { ...user, company };
+/**
+ * Get access token from localStorage
+ * @returns {string|null}
+ */
+export const getAccessToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
 };
 
-export const updateUserInDB = (userId, updatedSettings) => {
-  const usersFilePath = path.join(process.cwd(), "src", "db", "users.json");
-  const users = JSON.parse(fs.readFileSync(usersFilePath, "utf-8"));
+/**
+ * Get refresh token from localStorage
+ * @returns {string|null}
+ */
+export const getRefreshToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+};
 
-  const userIndex = users.findIndex((u) => u._id === userId);
-  if (userIndex === -1) throw new Error("User not found");
+/**
+ * Get user data from localStorage
+ * @returns {object|null}
+ */
+export const getUser = () => {
+  if (typeof window === "undefined") return null;
+  const userStr = localStorage.getItem(USER_KEY);
+  return userStr ? JSON.parse(userStr) : null;
+};
 
-  users[userIndex] = { ...users[userIndex], ...updatedSettings };
+/**
+ * Set access token in localStorage
+ * @param {string} token
+ */
+export const setAccessToken = (token) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+};
 
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+/**
+ * Set refresh token in localStorage
+ * @param {string} token
+ */
+export const setRefreshToken = (token) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(REFRESH_TOKEN_KEY, token);
+};
 
-  const company = companiesDb.find((c) => c.id === users[userIndex].company_id);
-  return { ...users[userIndex], company };
+/**
+ * Set user data in localStorage
+ * @param {object} user
+ */
+export const setUser = (user) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+};
+
+/**
+ * Set all auth data (tokens + user)
+ * @param {string} accessToken
+ * @param {string} refreshToken
+ * @param {object} user
+ */
+export const setAuthData = (accessToken, refreshToken, user) => {
+  setAccessToken(accessToken);
+  setRefreshToken(refreshToken);
+  setUser(user);
+};
+
+/**
+ * Remove all tokens and user data from localStorage
+ */
+export const removeTokens = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+};
+
+/**
+ * Check if user is authenticated
+ * @returns {boolean}
+ */
+export const isAuthenticated = () => {
+  return !!getAccessToken();
 };

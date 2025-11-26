@@ -63,7 +63,7 @@ const LoginPage = () => {
 
     setSubmitting(true);
     try {
-      await dispatch(loginUser(identifier, password, locale));
+      await dispatch(loginUser(identifier, password));
       router.push(`/${locale}/inventory`);
     } catch (err) {
       setError(err.message || "Login failed");
@@ -104,7 +104,7 @@ const LoginPage = () => {
           submitIcon={<HiArrowRight />}
           isLoading={submitting}
           error={error}
-          oauthOptions={["google", "apple", "phone", "otp"]}
+          oauthOptions={["google", "otp"]}
           extraLinks={[
             {
               href: `/${locale}/auth/signup`,

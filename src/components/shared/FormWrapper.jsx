@@ -239,9 +239,10 @@ export default function FormWrapper({
       <div className="flex justify-center gap-4 flex-wrap">
         {oauthOptions.includes("google") && (
           <IconButton
-            onClick={() =>
-              (window.location.href = `/${locale}/api/auth/google`)
-            }
+            onClick={() => {
+              const googleAuthUrl = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || "https://granitic-jule-haunting.ngrok-free.dev/api/auth/google";
+              window.location.href = googleAuthUrl;
+            }}
             sx={{
               borderRadius: "50%",
               border: "1px solid #e0e0e0",
