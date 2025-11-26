@@ -196,7 +196,12 @@
   "common": {
     "noData": "No data available",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "home": {
     "login": "Login",
@@ -275,6 +280,38 @@
     "customerContact": "Customer Contact",
     "paymentMethod": "Payment Method",
     "customerInformation": "Customer Information"
+  },
+ 
+  "debtsPage": {
+    "title": "Liabilities & Repayment Tracker",
+    "subtitle": "Monitor outstanding debts and repayment schedules efficiently.",
+    "totalDebts": "Total Debts",
+    "clearedDebts": "Cleared Debts",
+    "upcomingPayments": "Upcoming Payments",
+    "verifiedDebtors": "Verified Debtors",
+    "repay": "Repay",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "actionView": "View Details",
+    "cancelDebt": "Cancel Debt",
+    "searchPlaceholder": "Search debtor name or phone...",
+    "confirmCancelTitle": "Cancel Debt",
+    "confirmCancelMessage": "Are you sure you want to cancel this debt? This action cannot be undone.",
+    "markPayed":"Mark as Paid"
+  },
+
+  "Debtstable": {
+    "no": "No.",
+    "debtorName": "Debtor Name",
+    "contact": "Contact",
+    "totalDebt": "Total Debt",
+    "amountPaid": "Amount Paid",
+    "remainingDebt": "Remaining Debt",
+    "dueDate": "Due Date",
+    "action": "Action",
+    "isDebtCleared": "Status",
+    "cleared": "Cleared",
+    "pending": "Pending"
   }
 
 

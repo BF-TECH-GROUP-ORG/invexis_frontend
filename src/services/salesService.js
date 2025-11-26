@@ -33,7 +33,7 @@ export const getAllProducts = async () => {
       Quantity: product.inventory?.quantity || 0,
       Price: product.effectivePrice || product.pricing?.salePrice || product.pricing?.basePrice || 0,
       brand: product.brand || 'No Brand',
-      manufacturer:product.manufacturer
+      manufacturer: product.manufacturer
     }));
 
     return products;
@@ -46,7 +46,7 @@ export const getAllProducts = async () => {
 
 
 export const singleProductFetch = async (productId) => {
-  try{
+  try {
     const response = await axios.get(`${URL}/${productId}`, {
       headers: {
         'ngrok-skip-browser-warning': 'true',
@@ -54,26 +54,97 @@ export const singleProductFetch = async (productId) => {
     });
     console.log('Single product fetched:', response.data);
     return response.data;
-  }catch(error){
+  } catch (error) {
     console.log('Failed to fetch single product:', error.message);
     return null;
   }
 }
 
+export const SellProduct = async (saleData, sellPrice) => {
+  try {
+    console.log("--- SellProduct Service Called ---");
+    console.log("Target URL:", SALES_URL);
+    console.log("Payload:", JSON.stringify(saleData, null, 2));
 
-export const SellProduct = async (saleData,sellPrice) => {
-  try{
-    console.log('Selling product with data:', saleData);
-    console.log('Using sell price:', sellPrice);
-    const sendData = axios.post(SALES_URL, saleData, {
+    const response = await axios.post(SALES_URL, saleData, {
+      headers: { "ngrok-skip-browser-warning": "true" },
+    });
+
+    console.log("Product sold successfully. Response:", response.data);
+    return response.data;
+
+  } catch (error) {
+    console.error("--- SellProduct Service Error ---");
+    console.error("Error Message:", error.message);
+    if (error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Data:", JSON.stringify(error.response.data, null, 2));
+    }
+    throw error;
+  }
+};
+
+
+
+export const getSalesHistory = async (companyId) => {
+  try {
+    const response = await axios.get(`${SALES_URL}?companyId=${companyId}`, {
       headers: {
         'ngrok-skip-browser-warning': 'true',
       },
     });
-    console.log('Product sold successfully:', sendData.data);
-    return sendData.data;
-  }catch(error){
-    console.log('Failed to sell product:', error.message);
-  }
+    console.log("Sales history fetched:", response.data);
+    return response.data;
 
+  } catch (error) {
+    console.log('Failed to fetch sales history:', error.message);
+    return [];
+  }
 }
+
+
+export const getSingleSale = async (saleId) => {
+  try {
+    const response = await axios.get(`${SALES_URL}/${saleId}`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+    console.log("Single sale fetched:", response.data);
+    return response.data;
+  } catch (error) {
+    console.log('Failed to fetch sale details:', error.message);
+    return null;
+  }
+};
+
+export const updateSale = async (saleId, updateData) => {
+  try {
+    const response = await axios.put(`${SALES_URL}/${saleId}/contents`, updateData, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log("Sale updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update sale:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteSale = async (saleId) => {
+  try {
+    const response = await axios.delete(`${SALES_URL}/${saleId}`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+    console.log("Sale deleted successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete sale:', error.response?.data || error.message);
+    throw error;
+  }
+};
