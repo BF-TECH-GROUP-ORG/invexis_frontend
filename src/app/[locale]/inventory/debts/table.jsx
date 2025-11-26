@@ -6,7 +6,8 @@ import {
   Paper, Toolbar, IconButton, Typography, TextField, Box,
   Menu, MenuItem, ListItemIcon, ListItemText, Dialog,
   DialogTitle, DialogContent, DialogActions, Button, Popover,
-  ToggleButton, ToggleButtonGroup, InputAdornment
+  ToggleButton, ToggleButtonGroup, InputAdornment, Select,
+  FormControl, InputLabel
 } from "@mui/material";
 
 // Icons
@@ -31,16 +32,14 @@ import autoTable from "jspdf-autotable";
 
 import { useState, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { recordRepayment, markDebtAsPaid, cancelDebt } from "@/services/debts";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 // =======================================
-// SAMPLE DATA
+// DataTable Component - Uses debts prop from parent
 // =======================================
-const debtRows = [
-  { id: 1, debtorName: "John Mutabazi", contact: "+250 781 234 567", totalDebt: 450000, amountPaid: 200000, remainingDebt: 250000, dueDate: "25/12/2025", isDebtCleared: false },
-  { id: 2, debtorName: "Aline Umutesi", contact: "+250 788 999 111", totalDebt: 1200000, amountPaid: 1200000, remainingDebt: 0, dueDate: "10/11/2025", isDebtCleared: true },
-  { id: 3, debtorName: "Eric Niyonsenga", contact: "+250 790 123 456", totalDebt: 800000, amountPaid: 300000, remainingDebt: 500000, dueDate: "05/01/2026", isDebtCleared: false },
-  { id: 4, debtorName: "Grace Uwase", contact: "+250 783 555 777", totalDebt: 300000, amountPaid: 0, remainingDebt: 300000, dueDate: "30/11/2025", isDebtCleared: false },
-];
 
 // =======================================
 // CONFIRM DIALOG (Cancel Debt)
@@ -59,37 +58,64 @@ const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, t }) => (
 );
 
 // =======================================
-// REPAYMENT DIALOG (Beautiful Popup)
+// REPAYMENT DIALOG (Beautiful Popup WITH API INTEGRATION)
 // =======================================
-const RepayDialog = ({ open, onClose, debtorName, contact, remainingDebt, t }) => {
+const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
   const [paymentMode, setPaymentMode] = useState("amount"); // "amount" or "phone"
   const [amount, setAmount] = useState("");
-  const [phone, setPhone] = useState(contact.replace(/\s/g, ""));
+  const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
 
   const handleConfirm = () => {
     if (paymentMode === "amount") {
-      alert(`Recorded payment of ${parseInt(amount).toLocaleString()} FRW for ${debtorName}`);
+      // Build the repayment payload
+      const repaymentPayload = {
+        companyId: debt.companyId,
+        shopId: debt.shopId,
+        debtId: debt._id,
+        customer: {
+          id: debt.customer.id,
+          name: debt.customer.name,
+          phone: debt.customer.phone
+        },
+        paymentId: crypto.randomUUID(), // Generate unique payment ID for idempotency
+        amountPaid: parseInt(amount),
+        paymentMethod: paymentMethod,
+        paymentReference: `${paymentMethod}-${Date.now()}`,
+        paidAt: new Date().toISOString(),
+        createdBy: {
+          id: "temp-user-id", // TODO: Get from user context
+          name: "POS User" // TODO: Get from user context
+        }
+      };
+
+      // Call the mutation with the payload
+      onRepaymentSuccess(repaymentPayload);
     } else {
-      alert(`MoMo payment request sent to ${phone} for ${debtorName}`);
+      // Mobile money payment - would need additional integration
+      alert(`MoMo payment request functionality coming soon for ${phone}`);
     }
+
+    // Reset form and close
     onClose();
     setAmount("");
     setPaymentMode("amount");
+    setPaymentMethod("CASH");
   };
 
-  const isAmountValid = amount && parseInt(amount) > 0 && parseInt(amount) <= remainingDebt;
+  const isAmountValid = amount && parseInt(amount) > 0 && parseInt(amount) <= (debt?.balance || 0);
   const isPhoneValid = phone.length >= 12;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ bgcolor: "#FF6D00", color: "white", py: 2.5, fontWeight: "bold" }}>
         <PaymentIcon sx={{ mr: 1, verticalAlign: "middle", fontSize: 28 }} />
-        Repay Debt — {debtorName}
+        Repay Debt — {debt?.customer?.name}
       </DialogTitle>
 
       <DialogContent sx={{ pt: 4 }}>
         <Typography variant="body1" fontWeight="medium" gutterBottom>
-          Remaining Amount: <strong style={{ color: "#d32f2f" }}>{remainingDebt.toLocaleString()} FRW</strong>
+          Remaining Amount: <strong style={{ color: "#d32f2f" }}>{debt?.balance?.toLocaleString() || 0} FRW</strong>
         </Typography>
 
         {/* Toggle Buttons */}
@@ -112,24 +138,40 @@ const RepayDialog = ({ open, onClose, debtorName, contact, remainingDebt, t }) =
 
         {/* Dynamic Input Field */}
         {paymentMode === "amount" ? (
-          <TextField
-            autoFocus
-            label="Amount to Record"
-            type="text"
-            fullWidth
-            value={amount}
-            onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">FRW</InputAdornment>,
-            }}
-            helperText={
-              amount && parseInt(amount) > remainingDebt
-                ? "⚠️ Amount exceeds remaining debt"
-                : `Maximum: ${remainingDebt.toLocaleString()} FRW`
-            }
-            error={amount && parseInt(amount) > remainingDebt}
-            sx={{ mt: 1 }}
-          />
+          <>
+            <TextField
+              autoFocus
+              label="Amount to Record"
+              type="text"
+              fullWidth
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">FRW</InputAdornment>,
+              }}
+              helperText={
+                amount && parseInt(amount) > (debt?.balance || 0)
+                  ? "⚠️ Amount exceeds remaining debt"
+                  : `Maximum: ${debt?.balance?.toLocaleString() || 0} FRW`
+              }
+              error={amount && parseInt(amount) > (debt?.balance || 0)}
+              sx={{ mt: 1 }}
+            />
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Payment Method</InputLabel>
+              <Select
+                value={paymentMethod}
+                label="Payment Method"
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <MenuItem value="CASH">Cash</MenuItem>
+                <MenuItem value="CARD">Card</MenuItem>
+                <MenuItem value="MOBILE_MONEY">Mobile Money</MenuItem>
+                <MenuItem value="BANK_TRANSFER">Bank Transfer</MenuItem>
+                <MenuItem value="OTHER">Other</MenuItem>
+              </Select>
+            </FormControl>
+          </>
         ) : (
           <TextField
             autoFocus
@@ -169,13 +211,14 @@ const RepayDialog = ({ open, onClose, debtorName, contact, remainingDebt, t }) =
 // =======================================
 // ACTION MENU + REPAY DIALOG
 // =======================================
-const DebtActionsMenu = ({ rowId, debtorName, contact, remainingDebt }) => {
+const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("debtsPage");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [repayOpen, setRepayOpen] = useState(false);
+  const [markPaidDialogOpen, setMarkPaidDialogOpen] = useState(false);
 
   return (
     <>
@@ -184,7 +227,7 @@ const DebtActionsMenu = ({ rowId, debtorName, contact, remainingDebt }) => {
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-        <MenuItem onClick={() => { setAnchorEl(null); router.push(`/${locale}/inventory/debts/${rowId}`); }}>
+        <MenuItem onClick={() => { setAnchorEl(null); router.push(`/${locale}/inventory/debts/${debt._id}`); }}>
           <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
           <ListItemText>{t("actionView") || "View Details"}</ListItemText>
         </MenuItem>
@@ -194,7 +237,7 @@ const DebtActionsMenu = ({ rowId, debtorName, contact, remainingDebt }) => {
           <ListItemText>{t("repay") || "Repay"}</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => { setAnchorEl(null); router.push(`/${locale}/debts/repay/${rowId}`); }}>
+        <MenuItem onClick={() => { setMarkPaidDialogOpen(true); setAnchorEl(null); }}>
           <ListItemIcon><CheckIcon fontSize="small" color="success" /></ListItemIcon>
           <ListItemText>{t("markPayed") || "Mark as Paid"}</ListItemText>
         </MenuItem>
@@ -205,22 +248,88 @@ const DebtActionsMenu = ({ rowId, debtorName, contact, remainingDebt }) => {
         </MenuItem>
       </Menu>
 
-      <ConfirmDialog
-        open={cancelDialogOpen}
-        t={t}
-        title={t("confirmCancelTitle") || "Cancel Debt?"}
-        message={t("confirmCancelMessage") || "This action cannot be undone."}
-        onConfirm={() => setCancelDialogOpen(false)}
-        onCancel={() => setCancelDialogOpen(false)}
-      />
+      {/* Cancel Debt Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+        <DialogTitle sx={{ bgcolor: "#d32f2f", color: "white", fontWeight: "bold" }}>
+          <CancelIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+          Cancel This Debt?
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to cancel this debt?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Debtor: <strong>{debt.customer?.name}</strong>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Remaining Balance: <strong style={{ color: "#d32f2f" }}>{debt.balance?.toLocaleString()} FRW</strong>
+          </Typography>
+          <Typography variant="body2" color="error" sx={{ mt: 2, fontWeight: "600" }}>
+            ⚠️ This action will mark the debt as CANCELLED and cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setCancelDialogOpen(false)} variant="outlined">
+            {t("cancel") || "Cancel"}
+          </Button>
+          <Button
+            onClick={() => {
+              setCancelDialogOpen(false);
+              onCancelDebt(debt._id);
+            }}
+            variant="contained"
+            color="error"
+            startIcon={<CancelIcon />}
+          >
+            {t("confirm") || "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mark as Paid Confirmation Dialog */}
+      <Dialog open={markPaidDialogOpen} onClose={() => setMarkPaidDialogOpen(false)}>
+        <DialogTitle sx={{ bgcolor: "#2e7d32", color: "white", fontWeight: "bold" }}>
+          <CheckIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+          Mark Debt as Paid?
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to mark this debt as fully paid?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Debtor: <strong>{debt.customer?.name}</strong>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Remaining Balance: <strong style={{ color: "#d32f2f" }}>{debt.balance?.toLocaleString()} FRW</strong>
+          </Typography>
+          <Typography variant="body2" color="warning.main" sx={{ mt: 2, fontStyle: "italic" }}>
+            This will create a payment record for the remaining balance and mark the debt as PAID.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setMarkPaidDialogOpen(false)} variant="outlined">
+            {t("cancel") || "Cancel"}
+          </Button>
+          <Button
+            onClick={() => {
+              setMarkPaidDialogOpen(false);
+              onMarkAsPaid(debt._id);
+            }}
+            variant="contained"
+            color="success"
+            startIcon={<CheckIcon />}
+          >
+            {t("confirm") || "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <RepayDialog
         open={repayOpen}
         onClose={() => setRepayOpen(false)}
-        debtorName={debtorName}
-        contact={contact}
-        remainingDebt={remainingDebt}
+        debt={debt}
         t={t}
+        onRepaymentSuccess={onRepaymentSuccess}
       />
     </>
   );
@@ -228,16 +337,125 @@ const DebtActionsMenu = ({ rowId, debtorName, contact, remainingDebt }) => {
 
 // =======================================
 // MAIN TABLE COMPONENT
-// ==================  ====  ===  ===  ===
-const DebtsTable = () => {
+// =======================================
+const DebtsTable = ({ debts = [] }) => {
   const tTable = useTranslations("Debtstable");
   const tPage = useTranslations("debtsPage");
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [exportAnchor, setExportAnchor] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
+  const [errorDialog, setErrorDialog] = useState({
+    open: false,
+    message: "",
+    error: null,
+    pendingPayload: null
+  });
+
+  // Repayment mutation
+  const repaymentMutation = useMutation({
+    mutationFn: recordRepayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["debts"]);
+      setSnackbar({
+        open: true,
+        message: "Payment recorded successfully!",
+        severity: "success"
+      });
+    },
+    onError: (error, variables) => {
+      console.error("Repayment error:", error);
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        "Failed to record payment. Please check your connection and try again.";
+
+      setErrorDialog({
+        open: true,
+        message: errorMessage,
+        error: error,
+        pendingPayload: variables
+      });
+    },
+  });
+
+  const handleRepayment = async (repaymentPayload) => {
+    await repaymentMutation.mutateAsync(repaymentPayload);
+  };
+
+  const handleRetryRepayment = () => {
+    if (errorDialog.pendingPayload) {
+      setErrorDialog({ open: false, message: "", error: null, pendingPayload: null });
+      handleRepayment(errorDialog.pendingPayload);
+    }
+  };
+
+  // Mark as Paid mutation
+  const markAsPaidMutation = useMutation({
+    mutationFn: markDebtAsPaid,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["debts"]);
+      setSnackbar({
+        open: true,
+        message: "Debt marked as paid successfully!",
+        severity: "success"
+      });
+    },
+    onError: (error) => {
+      console.error("Mark as paid error:", error);
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        "Failed to mark debt as paid. Please try again.";
+
+      setErrorDialog({
+        open: true,
+        message: errorMessage,
+        error: error,
+        pendingPayload: null
+      });
+    },
+  });
+
+  const handleMarkAsPaid = async (debtId) => {
+    await markAsPaidMutation.mutateAsync(debtId);
+  };
+
+  // Cancel Debt mutation
+  const cancelDebtMutation = useMutation({
+    mutationFn: cancelDebt,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["debts"]);
+      setSnackbar({
+        open: true,
+        message: "Debt cancelled successfully!",
+        severity: "success"
+      });
+    },
+    onError: (error) => {
+      console.error("Cancel debt error:", error);
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        "Failed to cancel debt. Please try again.";
+
+      setErrorDialog({
+        open: true,
+        message: errorMessage,
+        error: error,
+        pendingPayload: null
+      });
+    },
+  });
+
+  const handleCancelDebt = async (debtId) => {
+    await cancelDebtMutation.mutateAsync(debtId);
+  };
 
   const handleOpenFilter = (e) => setFilterAnchor(e.currentTarget);
   const handleCloseFilter = () => setFilterAnchor(null);
@@ -291,24 +509,24 @@ const DebtsTable = () => {
   };
 
   const filteredRows = useMemo(() => {
-    let rows = debtRows;
+    let rows = debts;
 
     if (search) {
       rows = rows.filter(r =>
-        r.debtorName.toLowerCase().includes(search.toLowerCase()) ||
-        r.contact.includes(search)
+        r.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.customer?.phone?.includes(search)
       );
     }
 
     if (startDate) {
-      rows = rows.filter(r => dayjs(r.dueDate, "DD/MM/YYYY").isAfter(dayjs(startDate).subtract(1, "day")));
+      rows = rows.filter(r => dayjs(r.dueDate).isAfter(dayjs(startDate).subtract(1, "day")));
     }
     if (endDate) {
-      rows = rows.filter(r => dayjs(r.dueDate, "DD/MM/YYYY").isBefore(dayjs(endDate).add(1, "day")));
+      rows = rows.filter(r => dayjs(r.dueDate).isBefore(dayjs(endDate).add(1, "day")));
     }
 
     return rows;
-  }, [search, startDate, endDate]);
+  }, [search, startDate, endDate, debts]);
 
   return (
     <Paper sx={{ background: "transparent", boxShadow: "none" }}>
@@ -373,19 +591,19 @@ const DebtsTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell>{row.id}</TableCell>
-                <TableCell>{row.debtorName}</TableCell>
-                <TableCell>{row.contact}</TableCell>
-                <TableCell align="right">{row.totalDebt.toLocaleString()} FRW</TableCell>
-                <TableCell align="right">{row.amountPaid.toLocaleString()} FRW</TableCell>
-                <TableCell align="right" sx={{ color: row.remainingDebt > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
-                  {row.remainingDebt.toLocaleString()} FRW
+            {filteredRows.map((debt) => (
+              <TableRow key={debt._id} hover>
+                <TableCell>{debt._id?.slice(-6)}</TableCell>
+                <TableCell>{debt.customer?.name}</TableCell>
+                <TableCell>{debt.customer?.phone}</TableCell>
+                <TableCell align="right">{debt.totalAmount?.toLocaleString()} FRW</TableCell>
+                <TableCell align="right">{debt.amountPaidNow?.toLocaleString()} FRW</TableCell>
+                <TableCell align="right" sx={{ color: debt.balance > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
+                  {debt.balance?.toLocaleString()} FRW
                 </TableCell>
-                <TableCell>{row.dueDate}</TableCell>
+                <TableCell>{debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}</TableCell>
                 <TableCell>
-                  {row.isDebtCleared ? (
+                  {debt.status === "PAID" ? (
                     <Typography color="success" fontWeight="bold">✓ Cleared</Typography>
                   ) : (
                     <Typography color="error" fontWeight="bold">Pending</Typography>
@@ -393,10 +611,10 @@ const DebtsTable = () => {
                 </TableCell>
                 <TableCell>
                   <DebtActionsMenu
-                    rowId={row.id}
-                    debtorName={row.debtorName}
-                    contact={row.contact}
-                    remainingDebt={row.remainingDebt}
+                    debt={debt}
+                    onRepaymentSuccess={handleRepayment}
+                    onMarkAsPaid={handleMarkAsPaid}
+                    onCancelDebt={handleCancelDebt}
                   />
                 </TableCell>
               </TableRow>
@@ -404,6 +622,61 @@ const DebtsTable = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Dialog */}
+      <Dialog
+        open={errorDialog.open}
+        onClose={() => setErrorDialog({ open: false, message: "", error: null, pendingPayload: null })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: "#d32f2f", color: "white", display: "flex", alignItems: "center", gap: 1 }}>
+          <CancelIcon />
+          Payment Error
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            {errorDialog.message}
+          </Typography>
+          {errorDialog.error?.response?.status && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Status: {errorDialog.error.response.status}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setErrorDialog({ open: false, message: "", error: null, pendingPayload: null })}
+            variant="outlined"
+          >
+            Close
+          </Button>
+          <Button
+            onClick={handleRetryRepayment}
+            variant="contained"
+            sx={{ bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+          >
+            Retry Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

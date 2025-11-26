@@ -14,10 +14,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
 // import { useTranslations } from "next-intl"; // Assuming translations might not be fully set up for companies yet, using hardcoded strings or generic keys if possible.
-import { deleteShop } from "@/services/shopService";
+import { deleteBranch } from "@/services/branches";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 // Small local confirmation dialog
 const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => (
@@ -270,6 +272,11 @@ const CompaniesTable = ({ initialRows = [] }) => {
     const [filterAnchorEl, setFilterAnchorEl] = useState(null);
     const [exportAnchor, setExportAnchor] = useState(null);
     const queryClient = useQueryClient();
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success"
+    });
 
     const rows = useMemo(() => {
         if (!initialRows || !Array.isArray(initialRows)) return [];
@@ -285,14 +292,23 @@ const CompaniesTable = ({ initialRows = [] }) => {
     }, [initialRows]);
 
     const deleteMutation = useMutation({
-        mutationFn: (shopId) => deleteShop(shopId),
+        mutationFn: (branchId) => deleteBranch(branchId),
         onSuccess: () => {
-            queryClient.invalidateQueries(["shops"]);
-            console.log("Shop deleted and cache invalidated");
+            queryClient.invalidateQueries(["branches"]);
+            console.log("Branch deleted and cache invalidated");
+            setSnackbar({
+                open: true,
+                message: "Branch deleted successfully!",
+                severity: "success"
+            });
         },
         onError: (error) => {
-            console.error("Failed to delete shop:", error);
-            alert("Failed to delete shop. Please try again.");
+            console.error("Failed to delete branch:", error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || "Failed to delete branch. Please try again.",
+                severity: "error"
+            });
         },
     });
 
@@ -539,6 +555,23 @@ const CompaniesTable = ({ initialRows = [] }) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {/* Success/Error Snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Paper>
     );
 };
