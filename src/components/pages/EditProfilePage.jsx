@@ -13,9 +13,11 @@ import IOSSwitch from "@/components/shared/IosSwitch";
 import Image from "next/image";
 import { ThemeRegistry } from "@/providers/ThemeRegistry";
 import { RadioGroup, Radio, FormControl } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 export default function EditProfilePage() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { user } = useSelector((state) => state.auth);
 
   const [activeSection, setActiveSection] = useState("profile");
@@ -384,7 +386,7 @@ export default function EditProfilePage() {
           type="submit"
           onClick={async (e) => {
             await handleSubmit(e);
-            window.location.href = "/account/profile"; // redirect to profile page
+            router.push("/account/profile"); // redirect to profile page
           }}
           sx={{
             backgroundColor: "#ff782d",

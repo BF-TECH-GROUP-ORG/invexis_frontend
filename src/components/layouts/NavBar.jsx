@@ -93,9 +93,7 @@ export default function TopNavBar({ expanded = true }) {
         </div>
       </header>
 
-      {/* ================= PROFILE & NOTIFICATION SIDEBARS (unchanged logic, minor style tweaks) ================= */}
-      {/* Keeping your existing sidebars but with slight visual improvements to match modern feel */}
-
+      {/* ================= PROFILE SIDEBAR ================= */}
       <AnimatePresence>
         {profileOpen && (
           <>
@@ -127,10 +125,10 @@ export default function TopNavBar({ expanded = true }) {
               </div>
 
               <nav className="px-6 space-y-1">
-                <Link href={`/${locale}`} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
+                <Link href={`/${locale}/inventory/dashboard`} prefetch={true} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
                   Dashboard
                 </Link>
-                <Link href={`/${locale}/account/profile`} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
+                <Link href={`/${locale}/account/profile`} prefetch={true} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
                   Profile Settings
                 </Link>
               </nav>
@@ -145,6 +143,7 @@ export default function TopNavBar({ expanded = true }) {
         )}
       </AnimatePresence>
 
+      {/* ================= NOTIFICATION SIDEBAR ================= */}
       <AnimatePresence>
         {notifOpen && (
           <>

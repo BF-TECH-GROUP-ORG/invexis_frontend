@@ -7,75 +7,13 @@ import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
 import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 
+import AuthService from "@/services/AuthService";
+import { useRouter } from "next/navigation";
+
+// ... inside component
 export default function SuperAdminRegister() {
-  const [step, setStep] = useState(1);
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [showTermsPopup, setShowTermsPopup] = useState(false);
-
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    password: "",
-    confirmPassword: "",
-    role: "super_admin",
-    nationalId: "",
-    emergencyContact: { name: "", phone: "" },
-    address: {
-      street: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-    },
-    preferences: {
-      language: "en",
-      notifications: {
-        email: true,
-        sms: true,
-        inApp: true,
-      },
-    },
-  });
-
-  const handleTermsClick = () => {
-    if (!acceptTerms) setShowTermsPopup(true);
-    else setAcceptTerms(false);
-  };
-  const handleAgree = () => {
-    setAcceptTerms(true);
-    setShowTermsPopup(false);
-  };
-  const handleClosePopup = () => setShowTermsPopup(false);
-
-  const handleChange = (path, value) => {
-    const keys = path.split(".");
-    setFormData((prev) => {
-      let updated = { ...prev };
-      let temp = updated;
-      while (keys.length > 1) {
-        const key = keys.shift();
-        temp[key] = { ...temp[key] };
-        temp = temp[key];
-      }
-      temp[keys[0]] = value;
-      return updated;
-    });
-  };
-
-  const handleNext = () => {
-    if (step < 5) setStep(step + 1);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
+  const router = useRouter();
+  // ...
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -91,11 +29,15 @@ export default function SuperAdminRegister() {
     }
 
     setSubmitting(true);
-    setTimeout(() => {
-      console.log("✅ Registered Super Admin Data:", formData);
-      alert("Super Admin registered successfully!");
+    try {
+      await AuthService.register(formData);
+      // alert("Super Admin registered successfully!"); // Optional
+      router.push("/auth/login");
+    } catch (err) {
+      setError(err.message || "Registration failed");
+    } finally {
       setSubmitting(false);
-    }, 1500);
+    }
   };
 
   const steps = [

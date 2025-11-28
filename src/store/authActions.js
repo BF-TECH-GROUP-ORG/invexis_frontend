@@ -7,9 +7,9 @@ import AuthService from "@/services/AuthService";
 /**
  * Login user with email and password
  */
-export const loginUser = (email, password) => async (dispatch) => {
+export const loginUser = (identifier, password) => async (dispatch) => {
   try {
-    const response = await AuthService.login(email, password);
+    const response = await AuthService.login(identifier, password);
     
     if (!response.ok) {
       throw new Error(response.message || "Login failed");
@@ -100,6 +100,13 @@ export const updateUserProfile = (profileData) => async (dispatch) => {
     console.error("Update profile error:", err);
     throw err;
   }
+};
+
+/**
+ * Update user settings (alias for updateUserProfile for now)
+ */
+export const updateUserSettings = (settings) => async (dispatch) => {
+  return dispatch(updateUserProfile(settings));
 };
 
 /**

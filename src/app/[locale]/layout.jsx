@@ -21,6 +21,10 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+import AuthProvider from "@/providers/AuthProvider";
+
+// ... existing imports
+
 export default async function RootLayout({ children, params }) {
   const { locale } = await params;
 
@@ -39,11 +43,13 @@ export default async function RootLayout({ children, params }) {
       <body className="font-metropolis antialiased">
         <NextIntlClientProvider>
           <ClientProviders>
-            <ThemeRegistry>
-              {/* Initialize settings from localStorage */}
-              <SettingsInitializer />
-              <LayoutWrapper>{children}</LayoutWrapper>
-            </ThemeRegistry>
+            <AuthProvider>
+              <ThemeRegistry>
+                {/* Initialize settings from localStorage */}
+                <SettingsInitializer />
+                <LayoutWrapper>{children}</LayoutWrapper>
+              </ThemeRegistry>
+            </AuthProvider>
           </ClientProviders>
         </NextIntlClientProvider>
       </body>
