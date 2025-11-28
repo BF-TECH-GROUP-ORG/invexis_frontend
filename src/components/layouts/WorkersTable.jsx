@@ -29,48 +29,15 @@ import { HiDotsVertical, HiSearch } from "react-icons/hi";
 import IOSSwitch from "../shared/IosSwitch";
 import UsersPageHeader from "./UsersPageHeader";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import { getWorkersByCompanyId } from "../../services/workersService";
+import { useEffect } from "react";
 
-const mockWorkers = [
-  {
-    firstName: "Store",
-    lastName: "Worker",
-    email: "store.worker@company.com",
-    phone: "+250789123463",
-    role: "worker",
-    position: "Sales Representative",
-    department: "Sales",
-    gender: "Male",
-    nationalId: "WORK12345",
-    address: { city: "Kigali", country: "Rwanda" },
-  },
-  {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@company.com",
-    phone: "+250789987654",
-    role: "manager",
-    position: "Cashier",
-    department: "Finance",
-    gender: "Male",
-    nationalId: "WORK56789",
-    address: { city: "Kigali", country: "Rwanda" },
-  },
-  {
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@company.com",
-    phone: "+250788123456",
-    role: "worker",
-    position: "Stock Keeper",
-    department: "Inventory",
-    gender: "Female",
-    nationalId: "WORK91011",
-    address: { city: "Huye", country: "Rwanda" },
-  },
-];
+
 
 export default function WorkersTable() {
-  const [workers] = useState(mockWorkers);
+  const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [dense, setDense] = useState(false);
   const [page, setPage] = useState(0);
@@ -78,6 +45,36 @@ export default function WorkersTable() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const router = useRouter();
+  const locale = useLocale();
+
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const companyId = "09a89de8-4a0f-4f40-a4ce-bcef7bfc364d";
+        const data = await getWorkersByCompanyId(companyId);
+
+        if (data && Array.isArray(data)) {
+          const mappedWorkers = data.map(worker => ({
+            id: worker.id,
+            firstName: "Worker",
+            lastName: worker.id.substring(0, 8),
+            email: worker.user_id || "N/A",
+            role: "Worker", // Default role
+            status: worker.status || "active",
+            joinedAt: worker.assigned_at ? new Date(worker.assigned_at).toLocaleDateString() : "N/A",
+            nationalId: worker.id,
+          }));
+          setWorkers(mappedWorkers);
+        }
+      } catch (error) {
+        console.error("Error fetching workers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkers();
+  }, []);
 
   // Filtering logic
   const filteredWorkers = useMemo(() => {
@@ -86,27 +83,26 @@ export default function WorkersTable() {
         `${w.firstName} ${w.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase()) ||
-        w.email.toLowerCase().includes(search.toLowerCase()) ||
-        w.phone.includes(search);
+        w.email.toLowerCase().includes(search.toLowerCase());
       const matchesFilter =
         !filter ||
         w.role.toLowerCase() === filter.toLowerCase() ||
-        w.position.toLowerCase() === filter.toLowerCase();
+        w.status.toLowerCase() === filter.toLowerCase();
       return matchesSearch && matchesFilter;
     });
   }, [workers, search, filter]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelected(filteredWorkers.map((w) => w.email));
+      setSelected(filteredWorkers.map((w) => w.id));
     } else {
       setSelected([]);
     }
   };
 
-  const handleSelectRow = (email) => {
+  const handleSelectRow = (id) => {
     setSelected((prev) =>
-      prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
     );
   };
 
@@ -117,7 +113,7 @@ export default function WorkersTable() {
   };
 
   const handleAddUser = () => {
-    router.push("/inventory/workers/add-worker")
+    router.push(`/${locale}/inventory/workers/add-worker`)
   };
 
   return (
@@ -155,12 +151,9 @@ export default function WorkersTable() {
           displayEmpty
           sx={{ minWidth: 160 }}
         >
-          <MenuItem value="">All Roles / Positions</MenuItem>
-          <MenuItem value="worker">Worker</MenuItem>
-          <MenuItem value="manager">Manager</MenuItem>
-          <MenuItem value="cashier">Cashier</MenuItem>
-          <MenuItem value="sales representative">Sales Representative</MenuItem>
-          <MenuItem value="stock keeper">Stock Keeper</MenuItem>
+          <MenuItem value="">All Statuses</MenuItem>
+          <MenuItem value="active">Active</MenuItem>
+          <MenuItem value="inactive">Inactive</MenuItem>
         </Select>
       </Box>
 
@@ -183,12 +176,10 @@ export default function WorkersTable() {
                 />
               </TableCell>
               <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
+              <TableCell>User ID</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Position</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>City</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Joined Date</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -198,17 +189,17 @@ export default function WorkersTable() {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((worker) => (
                 <TableRow
-                  key={worker.email}
+                  key={worker.id}
                   hover
-                  selected={selected.includes(worker.email)}
+                  selected={selected.includes(worker.id)}
                   sx={{
                     "&:hover": { backgroundColor: "#f4f6f8" },
                   }}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selected.includes(worker.email)}
-                      onChange={() => handleSelectRow(worker.email)}
+                      checked={selected.includes(worker.id)}
+                      onChange={() => handleSelectRow(worker.id)}
                     />
                   </TableCell>
 
@@ -231,22 +222,30 @@ export default function WorkersTable() {
                   </TableCell>
 
                   <TableCell>{worker.email}</TableCell>
-                  <TableCell>{worker.phone}</TableCell>
                   <TableCell>
                     <Chip
                       label={worker.role}
                       size="small"
                       sx={{
-                        backgroundColor:
-                          worker.role === "worker" ? "#E0F2FE" : "#E8F5E9",
-                        color: worker.role === "worker" ? "#0369A1" : "#2E7D32",
+                        backgroundColor: "#E0F2FE",
+                        color: "#0369A1",
                         fontWeight: 600,
                       }}
                     />
                   </TableCell>
-                  <TableCell>{worker.position}</TableCell>
-                  <TableCell>{worker.department}</TableCell>
-                  <TableCell>{worker.address.city}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={worker.status}
+                      size="small"
+                      sx={{
+                        backgroundColor: worker.status === 'active' ? "#E8F5E9" : "#FFEBEE",
+                        color: worker.status === 'active' ? "#2E7D32" : "#C62828",
+                        fontWeight: 600,
+                        textTransform: 'capitalize'
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>{worker.joinedAt}</TableCell>
 
                   <TableCell align="center">
                     <Tooltip title="Actions">

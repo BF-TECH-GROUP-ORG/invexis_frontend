@@ -60,13 +60,17 @@ export const singleProductFetch = async (productId) => {
   }
 }
 
-export const SellProduct = async (saleData, sellPrice) => {
+export const SellProduct = async (saleData, isDebt = false) => {
   try {
+    // Choose endpoint based on whether it's a debt or regular sale
+    const endpoint = isDebt ? `${SALES_URL}/debts` : SALES_URL;
+
     console.log("--- SellProduct Service Called ---");
-    console.log("Target URL:", SALES_URL);
+    console.log("Transaction Type:", isDebt ? "DEBT" : "REGULAR SALE");
+    console.log("Target URL:", endpoint);
     console.log("Payload:", JSON.stringify(saleData, null, 2));
 
-    const response = await axios.post(SALES_URL, saleData, {
+    const response = await axios.post(endpoint, saleData, {
       headers: { "ngrok-skip-browser-warning": "true" },
     });
 
