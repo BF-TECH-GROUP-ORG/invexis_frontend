@@ -23,6 +23,7 @@ import {
   MoreVertical,
   X,
 } from "lucide-react";
+import { title } from "process";
 
 /* STATIC NAV ITEMS */
 const navItems = [
@@ -59,8 +60,12 @@ const navItems = [
     title: "Inventory",
     icon: <Package size={22} />,
     children: [
-      { title: "Product List", path: "/inventory/products/list", prefetch: true },
-      { title: "Product Details", path: "/inventory/products/details", prefetch: true },
+      { title: "Overview", path: "/inventory/Overview", prefetch: true },
+      { title: "Products", path: "/inventory/products", prefetch: true },
+      {title: "Categories", path: "/inventory/categories", prefetch: true },
+      { title: "Reports", path: "/inventory/report", prefetch: true },
+      { title: "Alerts", path: "/inventory/alerts", prefetch: true },
+
     ],
   },
 

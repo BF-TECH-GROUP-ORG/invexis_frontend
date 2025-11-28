@@ -30,7 +30,9 @@ api.interceptors.request.use(
     console.log("📤 Request:", config.method?.toUpperCase(), config.url);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 // -----------------------------------------------------

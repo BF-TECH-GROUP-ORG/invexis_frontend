@@ -9,21 +9,29 @@ import reportReducer from "../features/reports/reportSlice";
 import settingsReducer from "@/features/settings/settingsSlice";
 import onboardingReducer from "../features/onboarding/onboardingSlice";
 import sessionReducer from "../features/session/sessionSlice";
+import reportsReducer from "@/features/reports/reportsSlice"
+import alertsReducer from "@/features/alerts/alertsSlice"
+import inventoryReducer from "@/features/inventory/inventorySlice"
+import categoriesReducer from "@/features/categories/categoriesSlice"
+import productsReducer from "@/features/products/productsSlice"
+import warehousesReducer from "@/features/warehouses/warehousesSlice"
 
-// Configure the Redux store with all slices
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     auth: authReducer,
-    users: userReducer,
-    companies: companyReducer,
-    products: productReducer,
-    stock: stockReducer,
-    sales: salesReducer,
-    reports: reportReducer,
+    categories: categoriesReducer,
+    products: productsReducer,
+    warehouses: warehousesReducer,
     settings: settingsReducer,
-    onboarding: onboardingReducer,
-    session: sessionReducer,
+    inventory: inventoryReducer,
+    alerts: alertsReducer,
+    reports: reportsReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, 
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
 export default store;
