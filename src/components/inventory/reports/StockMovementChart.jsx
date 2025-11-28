@@ -12,18 +12,18 @@ export default function StockMovementChart({ data, dateRange }) {
 
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={chartData}>
+      <BarChart data={chartData} barSize={25}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="date" 
+        <XAxis
+          dataKey="date"
           stroke="#9ca3af"
           style={{ fontSize: "12px" }}
         />
-        <YAxis 
+        <YAxis
           stroke="#9ca3af"
           style={{ fontSize: "12px" }}
         />
-        <Tooltip 
+        <Tooltip
           contentStyle={{
             backgroundColor: "#fff",
             border: "1px solid #e5e7eb",
@@ -32,15 +32,15 @@ export default function StockMovementChart({ data, dateRange }) {
           }}
         />
         <Legend />
-        <Bar 
-          dataKey="stockIn" 
-          fill="#10b981" 
+        <Bar
+          dataKey="stockIn"
+          fill="#f97316"
           radius={[8, 8, 0, 0]}
           name="Stock In"
         />
-        <Bar 
-          dataKey="stockOut" 
-          fill="#ef4444" 
+        <Bar
+          dataKey="stockOut"
+          fill="#fb923c"
           radius={[8, 8, 0, 0]}
           name="Stock Out"
         />

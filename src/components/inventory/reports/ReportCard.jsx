@@ -9,25 +9,28 @@ export default function ReportCard({ stat, index }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
+      className="bg-white p-5 justify-between flex rounded-xl border hover:shadow-md transition-shadow"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`${stat.bgColor} p-3 rounded-xl`}>
+      <div className="flex h-full items-center">
+        <div className="text-orange-500 text-3xl">
           {stat.icon}
         </div>
-        <div className={`flex items-center gap-1 text-sm font-medium ${
-          stat.changeType === "increase" ? "text-green-600" : "text-red-600"
-        }`}>
-          {stat.changeType === "increase" ? (
-            <TrendingUp size={16} />
-          ) : (
-            <TrendingDown size={16} />
-          )}
-          <span>{stat.change}</span>
-        </div>
       </div>
-      <h3 className="text-sm text-gray-600 mb-1">{stat.title}</h3>
-      <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+      <div className="text-right">
+        <div className="flex items-center justify-end gap-1 mb-1">
+          <div className={`flex items-center gap-1 text-xs font-medium ${stat.changeType === "increase" ? "text-green-600" : "text-red-600"
+            }`}>
+            {stat.changeType === "increase" ? (
+              <TrendingUp size={14} />
+            ) : (
+              <TrendingDown size={14} />
+            )}
+            <span>{stat.change}</span>
+          </div>
+        </div>
+        <p className="text-2xl font-bold">{stat.value}</p>
+        <h3 className="text-sm text-gray-600">{stat.title}</h3>
+      </div>
     </motion.div>
   );
 }

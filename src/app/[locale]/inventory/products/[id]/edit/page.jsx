@@ -49,7 +49,7 @@ export default function EditProductPage({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (id) dispatch(fetchProductById(id));cls
+    if (id) dispatch(fetchProductById(id));
   }, [dispatch, id]);
 
   // The hook will initialize formData when `product` (initialData) is provided.
@@ -157,7 +157,7 @@ export default function EditProductPage({ params }) {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 md:p-12">
+    <div className="min-h-screen bg-white p-6 md:p-12 pt-2">
       <div className="max-w-6xl mx-auto">
         <div className="flex gap-12 items-start">
           <div className="flex-1">

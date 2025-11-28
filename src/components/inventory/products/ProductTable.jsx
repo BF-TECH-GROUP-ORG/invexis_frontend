@@ -25,12 +25,12 @@ export default function ProductTable({
   products = [],
   loading = false,
   selectedIds = [],
-  onSelectIds = () => {},
-  onDelete = () => {},
-  onView = () => {},
-  onEdit = () => {},
+  onSelectIds = () => { },
+  onDelete = () => { },
+  onView = () => { },
+  onEdit = () => { },
   pagination = {},
-  onPageChange = () => {},
+  onPageChange = () => { },
 }) {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuRowId, setMenuRowId] = useState(null);
@@ -84,7 +84,7 @@ export default function ProductTable({
   const total = pagination.total || rows.length;
 
   return (
-    <TableContainer component={Paper} className="shadow-sm">
+    <div>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -130,7 +130,7 @@ export default function ProductTable({
                         <Image src={product.images[0].url} alt={name} fill sizes="48px" className="object-cover" />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">#</div>
+                      <div className="w-12 h-12 bg-white rounded flex items-center justify-center">#</div>
                     )}
                     <div>
                       <div className="font-medium">{name}</div>
@@ -189,6 +189,6 @@ export default function ProductTable({
           onRowsPerPageChange={(e) => onPageChange(1, Number(e.target.value))}
         />
       </div>
-    </TableContainer>
+    </div>
   );
 }

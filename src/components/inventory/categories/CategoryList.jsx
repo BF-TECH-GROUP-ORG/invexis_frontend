@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List } from "lucide-react";
+import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List, Folder, CheckCircle, XCircle } from "lucide-react";
 import { fetchCategories, deleteCategory } from "@/features/categories/categoriesSlice";
 import { canManageCategories, hasPermission } from "@/lib/permissions";
 import CategoryTable from "./CategoryTable";
@@ -16,10 +16,11 @@ import useAuth from '@/hooks/useAuth';
 export default function CategoryList() {
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { items, loading, pagination = {}, error } = useSelector((state) => state.categories);
+  const { items, loading, pagination = {}, error, lastFetched } = useSelector((state) => state.categories);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filters, setFilters] = useState({ level: null, parentCategory: null, search: "" });
   const [viewMode, setViewMode] = useState("table");
@@ -36,8 +37,14 @@ export default function CategoryList() {
   const totalPages = pagination?.pages || 1;
 
   // Load categories with all current params
-  const loadCategories = useCallback(() => {
+  const loadCategories = useCallback((force = false) => {
     if (!canView) return;
+
+    // Only fetch if forced, data doesn't exist, or filters/pagination changed
+    // Don't auto-refetch if we already have data
+    if (!force && lastFetched && items.length > 0) {
+      return; // Skip fetching if we already have cached data
+    }
 
     dispatch(fetchCategories({
       page: currentPage,
@@ -48,22 +55,24 @@ export default function CategoryList() {
       sortBy,
       sortOrder,
     }));
-  }, [dispatch, canView, currentPage, limit, filters, sortBy, sortOrder]);
+  }, [dispatch, canView, currentPage, limit, filters, sortBy, sortOrder, lastFetched, items.length]);
 
-  // Initial load + react to changes
+  // Initial load - only fetch if no data exists
   useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    if (!lastFetched || items.length === 0) {
+      loadCategories();
+    }
+  }, []); // Empty dependency array - only run on mount
 
-  // Refresh handler
+  // Refresh handler - force fetch
   const handleRefresh = () => {
     toast.success("Refreshing categories...");
-    loadCategories();
+    loadCategories(true); // Force refresh
   };
 
   // Delete single
   const handleDelete = async (id) => {
-    if (!canManage) return toast.error("Only Super Admins can delete categories!");
+    // if (!canManage) return toast.error("Only Super Admins can delete categories!");
 
     if (!window.confirm("Delete this category? This cannot be undone.")) return;
 
@@ -78,7 +87,7 @@ export default function CategoryList() {
 
   // Bulk delete
   const handleBulkDelete = async () => {
-    if (!canManage) return toast.error("Only Super Admins can delete categories!");
+    // if (!canManage) return toast.error("Only Super Admins can delete categories!");
     if (selectedIds.length === 0) return toast.error("Select categories first");
 
     if (!window.confirm(`Delete ${selectedIds.length} categories permanently?`)) return;
@@ -95,20 +104,26 @@ export default function CategoryList() {
 
   const handleAddNew = () => {
     // Shop workers (not canManage) are allowed to add Level-3 categories only.
+    setEditingCategory(null);
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (category) => {
+    // if (!canManage) return toast.error("Only Super Admins can edit categories!");
+    setEditingCategory(category);
     setShowAddModal(true);
   };
 
   const handleExport = () => {
     try {
       const csv = [
-        ["ID", "Name", "Slug", "Level", "Parent", "Products", "Status", "Created"],
+        ["ID", "Name", "Slug", "Level", "Parent", "Status", "Created"],
         ...items.map(cat => [
           cat._id || "",
           cat.name || "",
           cat.slug || "",
           cat.level || "",
           cat.parentCategory?.name || "-",
-          cat.statistics?.totalProducts || 0,
           cat.isActive ? "Active" : "Inactive",
           cat.createdAt ? new Date(cat.createdAt).toLocaleDateString() : ""
         ])
@@ -118,7 +133,7 @@ export default function CategoryList() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `categories-${new Date().toISOString().slice(0,10)}.csv`;
+      link.download = `categories-${new Date().toISOString().slice(0, 10)}.csv`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -149,9 +164,6 @@ export default function CategoryList() {
   // Stats
   const stats = {
     total: items.length,
-    level1: items.filter(c => c.level === 1).length,
-    level2: items.filter(c => c.level === 2).length,
-    level3: items.filter(c => c.level === 3).length,
     active: items.filter(c => c.isActive).length,
     inactive: items.filter(c => !c.isActive).length,
   };
@@ -181,15 +193,20 @@ export default function CategoryList() {
       )}
 
       {/* Stats */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6">
         {Object.entries(stats).map(([key, value]) => (
-          <div key={key} className="bg-white rounded-lg shadow-sm p-4 border-l-4" style={{
-            borderLeftColor: key === 'total' ? '#3B82F6' : key.includes('level') ? ['#10B981', '#F59E0B', '#8B5CF6'][parseInt(key.match(/\d+/)?.[0] || 0) - 1] : key === 'active' ? '#10B981' : '#EF4444'
-          }}>
-            <p className="text-xs text-gray-600 mb-1">{key.charAt(0).toUpperCase() + key.slice(1)}</p>
-            <p className="text-2xl font-bold" style={{ color: key === 'total' ? '#3B82F6' : key === 'active' ? '#10B981' : '#EF4444' }}>
-              {value}
-            </p>
+          <div key={key} className="bg-white p-5 justify-between flex rounded-xl border space-y-3">
+            <div className="flex h-full items-center">
+              <div className="text-orange-500">
+                {key === 'total' && <Folder size={32} strokeWidth={2} />}
+                {key === 'active' && <CheckCircle size={32} strokeWidth={2} />}
+                {key === 'inactive' && <XCircle size={32} strokeWidth={2} />}
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold">{value}</p>
+              <h2 className="">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
+            </div>
           </div>
         ))}
       </motion.div>
@@ -201,7 +218,6 @@ export default function CategoryList() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-gray-900">Master Categories</h1>
-                {!canManage && <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">Read-Only</span>}
               </div>
               <p className="text-sm text-gray-500 mt-1">
                 {items.length} categories
@@ -220,10 +236,10 @@ export default function CategoryList() {
                 <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh
               </button>
 
-              <button onClick={() => setShowFilterModal(true)} className="relative flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
+              {/* <button onClick={() => setShowFilterModal(true)} className="relative flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
                 <Filter size={18} /> Filters
                 {activeFiltersCount > 0 && <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFiltersCount}</span>}
-              </button>
+              </button> */}
 
               <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
                 <Download size={18} /> Export
@@ -239,7 +255,7 @@ export default function CategoryList() {
                 onClick={handleAddNew}
                 className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 shadow-md"
               >
-                <Plus size={18} /> {canManage ? 'Add Category' : 'Add Level 3 Category'}
+                <Plus size={18} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
               </button>
             </div>
           </div>
@@ -274,6 +290,7 @@ export default function CategoryList() {
               selectedIds={selectedIds}
               onSelectIds={setSelectedIds}
               onDelete={handleDelete}
+              onEdit={handleEdit}
               canManage={canManage}
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -326,7 +343,16 @@ export default function CategoryList() {
       </div>
 
       {/* Modals */}
-      {showAddModal && <AddCategoryModal onClose={() => { setShowAddModal(false); loadCategories(); }} />}
+      {showAddModal && (
+        <AddCategoryModal
+          editData={editingCategory}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingCategory(null);
+            loadCategories();
+          }}
+        />
+      )}
       {showFilterModal && (
         <FilterModal
           filters={filters}

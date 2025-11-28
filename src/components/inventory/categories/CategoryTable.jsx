@@ -2,26 +2,23 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { MoreVertical, Edit, Trash2, Eye, Folder, Lock } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Folder } from "lucide-react";
 import { toggleCategoryActive } from "@/features/categories/categoriesSlice";
 import { toast } from "react-hot-toast";
 
-export default function CategoryTable({ 
-  categories, 
-  loading, 
-  selectedIds, 
-  onSelectIds, 
+export default function CategoryTable({
+  categories,
+  loading,
+  selectedIds,
+  onSelectIds,
   onDelete,
-  canManage = false 
+  onEdit,
+  canManage = false
 }) {
   const dispatch = useDispatch();
   const [menuOpen, setMenuOpen] = useState(null);
 
   const handleSelectAll = (e) => {
-    if (!canManage) {
-      toast.error("⛔ Selection is disabled for non-admin users");
-      return;
-    }
     if (e.target.checked) {
       onSelectIds(categories.map(cat => cat._id));
     } else {
@@ -30,10 +27,6 @@ export default function CategoryTable({
   };
 
   const handleSelectOne = (id) => {
-    if (!canManage) {
-      toast.error("⛔ Selection is disabled for non-admin users");
-      return;
-    }
     if (selectedIds.includes(id)) {
       onSelectIds(selectedIds.filter(sid => sid !== id));
     } else {
@@ -42,24 +35,12 @@ export default function CategoryTable({
   };
 
   const handleToggleActive = async (id) => {
-    if (!canManage) {
-      toast.error("⛔ Only Super Admins can modify categories!");
-      return;
-    }
     try {
       await dispatch(toggleCategoryActive(id));
       toast.success("Category status updated!");
     } catch (error) {
       toast.error("Failed to update category");
     }
-  };
-
-  const handleEdit = () => {
-    if (!canManage) {
-      toast.error("⛔ Only Super Admins can edit categories!");
-      return;
-    }
-    // Edit logic here
   };
 
   if (loading) {
@@ -75,30 +56,27 @@ export default function CategoryTable({
       <div className="text-center py-12 text-gray-500">
         <Folder className="mx-auto mb-4 text-gray-400" size={64} />
         <p className="text-lg">No categories found</p>
-        <p className="text-sm mt-2">Super Admin needs to create categories first</p>
+        <p className="text-sm mt-2">Create categories to get started</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="">
       <table className="w-full">
         <thead className="border-b bg-gray-50">
           <tr className="text-left text-sm text-gray-600">
-            {canManage && (
-              <th className="pb-3 px-4">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.length === categories.length && categories.length > 0}
-                  onChange={handleSelectAll}
-                  className="rounded"
-                />
-              </th>
-            )}
+            <th className="pb-3 px-4">
+              <input
+                type="checkbox"
+                checked={selectedIds.length === categories.length && categories.length > 0}
+                onChange={handleSelectAll}
+                className="rounded"
+              />
+            </th>
             <th className="pb-3 px-4">Category Name</th>
             <th className="pb-3 px-4">Level</th>
             <th className="pb-3 px-4">Parent</th>
-            <th className="pb-3 px-4">Products</th>
             <th className="pb-3 px-4">Status</th>
             <th className="pb-3 px-4">Actions</th>
           </tr>
@@ -106,16 +84,14 @@ export default function CategoryTable({
         <tbody>
           {categories.map((category) => (
             <tr key={category._id} className="border-b hover:bg-gray-50 transition">
-              {canManage && (
-                <td className="py-3 px-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(category._id)}
-                    onChange={() => handleSelectOne(category._id)}
-                    className="rounded"
-                  />
-                </td>
-              )}
+              <td className="py-3 px-4">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(category._id)}
+                  onChange={() => handleSelectOne(category._id)}
+                  className="rounded"
+                />
+              </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
                   {category.image?.url ? (
@@ -131,9 +107,6 @@ export default function CategoryTable({
                   )}
                   <div>
                     <span className="font-medium">{category.name}</span>
-                    {!canManage && (
-                      <span className="ml-2 text-xs text-gray-500">(Assigned)</span>
-                    )}
                   </div>
                 </div>
               </td>
@@ -145,18 +118,13 @@ export default function CategoryTable({
               <td className="py-3 px-4 text-sm text-gray-600">
                 {category.parentCategory?.name || "-"}
               </td>
-              <td className="py-3 px-4 text-sm">
-                {category.statistics?.totalProducts || 0}
-              </td>
               <td className="py-3 px-4">
                 <button
                   onClick={() => handleToggleActive(category._id)}
-                  disabled={!canManage}
-                  className={`px-3 py-1 rounded text-xs font-medium transition ${
-                    category.isActive
+                  className={`px-3 py-1 rounded text-xs font-medium transition ${category.isActive
                       ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-700"
-                  } ${!canManage ? "opacity-50 cursor-not-allowed" : "hover:opacity-80"}`}
+                    } hover:opacity-80`}
                 >
                   {category.isActive ? "Active" : "Inactive"}
                 </button>
@@ -170,32 +138,24 @@ export default function CategoryTable({
                 </button>
                 {menuOpen === category._id && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-10">
-                    <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition">
-                      <Eye size={16} /> View
+                    <button
+                      onClick={() => {
+                        setMenuOpen(null);
+                        if (onEdit) onEdit(category);
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition"
+                    >
+                      <Edit size={16} /> Edit
                     </button>
-                    {canManage ? (
-                      <>
-                        <button 
-                          onClick={handleEdit}
-                          className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition"
-                        >
-                          <Edit size={16} /> Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setMenuOpen(null);
-                            onDelete(category._id);
-                          }}
-                          className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 text-red-600 text-left transition"
-                        >
-                          <Trash2 size={16} /> Delete
-                        </button>
-                      </>
-                    ) : (
-                      <div className="px-4 py-2 text-sm text-gray-500 flex items-center gap-2">
-                        <Lock size={14} /> Admin Only
-                      </div>
-                    )}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(null);
+                        onDelete(category._id);
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 text-red-600 text-left transition"
+                    >
+                      <Trash2 size={16} /> Delete
+                    </button>
                   </div>
                 )}
               </td>

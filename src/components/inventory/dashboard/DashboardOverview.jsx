@@ -46,19 +46,19 @@ export default function DashboardOverview() {
       title: "Total Products",
       value: inventorySummary?.totalProducts || 0,
       icon: <Package size={32} className="text-[#F97316]" />,
-      link: "products",
+      href: "/inventory/products",
     },
     {
       title: "Total Value",
       value: `$${(inventorySummary?.totalValue || 0).toLocaleString()}`,
       icon: <DollarSign size={32} className="text-[#F97316]" />,
-      link: "report",
+      href: "/inventory/report",
     },
     {
       title: "Low Stock Alerts",
       value: unreadCount || 0,
       icon: <AlertTriangle size={32} className="text-[#F97316]" />,
-      link: "alerts",
+      href: "/inventory/alerts",
     },
   ];
 
@@ -72,7 +72,6 @@ export default function DashboardOverview() {
 
   return (
     <div className="min-h-screen bg-white p-8">
-
       {/* Quick Actions */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
@@ -82,12 +81,12 @@ export default function DashboardOverview() {
         <h2 className="text-xl font-semibold text-[#1F1F1F] mb-6">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { href: "products", icon: Package, label: "Add Product" },
-            { href: "categories", icon: ShoppingCart, label: "Add Category" },
-            { href: "report", icon: TrendingUp, label: "View Reports" },
-            { href: "alerts", icon: AlertTriangle, label: "View Alerts" },
+            { href: "/inventory/products/add", icon: Package, label: "Add Product" },
+            { href: "/inventory/categories", icon: ShoppingCart, label: "Add Category" },
+            { href: "/inventory/report", icon: TrendingUp, label: "View Reports" },
+            { href: "/inventory/alerts", icon: AlertTriangle, label: "View Alerts" },
           ].map((item) => (
-            <Link key={item.label} href={item.href}>
+            <Link key={item.label} href={item.href} prefetch={true}>
               <button className="w-full p-6 border border-gray-200 rounded-xl hover:border-[#EA580C] hover:bg-white transition-all flex flex-col items-center gap-3 group">
                 <div className="w-16 h-16 rounded-full border-2 border-gray-200 group-hover:border-[#EA580C] flex items-center justify-center transition-all">
                   <item.icon size={28} className="text-[#F97316]" />
@@ -99,7 +98,7 @@ export default function DashboardOverview() {
         </div>
       </motion.section>
 
-      {/* Quick Stats – 3 cards, icon on right */}
+      {/* Quick Stats Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,13 +106,13 @@ export default function DashboardOverview() {
         className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
       >
         {quickStats.map((stat) => (
-          <Link key={stat.title} href={stat.link}>
-            <div className="border border-gray-200 hover:border-[#EA580C] rounded-xl bg-white p-8 transition-all cursor-pointer flex items-center justify-between">
+          <Link key={stat.title} href={stat.href} prefetch={true}>
+            <div className="border border-gray-200 hover:border-[#EA580C] rounded-xl bg-white p-8 transition-all cursor-pointer flex items-center justify-between group">
               <div>
                 <p className="text-sm font-medium text-[#333]">{stat.title}</p>
                 <p className="text-4xl font-bold text-[#1F1F1F] mt-3">{stat.value}</p>
               </div>
-              <div className="text-[#F97316]">
+              <div className="text-[#F97316] opacity-80 group-hover:opacity-100 transition-opacity">
                 {stat.icon}
               </div>
             </div>
@@ -121,9 +120,9 @@ export default function DashboardOverview() {
         ))}
       </motion.div>
 
-      {/* Recent Products (Left) + Recent Activity (Right) */}
+      {/* Recent Products + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Products – MUI */}
+        {/* Recent Products */}
         <motion.section
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -141,41 +140,65 @@ export default function DashboardOverview() {
                 <Typography variant="h6" fontWeight={600} color="#1F1F1F">
                   Recent Products
                 </Typography>
-                <Link href="products">
-                  <Typography variant="body2" fontWeight={500} color="#333" sx={{ "&:hover": { color: "#EA580C" } }}>
-                    View All
+                <Link href="products" prefetch={true}>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={500} 
+                    color="#333" 
+                    sx={{ 
+                      "&:hover": { color: "#EA580C" },
+                      cursor: "pointer"
+                    }}
+                  >
+                    View All →
                   </Typography>
                 </Link>
               </Box>
 
               <List disablePadding>
                 {products.slice(0, 5).map((product) => (
-                  <ListItem
-                    key={product._id}
-                    disableGutters
-                    sx={{
-                      py: 3,
-                      borderBottom: "1px solid #F0F0F0",
-                      "&:last-child": { borderBottom: "none" },
-                      transition: "all 0.2s",
-                    }}
+                  <Link 
+                    key={product._id} 
+                    href={`/inventory/products/${product._id}`} 
+                    prefetch={true}
                   >
-                    <ListItemAvatar>
-                      <Avatar 
-                        src={product.image?.url} 
-                        sx={{ width: 56, height: 56, bgcolor: "white", border: "2px solid #E5E5E5" }}
-                      >
-                        <Package size={28} className="text-[#F97316]" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={<Typography fontWeight={600} color="#1F1F1F" fontSize="1rem">{product.name}</Typography>}
-                      secondary={<Typography fontSize="0.875rem" color="#666" mt={0.5}>Stock: {product.stock} units</Typography>}
-                    />
-                    <Typography fontWeight={700} color="#1F1F1F" fontSize="1.1rem">
-                      ${product.price}
-                    </Typography>
-                  </ListItem>
+                    <ListItem
+                      disableGutters
+                      sx={{
+                        py: 3,
+                        borderBottom: "1px solid #F0F0F0",
+                        "&:last-child": { borderBottom: "none" },
+                        transition: "all 0.2s",
+                        cursor: "pointer",
+                        "&:hover": { backgroundColor: "#FFF7F0" }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar 
+                          src={product.images?.[0]?.url || product.image?.url} 
+                          alt={product.name}
+                          sx={{ width: 56, height: 56, bgcolor: "white", border: "2px solid #E5E5E5" }}
+                        >
+                          <Package size={28} className="text-[#F97316]" />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography fontWeight={600} color="#1F1F1F" fontSize="1rem">
+                            {product.name}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography fontSize="0.875rem" color="#666" mt={0.5}>
+                            Stock: {product.stock} units
+                          </Typography>
+                        }
+                      />
+                      <Typography fontWeight={700} color="#1F1F1F" fontSize="1.1rem">
+                        ${product.price || product.pricing?.basePrice}
+                      </Typography>
+                    </ListItem>
+                  </Link>
                 ))}
               </List>
             </CardContent>

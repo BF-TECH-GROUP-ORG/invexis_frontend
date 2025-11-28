@@ -98,8 +98,8 @@ function DetailInner({ id }) {
   const prevLightbox = () => setLightboxIndex((i) => (i - 1 + images.length) % images.length);
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
+    <div className="p-1 pt-5">
+      <div className="max-w-9xl mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-4">
             <button onClick={() => router.back()} className="p-2 rounded-md hover:bg-gray-100">

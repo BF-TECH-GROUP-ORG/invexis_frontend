@@ -73,7 +73,7 @@ export default function AddProductModal({ onClose, editData = null }) {
           <div className="bg-linear-to-r from-orange-500 to-orange-600 text-white px-6 py-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">
-                {editData ? "Edit Product" : "Add New Product"}
+                {editData ? "Edit Product" : "Add New Productfdad"}
               </h2>
               <p className="text-sm text-white/90 mt-1">
                 Step {currentStep} of {TOTAL_STEPS}

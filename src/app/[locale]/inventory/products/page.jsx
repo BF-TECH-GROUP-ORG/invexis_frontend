@@ -20,11 +20,11 @@ export default function InventoryStockPage() {
             border: "1px solid #E5E5E5",
             borderRadius: "12px",
             boxShadow: "none",           // no shadow
-            padding: "12px 16px",
+            padding: "15px 18px",
           },
           success: {
             iconTheme: {
-              primary: "#F97316",
+              primary: "#16f974ff",
               secondary: "#fff",
             },
           },
@@ -40,7 +40,7 @@ export default function InventoryStockPage() {
       
       <div className="min-h-screen bg-white">
         {/* Optional top padding so content doesn’t touch the edge */}
-        <div className="p-8">
+        <div className="pt-8">
           <ProductList />
         </div>
       </div>
