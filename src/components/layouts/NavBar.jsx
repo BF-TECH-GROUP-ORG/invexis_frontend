@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 
-export default function TopNavBar({ expanded = true }) {
+export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -34,34 +34,37 @@ export default function TopNavBar({ expanded = true }) {
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className="sticky top-0 z-10 flex items-center justify-between px-6 py-2 bg-white border-b border-gray-200"
-        style={{ marginLeft: expanded ? "16rem" : "5rem" }}
+        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+            ? "px-4 py-3" // Mobile: full width, smaller padding
+            : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
+        style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}
         <div className="flex items-center">
-         <span className="text-xl font-bold text-gray-900">
-              INVEX<span className="text-orange-500 font-extrabold">iS</span>
-            </span>
+          <span className="text-lg md:text-xl font-bold text-gray-900">
+            INVEX<span className="text-orange-500 font-extrabold">iS</span>
+          </span>
         </div>
 
         {/* CENTER - SEARCH BAR */}
-        <div className="flex-1 max-w-2xl mx-8">
+        <div className="flex-1 max-w-xs md:max-w-2xl mx-4 md:mx-8">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search..."
-              className="w-full pl-12 pr-6 py-3 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all"
+              className="w-full pl-9 md:pl-12 pr-4 md:pr-6 py-2 md:py-3 bg-gray-100 rounded-full text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all"
             />
           </div>
         </div>
 
         {/* RIGHT - NOTIFICATIONS + USER */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
           <div className="relative">
-            <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition" 
-              onClick={() => setNotifOpen(true)} 
+            <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
+              onClick={() => setNotifOpen(true)}
             />
             {notifications.length > 0 && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-orange-500 text-white text-xs rounded-full">
@@ -71,23 +74,25 @@ export default function TopNavBar({ expanded = true }) {
           </div>
 
           {/* User Avatar + Info */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-3 py-2 transition"
+          <div
+            className="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 md:px-3 py-2 transition"
             onClick={() => setProfileOpen(true)}
           >
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.username || "John Doe"}</p>
-              <p className="text-xs text-gray-500">{user?.email || "john.doe@example.com"}</p>
-            </div>
+            {!isMobile && (
+              <div className="text-right hidden md:block">
+                <p className="text-sm font-medium text-gray-900">{user?.username || "John Doe"}</p>
+                <p className="text-xs text-gray-500">{user?.email || "john.doe@example.com"}</p>
+              </div>
+            )}
             <div className="relative">
               <Image
-                src={user?.profileImage || "/images/user3.jpg"}
+                src="https://i.pinimg.com/736x/ba/bd/6f/babd6f62117554b8631508891fbe21f9.jpg"
                 alt="User Avatar"
-                width={44}
-                height={44}
-                className="w-11 h-11 rounded-full object-cover ring-2 ring-orange-300"
+                width={40}
+                height={40}
+                className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover ring-2 ring-orange-300"
               />
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
           </div>
         </div>
@@ -114,7 +119,8 @@ export default function TopNavBar({ expanded = true }) {
 
               <div className="p-8 text-center">
                 <Image
-                  src={user?.profileImage || "/images/user3.jpg"}
+                // user?.profileImage ||
+                  src="https://i.pinimg.com/736x/ba/bd/6f/babd6f62117554b8631508891fbe21f9.jpg"
                   alt="Avatar"
                   width={120}
                   height={120}

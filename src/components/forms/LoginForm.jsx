@@ -82,78 +82,80 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a]">
-      {/* Left Side - Image */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center bg-orange-100 relative">
+    <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a] overflow-hidden">
+      {/* Left Side - Image (Hidden on mobile) */}
+      <div className="hidden md:flex md:w-1/2 md:h-full items-center justify-center bg-orange-100 relative">
         <Image
           src="/images/8.png"
           alt="Login Illustration"
           width={600}
           height={600}
-          className="object-contain hidden md:block md:max-h-[40%] px-4"
+          className="object-contain md:max-h-[40%] px-4"
           priority
         />
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center items-center p-6 md:p-10">
-        <FormWrapper
-          title={t("login.title")}
-          desc={t("login.subtitle")}
-          onSubmit={handleSubmit}
-          submitLabel={submitting ? "Signing In..." : t("loginButton")}
-          submitIcon={<HiArrowRight />}
-          isLoading={submitting}
-          error={error}
-          oauthOptions={["google", "otp"]}
-          extraLinks={[
-            {
-              href: `/${locale}/auth/signup`,
-              label: t("signup.noAccount"),
-            },
-          ]}
-          showTerms={true}
-          acceptedTerms={acceptTerms}
-          onAcceptTerms={handleTermsClick}
-          fields={[
-            {
-              label: tForm("email"),
-              type: "text",
-              value: identifier,
-              onChange: (e) => setIdentifier(e.target.value),
-              required: true,
-            },
-            {
-              label: tForm("password"),
-              type: showPassword ? "text" : "password",
-              value: password,
-              onChange: (e) => setPassword(e.target.value),
-              required: true,
-              before: (
-                <div className="flex justify-end -mb-2">
-                  <Link
-                    href={`/${locale}/auth/reset-password/request`}
-                    className="text-sm text-blue-600 hover:underline font-metropolis"
-                  >
-                    {t("forgotPassword")}
-                  </Link>
-                </div>
-              ),
-              InputProps: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <HiEyeOff /> : <HiEye />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+      <div className="w-full md:w-1/2 h-full flex flex-col justify-center items-center sm:p-6 md:p-10 overflow-y-auto">
+        <div className="w-full max-w-md">
+          <FormWrapper
+            title={t("login.title")}
+            desc={t("login.subtitle")}
+            onSubmit={handleSubmit}
+            submitLabel={submitting ? "Signing In..." : t("loginButton")}
+            submitIcon={<HiArrowRight />}
+            isLoading={submitting}
+            error={error}
+            oauthOptions={["google", "otp"]}
+            extraLinks={[
+              {
+                href: `/${locale}/auth/signup`,
+                label: t("signup.noAccount"),
               },
-            },
-          ]}
-        />
+            ]}
+            showTerms={true}
+            acceptedTerms={acceptTerms}
+            onAcceptTerms={handleTermsClick}
+            fields={[
+              {
+                label: tForm("email"),
+                type: "text",
+                value: identifier,
+                onChange: (e) => setIdentifier(e.target.value),
+                required: true,
+              },
+              {
+                label: tForm("password"),
+                type: showPassword ? "text" : "password",
+                value: password,
+                onChange: (e) => setPassword(e.target.value),
+                required: true,
+                before: (
+                  <div className="flex justify-end -mb-2">
+                    <Link
+                      href={`/${locale}/auth/reset-password/request`}
+                      className="text-sm text-blue-600 hover:underline font-metropolis"
+                    >
+                      {t("forgotPassword")}
+                    </Link>
+                  </div>
+                ),
+                InputProps: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <HiEyeOff /> : <HiEye />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              },
+            ]}
+          />
+        </div>
       </div>
 
       {/* Terms & Privacy Popup */}

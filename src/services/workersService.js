@@ -48,9 +48,14 @@ export const getSingleWorker = async (workerId) => {
     }
 };
 
+const AUTH_URL = process.env.NEXT_PUBLIC_WORKERSAUTH_API_URL || '';
+
 export const createWorker = async (workerData) => {
+    const url = ensureUrl(AUTH_URL, 'AUTH_URL');
+    if (!url) throw new Error('AUTH_URL not set');
+
     try {
-        const response = await axios.post(WORKERS_URL, workerData, {
+        const response = await axios.post(`${url}register`, workerData, {
             headers: {
                 'ngrok-skip-browser-warning': 'true',
                 'Content-Type': 'application/json',
@@ -221,5 +226,32 @@ export const assignWorkerToCompany = async (workerId, companyId) => {
     } catch (error) {
         console.error('Failed to assign worker:', error.response?.data || error.message);
         throw error;
+    }
+};
+
+export const getWorkersByCompanyId = async (companyId) => {
+    // Construct URL: replace 'company-user/' with 'company-users/company/{companyId}'
+    // WORKERS_URL is expected to be .../api/company/company-user/
+    const baseUrl = WORKERS_URL.endsWith('company-user/')
+        ? WORKERS_URL.replace('company-user/', '')
+        : WORKERS_URL;
+
+    // Ensure no double slashes if WORKERS_URL didn't end with company-user/ for some reason
+    // But based on .env it does. 
+    // Target: .../api/company/company-users/company/{companyId}
+
+    const url = `${baseUrl}company-users/company/${companyId}`;
+
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true',
+            },
+        });
+        console.log("Workers by company ID fetched:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch workers by company ID:', error.message);
+        return [];
     }
 };

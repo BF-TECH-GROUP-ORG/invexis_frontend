@@ -9,7 +9,7 @@ import { singleProductFetch, SellProduct } from "@/services/salesService";
 
 const paymentMethods = ["cash", "card", "mobile", "wallet", "bank_transfer"];
 
-const SellProductsInputs = ({ id }) => {
+const   SellProductsInputs = ({ id }) => {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [soldPrice, setSoldPrice] = useState("");
@@ -20,6 +20,7 @@ const SellProductsInputs = ({ id }) => {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [discount, setDiscount] = useState(""); // Item-level discount
   const [printReceipt, setPrintReceipt] = useState(false);
+  const [isDebt, setIsDebt] = useState(false); // Toggle for debt/regular sale
 
   // Required by your backend
   const [companyId, setCompanyId] = useState("");
@@ -191,7 +192,7 @@ const SellProductsInputs = ({ id }) => {
     console.log("Sending sale payload:", payload);
 
     try {
-      await SellProduct(payload);
+      await SellProduct(payload, isDebt); // Pass isDebt flag to service
 
       // Print receipt if checked
       if (printReceipt) {
@@ -296,6 +297,37 @@ const SellProductsInputs = ({ id }) => {
           <div>
             <label className="block text-sm font-medium text-gray-700">Customer Email (optional)</label>
             <input type="email" placeholder="john@example.com" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
+            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setIsDebt(!isDebt)}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${isDebt ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}
+                role="switch"
+                aria-checked={isDebt}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform duration-300 ease-in-out ${isDebt ? 'translate-x-8' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+              <span className="text-sm font-medium text-gray-700">
+                {isDebt ? (
+                  <span className="flex items-center space-x-2">
+                    <span className="text-orange-600">💳 Debt Sale</span>
+                    <span className="text-xs text-gray-500">(Payment pending)</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center space-x-2">
+                    <span className="text-green-600">✅ Regular Sale</span>
+                    <span className="text-xs text-gray-500">(Paid in full)</span>
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center space-x-3">
