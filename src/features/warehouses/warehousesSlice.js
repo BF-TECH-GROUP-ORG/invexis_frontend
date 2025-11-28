@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Use the same API base as products/categories for consistency
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'https://granitic-jule-haunting.ngrok-free.dev/api/inventory/v1';
 
 export const fetchWarehouses = createAsyncThunk(
   'warehouses/fetchAll',

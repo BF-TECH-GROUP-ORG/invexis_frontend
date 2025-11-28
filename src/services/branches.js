@@ -2,12 +2,12 @@ const { default: axios } = require("axios");
 
 const BRANCH_API_URL = process.env.NEXT_PUBLIC_BRANCHES_API_URL;
 
+const companyId = "07f0c16d-95af-4cd6-998b-edfea57d87d7";
+
 export const getBranches = async () => {
     try {
-        const companyId = "07f0c16d-95af-4cd6-998b-edfea57d87d7";
-
-        const response = await axios.get(
-            `${BRANCH_API_URL}/all?companyId=${companyId}`,
+        
+        const response = await axios.get(`${BRANCH_API_URL}/?companyId=${companyId}`,
             {
                 headers: {
                     "ngrok-skip-browser-warning": "true",
@@ -24,12 +24,27 @@ export const getBranches = async () => {
 };
 
 
+export const getBranchById = async (branchId) => {
+    try {
+        const response = await axios.get(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {  
+            headers: {
+                "ngrok-skip-browser-warning": "true",
+            },
+        });
+        console.log("Branch fetched:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching branch:", error);
+        throw error;
+    }
+};
+
+
 export const createBranch = async (branchData) => {
     try {
         const response = await axios.post(BRANCH_API_URL, branchData, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
-                // "Content-Type": "application/json",
             },
         });
         console.log("Branch created:", response.data);
@@ -38,16 +53,16 @@ export const createBranch = async (branchData) => {
         console.error("Error creating branch:", error);
         throw error;
     }
-};  
+};
 
 
-export const updateBranch = async (branchData) => {
+export const updateBranch = async (branchId, branchData) => {
     try {
-        const response = await axios.put(BRANCH_API_URL + branchData.id, branchData, {
+        const response = await axios.patch(`${BRANCH_API_URL}/${branchId}`, branchData, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
-                // "Content-Type": "application/json",
             },
+
         });
         console.log("Branch updated:", response.data);
         return response.data;
@@ -55,4 +70,21 @@ export const updateBranch = async (branchData) => {
         console.error("Error updating branch:", error);
         throw error;
     }
-};  
+};
+
+
+export const deleteBranch = async (branchId) => {
+    try {
+        const response = await axios.delete(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {
+            headers: {
+                "ngrok-skip-browser-warning": "true",
+            },
+            
+        });
+        console.log("Branch deleted:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting branch:", error);
+        throw error;
+    }
+};

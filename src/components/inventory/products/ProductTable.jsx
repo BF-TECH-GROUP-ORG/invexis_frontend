@@ -1,7 +1,9 @@
+// src/components/inventory/products/ProductTable.jsx
 "use client";
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Checkbox from '@mui/material/Checkbox';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -29,6 +31,8 @@ export default function ProductTable({
   onDelete = () => { },
   onView = () => { },
   onEdit = () => { },
+  viewUrl,
+  editUrl,
   pagination = {},
   onPageChange = () => { },
 }) {
@@ -127,7 +131,14 @@ export default function ProductTable({
                   <div className="flex items-center gap-3">
                     {product.images && product.images[0] && product.images[0].url ? (
                       <div className="w-12 h-12 relative rounded overflow-hidden">
-                        <Image src={product.images[0].url} alt={name} fill sizes="48px" className="object-cover" />
+                        <Image
+                          src={product.images[0].url}
+                          alt={name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                          unoptimized={product.images[0].url.includes('cdn.example.com')}
+                        />
                       </div>
                     ) : (
                       <div className="w-12 h-12 bg-white rounded flex items-center justify-center">#</div>
@@ -158,18 +169,38 @@ export default function ProductTable({
       </Table>
 
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-        <MenuItem onClick={handleView}>
-          <ListItemIcon>
-            <VisibilityIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>View</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
-        </MenuItem>
+        {viewUrl ? (
+          <MenuItem component={Link} href={viewUrl(menuRowId)} onClick={closeMenu}>
+            <ListItemIcon>
+              <VisibilityIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>View</ListItemText>
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={handleView}>
+            <ListItemIcon>
+              <VisibilityIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>View</ListItemText>
+          </MenuItem>
+        )}
+
+        {editUrl ? (
+          <MenuItem component={Link} href={editUrl(menuRowId)} onClick={closeMenu}>
+            <ListItemIcon>
+              <EditIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Edit</ListItemText>
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={handleEdit}>
+            <ListItemIcon>
+              <EditIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Edit</ListItemText>
+          </MenuItem>
+        )}
+
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />

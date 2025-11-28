@@ -5,25 +5,22 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import {
     Box,
-    Stepper,
-    Step,
-    StepLabel,
     Button,
     Typography,
     TextField,
     Paper,
     Grid,
-    MenuItem,
-    Select,
-    FormControl,
-    InputLabel,
-    Alert,
     CircularProgress,
-    Snackbar
+    Snackbar,
+    Alert
 } from "@mui/material";
 import { createBranch } from "@/services/branches";
 
-const steps = ["Basic Information", "Location Details", "Settings & Review"];
+const steps = [
+    { label: "Basic Info", description: "Step 1 of 3" },
+    { label: "Location Details", description: "Step 2 of 3" },
+    { label: "Settings & Review", description: "Step 3 of 3" }
+];
 
 const NewBranchPage = () => {
     const router = useRouter();
@@ -53,7 +50,7 @@ const NewBranchPage = () => {
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
-        severity: "success" // 'success' | 'error'
+        severity: "success"
     });
 
     const handleChange = (e) => {
@@ -62,7 +59,6 @@ const NewBranchPage = () => {
             ...prev,
             [name]: value,
         }));
-        // Clear error when user types
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
@@ -112,39 +108,40 @@ const NewBranchPage = () => {
 
         try {
             const payload = {
-                ...formData,
-                id: crypto.randomUUID(),
+                companyId: formData.companyId,
+                name: formData.name,
+                address_line1: formData.address_line1,
+                address_line2: formData.address_line2,
+                city: formData.city,
+                region: formData.region,
                 country: formData.country.toUpperCase(),
+                postal_code: formData.postal_code,
+                latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+                longitude: formData.longitude ? parseFloat(formData.longitude) : null,
                 capacity: Number(formData.capacity),
-                latitude: formData.latitude ? Number(formData.latitude) : null,
-                longitude: formData.longitude ? Number(formData.longitude) : null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
+                timezone: formData.timezone,
+                status: formData.status,
+                created_by: formData.created_by,
             };
 
             await createBranch(payload);
 
-            // Show success message
             setSnackbar({
                 open: true,
                 message: "Branch created successfully!",
                 severity: "success"
             });
 
-            // Redirect after a short delay
             setTimeout(() => {
                 router.push(`/${locale}/inventory/companies`);
             }, 1500);
         } catch (err) {
-            console.error("Submission error:", err);
-
-            // Show error message
+            console.error("Error creating branch:", err);
             setSnackbar({
                 open: true,
                 message: err.response?.data?.message || "Failed to create branch. Please try again.",
                 severity: "error"
             });
-
             setError("Failed to create branch. Please try again.");
         } finally {
             setLoading(false);
@@ -155,169 +152,246 @@ const NewBranchPage = () => {
         switch (step) {
             case 0:
                 return (
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Branch Name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Created By"
-                                name="created_by"
-                                value={formData.created_by}
-                                onChange={handleChange}
-                                error={!!errors.created_by}
-                                helperText={errors.created_by}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Capacity"
-                                name="capacity"
-                                type="number"
-                                value={formData.capacity}
-                                onChange={handleChange}
-                                error={!!errors.capacity}
-                                helperText={errors.capacity}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    label="Status"
+                    <Box>
+                        <Typography variant="h5" fontWeight="600">
+                            Basic Branch Info
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+                            {steps[0].description}
+                        </Typography>
+
+                        <Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Branch Name <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="name"
+                                    placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    error={!!errors.name}
+                                    helperText={errors.name}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Created By <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="created_by"
+                                    placeholder="PROD-001"
+                                    value={formData.created_by}
+                                    onChange={handleChange}
+                                    error={!!errors.created_by}
+                                    helperText={errors.created_by}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Capacity <span style={{ color: "#999" }}>(Optional)</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="capacity"
+                                    type="number"
+                                    placeholder="123456789012"
+                                    value={formData.capacity}
+                                    onChange={handleChange}
+                                    error={!!errors.capacity}
+                                    helperText={errors.capacity}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Timezone <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="timezone"
+                                    placeholder="Brief summary for list views..."
+                                    value={formData.timezone}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Status <span style={{ color: "#999" }}>(Optional)</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                >
-                                    <MenuItem value="open">Open</MenuItem>
-                                    <MenuItem value="closed">Closed</MenuItem>
-                                    <MenuItem value="maintenance">Maintenance</MenuItem>
-                                </Select>
-                            </FormControl>
+                                    placeholder="Detailed information..."
+                                    variant="outlined"
+                                />
+                            </Grid>
                         </Grid>
-                    </Grid>
+                    </Box>
                 );
             case 1:
                 return (
-                    <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Address Line 1"
-                                name="address_line1"
-                                value={formData.address_line1}
-                                onChange={handleChange}
-                                error={!!errors.address_line1}
-                                helperText={errors.address_line1}
-                                required
-                            />
+                    <Box>
+                        <Typography variant="h5" fontWeight="600" gutterBottom>
+                            Location Details
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+                            {steps[1].description}
+                        </Typography>
+
+                        <Grid  spacing={3}>
+                            <Grid item xs={12}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Address Line 1 <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="address_line1"
+                                    placeholder="e.g., 123 Main Street"
+                                    value={formData.address_line1}
+                                    onChange={handleChange}
+                                    error={!!errors.address_line1}
+                                    helperText={errors.address_line1}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Address Line 2
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="address_line2"
+                                    placeholder="e.g., Apt 4B"
+                                    value={formData.address_line2}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    City <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="city"
+                                    placeholder="e.g., New York"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    error={!!errors.city}
+                                    helperText={errors.city}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Region
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="region"
+                                    placeholder="e.g., NY"
+                                    value={formData.region}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Country Code <span style={{ color: "#d32f2f" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="country"
+                                    placeholder="e.g., US, GB, CA"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    error={!!errors.country}
+                                    helperText={errors.country || "Enter 2-letter country code"}
+                                    inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Postal Code
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="postal_code"
+                                    placeholder="e.g., 10001"
+                                    value={formData.postal_code}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Address Line 2"
-                                name="address_line2"
-                                value={formData.address_line2}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="City"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                error={!!errors.city}
-                                helperText={errors.city}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Region"
-                                name="region"
-                                value={formData.region}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Country Code"
-                                name="country"
-                                placeholder="e.g., US, GB, CA"
-                                value={formData.country}
-                                onChange={handleChange}
-                                error={!!errors.country}
-                                helperText={errors.country || "Enter 2-letter country code"}
-                                required
-                                inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Postal Code"
-                                name="postal_code"
-                                value={formData.postal_code}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                    </Grid>
+                    </Box>
                 );
             case 2:
                 return (
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Latitude"
-                                name="latitude"
-                                type="number"
-                                value={formData.latitude}
-                                onChange={handleChange}
-                            />
+                    <Box>
+                        <Typography variant="h5" fontWeight="600" gutterBottom>
+                            Settings & Review
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+                            {steps[2].description}
+                        </Typography>
+
+                        <Grid  spacing={3}>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Latitude
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="latitude"
+                                    type="number"
+                                    placeholder="e.g., 40.7128"
+                                    value={formData.latitude}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                    Longitude
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    name="longitude"
+                                    type="number"
+                                    placeholder="e.g., -74.0060"
+                                    value={formData.longitude}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Alert severity="info" sx={{ mt: 2 }}>
+                                    Please review your information before submitting. Once submitted, the branch will be created.
+                                </Alert>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Longitude"
-                                name="longitude"
-                                type="number"
-                                value={formData.longitude}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Timezone"
-                                name="timezone"
-                                value={formData.timezone}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Alert severity="info" sx={{ mt: 2 }}>
-                                Please review your information before submitting.
-                            </Alert>
-                        </Grid>
-                    </Grid>
+                    </Box>
                 );
             default:
                 return "Unknown step";
@@ -325,34 +399,80 @@ const NewBranchPage = () => {
     };
 
     return (
-        <Box sx={{ p: 3, maxWidth: 800, mx: "auto" }}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ mb: 4 }}>
-                Add New Branch
-            </Typography>
+        <div>
+            <div className="flex  items-center justify-center space-x-4">
 
-            <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
-
-            <Paper sx={{ p: 4, borderRadius: 2 }}>
-                {error && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
-                        {error}
-                    </Alert>
-                )}
-
-                <form>
+                {/* top stepper */}
+              <div>
+                  <div className="">
+                    <Box className="flex space-x-24">
+                        {steps.map((step, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    mb: 3,
+                                    cursor: "pointer",
+                                    opacity: index > activeStep ? 0.5 : 1,
+                                }}
+                                onClick={() => {
+                                    if (index < activeStep || (index === activeStep + 1 && validateStep(activeStep))) {
+                                        setActiveStep(index);
+                                    }
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        bgcolor: index === activeStep ? "#FF6D00" : "#fff",
+                                        color: index === activeStep ? "#fff" : "#666",
+                                        border: index === activeStep ? "none" : "2px solid #e0e0e0",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontWeight: "600",
+                                        fontSize: "16px",
+                                        mr: 2,
+                                        flexShrink: 0,
+                                        transition: "all 0.3s ease"
+                                    }}
+                                >
+                                    {index + 1}
+                                </Box>
+                                <Box>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight={index === activeStep ? "600" : "500"}
+                                        sx={{ color: index === activeStep ? "#000" : "#666" }}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{ color: "#999" }}
+                                    >
+                                        {step.description}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        ))}
+                    </Box>
+                </div>
+                 
+                {/* Main Form Area */}
+                <div>
                     {renderStepContent(activeStep)}
 
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}>
+                    {/* Navigation Buttons */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, pt: 3, borderTop: "1px solid #e0e0e0" }}>
                         <Button
                             disabled={activeStep === 0 || loading}
                             onClick={handleBack}
                             variant="outlined"
+                            sx={{ minWidth: 120 }}
                         >
                             Back
                         </Button>
@@ -361,7 +481,11 @@ const NewBranchPage = () => {
                                 variant="contained"
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                sx={{ bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+                                sx={{
+                                    bgcolor: "#FF6D00",
+                                    "&:hover": { bgcolor: "#E65100" },
+                                    minWidth: 120
+                                }}
                             >
                                 {loading ? <CircularProgress size={24} color="inherit" /> : "Create Branch"}
                             </Button>
@@ -369,14 +493,23 @@ const NewBranchPage = () => {
                             <Button
                                 variant="contained"
                                 onClick={handleNext}
-                                sx={{ bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+                                sx={{
+                                    bgcolor: "#FF6D00",
+                                    "&:hover": { bgcolor: "#E65100" },
+                                    minWidth: 120
+                                }}
                             >
                                 Next
                             </Button>
                         )}
                     </Box>
-                </form>
-            </Paper>
+                </div>
+
+              </div>
+                {/* Vertical Stepper Sidebar */}
+                
+               
+            </div>
 
             {/* Success/Error Snackbar */}
             <Snackbar
@@ -394,7 +527,7 @@ const NewBranchPage = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-        </Box>
+        </div>
     );
 };
 

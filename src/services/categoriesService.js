@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Prefer a local proxy base when available (NEXT_PUBLIC_API_URL), otherwise use the explicit inventory API URL.
 // This mirrors productsService so local dev can set `NEXT_PUBLIC_API_URL=/api` and avoid CORS.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVENTORY_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'https://granitic-jule-haunting.ngrok-free.dev/api/inventory/v1';
 
 const COMPANY = process.env.NEXT_PUBLIC_COMPANY_API_URL;
 
@@ -10,7 +10,7 @@ const companyId = "02451e1b-9cc8-480a-ae22-bd247c54ad71";
 
 // Only send the ngrok skip header when the API base points to ngrok (helps avoid unnecessary CORS preflights)
 const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
-  ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+  ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
   : {};
 
 if (typeof window !== 'undefined') {
@@ -77,7 +77,7 @@ export async function updateCategory(id, updates) {
 
 export async function deleteCategory(id) {
   try {
-    const res = await axios.delete(`${API_BASE}/categories/${id}`, companyId, { headers: defaultHeaders });
+    const res = await axios.delete(`${API_BASE}/categories/${id}`, { headers: defaultHeaders });
     return res.data;
   } catch (err) {
     throw err;
