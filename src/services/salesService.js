@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const URL = process.env.NEXT_PUBLIC_INVENTORY_API_URL
 const SALES_URL = process.env.NEXT_PUBLIC_SALES_API_URL
+const DEBT_URL = process.env.NEXT_PUBLIC_DEBT_API_URL
 
 export const getAllProducts = async () => {
   try {
@@ -62,19 +63,51 @@ export const singleProductFetch = async (productId) => {
 
 export const SellProduct = async (saleData, isDebt = false) => {
   try {
-    // Choose endpoint based on whether it's a debt or regular sale
-    const endpoint = isDebt ? `${SALES_URL}/debts` : SALES_URL;
+    const endpoint = isDebt ? `${DEBT_URL}/create` : SALES_URL;
 
     console.log("--- SellProduct Service Called ---");
     console.log("Transaction Type:", isDebt ? "DEBT" : "REGULAR SALE");
     console.log("Target URL:", endpoint);
-    console.log("Payload:", JSON.stringify(saleData, null, 2));
 
-    const response = await axios.post(endpoint, saleData, {
+    let payload = saleData;
+
+    // Transform payload for debt API if needed
+    if (isDebt) {
+      // Map sales payload to debt API structure
+      payload = {
+        companyId: saleData.companyId,
+        shopId: saleData.shopId,
+        customerId: saleData.customerId || generateCustomerId(saleData.customerPhone), // You may need a proper customer ID
+        salesStaffId: saleData.soldBy,
+        items: saleData.items.map(item => ({
+          itemId: item.productId,
+          itemName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice
+        })),
+        totalAmount: saleData.totalAmount,
+        amountPaidNow: 0, // Debt means not paid now
+        dueDate: calculateDueDate(), // Default 30 days from now
+        shareLevel: "PARTIAL", // Default share level
+        consentRef: `CONSENT-${Date.now()}`, // Generate consent reference
+        // Store customer info for reference (not in API spec but useful)
+        metadata: {
+          customerName: saleData.customerName,
+          customerPhone: saleData.customerPhone,
+          customerEmail: saleData.customerEmail,
+          paymentMethod: saleData.paymentMethod
+        }
+      };
+    }
+
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(endpoint, payload, {
       headers: { "ngrok-skip-browser-warning": "true" },
     });
 
-    console.log("Product sold successfully. Response:", response.data);
+    console.log("Transaction successful. Response:", response.data);
     return response.data;
 
   } catch (error) {
@@ -86,6 +119,20 @@ export const SellProduct = async (saleData, isDebt = false) => {
     }
     throw error;
   }
+};
+
+// Helper function to calculate due date (30 days from now)
+const calculateDueDate = () => {
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 30);
+  return dueDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+};
+
+// Helper function to generate customer ID from phone (temporary solution)
+// In production, you should have a proper customer management system
+const generateCustomerId = (phone) => {
+  // This is a placeholder - you should use actual customer IDs from your customer service
+  return `CUST-${phone.replace(/\D/g, '')}`;
 };
 
 

@@ -9,7 +9,7 @@ import { singleProductFetch, SellProduct } from "@/services/salesService";
 
 const paymentMethods = ["cash", "card", "mobile", "wallet", "bank_transfer"];
 
-const SellProductsInputs = ({ id }) => {
+const   SellProductsInputs = ({ id }) => {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [soldPrice, setSoldPrice] = useState("");

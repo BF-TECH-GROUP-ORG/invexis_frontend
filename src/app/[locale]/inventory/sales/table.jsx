@@ -303,6 +303,11 @@ const DataTable = () => {
 
   const companyId = "a6e0c5ff-8665-449d-9864-612ab1c9b9f2"; // Hardcoded as requested
 
+  // Get current month and year for default filtering
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentYear = currentDate.getFullYear();
+
   const { data: rows = [] } = useQuery({
     queryKey: ["salesHistory", companyId],
     queryFn: () => getSalesHistory(companyId),
@@ -317,6 +322,7 @@ const DataTable = () => {
         returned: "false",
         Discount: sale.discountTotal || "0",
         Date: new Date(sale.createdAt).toLocaleDateString(),
+        rawDate: sale.createdAt, // Keep raw date for filtering
         TotalValue: sale.totalAmount,
         action: "more"
       }));
@@ -338,11 +344,15 @@ const DataTable = () => {
     },
   });
 
+  // Set default filter to current month
   const [activeFilter, setActiveFilter] = useState({
     column: 'UnitPrice',
     operator: '>',
     value: '',
   });
+
+  const [selectedMonth, setSelectedMonth] = useState(`${currentYear}-${String(currentMonth).padStart(2, '0')}`);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
   // Delete modal state owned by DataTable
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
@@ -442,12 +452,25 @@ const DataTable = () => {
   const filteredRows = useMemo(() => {
     let currentRows = rows;
 
+    // Filter by selected month (default: current month)
+    if (selectedMonth) {
+      currentRows = currentRows.filter((row) => {
+        const rowDate = new Date(row.rawDate);
+        const rowMonth = rowDate.getMonth() + 1;
+        const rowYear = rowDate.getFullYear();
+        const [filterYear, filterMonth] = selectedMonth.split('-').map(Number);
+        return rowMonth === filterMonth && rowYear === filterYear;
+      });
+    }
+
+    // Search filter
     if (search) {
       currentRows = currentRows.filter((row) =>
         row.ProductName.toLowerCase().includes(search.toLowerCase())
       );
     }
 
+    // Advanced filter
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
@@ -476,7 +499,7 @@ const DataTable = () => {
     }
 
     return currentRows;
-  }, [search, activeFilter, rows]);
+  }, [search, activeFilter, rows, selectedMonth]);
 
   return (
     <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
@@ -508,6 +531,23 @@ const DataTable = () => {
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          {/* Month Selector */}
+          <TextField
+            size="small"
+            type="month"
+            label="Filter by Month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              minWidth: 180,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                borderColor: "#FF6D00"
+              }
+            }}
+          />
+
           <TextField
             size="small"
             variant="outlined"
@@ -623,4 +663,356 @@ const DataTable = () => {
     </Paper>
   );
 };
+
+// ----------------------------------------------------------------------
+// MultiProductSalesTable Component
+// ----------------------------------------------------------------------
+
+export const MultiProductSalesTable = ({ products = [], onSell }) => {
+  const [selectedItems, setSelectedItems] = useState({});
+  const [priceModal, setPriceModal] = useState({ open: false, product: null });
+  const [tempPrice, setTempPrice] = useState("");
+  const [priceError, setPriceError] = useState("");
+
+  // Handle checkbox toggle
+  const handleCheckboxChange = (product) => {
+    const productId = product.id;
+
+    if (selectedItems[productId]) {
+      // Remove from selection
+      const newItems = { ...selectedItems };
+      delete newItems[productId];
+      setSelectedItems(newItems);
+    } else {
+      // Add to selection with defaults
+      setSelectedItems({
+        ...selectedItems,
+        [productId]: {
+          productId,
+          name: product.ProductName,
+          qty: 1,
+          minPrice: product.Price,
+          price: product.Price
+        }
+      });
+    }
+  };
+
+  // Handle quantity change
+  const handleQuantityChange = (productId, newQty) => {
+    const qty = Math.max(1, parseInt(newQty) || 1);
+    setSelectedItems({
+      ...selectedItems,
+      [productId]: {
+        ...selectedItems[productId],
+        qty
+      }
+    });
+  };
+
+  // Open price modal
+  const handleOpenPriceModal = (product) => {
+    const item = selectedItems[product.id];
+    setPriceModal({ open: true, product });
+    setTempPrice(item?.price || product.Price);
+    setPriceError("");
+  };
+
+  // Close price modal
+  const handleClosePriceModal = () => {
+    setPriceModal({ open: false, product: null });
+    setTempPrice("");
+    setPriceError("");
+  };
+
+  // Validate and save price
+  const handleSavePrice = () => {
+    const product = priceModal.product;
+    const price = parseFloat(tempPrice);
+    const minPrice = product.Price;
+
+    if (isNaN(price) || price < minPrice) {
+      setPriceError(`Price cannot be less than ${minPrice} FRW`);
+      return;
+    }
+
+    setSelectedItems({
+      ...selectedItems,
+      [product.id]: {
+        ...selectedItems[product.id],
+        price
+      }
+    });
+
+    handleClosePriceModal();
+  };
+
+  // Handle sell button
+  const handleSellSelected = () => {
+    const items = Object.values(selectedItems).map(item => ({
+      productId: item.productId,
+      quantity: item.qty,
+      sellingPrice: item.price
+    }));
+
+    const payload = {
+      soldBy: "691d8f766fb4aca9a9fa619b", // Placeholder
+      shopId: "691d8f766fb4aca9a9fa619b", // Placeholder
+      items
+    };
+
+    if (onSell) {
+      onSell(payload);
+    } else {
+      console.log("Sell payload:", payload);
+      // You can call your API here
+      // sellProducts(payload);
+    }
+
+    // Clear selection after sell
+    setSelectedItems({});
+  };
+
+  const selectedCount = Object.keys(selectedItems).length;
+
+  return (
+    <Box sx={{ width: "100%", p: 3 }}>
+      {/* Header with Sell Button */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
+          Multi-Product Sale
+        </Typography>
+        <Button
+          variant="contained"
+          disabled={selectedCount === 0}
+          onClick={handleSellSelected}
+          sx={{
+            bgcolor: "#FF6D00",
+            color: "white",
+            px: 4,
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: "bold",
+            borderRadius: 2,
+            boxShadow: "0 4px 12px rgba(255, 109, 0, 0.3)",
+            "&:hover": {
+              bgcolor: "#E65100",
+              boxShadow: "0 6px 16px rgba(255, 109, 0, 0.4)",
+            },
+            "&:disabled": {
+              bgcolor: "#ccc",
+              color: "#666"
+            }
+          }}
+        >
+          SELL SELECTED ({selectedCount})
+        </Button>
+      </Box>
+
+      {/* Products Table */}
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: 3,
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+          overflow: "hidden"
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "#FF6D00" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Select</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Product Name</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Min Price (FRW)</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Selling Price (FRW)</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Quantity</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {products.map((product) => {
+              const isSelected = !!selectedItems[product.id];
+              const item = selectedItems[product.id];
+
+              return (
+                <TableRow
+                  key={product.id}
+                  sx={{
+                    bgcolor: isSelected ? "#FFF3E0" : "white",
+                    "&:hover": { bgcolor: isSelected ? "#FFE0B2" : "#f5f5f5" },
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  {/* Checkbox */}
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleCheckboxChange(product)}
+                      className="w-5 h-5 cursor-pointer accent-orange-500"
+                    />
+                  </TableCell>
+
+                  {/* Product Name */}
+                  <TableCell sx={{ fontWeight: isSelected ? "600" : "400" }}>
+                    {product.ProductName}
+                  </TableCell>
+
+                  {/* Min Price */}
+                  <TableCell sx={{ color: "#666" }}>
+                    {product.Price.toLocaleString()}
+                  </TableCell>
+
+                  {/* Selling Price */}
+                  <TableCell sx={{ fontWeight: "bold", color: "#FF6D00" }}>
+                    {isSelected ? item.price.toLocaleString() : "-"}
+                  </TableCell>
+
+                  {/* Quantity Controls */}
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        disabled={!isSelected}
+                        onClick={() => handleQuantityChange(product.id, (item?.qty || 1) - 1)}
+                        sx={{
+                          bgcolor: isSelected ? "#FF6D00" : "#ccc",
+                          color: "white",
+                          width: 28,
+                          height: 28,
+                          "&:hover": { bgcolor: isSelected ? "#E65100" : "#ccc" },
+                          "&:disabled": { bgcolor: "#eee", color: "#999" }
+                        }}
+                      >
+                        -
+                      </IconButton>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={isSelected ? item.qty : 1}
+                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                        disabled={!isSelected}
+                        sx={{
+                          width: 60,
+                          "& input": { textAlign: "center", fontWeight: "bold" }
+                        }}
+                        inputProps={{ min: 1 }}
+                      />
+                      <IconButton
+                        size="small"
+                        disabled={!isSelected}
+                        onClick={() => handleQuantityChange(product.id, (item?.qty || 1) + 1)}
+                        sx={{
+                          bgcolor: isSelected ? "#FF6D00" : "#ccc",
+                          color: "white",
+                          width: 28,
+                          height: 28,
+                          "&:hover": { bgcolor: isSelected ? "#E65100" : "#ccc" },
+                          "&:disabled": { bgcolor: "#eee", color: "#999" }
+                        }}
+                      >
+                        +
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+
+                  {/* Set Price Button */}
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={!isSelected}
+                      onClick={() => handleOpenPriceModal(product)}
+                      sx={{
+                        borderColor: "#FF6D00",
+                        color: "#FF6D00",
+                        fontWeight: "bold",
+                        "&:hover": {
+                          borderColor: "#E65100",
+                          bgcolor: "#FFF3E0"
+                        },
+                        "&:disabled": {
+                          borderColor: "#ddd",
+                          color: "#999"
+                        }
+                      }}
+                    >
+                      Set Price
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Price Setting Modal */}
+      <Dialog
+        open={priceModal.open}
+        onClose={handleClosePriceModal}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            minWidth: 400,
+            boxShadow: "0 12px 48px rgba(0, 0, 0, 0.15)"
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          bgcolor: "#FF6D00",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "1.25rem"
+        }}>
+          Set Price - {priceModal.product?.ProductName}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3, pb: 2 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Minimum Price: <strong>{priceModal.product?.Price} FRW</strong>
+            </Typography>
+          </Box>
+          <TextField
+            autoFocus
+            fullWidth
+            type="number"
+            label="Selling Price (FRW)"
+            value={tempPrice}
+            onChange={(e) => {
+              setTempPrice(e.target.value);
+              setPriceError("");
+            }}
+            error={!!priceError}
+            helperText={priceError}
+            inputProps={{
+              min: priceModal.product?.Price,
+              step: "0.01"
+            }}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={handleClosePriceModal}
+            sx={{ color: "#666" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSavePrice}
+            variant="contained"
+            sx={{
+              bgcolor: "#FF6D00",
+              "&:hover": { bgcolor: "#E65100" }
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
 export default DataTable;
