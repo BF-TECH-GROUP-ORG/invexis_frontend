@@ -1,13 +1,8 @@
-// get current user, role, and permissions.
+// Hook: get current authenticated user and helper data from Redux store
+import { useSelector } from 'react-redux';
 
-import React from 'react'
-
-const useAuth = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+export default function useAuth() {
+  const user = useSelector((state) => state.auth?.user || null);
+  const isAuthenticated = Boolean(user);
+  return { user, isAuthenticated };
 }
-
-export default useAuth

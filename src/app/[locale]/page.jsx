@@ -205,7 +205,7 @@ export default function HomePage() {
           <Lottie
             animationData={heroAnimation}
             loop={true}
-            className="w-[100%] max-w-md"
+            className="w-full max-w-md"
           />
         </motion.div>
       </section>

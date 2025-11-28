@@ -1,17 +1,23 @@
 import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin();
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
         hostname: "i.pinimg.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.example.com",
+      },
     ],
-  },
+  },  
   experimental: {
     // Enable optimized prefetching
     optimizePackageImports: ['@mui/material', '@mui/icons-material', 'lucide-react'],
@@ -20,4 +26,4 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-export default withNextIntl(nextConfig);
+export default createNextIntlPlugin()(nextConfig);
