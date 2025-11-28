@@ -75,14 +75,16 @@ export default function StepVariations({
             combinations = cartesian(...optionsArrays);
         }
 
+        const baseSku = formData.sku || (formData.name ? formData.name.substring(0, 3).toUpperCase() : 'SKU');
+
         const newVariations = combinations.map(combo => {
             // Create a unique SKU suffix or similar
             const skuSuffix = combo.map(c => c.value.substring(0, 3).toUpperCase()).join("-");
             return {
                 attributes: combo,
-                sku: `${formData.sku || 'SKU'}-${skuSuffix}`,
+                sku: `${baseSku}-${skuSuffix}-${Math.floor(Math.random() * 1000)}`,
                 price: formData.pricing?.basePrice || 0,
-                stockQty: 0,
+                quantity: 0,
                 images: [],
             };
         });
@@ -100,9 +102,9 @@ export default function StepVariations({
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 0, x: -50 }}
             className="space-y-8"
         >
             <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -191,7 +193,7 @@ export default function StepVariations({
                                     <th className="py-3 px-4">Variant</th>
                                     <th className="py-3 px-4">SKU</th>
                                     <th className="py-3 px-4">Price</th>
-                                    <th className="py-3 px-4">Stock</th>
+                                    <th className="py-3 px-4">Quantity</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -219,8 +221,8 @@ export default function StepVariations({
                                         <td className="py-3 px-4">
                                             <input
                                                 type="number"
-                                                value={variation.stockQty}
-                                                onChange={(e) => updateVariation(index, 'stockQty', e.target.value)}
+                                                value={variation.quantity}
+                                                onChange={(e) => updateVariation(index, 'quantity', e.target.value)}
                                                 className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
                                             />
                                         </td>

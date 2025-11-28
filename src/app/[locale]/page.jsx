@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import Lottie from "lottie-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import heroAnimation from "../../../public/animations/Hero.json";
 import { useTranslations, useLocale } from "next-intl";
+import { useState } from "react";
 
 const metadata = {
   title: "Home",
@@ -14,31 +15,41 @@ const metadata = {
 export default function HomePage() {
   const t = useTranslations("home");
   const locale = useLocale();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="p-2 bg-white">
       <header className="relative bg-orange-100">
-        <div className="max-w-7xl mx-auto px-1">
-          <div className="flex items-center justify-between h-20 gap-x-20">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <div className="flex items-center">
-              <span className="text-2xl font-extrabold">
+            <div className="flex items-center z-20">
+              <span className="text-xl md:text-2xl font-extrabold">
                 INVEX<span className="text-orange-500">iS</span>
               </span>
             </div>
 
-            {/* Right-side actions */}
-            <div className="flex items-center gap-8">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden z-20 p-2 rounded-lg hover:bg-orange-200 transition"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
+            {/* Desktop Right-side actions */}
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
               <span className="flex items-center justify-center">
                 <Link
                   href={`/${locale}/auth/login`}
-                  className="text-sm text-gray-800 px-4 py-1 hover:text-orange-500 transition hidden md:inline-block border-r border-black"
+                  className="text-sm text-gray-800 px-4 py-1 hover:text-orange-500 transition border-r border-black"
                 >
                   {t("login")}
                 </Link>
                 <Link
                   href={`/${locale}/auth/signup`}
-                  className="text-sm text-gray-800 px-4 hover:text-orange-500 transition hidden md:inline-block"
+                  className="text-sm text-gray-800 px-4 hover:text-orange-500 transition"
                 >
                   {t("register")}
                 </Link>
@@ -53,38 +64,112 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Center Nav */}
-        <div className="absolute left-1/2 top-0 transform -translate-x-1/2">
+        {/* Desktop Center Nav - Hidden on mobile */}
+        <div className="hidden md:block absolute left-1/2 top-0 transform -translate-x-1/2">
           <div className="relative inline-block">
             <div className="absolute inset-0 -top-1/2 bg-white rounded-b-3xl" />
-            <nav className="relative flex items-center gap-16 px-20 py-2">
+            <nav className="relative flex items-center gap-8 lg:gap-16 px-12 lg:px-20 py-2">
               <Link
                 href={`/${locale}`}
-                className="text-orange-500 font-semibold hover:text-orange-600"
+                className="text-orange-500 font-semibold hover:text-orange-600 transition text-sm lg:text-base"
               >
                 {t("home")}
               </Link>
               <Link
                 href="#about"
-                className="text-gray-700 hover:text-orange-500 transition"
+                className="text-gray-700 hover:text-orange-500 transition text-sm lg:text-base"
               >
                 {t("about")}
               </Link>
               <Link
                 href="#faq"
-                className="text-gray-700 hover:text-orange-500 transition"
+                className="text-gray-700 hover:text-orange-500 transition text-sm lg:text-base"
               >
                 {t("faq")}
               </Link>
               <Link
                 href="#services"
-                className="text-gray-700 hover:text-orange-500 transition"
+                className="text-gray-700 hover:text-orange-500 transition text-sm lg:text-base"
               >
                 {t("services")}
               </Link>
             </nav>
           </div>
         </div>
+
+        {/* Mobile Menu - Slide down from top */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileMenuOpen(false)}
+                className="md:hidden fixed inset-0 bg-black/30 z-10"
+              />
+
+              {/* Mobile Nav Menu */}
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg z-20 overflow-hidden"
+              >
+                <nav className="flex flex-col p-6 space-y-4">
+                  <Link
+                    href={`/${locale}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-orange-500 font-semibold hover:text-orange-600 transition py-2 border-b border-gray-100"
+                  >
+                    {t("home")}
+                  </Link>
+                  <Link
+                    href="#about"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-gray-700 hover:text-orange-500 transition py-2 border-b border-gray-100"
+                  >
+                    {t("about")}
+                  </Link>
+                  <Link
+                    href="#faq"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-gray-700 hover:text-orange-500 transition py-2 border-b border-gray-100"
+                  >
+                    {t("faq")}
+                  </Link>
+                  <Link
+                    href="#services"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-gray-700 hover:text-orange-500 transition py-2 border-b border-gray-100"
+                  >
+                    {t("services")}
+                  </Link>
+
+                  {/* Mobile Auth Links */}
+                  <div className="flex flex-col gap-3 pt-4 border-t-2 border-gray-200">
+                    <Link
+                      href={`/${locale}/auth/login`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-center bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition font-semibold"
+                    >
+                      {t("login")}
+                    </Link>
+                    <Link
+                      href={`/${locale}/auth/signup`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-center border-2 border-orange-500 text-orange-500 px-6 py-3 rounded-lg hover:bg-orange-50 transition font-semibold"
+                    >
+                      {t("register")}
+                    </Link>
+                  </div>
+                </nav>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Hero Section */}
@@ -127,7 +212,7 @@ export default function HomePage() {
 
       {/* Stats Section */}
       <motion.section
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-8 py-12 md:px-16 bg-white"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-1  py-12 md:px-16 bg-white"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.5 }}
@@ -140,7 +225,7 @@ export default function HomePage() {
         ].map((stat, index) => (
           <motion.div
             key={index}
-            className="bg-gray-50 rounded-lg shadow p-6 text-center hover:shadow-lg transition"
+            className="bg-gray-50 rounded-lg shadow- p-6 text-center hover:shadow-lg transition"
             whileHover={{ scale: 1.05 }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-orange-500">

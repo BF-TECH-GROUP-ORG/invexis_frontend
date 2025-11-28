@@ -12,8 +12,12 @@ const nextConfig = {
         protocol: "https",
         hostname: "i.pinimg.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.example.com",
+      },
     ],
-  },
+  },  
 };
 
 export default createNextIntlPlugin()(nextConfig);

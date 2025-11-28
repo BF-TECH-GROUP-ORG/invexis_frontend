@@ -2,256 +2,182 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Package } from "lucide-react";
-
-// Realistic mock warehouses (used when real data is missing or undefined)
-const MOCK_WAREHOUSES = [
-  { _id: "wh1", name: "Main Warehouse", location: { city: "Kigali" } },
-  { _id: "wh2", name: "Secondary Storage", location: { city: "Huye" } },
-  { _id: "wh3", name: "Regional Depot", location: { city: "Musanze" } },
-  { _id: "wh4", name: "Central Hub", location: { city: "Kigali" } },
-];
 
 export default function StepInventory({
   formData,
   updateFormData,
-  updateNestedField,
   errors,
-  warehouses = [] // can be undefined
 }) {
-  // BULLETPROOF: Always use a valid array
-  const safeWarehouses = Array.isArray(warehouses) && warehouses.length > 0
-    ? warehouses
-    : MOCK_WAREHOUSES;
+  const pricing = formData.pricing || { basePrice: "", currency: "USD" };
+  const inventory = formData.inventory || { trackQuantity: true, allowBackorder: false };
+
+  const handlePriceChange = (field, value) => {
+    updateFormData({
+      pricing: { ...pricing, [field]: value }
+    });
+  };
+
+  const handleInventoryChange = (field, value) => {
+    updateFormData({
+      inventory: { ...inventory, [field]: value }
+    });
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      exit={{ opacity: 0, x: -50 }}
       className="space-y-8"
     >
-      {/* Stock Levels */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-[#333] mb-2">
-            Stock Quantity <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            value={formData.stock !== undefined && formData.stock !== null ? formData.stock : ""}
-            onChange={(e) => updateFormData({ stock: e.target.value })}
-            className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.stock ? "border-red-500" : "border-gray-300"
-              }`}
-            placeholder="0"
-            min="0"
-          />
-          {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#333] mb-2">
-            Min Stock Level <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <input
-            type="number"
-            value={formData.minStockLevel || ""}
-            onChange={(e) => updateFormData({ minStockLevel: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="10"
-            min="0"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#333] mb-2">
-            Max Stock Level <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <input
-            type="number"
-            value={formData.maxStockLevel || ""}
-            onChange={(e) => updateFormData({ maxStockLevel: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="100"
-            min="0"
-          />
-        </div>
-      </div>
-
-      {/* Warehouse Location */}
-      <div>
-        <label className="block text-sm font-medium text-[#333] mb-2">
-          Warehouse Location <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={formData.warehouse || ""}
-          onChange={(e) => updateFormData({ warehouse: e.target.value })}
-          className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.warehouse ? "border-red-500" : "border-gray-300"
-            }`}
-        >
-          <option value="">Select Warehouse</option>
-          {safeWarehouses.map((wh) => (
-            <option key={wh._id} value={wh._id}>
-              {wh.name} - {wh.location?.city || "N/A"}
-            </option>
-          ))}
-        </select>
-        {errors.warehouse && <p className="text-red-500 text-xs mt-1">{errors.warehouse}</p>}
-      </div>
-
-      {/* Expiry Date & Scheduled Availability */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-[#333] mb-2">
-            Expiry Date (Optional)
-          </label>
-          <input
-            type="date"
-            value={formData.expiryDate || ""}
-            onChange={(e) => updateFormData({ expiryDate: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            min={new Date().toISOString().split("T")[0]}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#333] mb-2">
-            Scheduled Availability Date <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <input
-            type="date"
-            value={formData.scheduledAvailabilityDate || ""}
-            onChange={(e) => updateFormData({ scheduledAvailabilityDate: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            min={new Date().toISOString().split("T")[0]}
-          />
-        </div>
-      </div>
-
-      {/* Low Stock Threshold */}
-      <div>
-        <label className="block text-sm font-medium text-[#333] mb-2">
-          Low Stock Threshold <span className="text-gray-400 font-normal">(Optional)</span>
-        </label>
-        <input
-          type="number"
-          value={formData.inventory?.lowStockThreshold ?? formData.minStockLevel ?? ""}
-          onChange={(e) => updateFormData({ inventory: { ...formData.inventory, lowStockThreshold: e.target.value }, minStockLevel: e.target.value })}
-          className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-          placeholder="Alert when stock is below..."
-          min="0"
-        />
-      </div>
-
-      {/* Physical Properties */}
-      <div className="border border-gray-200 rounded-2xl bg-white p-8">
-        <h3 className="text-xl font-semibold text-[#1F1F1F] mb-6 flex items-center gap-3">
-          <Package size={24} className="text-[#FB923C]" />
-          Physical Properties
-        </h3>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+      {/* Pricing Section */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4">Pricing</h3>
+        <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#333] mb-2">Weight <span className="text-gray-400 font-normal">(Optional)</span></label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Base Price <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-3.5 text-gray-500">{pricing.currency === "RWF" ? "Frw" : "$"}</span>
               <input
                 type="number"
-                value={formData.weight?.value || ""}
-                onChange={(e) => updateNestedField("weight", "value", e.target.value)}
-                className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-                placeholder="0.0"
+                value={pricing.basePrice}
+                onChange={(e) => handlePriceChange("basePrice", e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.price ? "border-red-500" : "border-gray-300"}`}
+                placeholder="0.00"
                 step="0.01"
+                min="0"
               />
-              <select
-                value={formData.weight?.unit || "lb"}
-                onChange={(e) => updateNestedField("weight", "unit", e.target.value)}
-                className="w-24 px-3 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-              >
-                <option value="lb">lb</option>
-                <option value="kg">kg</option>
-                <option value="oz">oz</option>
-                <option value="g">g</option>
-              </select>
+            </div>
+            {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Sale Price
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-3.5 text-gray-500">{pricing.currency === "RWF" ? "Frw" : "$"}</span>
+              <input
+                type="number"
+                value={pricing.salePrice || ""}
+                onChange={(e) => handlePriceChange("salePrice", e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
             </div>
           </div>
-        </div>
 
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="md:col-span-4">
-            <label className="block text-sm font-medium text-[#333] mb-2">Dimensions <span className="text-gray-400 font-normal">(Optional)</span></label>
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              List Price (MSRP)
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-3.5 text-gray-500">{pricing.currency === "RWF" ? "Frw" : "$"}</span>
+              <input
+                type="number"
+                value={pricing.listPrice || ""}
+                onChange={(e) => handlePriceChange("listPrice", e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
           </div>
-          <input
-            type="number"
-            value={formData.dimensions?.length || ""}
-            onChange={(e) => updateNestedField("dimensions", "length", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Length"
-            step="0.01"
-          />
-          <input
-            type="number"
-            value={formData.dimensions?.width || ""}
-            onChange={(e) => updateNestedField("dimensions", "width", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Width"
-            step="0.01"
-          />
-          <input
-            type="number"
-            value={formData.dimensions?.height || ""}
-            onChange={(e) => updateNestedField("dimensions", "height", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Height"
-            step="0.01"
-          />
-          <select
-            value={formData.dimensions?.unit || "in"}
-            onChange={(e) => updateNestedField("dimensions", "unit", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-          >
-            <option value="in">in</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-            <option value="m">m</option>
-          </select>
+
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Cost (COGS)
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-3.5 text-gray-500">{pricing.currency === "RWF" ? "Frw" : "$"}</span>
+              <input
+                type="number"
+                value={pricing.cost || ""}
+                onChange={(e) => handlePriceChange("cost", e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Currency
+            </label>
+            <select
+              value={pricing.currency}
+              onChange={(e) => handlePriceChange("currency", e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="RWF">RWF (Frw)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Specifications */}
-      <div className="border border-gray-200 rounded-2xl bg-white p-8">
-        <h3 className="text-xl font-semibold text-[#1F1F1F] mb-6 flex items-center gap-3">
-          <Package size={24} className="text-[#FB923C]" />
-          Product Specifications (Optional)
-        </h3>
+      {/* Inventory Section */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4">Inventory</h3>
         <div className="grid md:grid-cols-2 gap-6">
-          <input
-            type="text"
-            value={formData.specifications?.brand || ""}
-            onChange={(e) => updateNestedField("specifications", "brand", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Brand"
-          />
-          <input
-            type="text"
-            value={formData.specifications?.model || ""}
-            onChange={(e) => updateNestedField("specifications", "model", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Model"
-          />
-          <input
-            type="text"
-            value={formData.specifications?.color || ""}
-            onChange={(e) => updateNestedField("specifications", "color", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Color"
-          />
-          <input
-            type="text"
-            value={formData.specifications?.warranty || ""}
-            onChange={(e) => updateNestedField("specifications", "warranty", e.target.value)}
-            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
-            placeholder="Warranty (e.g., 1 year)"
-          />
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Quantity <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={inventory.quantity !== undefined ? inventory.quantity : ""}
+              onChange={(e) => handleInventoryChange("quantity", e.target.value)}
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.stock ? "border-red-500" : "border-gray-300"}`}
+              placeholder="0"
+              min="0"
+            />
+            {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#333] mb-2">
+              Low Stock Threshold
+            </label>
+            <input
+              type="number"
+              value={inventory.lowStockThreshold || ""}
+              onChange={(e) => handleInventoryChange("lowStockThreshold", e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+              placeholder="10"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={inventory.trackQuantity}
+              onChange={(e) => handleInventoryChange("trackQuantity", e.target.checked)}
+              className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+            />
+            <span className="text-sm font-medium">Track Quantity</span>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={inventory.allowBackorder}
+              onChange={(e) => handleInventoryChange("allowBackorder", e.target.checked)}
+              className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+            />
+            <span className="text-sm font-medium">Allow Backorder</span>
+          </label>
         </div>
       </div>
     </motion.div>

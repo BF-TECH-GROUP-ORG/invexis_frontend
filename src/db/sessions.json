@@ -242,25 +242,9 @@
   {
     "id": "s31",
     "user_id": "u1",
-    "start_time": "2025-11-20T14:11:37.013Z",
+    "start_time": "2025-11-26T14:46:45.164Z",
     "ip": "127.0.0.1",
-    "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
-    "country": "Rwanda"
-  },
-  {
-    "id": "s32",
-    "user_id": "u1",
-    "start_time": "2025-11-21T08:43:16.328Z",
-    "ip": "127.0.0.1",
-    "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
-    "country": "Rwanda"
-  },
-  {
-    "id": "s33",
-    "user_id": "u1",
-    "start_time": "2025-11-24T13:08:33.917Z",
-    "ip": "127.0.0.1",
-    "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+    "device": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
     "country": "Rwanda"
   }
 ]

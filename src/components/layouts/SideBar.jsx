@@ -20,6 +20,8 @@ import {
   AlertCircle,
   Menu,
   ChevronDown,
+  MoreVertical,
+  X,
 } from "lucide-react";
 import { title } from "process";
 
@@ -37,7 +39,6 @@ const navItems = [
     children: [
       { title: "Staff List", path: "/inventory/workers/list" },
       { title: "Branches", path: "/inventory/companies" },
-      // { title: "Worker Profile", path: "/inventory/users/profile" },
     ],
   },
   {
@@ -110,7 +111,11 @@ const navItems = [
   },
 ];
 
-export default function SideBar({ expanded: controlledExpanded, setExpanded: setControlledExpanded }) {
+export default function SideBar({
+  expanded: controlledExpanded,
+  setExpanded: setControlledExpanded,
+  onMobileChange
+}) {
   const pathname = usePathname();
   const locale = useLocale();
 
@@ -118,6 +123,9 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
   const [openMenus, setOpenMenus] = useState([]);
   const [hoverMenu, setHoverMenu] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ top: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [moreModalOpen, setMoreModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const expanded = typeof controlledExpanded === "boolean" ? controlledExpanded : expandedInternal;
 
@@ -161,11 +169,205 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
     setOpenMenus(activeParents);
   }, [pathname, isActive]);
 
+  /* Set mounted state */
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* Mobile detection */
+  useEffect(() => {
+    if (!mounted) return;
+
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // Notify parent component of mobile state change
+      if (onMobileChange) {
+        onMobileChange(mobile);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [mounted, onMobileChange]);
+
   return (
     <>
-      {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"}`}>
-        
+      {/* MOBILE VIEW */}
+      {isMobile ? (
+        <>
+          {/* BOTTOM NAVIGATION BAR */}
+          <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t shadow-lg rounded-t-3xl px-6 py-4 md:hidden">
+            <div className="flex items-center justify-around max-w-md mx-auto">
+              {/* Dashboard */}
+              <Link
+                href={`/${locale}/inventory/dashboard`}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}>
+                  <LayoutDashboard size={24} />
+                </div>
+                {isActive("/inventory/dashboard") && (
+                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                )}
+              </Link>
+
+              {/* Analytics */}
+              <Link
+                href={`/${locale}/inventory/analytics`}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className={`p-3 rounded-xl transition ${isActive("/inventory/analytics")
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}>
+                  <BarChart3 size={24} />
+                </div>
+                {isActive("/inventory/analytics") && (
+                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                )}
+              </Link>
+
+              {/* Reports */}
+              <Link
+                href={`/${locale}/inventory/reports`}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}>
+                  <FileSpreadsheet size={24} />
+                </div>
+                {isActive("/inventory/reports") && (
+                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                )}
+              </Link>
+
+              {/* More */}
+              <button
+                onClick={() => setMoreModalOpen(true)}
+                className="flex flex-col items-center gap-1"
+              >
+                <div className={`p-3 rounded-xl transition ${moreModalOpen
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}>
+                  <MoreVertical size={24} />
+                </div>
+              </button>
+            </div>
+          </nav>
+
+          {/* SLIDE-UP MODAL */}
+          {moreModalOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                onClick={() => setMoreModalOpen(false)}
+                className="fixed inset-0 bg-black/50 z-40 animate-fadeIn"
+              ></div>
+
+              {/* Modal Content */}
+              <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slideUp max-h-[80vh] overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-orange-50 to-white">
+                  <h2 className="text-lg font-bold text-gray-800">Management</h2>
+                  <button
+                    onClick={() => setMoreModalOpen(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                  >
+                    <X size={24} className="text-gray-600" />
+                  </button>
+                </div>
+
+                {/* Menu Items */}
+                <div className="overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-6 space-y-2">
+                  {navItems.slice(3).map((item) => {
+                    const parentActive = item.children?.some((c) => isActive(c.path));
+
+                    return (
+                      <div key={item.title} className="space-y-1">
+                        {/* Single Item (Sales) */}
+                        {!item.children && (
+                          <Link
+                            href={`/${locale}${item.path}`}
+                            onClick={() => setMoreModalOpen(false)}
+                            className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
+                              ? "bg-orange-500 text-white shadow-lg"
+                              : "text-gray-700 hover:bg-orange-50"
+                              }`}
+                          >
+                            {item.icon}
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        )}
+
+                        {/* Parent with Children */}
+                        {item.children && (
+                          <div>
+                            <div
+                              onClick={() =>
+                                setOpenMenus((prev) =>
+                                  prev.includes(item.title)
+                                    ? prev.filter((x) => x !== item.title)
+                                    : [...prev, item.title]
+                                )
+                              }
+                              className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
+                                ? "bg-orange-50 text-orange-700 border border-orange-200"
+                                : "text-gray-700 hover:bg-orange-50"
+                                }`}
+                            >
+                              <div className="flex items-center gap-4">
+                                {item.icon}
+                                <span className="font-medium">{item.title}</span>
+                              </div>
+                              <ChevronDown
+                                size={20}
+                                className={`transition-transform ${openMenus.includes(item.title) ? "rotate-180" : ""
+                                  }`}
+                              />
+                            </div>
+
+                            {/* Children Links */}
+                            {openMenus.includes(item.title) && item.children && (
+                              <div className="ml-12 mt-2 space-y-1">
+                                {item.children.map((child) => (
+                                  <Link
+                                    key={child.title}
+                                    href={`/${locale}${child.path}`}
+                                    onClick={() => setMoreModalOpen(false)}
+                                    className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
+                                      ? "bg-orange-500 text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
+                                      }`}
+                                  >
+                                    {child.title}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      ) : null}
+
+      {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
+      {/* Hidden on mobile, visible on md and up */}
+      <aside className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"}`}>
+
         {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
           <button onClick={() => setExpanded(!expanded)} className="p-2 rounded-lg hover:bg-gray-100">
@@ -181,7 +383,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
 
         {/* NAVIGATION */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-8">
-          
+
           {/* OVERVIEW */}
           <section>
             <h3 className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"}`}>
@@ -192,11 +394,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
               <Link
                 key={item.title}
                 href={`/${locale}${item.path}`}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${
-                  isActive(item.path)
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-700 hover:bg-orange-50"
-                }`}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-700 hover:bg-orange-50"
+                  }`}
               >
                 {item.icon}
                 {expanded && <span>{item.title}</span>}
@@ -213,21 +414,17 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
             {navItems.slice(3).map((item) => {
               const parentActive = item.children?.some((c) => isActive(c.path));
 
-              /* =========================
-                 RENDER PARENT ITEM
-              ========================== */
               return (
                 <div key={item.title} onMouseEnter={(e) => handleHoverEnter(e, item)} onMouseLeave={handleHoverLeave}>
-                  
+
                   {/* Single-item (Sales) */}
                   {!item.children && (
                     <Link
                       href={`/${locale}${item.path}`}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${
-                        isActive(item.path)
-                          ? "bg-orange-500 text-white"
-                          : "text-gray-700 hover:bg-orange-50"
-                      }`}
+                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
+                        ? "bg-orange-500 text-white"
+                        : "text-gray-700 hover:bg-orange-50"
+                        }`}
                     >
                       {item.icon}
                       {expanded && <span>{item.title}</span>}
@@ -246,11 +443,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                               : [...prev, item.title]
                           )
                         }
-                        className={`relative flex items-center justify-between px-3 py-3 rounded-lg cursor-pointer transition ${
-                          parentActive
-                            ? "bg-orange-50 text-orange-700 border border-orange-200"
-                            : "text-gray-700 hover:bg-orange-50"
-                        }`}
+                        className={`relative flex items-center justify-between px-3 py-3 rounded-lg cursor-pointer transition ${parentActive
+                          ? "bg-orange-50 text-orange-700 border border-orange-200"
+                          : "text-gray-700 hover:bg-orange-50"
+                          }`}
                       >
                         {parentActive && (
                           <span className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full"></span>
@@ -271,11 +467,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                             <Link
                               key={child.title}
                               href={`/${locale}${child.path}`}
-                              className={`block px-3 py-2 text-sm rounded-md transition ${
-                                isActive(child.path)
-                                  ? "bg-orange-500 text-white"
-                                  : "text-gray-600 hover:bg-gray-100"
-                              }`}
+                              className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
+                                ? "bg-orange-500 text-white"
+                                : "text-gray-600 hover:bg-gray-100"
+                                }`}
                             >
                               {child.title}
                             </Link>
