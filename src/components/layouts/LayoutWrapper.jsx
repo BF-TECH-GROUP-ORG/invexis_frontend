@@ -4,11 +4,26 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import SideBar from "@/components/layouts/SideBar";
 import TopNavBar from "@/components/layouts/NavBar";
+import DevBypassToggle from "@/components/shared/DevBypassToggle";
 import DashboardLayout from "./DashboardLayout";
 import ProtectedRoute from "@/lib/ProtectedRoute";
 
 export default function LayoutWrapper({ children }) {
-  const { user, token } = useSelector((state) => state.auth);
+  // support both accessToken & token names from different code paths
+  const { user, accessToken, token } = useSelector((state) => state.auth);
+  const authToken = accessToken || token;
+  // Consider runtime localStorage toggle for bypass (DEV_BYPASS_AUTH) as well
+  const getBypass = () => {
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return true;
+    try {
+      if (typeof window !== "undefined") {
+        return localStorage.getItem("DEV_BYPASS_AUTH") === "true";
+      }
+    } catch (e) {
+      return false;
+    }
+  };
+  const BYPASS = getBypass();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
@@ -31,10 +46,16 @@ export default function LayoutWrapper({ children }) {
     return null;
   }
 
-  const isLoggedIn = Boolean(user && token);
+  // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
+  const isLoggedIn = BYPASS || Boolean(user && authToken);
 
   if (!isLoggedIn) {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {children}
+        <DevBypassToggle />
+      </div>
+    );
   }
 
   return (
@@ -46,6 +67,7 @@ export default function LayoutWrapper({ children }) {
           </div>
         </div>
       </ProtectedRoute>
+      <DevBypassToggle />
     </DashboardLayout>
   );
 }

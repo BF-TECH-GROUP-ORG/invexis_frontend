@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
 const WORKERS_URL = process.env.NEXT_PUBLIC_WORKERS_API_URL || '';
 const COMPANIES_URL = process.env.NEXT_PUBLIC_COMPANIES_API_URL || '';

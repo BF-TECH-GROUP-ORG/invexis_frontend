@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getAccessToken } from "@/lib/authUtils";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,7 +26,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showTermsPopup, setShowTermsPopup] = useState(false);
@@ -43,13 +43,18 @@ const LoginPage = () => {
 
   const handleClosePopup = () => setShowTermsPopup(false);
 
+  // Handle redirect if already authenticated (via bypass mode)
   useEffect(() => {
-    const token = localStorage.getItem("auth")
-      ? JSON.parse(localStorage.getItem("auth"))?.token
-      : null;
-
-    if (token) router.replace(`/${locale}/inventory`);
-    else setLoading(false);
+    const BYPASS =
+      process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
+      (typeof window !== "undefined" &&
+        localStorage.getItem("DEV_BYPASS_AUTH") === "true");
+    
+    if (BYPASS) {
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
+      router.replace(callbackUrl);
+    }
   }, [router, locale]);
 
   const handleSubmit = async (e) => {
@@ -64,21 +69,17 @@ const LoginPage = () => {
     setSubmitting(true);
     try {
       await dispatch(loginUser(identifier, password));
-      router.push(`/${locale}/inventory`);
+      
+      // Redirect to callback URL if present, otherwise go to inventory
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
+      router.push(callbackUrl);
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="w-screen h-screen flex items-center justify-center">
-        <CircularProgress />
-      </div>
-    );
-  }
 
   return (
     <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a]">

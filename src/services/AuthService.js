@@ -7,13 +7,28 @@ import api from "@/lib/axios";
 export const AuthService = {
   /**
    * Login with email/password
-   * @param {string} email - User email
+   * @param {string} identifier - User email or phone number
    * @param {string} password - User password
    * @returns {Promise<{ok: boolean, accessToken: string, refreshToken: string, user: object}>}
    */
-  login: async (email, password) => {
-    const response = await api.post("/auth/login", { email, password });
-    return response.data;
+  login: async (identifier, password) => {
+    const payload = { identifier, password };
+    console.log("🔐 Login Request:", payload);
+    
+    try {
+      const response = await api.post("/auth/login", payload, {
+        withCredentials: true // CRITICAL: Receive refresh token cookie
+      });
+      console.log("✅ Login Success");
+      return response.data;
+    } catch (error) {
+      console.error("❌ Login Error:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
   },
 
   /**
@@ -42,7 +57,7 @@ export const AuthService = {
    * Redirects to Google OAuth page
    */
   loginWithGoogle: () => {
-    const googleAuthUrl = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || "/api/auth/google";
+    const googleAuthUrl = process.env.NEXT_PUBLIC_API_URL || "/auth/google";
     window.location.href = googleAuthUrl;
   },
 
@@ -79,11 +94,10 @@ export const AuthService = {
 
   /**
    * Refresh access token
-   * @param {string} refreshToken - Refresh token
    * @returns {Promise<{ok: boolean, accessToken: string}>}
    */
-  refreshToken: async (refreshToken) => {
-    const response = await api.post("/auth/refresh", { refreshToken });
+  refreshToken: async () => {
+    const response = await api.post("/auth/refresh");
     return response.data;
   },
 

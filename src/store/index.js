@@ -10,18 +10,6 @@ import settingsReducer from "@/features/settings/settingsSlice";
 import onboardingReducer from "../features/onboarding/onboardingSlice";
 import sessionReducer from "../features/session/sessionSlice";
 
-// Listener middleware automatically syncs certain slices to localStorage
-const listenerMiddleware = createListenerMiddleware();
-
-listenerMiddleware.startListening({
-  predicate: (action, currentState, previousState) => true, // listen to all actions
-  effect: (action, listenerApi) => {
-    const state = listenerApi.getState();
-    localStorage.setItem("auth", JSON.stringify(state.auth));
-    localStorage.setItem("session", JSON.stringify(state.session));
-  },
-});
-
 // Configure the Redux store with all slices
 const store = configureStore({
   reducer: {
@@ -36,31 +24,6 @@ const store = configureStore({
     onboarding: onboardingReducer,
     session: sessionReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(listenerMiddleware.middleware),
 });
-
-// Client-side rehydration: restore auth and session slices from localStorage
-if (typeof window !== "undefined") {
-  try {
-    const savedAuth = localStorage.getItem("auth");
-    if (savedAuth) {
-      store.dispatch({
-        type: "auth/setAuthSession",
-        payload: JSON.parse(savedAuth),
-      });
-    }
-
-    const savedSession = localStorage.getItem("session");
-    if (savedSession) {
-      store.dispatch({
-        type: "session/setSession",
-        payload: JSON.parse(savedSession),
-      });
-    }
-  } catch (e) {
-    console.error("Failed to rehydrate store:", e);
-  }
-}
 
 export default store;

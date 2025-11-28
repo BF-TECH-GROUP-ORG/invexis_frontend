@@ -1,118 +1,137 @@
 import axios from "axios";
-import { getAccessToken, getRefreshToken, setAccessToken, removeTokens } from "./authUtils";
+import store from "@/store";
+import { updateAccessToken, clearAuthSession } from "@/features/auth/authSlice";
 
 // Base configuration
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true", // Required for ngrok
+    "ngrok-skip-browser-warning": "true",
   },
-  withCredentials: true, // for cookies
+  withCredentials: true, // MUST be true for cookies (refresh token)
 });
 
-// Request Interceptor → attach token
+// Request Interceptor → attach access token from Redux
 api.interceptors.request.use(
   (config) => {
-    const token = getAccessToken();
+    const state = store.getState();
+    const token = state.auth.accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    console.log("📤 Request:", config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor → handle errors and token refresh
+// Token refresh management
 let isRefreshing = false;
-let failedQueue = [];
+let refreshPromise = null;
+const subscribers = [];
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
+function onRefreshed(token) {
+  subscribers.forEach(cb => cb(token));
+  subscribers.length = 0;
+}
 
+function addSubscriber(cb) {
+  subscribers.push(cb);
+}
+
+// Response Interceptor → handle 401 and refresh token
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const { config, response } = error;
+    
+    // Network error or no response
+    if (!response) {
+      console.error("❌ Network Error:", error.message);
+      return Promise.reject(error);
+    }
 
-    // If error is 401 and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+    // Not a 401, just reject
+    if (response.status !== 401) {
+      console.error("❌ API Error:", response.status, response.data);
+      return Promise.reject(error);
+    }
+
+    // Avoid infinite loop - don't retry if already retried
+    if (config.__isRetry) {
+      console.error("❌ Refresh failed, logging out");
+      store.dispatch(clearAuthSession());
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login";
       }
+      return Promise.reject(error);
+    }
 
-      originalRequest._retry = true;
+    // Mark as retry to avoid infinite loop
+    config.__isRetry = true;
+
+    // If not already refreshing, start refresh
+    if (!isRefreshing) {
       isRefreshing = true;
-
-      const refreshToken = getRefreshToken();
-
-      if (!refreshToken) {
-        // No refresh token, logout
-        removeTokens();
-        if (typeof window !== "undefined") {
-          window.location.href = "/auth/login";
+      console.log("🔄 Refreshing access token...");
+      
+      refreshPromise = axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        {},
+        {
+          withCredentials: true, // Send refresh token cookie
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
         }
-        return Promise.reject(error);
-      }
-
-      try {
-        // Attempt to refresh the token
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
-          { refreshToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
+      )
+        .then(({ data }) => {
+          const token = data.accessToken;
+          console.log("✅ Token refreshed successfully");
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          
+          // Update Redux store
+          store.dispatch(updateAccessToken(token));
+          
+          // Notify all queued requests
+          onRefreshed(token);
+          
+          return token;
+        })
+        .catch((err) => {
+          console.error("❌ Refresh failed:", err.message);
+          
+          // Clear auth and redirect to login
+          store.dispatch(clearAuthSession());
+          onRefreshed(null);
+          
+          if (typeof window !== "undefined") {
+            window.location.href = "/auth/login";
           }
-        );
+          
+          throw err;
+        })
+        .finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+    }
 
-        const { accessToken } = response.data;
-        setAccessToken(accessToken);
-
-        // Update the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        // Process queued requests
-        processQueue(null, accessToken);
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, logout
-        processQueue(refreshError, null);
-        removeTokens();
-        if (typeof window !== "undefined") {
-          window.location.href = "/auth/login";
+    // Queue this request to retry after refresh completes
+    return new Promise((resolve, reject) => {
+      addSubscriber((token) => {
+        if (!token) {
+          return reject(error);
         }
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    // Handle other errors
-    if (error.response) {
-      console.error("API Error:", error.response.status, error.response.data);
-    }
-
-    return Promise.reject(error);
+        
+        // Retry original request with new token
+        config.headers.Authorization = `Bearer ${token}`;
+        resolve(api(config));
+      });
+    });
   }
 );
 
