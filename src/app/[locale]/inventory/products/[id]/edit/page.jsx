@@ -1,18 +1,31 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import toast from "react-hot-toast";
-import { ArrowLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, ArrowLeft, Sparkles, Layers } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import { AnimatePresence } from "framer-motion";
+
 import { updateProduct, fetchProductById } from "@/features/products/productsSlice";
 import useProductForm from "@/components/inventory/products/ProductFormHooks/useProductForm";
 import StepBasicInfo from "@/components/inventory/products/ProductFormSteps/StepBasicInfo";
-import StepMoreInfo from "@/components/inventory/products/ProductFormSteps/StepMoreInfo";
 import StepInventory from "@/components/inventory/products/ProductFormSteps/StepInventory";
 import StepMedia from "@/components/inventory/products/ProductFormSteps/StepMedia";
 import StepAdvanced from "@/components/inventory/products/ProductFormSteps/StepAdvanced";
-import { AnimatePresence } from "framer-motion";
+import StepMoreInfo from "@/components/inventory/products/ProductFormSteps/StepMoreInfo";
+import StepVariations from "@/components/inventory/products/ProductFormSteps/StepVariations";
+import SimpleProductForm from "@/components/inventory/products/SimpleProductForm";
+
+const steps = [
+  { id: 1, title: "Basic Info" },
+  { id: 2, title: "Attributes" },
+  { id: 3, title: "Inventory" },
+  { id: 4, title: "Media" },
+  { id: 5, title: "Variations" },
+  { id: 6, title: "Advanced" },
+];
 
 export default function EditProductPage({ params }) {
   // Unwrap params Promise using React.use()
@@ -26,6 +39,10 @@ export default function EditProductPage({ params }) {
   const { items: warehouses = [] } = useSelector((state) => state.warehouses || { items: [] });
   const product = useSelector((s) => s.products.selectedProduct);
   const loading = useSelector((s) => s.products.loading);
+
+  const [isSimpleMode, setIsSimpleMode] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const {
     formData,
@@ -43,217 +60,310 @@ export default function EditProductPage({ params }) {
     setTagInput,
     nextStep,
     prevStep,
-    goToStep,
   } = useProductForm(product);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchProductById(id));
   }, [dispatch, id]);
 
-  // The hook will initialize formData when `product` (initialData) is provided.
+  // Auto-detect mode based on product data
+  useEffect(() => {
+    if (product && !isInitialized) {
+      const hasVariants = product.variants && product.variants.length > 0;
+      const hasAdvancedSeo = product.seo && (product.seo.metaTitle || product.seo.metaDescription);
+
+      // If product has complex data, default to Advanced Mode
+      if (hasVariants || hasAdvancedSeo) {
+        setIsSimpleMode(false);
+      } else {
+        setIsSimpleMode(true);
+      }
+      setIsInitialized(true);
+    }
+  }, [product, isInitialized]);
+
+  const backUrl = `/${locale || 'en'}/inventory/products`;
+
+  const handleSuccess = () => {
+    toast.success("Product updated successfully!");
+    router.push(backUrl);
+  };
 
   const handleSubmit = async () => {
-    // final validation for last step
-    if (!validateStep(5)) {
-      toast.error("Please fix all errors before saving");
-      return;
+    // Validation logic
+    if (isSimpleMode) {
+      const simpleErrors = {};
+      if (!formData.name) simpleErrors.name = "Name is required";
+      if (!formData.category) simpleErrors.category = "Category is required";
+      if (!formData.pricing?.basePrice && !formData.price) simpleErrors.price = "Base Price is required";
+      if (formData.inventory?.quantity === undefined && formData.stock === undefined) simpleErrors.stock = "Stock is required";
+
+      if (Object.keys(simpleErrors).length > 0) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+    } else {
+      // For advanced mode, we might want to validate the current step or all steps
+      // For editing, we often allow partial updates, but critical fields must exist
+      if (!formData.name || !formData.category) {
+        toast.error("Name and Category are required");
+        return;
+      }
     }
 
-    const basePrice =
-      formData.pricing?.basePrice !== undefined && formData.pricing?.basePrice !== ""
-        ? Number(formData.pricing.basePrice)
-        : formData.price
-          ? Number(formData.price)
-          : null;
-
-    const costPrice =
-      formData.pricing?.cost !== undefined && formData.pricing?.cost !== ""
-        ? Number(formData.pricing.cost)
-        : formData.costPrice
-          ? Number(formData.costPrice)
-          : null;
-
-    const normalizedStock = formData.stock !== undefined && formData.stock !== "" ? Number(formData.stock) : null;
-
-    const fullProductData = {
-      name: (formData.name || "").trim(),
-      sku: formData.sku || undefined,
-      category: formData.category || undefined,
-      brand: formData.brand || undefined,
-      tags: Array.isArray(formData.tags) ? formData.tags : [],
-
-      description: formData.description || undefined,
-      specifications: formData.specifications || {},
-
-      stock: normalizedStock,
-      minStockLevel: formData.minStockLevel ? Number(formData.minStockLevel) : undefined,
-      maxStockLevel: formData.maxStockLevel ? Number(formData.maxStockLevel) : undefined,
-      warehouse: formData.warehouse || undefined,
-      expiryDate: formData.expiryDate || undefined,
-
-      images: Array.isArray(formData.images) ? formData.images : [],
-
-      pricing: {
-        basePrice: basePrice,
-        salePrice:
-          formData.pricing?.salePrice !== undefined && formData.pricing?.salePrice !== ""
-            ? Number(formData.pricing.salePrice)
-            : undefined,
-        currency: formData.pricing?.currency || "USD",
-        cost: costPrice,
-      },
-
-      // legacy fields kept for compatibility
-      price: basePrice,
-      costPrice: costPrice,
-
-      status: formData.status || "active",
-      visibility: formData.visibility || "public",
-      isTaxable: !!formData.isTaxable,
-      trackInventory: !!formData.trackInventory,
-      allowBackorder: !!formData.allowBackorder,
-      isPerishable: !!formData.isPerishable,
-      notes: formData.notes || undefined,
-    };
-
-    if (!fullProductData.name) {
-      toast.error("Product name is required");
-      return;
-    }
-    if (!fullProductData.category) {
-      toast.error("Category is required");
-      return;
-    }
-    if (fullProductData.pricing.basePrice === null || isNaN(fullProductData.pricing.basePrice) || fullProductData.pricing.basePrice <= 0) {
-      toast.error("Valid product price is required");
-      return;
-    }
-
-    const generateSku = (product) => {
-      const brand = (product.brand || "").toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const brandPart = brand ? brand.slice(0, 3) : 'PRD';
-      const namePart = (product.name || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'ITEM';
-      const ts = Date.now().toString(36).toUpperCase();
-      const random = Math.floor(Math.random() * 900 + 100).toString();
-      return `${brandPart}-${namePart}-${ts}-${random}`;
-    };
-
-    if (!fullProductData.sku) fullProductData.sku = generateSku(fullProductData);
-
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+
+      const basePrice = Number(formData.pricing?.basePrice ?? formData.price ?? 0);
+      const costPrice = Number(formData.pricing?.cost ?? formData.costPrice ?? 0);
+      const normalizedStock = Number(formData.inventory?.quantity ?? formData.stock ?? 0);
+
+      const fullProductData = {
+        ...formData,
+        name: (formData.name || "").trim(),
+        pricing: {
+          ...formData.pricing,
+          basePrice: basePrice,
+          cost: costPrice,
+          currency: formData.pricing?.currency || "USD",
+        },
+        inventory: {
+          ...formData.inventory,
+          quantity: normalizedStock,
+        },
+        // Ensure arrays
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
+        images: Array.isArray(formData.images) ? formData.images : [],
+        attributes: Array.isArray(formData.attributes) ? formData.attributes : [],
+        variants: Array.isArray(formData.variants) ? formData.variants : [],
+      };
+
       await dispatch(updateProduct({ id, updates: fullProductData })).unwrap();
-      toast.success("Product updated successfully");
-      // Navigate back to product detail
-      router.push(`/${(locale || 'en')}/inventory/products/${id}`);
-    } catch (err) {
-      console.error("Update failed:", err);
-      toast.error(err?.message || 'Failed to update product');
+      handleSuccess();
+    } catch (error) {
+      console.error("Update failed:", error);
+      toast.error(error?.message || "Failed to update product");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loading && !product) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white p-6 md:p-12 pt-2">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex gap-12 items-start">
-          <div className="flex-1">
-            <div className="border-2 border-[#d1d5db] rounded-3xl p-8 bg-white">
-              <div className="mb-8 flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <button onClick={() => router.back()} className="p-2 rounded-md hover:bg-gray-100">
-                    <ArrowLeft />
-                  </button>
-                  <div>
-                    <h2 className="text-3xl font-bold text-[#081422]">Edit Product</h2>
-                    <p className="text-[#6b7280] mt-2">Modify the product information and save your changes.</p>
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      <Toaster position="top-right" />
+
+      {/* Header - Fixed */}
+      <div className="border-b border-gray-200 bg-white px-6 py-4 flex-shrink-0">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <Link
+              href={backUrl}
+              prefetch={true}
+              className="group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg font-medium"
+            >
+              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm">Back to Products</span>
+            </Link>
+
+            <button
+              onClick={() => setIsSimpleMode(!isSimpleMode)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-orange-500 hover:bg-orange-50 rounded-lg text-orange-600 font-medium transition-all"
+            >
+              {isSimpleMode ? (
+                <>
+                  <Layers size={16} />
+                  <span className="text-sm">Switch to Advanced Mode</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  <span className="text-sm">Switch to Simple Mode</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
+            <p className="text-xs text-gray-600 mt-1">
+              {isSimpleMode
+                ? "Quickly edit essential details. Switch to Advanced Mode for more options."
+                : "Edit all product details including SEO, variants, and advanced inventory settings."}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 overflow-hidden">
+        <div className="max-w-7xl mx-auto h-full px-6 py-6">
+          <div className="flex gap-6 h-full">
+            {/* Form Section */}
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+              <div className="flex-1 overflow-y-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="p-6">
+                  {!isSimpleMode && (
+                    <div className="mb-6 pb-4 border-b border-gray-200">
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {steps[currentStep - 1].title}
+                      </h2>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Step {currentStep} of {steps.length}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {isSimpleMode ? (
+                      <SimpleProductForm
+                        formData={formData}
+                        updateFormData={updateFormData}
+                        updateNestedField={updateNestedField}
+                        errors={errors}
+                        categories={categories}
+                        warehouses={warehouses}
+                        handleImageUpload={handleImageUpload}
+                        removeImage={removeImage}
+                        setPrimaryImage={setPrimaryImage}
+                        addTag={addTag}
+                        removeTag={removeTag}
+                        tagInput={tagInput}
+                        setTagInput={setTagInput}
+                      />
+                    ) : (
+                      <AnimatePresence mode="wait">
+                        {currentStep === 1 && (
+                          <StepBasicInfo formData={formData} updateFormData={updateFormData} errors={errors} categories={categories} />
+                        )}
+                        {currentStep === 2 && (
+                          <StepMoreInfo formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
+                        )}
+                        {currentStep === 3 && (
+                          <StepInventory formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} warehouses={warehouses} />
+                        )}
+                        {currentStep === 4 && (
+                          <StepMedia
+                            formData={formData}
+                            handleImageUpload={handleImageUpload}
+                            removeImage={removeImage}
+                            setPrimaryImage={setPrimaryImage}
+                            addTag={addTag}
+                            removeTag={removeTag}
+                            tagInput={tagInput}
+                            setTagInput={setTagInput}
+                            updateFormData={updateFormData}
+                          />
+                        )}
+                        {currentStep === 5 && (
+                          <StepVariations formData={formData} updateFormData={updateFormData} errors={errors} />
+                        )}
+                        {currentStep === 6 && (
+                          <StepAdvanced formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
+                        )}
+                      </AnimatePresence>
+                    )}
                   </div>
                 </div>
-
-                <div>
-                  <button
-                    onClick={() => router.push(`/${(params?.locale || 'en')}/inventory/products/${id}`)}
-                    className="px-3 py-2 border rounded-md text-sm hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
               </div>
 
-              <div className="space-y-6">
-                <AnimatePresence mode="wait">
-                  {currentStep === 1 && (
-                    <StepBasicInfo formData={formData} updateFormData={updateFormData} errors={errors} categories={categories} />
-                  )}
-                  {currentStep === 2 && (
-                    <StepMoreInfo formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
-                  )}
-                  {currentStep === 3 && (
-                    <StepInventory formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} warehouses={warehouses} />
-                  )}
-                  {currentStep === 4 && (
-                    <StepMedia
-                      formData={formData}
-                      handleImageUpload={handleImageUpload}
-                      removeImage={removeImage}
-                      setPrimaryImage={setPrimaryImage}
-                      addTag={addTag}
-                      removeTag={removeTag}
-                      tagInput={tagInput}
-                      setTagInput={setTagInput}
-                    />
-                  )}
-                  {currentStep === 5 && (
-                    <StepAdvanced formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* Navigation Buttons - Fixed at bottom */}
+              <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 bg-white flex-shrink-0">
+                {!isSimpleMode ? (
+                  <>
+                    <button
+                      onClick={prevStep}
+                      disabled={currentStep === 1}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${currentStep === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-500 hover:text-orange-600"
+                        }`}
+                    >
+                      <ChevronLeft size={20} />
+                      Previous
+                    </button>
 
-              <div className="flex justify-between mt-10">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${currentStep === 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "border-2 border-gray-300 text-[#081422] hover:border-[#FB923C]"
-                    }`}
-                >
-                  Previous
-                </button>
-
-                {currentStep === 5 ? (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="flex items-center gap-2 px-8 py-3 bg-[#FB923C] text-white rounded-2xl hover:bg-[#f97316] disabled:opacity-60 transition font-semibold"
-                  >
-                    {isSubmitting ? 'Saving...' : 'Save Changes'}
-                  </button>
+                    {currentStep === 6 ? (
+                      <button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 transition font-semibold shadow-md"
+                      >
+                        <Check size={20} />
+                        {isSubmitting ? "Saving..." : "Save Changes"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={nextStep}
+                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-md"
+                      >
+                        Next
+                        <ChevronRight size={20} />
+                      </button>
+                    )}
+                  </>
                 ) : (
-                  <button
-                    onClick={nextStep}
-                    className="flex items-center gap-2 px-8 py-3 bg-[#FB923C] text-white rounded-2xl hover:bg-[#f97316] transition font-semibold"
-                  >
-                    Next
-                  </button>
+                  <div className="w-full flex justify-end">
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 transition font-bold text-lg shadow-lg"
+                    >
+                      <Check size={24} />
+                      {isSubmitting ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="hidden lg:block w-72">
-            <div className="relative">
-              <div className="space-y-8 relative z-10">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center font-semibold bg-[#FB923C] text-white">1</div>
-                  <div className="pt-2">
-                    <p className="font-semibold text-sm">Basic Info</p>
-                    <p className="text-xs text-gray-500">Step 1 of 5</p>
+            {/* Right Sidebar - Steps Progress (Only Advanced) */}
+            {!isSimpleMode && (
+              <div className="w-64 flex-shrink-0">
+                <div className="sticky top-0 bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-fit">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-6">Progress</h3>
+                  <div className="relative">
+                    {/* Progress Line */}
+                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
+                    <div
+                      className="absolute left-6 top-0 w-0.5 bg-orange-500 transition-all duration-500"
+                      style={{ height: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+                    />
+
+                    {/* Steps */}
+                    <div className="space-y-6 relative z-10">
+                      {steps.map((step) => (
+                        <div key={step.id} className="flex items-start gap-4">
+                          <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all shrink-0 ${step.id < currentStep
+                              ? "bg-orange-500 text-white shadow-md"
+                              : step.id === currentStep
+                                ? "bg-orange-500 text-white ring-4 ring-orange-100 shadow-lg"
+                                : "border-2 border-gray-300 text-gray-400 bg-white"
+                              }`}
+                          >
+                            {step.id < currentStep ? <Check size={20} /> : step.id}
+                          </div>
+                          <div className="pt-2">
+                            <p className={`font-semibold text-sm ${step.id <= currentStep ? "text-gray-900" : "text-gray-400"}`}>
+                              {step.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">Step {step.id}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

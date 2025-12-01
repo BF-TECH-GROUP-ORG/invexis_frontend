@@ -7,6 +7,7 @@ import reportsReducer from '../features/reports/reportsSlice';
 import inventoryReducer from '../features/inventory/inventorySlice';
 import authReducer from '../features/auth/authSlice';
 import settingsReducer from '../features/settings/settingsSlice';
+import documentsReducer from '../features/documents/documentsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     inventory: inventoryReducer,
     alerts: alertsReducer,
     reports: reportsReducer,
+    documents: documentsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

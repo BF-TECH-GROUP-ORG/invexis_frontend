@@ -50,7 +50,7 @@ export async function ParentCategories() {
 
 export async function getCategories(params = {}) {
   try {
-    const res = await axios.get(`${API_BASE}/categories/company/${companyId}/level3`, { headers: defaultHeaders });
+    const res = await axios.get(` ${API_BASE}/categories/company/${companyId}/level3`, { headers: defaultHeaders });
     return res.data;
   } catch (err) {
     throw err;

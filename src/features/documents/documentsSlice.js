@@ -2,7 +2,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "@/utils/axiosClient";
-import mockData from "@Data/mockData";
+import mockData from "./mockData";
 
 // ==================== ASYNC THUNKS ====================
 

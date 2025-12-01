@@ -153,36 +153,76 @@ export default function useProductForm(initialData = null) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle image upload
+  // Handle image upload with aggressive compression for 5+ images
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const maxImages = 5;
+    const maxSize = 5 * 1024 * 1024; // 5MB per file
+    const maxImages = 10;
 
     if (formData.images.length + files.length > maxImages) {
-      alert(`Maximum ${maxImages} images allowed`);
+      alert(`Maximum ${maxImages} images allowed. You can upload ${maxImages - formData.images.length} more.`);
       return;
     }
+
+    let processedCount = 0;
+    const totalFiles = files.length;
 
     files.forEach((file) => {
       if (file.size > maxSize) {
         alert(`${file.name} exceeds 5MB limit`);
+        processedCount++;
         return;
       }
 
+      // Compress image before upload
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          images: [
-            ...prev.images,
-            {
-              url: reader.result,
-              alt: file.name,
-              isPrimary: prev.images.length === 0,
-            },
-          ].slice(0, maxImages),
-        }));
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // Calculate new dimensions (max 600px for better compression)
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 600; // Reduced from 800 for better compression
+
+          if (width > height && width > maxDimension) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw and compress (60% quality for smaller file size)
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+          setFormData((prev) => ({
+            ...prev,
+            images: [
+              ...prev.images,
+              {
+                url: compressedDataUrl,
+                alt: file.name,
+                isPrimary: prev.images.length === 0,
+              },
+            ].slice(0, maxImages),
+          }));
+
+          processedCount++;
+
+          // Show success message when all images are processed
+          if (processedCount === totalFiles) {
+            console.log(`✅ Successfully uploaded ${totalFiles} image(s)`);
+          }
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     });

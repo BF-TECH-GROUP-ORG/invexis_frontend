@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation"; // We only need pathname now
+import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2 } from "lucide-react";
+import { Plus, Filter, Download, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { fetchProducts, deleteProduct } from "@/features/products/productsSlice";
@@ -15,7 +15,7 @@ import ProductStats from "./ProductStats";
 
 export default function ProductList() {
   const dispatch = useDispatch();
-  const pathname = usePathname(); // Only this — no more useRouter()
+  const pathname = usePathname();
 
   // Redux state
   const productsState = useSelector((state) => state.products || {});
@@ -30,7 +30,7 @@ export default function ProductList() {
   const pagination = productsState.pagination || { page: 1, pages: 1 };
 
   const [selectedIds, setSelectedIds] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     category: "",
@@ -38,10 +38,8 @@ export default function ProductList() {
     status: "",
   });
 
-  // Build base path safely (works whether you're at /inventory/products or nested)
   const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
 
-  // All routes now use <Link> — no router.push() anywhere
   const routes = {
     add: `${basePath}/add`,
     view: (id) => `${basePath}/${id}`,
@@ -95,9 +93,9 @@ export default function ProductList() {
       ...products.map((p) => [
         p.name,
         p.category?.name || "N/A",
-        p.price,
-        p.stock,
-        p.stock > 0 ? "In Stock" : "Out of Stock",
+        p.pricing?.basePrice || 0,
+        p.inventory?.quantity || 0,
+        (p.inventory?.quantity || 0) > 0 ? "In Stock" : "Out of Stock",
       ]),
     ]
       .map((row) => row.join(","))
@@ -112,11 +110,22 @@ export default function ProductList() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Calculate stats dynamically from actual product data
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.stock > 0).length,
-    lowStock: products.filter((p) => p.stock > 0 && p.stock < 20).length,
-    outOfStock: products.filter((p) => p.stock === 0).length,
+    inStock: products.filter((p) => {
+      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      return qty > 0;
+    }).length,
+    lowStock: products.filter((p) => {
+      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      return qty > 0 && qty < 20;
+    }).length,
+    totalValue: products.reduce((sum, p) => {
+      const price = p.pricing?.basePrice ?? p.price ?? 0;
+      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      return sum + (price * qty);
+    }, 0),
   };
 
   return (
@@ -143,7 +152,7 @@ export default function ProductList() {
             )}
 
             <button
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => setShowFilterModal(true)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               <Filter size={18} />
@@ -158,9 +167,8 @@ export default function ProductList() {
               Export
             </button>
 
-            {/* Add Product — Pure <Link> */}
             <Link
-            prefetch={true}
+              prefetch={true}
               href={routes.add}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition shadow-sm"
             >
@@ -170,42 +178,70 @@ export default function ProductList() {
           </div>
         </div>
 
-        {/* Search + Category */}
-        <div className="mb-4 flex flex-col sm:flex-row gap-4">
+        {/* Search Bar */}
+        <div className="mb-4">
           <input
             type="text"
             placeholder="Search products..."
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
           />
-
-          <select
-            value={filters.category}
-            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-          >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
         </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="mb-6 bg-gray-50 p-5 rounded-lg border">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Product Table */}
+        <ProductTable
+          products={products}
+          loading={loading}
+          selectedIds={selectedIds}
+          onSelectIds={setSelectedIds}
+          onDelete={handleDelete}
+          viewUrl={routes.view}
+          editUrl={routes.edit}
+        />
+      </div>
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Filter Products</h2>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Category Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Shop Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Shop</label>
                 <select
                   value={filters.warehouse}
                   onChange={(e) => setFilters({ ...filters, warehouse: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                 >
-                  <option value="">All Warehouses</option>
+                  <option value="">All Shops</option>
                   {warehouses.map((w) => (
                     <option key={w._id} value={w._id}>
                       {w.name}
@@ -214,44 +250,42 @@ export default function ProductList() {
                 </select>
               </div>
 
+              {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                 >
                   <option value="">Any Status</option>
                   <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                   <option value="draft">Draft</option>
-                  <option value="archived">Archived</option>
                 </select>
               </div>
+            </div>
 
-              <div className="flex items-end">
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-100"
-                >
-                  Close
-                </button>
-              </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setFilters({ search: "", category: "", warehouse: "", status: "" });
+                  setShowFilterModal(false);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+              >
+                Apply Filters
+              </button>
             </div>
           </div>
-        )}
-
-        {/* Product Table — Now passes Link-ready hrefs */}
-        <ProductTable
-          products={products}
-          loading={loading}
-          selectedIds={selectedIds}
-          onSelectIds={setSelectedIds}
-          onDelete={handleDelete}
-          // These are now pure URLs → your ProductTable can use <Link href={viewUrl}>
-          viewUrl={routes.view}
-          editUrl={routes.edit}
-        />
-      </div>
+        </div>
+      )}
     </div>
   );
 }
