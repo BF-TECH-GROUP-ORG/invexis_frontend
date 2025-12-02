@@ -1,6 +1,10 @@
 "use client";
 
-import { useSelector, useDispatch } from "react-redux";
+// next-auth manages session; no redux dispatch required in profile
+import { authAPI } from "@/utils/axiosClient";
+import { signIn, getSession } from "next-auth/react";
+import toast from "react-hot-toast";
+import useAuth from "@/hooks/useAuth";
 import Image from "next/image";
 import { useState } from "react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -17,7 +21,7 @@ import {
   Key,
 } from "lucide-react";
 import { Switch, FormControlLabel } from "@mui/material";
-import { updateUserSettings } from "@/store/authActions";
+// authentication is managed exclusively by NextAuth now; older redux auth helpers removed
 import {
   AccessAlarmOutlined,
   AutoAwesomeOutlined,
@@ -31,21 +35,62 @@ import IOSSwitch from "@/components/shared/IosSwitch";
 import Link from "next/link";
 
 export default function ProfilePage() {
-  const { user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState("info");
   const [settings, setSettings] = useState({
-    two_fa_enabled: user?.two_fa_enabled || false,
-    ai_voice_login_enabled: user?.ai_voice_login_enabled || false,
-    email_verified: user?.email_verified || false,
+    two_fa_enabled: user?.twoFAEnabled || user?.two_fa_enabled || false,
+    ai_voice_login_enabled:
+      user?.aiVoiceLoginEnabled || user?.ai_voice_login_enabled || false,
+    email_verified: user?.isEmailVerified || user?.email_verified || false,
   });
 
-  const handleToggle = (field) => {
+  const handleToggle = async (field) => {
     const newValue = !settings[field];
     setSettings((prev) => ({ ...prev, [field]: newValue }));
 
-    dispatch(updateUserSettings({ [field]: newValue }));
+    // Map client toggle key to server payload keys (support both snake_case and camelCase)
+    const payload = {};
+    if (field === "two_fa_enabled") {
+      payload.twoFAEnabled = newValue;
+      payload.two_fa_enabled = newValue;
+    } else if (field === "ai_voice_login_enabled") {
+      payload.aiVoiceLoginEnabled = newValue;
+      payload.ai_voice_login_enabled = newValue;
+    } else if (field === "email_verified") {
+      payload.isEmailVerified = newValue;
+      payload.email_verified = newValue;
+    } else {
+      payload[field] = newValue;
+    }
+
+    try {
+      const res = await authAPI.updateProfile(payload);
+      const updatedUser = res?.data?.user || res?.data;
+
+      // Re-seed session so NextAuth reflects the change
+      try {
+        const sess = await getSession();
+        await signIn("credentials", {
+          redirect: false,
+          seedUser: JSON.stringify(updatedUser),
+          accessToken: sess?.accessToken,
+        });
+      } catch (e) {
+        console.warn("Failed to reseed session", e);
+      }
+
+      toast.success("Setting updated");
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to update setting"
+      );
+      // revert local state on failure
+      setSettings((prev) => ({ ...prev, [field]: !newValue }));
+    }
   };
 
   const tabs = [
@@ -58,7 +103,7 @@ export default function ProfilePage() {
   return (
     <div className="no-scrollbar flex-1">
       {/* Cover Background */}
-      <div className="relative rounded-3xl h-72 w-full bg-gradient-to-r from-[#081422] to-purple-600">
+      <div className="relative rounded-3xl h-72 w-full bg-linear-to-r from-[#081422] to-purple-600">
         <Image
           src="/images/background.jpeg"
           alt="Profile Background"
@@ -72,11 +117,15 @@ export default function ProfilePage() {
         <div className="relative flex justify-center">
           <div className="absolute -top-16">
             <Image
-              src={user?.profileImage || "/images/user3.jpg"}
+              src={
+                user?.profilePicture ||
+                user?.profileImage ||
+                "/images/user3.jpg"
+              }
               alt={user?.username || "User Avatar"}
               width={200}
               height={200}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+              className="w-32 h-32 rounded-full border-4 border-white object-cover ring-2 ring-white"
             />
           </div>
         </div>
@@ -97,7 +146,7 @@ export default function ProfilePage() {
                 Edit Profile
               </button>
             </Link>
-            <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+            <button className="px-4 py-2 bg-white text-gray-800 rounded-lg border border-gray-200 hover:bg-gray-50">
               Settings
             </button>
           </div>
@@ -121,7 +170,7 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          <div className="mt-6 bg-gray-100 rounded-2xl p-6">
+          <div className="mt-6 bg-white rounded-2xl p-6 border border-gray-100">
             {/* User Information */}
             {activeTab === "info" && (
               <div className="grid grid-cols-2 gap-6">
@@ -133,7 +182,21 @@ export default function ProfilePage() {
                       Location
                     </h3>
                     <p className="text-gray-800">
-                      {user?.location || "Unknown"}
+                      {user?.address
+                        ? `${user?.address.street || ""}${
+                            user?.address.city ? ", " + user.address.city : ""
+                          } ${
+                            user?.address.state ? ", " + user.address.state : ""
+                          } ${
+                            user?.address.postalCode
+                              ? " • " + user.address.postalCode
+                              : ""
+                          } ${
+                            user?.address.country
+                              ? "(" + user.address.country + ")"
+                              : ""
+                          }`
+                        : user?.location || "Unknown"}
                     </p>
                   </div>
                 </div>
@@ -153,8 +216,66 @@ export default function ProfilePage() {
                   <div>
                     <h3 className="text-xs font-medium text-gray-500">Bio</h3>
                     <p className="text-gray-800">
-                      {user?.bio || "No bio added yet."}
+                      {user?.bio || user?.about || "No bio added yet."}
                     </p>
+                  </div>
+                </div>
+                {/* Additional Info: DOB, Gender, National ID, Emergency Contact */}
+                <div className="mt-6 col-span-2 grid grid-cols-2 gap-6">
+                  <div className="flex items-center gap-4">
+                    <InfoOutlineRounded className="text-gray-500" />
+                    <div>
+                      <h3 className="text-xs font-medium text-gray-500">
+                        Date of Birth
+                      </h3>
+                      <p className="text-gray-800">
+                        {user?.dateOfBirth
+                          ? new Date(user.dateOfBirth).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <InfoOutlineRounded className="text-gray-500" />
+                    <div>
+                      <h3 className="text-xs font-medium text-gray-500">
+                        Gender
+                      </h3>
+                      <p className="text-gray-800 capitalize">
+                        {user?.gender || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <InfoOutlineRounded className="text-gray-500" />
+                    <div>
+                      <h3 className="text-xs font-medium text-gray-500">
+                        National ID
+                      </h3>
+                      <p className="text-gray-800">
+                        {user?.nationalId || user?.nationalID || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <InfoOutlineRounded className="text-gray-500" />
+                    <div>
+                      <h3 className="text-xs font-medium text-gray-500">
+                        Emergency Contact
+                      </h3>
+                      <p className="text-gray-800">
+                        {user?.emergencyContact?.name
+                          ? `${user.emergencyContact.name}${
+                              user.emergencyContact.phone
+                                ? ` • ${user.emergencyContact.phone}`
+                                : ""
+                            }`
+                          : "N/A"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -165,19 +286,25 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="flex items-center gap-4 hover:text-blue-500 hover:underline hover:underline-blue-500 transition-all duration-300">
                   <Facebook className="w-6 h-6 text-blue-600" />
-                  <p className="text-gray-800 ">{user?.social?.facebook}</p>
+                  <p className="text-gray-800 ">
+                    {user?.social?.facebook || "-"}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4 hover:text-blue-500 hover:underline hover:underline-blue-500 transition-all duration-300">
                   <Instagram className="w-6 h-6 text-pink-500" />
-                  <p className="text-gray-800 ">{user?.social?.instagram}</p>
+                  <p className="text-gray-800 ">
+                    {user?.social?.instagram || "-"}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4 hover:text-blue-500 hover:underline hover:underline-blue-500 transition-all duration-300">
                   <Twitter className="w-6 h-6 text-blue-400" />
-                  <p className="text-gray-800 ">{user?.social?.x}</p>
+                  <p className="text-gray-800 ">{user?.social?.x || "-"}</p>
                 </div>
                 <div className="flex items-center gap-4 hover:text-blue-500 hover:underline hover:underline-blue-500 transition-all duration-300">
                   <Linkedin className="w-6 h-6 text-blue-800" />
-                  <p className="text-gray-800 ">{user?.social?.linkedin}</p>
+                  <p className="text-gray-800 ">
+                    {user?.social?.linkedin || "-"}
+                  </p>
                 </div>
               </div>
             )}
@@ -193,7 +320,9 @@ export default function ProfilePage() {
                       Company
                     </h3>
                     <p className="text-gray-800">
-                      {user?.company?.name || "N/A"}
+                      {user?.companies?.[0]?.name ||
+                        user?.company?.name ||
+                        "N/A"}
                     </p>
                   </div>
                 </div>
@@ -204,7 +333,7 @@ export default function ProfilePage() {
                   <div>
                     <h3 className="text-xs font-medium text-gray-500">Plan</h3>
                     <p className="text-gray-800">
-                      {user?.company?.tier || "Free"}
+                      {user?.company?.tier || user?.companyTier || "Free"}
                     </p>
                   </div>
                 </div>
@@ -235,7 +364,9 @@ export default function ProfilePage() {
                       Active Sessions
                     </h3>
                     <p className="text-gray-800">
-                      {user?.active_sessions || "1 session"}
+                      {user?.sessions?.length
+                        ? `${user.sessions.length} sessions`
+                        : user?.active_sessions || "1 session"}
                     </p>
                   </div>
                 </div>

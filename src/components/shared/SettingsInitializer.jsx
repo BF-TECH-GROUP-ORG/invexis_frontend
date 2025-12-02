@@ -9,7 +9,6 @@ import {
   initializeSettings,
   setLocale,
 } from "@/features/settings/settingsSlice";
-import { setAuthSession, clearAuthSession } from "@/features/auth/authSlice";
 
 /**
  * Component to initialize settings from localStorage
@@ -35,23 +34,13 @@ export default function SettingsInitializer() {
           localStorage.getItem("DEV_BYPASS_AUTH") === "true";
 
         if (enabled) {
-          // populate a minimal dev session so components relying on user won't crash
-          dispatch(
-            setAuthSession({
-              user: {
-                id: "dev",
-                name: "Dev User",
-                email: "dev@local",
-                role: "admin",
-              },
-              accessToken: "__dev_bypass_token__",
-              refreshToken: "__dev_bypass_refresh__",
-            })
-          );
+          // DEVELOPER MODE: bypass enabled — nothing is required, components should
+          // respect NEXT_PUBLIC_BYPASS_AUTH and handle a failure to fetch session.
+          // We do not store tokens in localStorage for security reasons.
         } else {
           // If explicitly disabled, ensure session cleared
           if (localStorage.getItem("DEV_BYPASS_AUTH") === "false") {
-            dispatch(clearAuthSession());
+            // No-op — the NextAuth session will be used for authentication.
           }
         }
       }

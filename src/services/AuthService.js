@@ -1,179 +1,143 @@
 import api from "@/lib/axios";
 
-/**
- * Real Authentication Service
- * Integrates with backend API at https://granitic-jule-haunting.ngrok-free.dev/api/auth
- */
 export const AuthService = {
-  /**
-   * Login with email/password
-   * @param {string} identifier - User email or phone number
-   * @param {string} password - User password
-   * @returns {Promise<{ok: boolean, accessToken: string, refreshToken: string, user: object}>}
-   */
   login: async (identifier, password) => {
-    const payload = { identifier, password };
-    console.log("🔐 Login Request:", payload);
-    
     try {
-      const response = await api.post("/auth/login", payload, {
-        withCredentials: true // CRITICAL: Receive refresh token cookie
-      });
-      console.log("✅ Login Success");
+      const response = await api.post("/auth/login", { identifier, password });
       return response.data;
     } catch (error) {
-      console.error("❌ Login Error:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-      throw error;
+      throw error.response?.data || error;
     }
   },
 
-  /**
-   * Request OTP for login
-   * @param {string} identifier - Email or phone number
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   requestOtpLogin: async (identifier) => {
-    const response = await api.post("/auth/login/otp", { identifier });
-    return response.data;
+    try {
+      const response = await api.post("/auth/login/otp", { identifier });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Verify OTP and login
-   * @param {string} identifier - Email or phone number
-   * @param {string} otp - OTP code
-   * @returns {Promise<{ok: boolean, accessToken: string, refreshToken: string, user: object}>}
-   */
   verifyOtpLogin: async (identifier, otp) => {
-    const response = await api.post("/auth/login/otp/verify", { identifier, otp });
-    return response.data;
+    try {
+      const response = await api.post("/auth/login/otp/verify", {
+        identifier,
+        otp,
+      });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Initiate Google OAuth login
-   * Redirects to Google OAuth page
-   */
   loginWithGoogle: () => {
-    const googleAuthUrl = process.env.NEXT_PUBLIC_API_URL || "/auth/google";
-    window.location.href = googleAuthUrl;
+    // Use next-auth's client signIn where available, else fallback to backend redirect
+    try {
+      import("next-auth/react").then(({ signIn }) => signIn("google"));
+    } catch (e) {
+      const base = process.env.NEXT_PUBLIC_API_URL;
+      window.location.href = `${base}/auth/google`;
+    }
   },
 
-  /**
-   * Register new user
-   * @param {object} userData - User registration data
-   * @returns {Promise<{ok: boolean, accessToken: string, refreshToken: string, user: object}>}
-   */
   register: async (userData) => {
-    const response = await api.post("/auth/register", userData);
-    return response.data;
+    try {
+      const response = await api.post("/auth/register", userData);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Request password reset
-   * @param {string} email - User email
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   requestPasswordReset: async (email) => {
-    const response = await api.post("/auth/password/reset", { email });
-    return response.data;
+    try {
+      const response = await api.post("/auth/password/reset", { email });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Confirm password reset with token
-   * @param {string} token - Reset token
-   * @param {string} newPassword - New password
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   confirmPasswordReset: async (token, newPassword) => {
-    const response = await api.post("/auth/password/reset/confirm", { token, newPassword });
-    return response.data;
+    try {
+      const response = await api.post("/auth/password/reset/confirm", {
+        token,
+        newPassword,
+      });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Refresh access token
-   * @returns {Promise<{ok: boolean, accessToken: string}>}
-   */
   refreshToken: async () => {
-    const response = await api.post("/auth/refresh");
-    return response.data;
+    try {
+      const response = await api.post(
+        "/auth/refresh",
+        {},
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Logout user
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   logout: async () => {
-    const response = await api.post("/auth/logout");
-    return response.data;
+    try {
+      const response = await api.post(
+        "/auth/logout",
+        {},
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Update user profile
-   * @param {object} profileData - Profile data to update
-   * @returns {Promise<{ok: boolean, user: object}>}
-   */
   updateProfile: async (profileData) => {
-    const response = await api.put("/auth/me", profileData);
-    return response.data;
+    try {
+      const response = await api.put("/auth/me", profileData);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Change password
-   * @param {string} currentPassword - Current password
-   * @param {string} newPassword - New password
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   changePassword: async (currentPassword, newPassword) => {
-    const response = await api.post("/auth/me/password/change", { currentPassword, newPassword });
-    return response.data;
+    try {
+      const response = await api.post("/auth/me/password/change", {
+        currentPassword,
+        newPassword,
+      });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data || err;
+    }
   },
 
-  /**
-   * Setup 2FA
-   * @returns {Promise<{ok: boolean, qrCode: string, secret: string}>}
-   */
   setup2FA: async () => {
     const response = await api.post("/auth/me/2fa/setup");
     return response.data;
   },
 
-  /**
-   * Verify 2FA setup
-   * @param {string} token - 2FA token
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   verify2FASetup: async (token) => {
     const response = await api.post("/auth/me/2fa/verify", { token });
     return response.data;
   },
 
-  /**
-   * Disable 2FA
-   * @param {string} token - 2FA token
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   disable2FA: async (token) => {
     const response = await api.post("/auth/me/2fa/disable", { token });
     return response.data;
   },
 
-  /**
-   * Get user sessions
-   * @returns {Promise<{ok: boolean, sessions: array}>}
-   */
   getSessions: async () => {
     const response = await api.get("/auth/sessions");
     return response.data;
   },
 
-  /**
-   * Revoke a session
-   * @param {string} sessionId - Session ID to revoke
-   * @returns {Promise<{ok: boolean, message: string}>}
-   */
   revokeSession: async (sessionId) => {
     const response = await api.delete(`/auth/sessions/${sessionId}`);
     return response.data;

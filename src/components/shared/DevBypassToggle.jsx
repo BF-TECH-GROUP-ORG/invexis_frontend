@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { setAuthSession, clearAuthSession } from "@/features/auth/authSlice";
+import { useSession } from "next-auth/react";
 
 export default function DevBypassToggle() {
   // Only show in non-production environments
   const enabledInEnv = process.env.NODE_ENV !== "production";
   const [on, setOn] = useState(false);
-  const dispatch = useDispatch();
+  const { status } = useSession();
 
   useEffect(() => {
     const runtime =
@@ -18,21 +17,10 @@ export default function DevBypassToggle() {
     const current = env || runtime;
     setOn(Boolean(current));
 
-    if (current) {
-      dispatch(
-        setAuthSession({
-          user: {
-            id: "dev",
-            name: "Dev User",
-            email: "dev@local",
-            role: "admin",
-          },
-          accessToken: "__dev_bypass_token__",
-          refreshToken: "__dev_bypass_refresh__",
-        })
-      );
-    }
-  }, [dispatch]);
+    // Note: previously this function injected a dev auth session into Redux. With NextAuth
+    // we no longer store tokens in Redux/localStorage. A runtime bypass flag (localStorage)
+    // is sufficient for local development; components/middleware should honour NEXT_PUBLIC_BYPASS_AUTH or DEV_BYPASS_AUTH.
+  }, []);
 
   if (!enabledInEnv) return null;
 
@@ -45,22 +33,7 @@ export default function DevBypassToggle() {
       }
     } catch (e) {}
 
-    if (next) {
-      dispatch(
-        setAuthSession({
-          user: {
-            id: "dev",
-            name: "Dev User",
-            email: "dev@local",
-            role: "admin",
-          },
-          accessToken: "__dev_bypass_token__",
-          refreshToken: "__dev_bypass_refresh__",
-        })
-      );
-    } else {
-      dispatch(clearAuthSession());
-    }
+    // Nothing else to do here — middleware + components should handle bypass using localStorage
   };
 
   return (

@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useLocale } from "next-intl";
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const router = useRouter();
-  // authSlice stores `accessToken` and some older code uses `token`.
-  // Support both so bypasses / mixed states won't break behavior.
-  const { user, accessToken, token } = useSelector((state) => state.auth);
-  const authToken = accessToken || token;
+  const { data: session, status } = useSession();
+  const user = session?.user ?? null;
+  const authToken = session?.accessToken ?? null;
+  const locale = typeof useLocale === "function" ? useLocale() : undefined;
 
   // Allow bypass at runtime in development using NEXT_PUBLIC_BYPASS_AUTH env or
   // a local runtime flag (localStorage key DEV_BYPASS_AUTH).
@@ -29,19 +30,85 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const BYPASS = getBypassFlag();
 
   useEffect(() => {
+    if (status === "loading") return; // wait for session
+
     if (!authToken && !BYPASS) {
-      router.push("/auth/login");
+      // Build a localized login path. Prefer the next-intl locale hook when available
+      const runtimeLocale = (() => {
+        try {
+          return locale || null;
+        } catch (e) {
+          return null;
+        }
+      })();
+
+      // fallback: parse the pathname to extract first segment as locale
+      const fallbackLocale = (() => {
+        try {
+          const match = window?.location?.pathname?.match(
+            /^\/([a-z]{2})(?:\/|$)/i
+          );
+          return match ? match[1] : "en";
+        } catch (e) {
+          return "en";
+        }
+      })();
+
+      const effectiveLocale = runtimeLocale || fallbackLocale;
+      const callbackUrl = window?.location?.pathname || "/";
+      router.push(
+        `/${effectiveLocale}/auth/login?callbackUrl=${encodeURIComponent(
+          callbackUrl
+        )}`
+      );
       return;
     }
 
-    if (
-      !BYPASS &&
-      allowedRoles.length > 0 &&
-      !allowedRoles.includes(user?.role)
-    ) {
-      router.push("/unauthorized");
+    if (!BYPASS && allowedRoles.length > 0) {
+      // Compute user role in a compatible way — support `role` or `roles` arrays
+      const userRole =
+        user?.role || (Array.isArray(user?.roles) && user.roles[0]) || null;
+
+      // If we don't have a role (session stale/expired), treat that as not authenticated
+      if (!userRole) {
+        // Redirect to login if role is missing (likely session issue)
+        const runtimeLocale = locale || null;
+        const fallbackLocale = (() => {
+          const match = window?.location?.pathname?.match(
+            /^\/([a-z]{2})(?:\/|$)/i
+          );
+          return match ? match[1] : "en";
+        })();
+        const effectiveLocale = runtimeLocale || fallbackLocale;
+        const callbackUrl = window?.location?.pathname || "/";
+        router.push(
+          `/${effectiveLocale}/auth/login?callbackUrl=${encodeURIComponent(
+            callbackUrl
+          )}`
+        );
+        return;
+      }
+
+      if (!allowedRoles.includes(userRole)) {
+        // Redirect to localized unauthorized page
+        try {
+          const runtimeLocale = locale || null;
+          const fallbackLocale = (() => {
+            const match = window?.location?.pathname?.match(
+              /^\/([a-z]{2})(?:\/|$)/i
+            );
+            return match ? match[1] : "en";
+          })();
+          const effective = runtimeLocale || fallbackLocale;
+          router.push(`/${effective}/unauthorized`);
+        } catch (e) {
+          router.push(`/en/unauthorized`);
+        }
+      }
     }
-  }, [token, user, allowedRoles, router]);
+
+    // end useEffect
+  }, [status, user, allowedRoles, router, locale]);
 
   return <>{children}</>;
 }

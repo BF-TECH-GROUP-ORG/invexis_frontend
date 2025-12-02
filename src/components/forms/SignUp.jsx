@@ -6,7 +6,7 @@ import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
 import AuthService from "@/services/AuthService";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
@@ -46,6 +46,10 @@ export default function SignUp() {
 
   const handleClosePopup = () => setShowTermsPopup(false);
 
+  const locale = useLocale();
+
+  const localizedPath = (p) => `/${locale}${p.startsWith("/") ? p : "/" + p}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -63,8 +67,8 @@ export default function SignUp() {
     setSubmitting(true);
     try {
       await AuthService.register(formData);
-      // Redirect to login on success
-      router.push("/auth/login");
+      // Redirect to localized login on success
+      router.push(localizedPath("/auth/login"));
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
@@ -98,7 +102,7 @@ export default function SignUp() {
           error={error}
           extraLinks={[
             {
-              href: "/auth/login",
+              href: localizedPath("/auth/login"),
               label: "Already have an account? Login",
             },
           ]}

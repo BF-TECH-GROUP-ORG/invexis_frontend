@@ -1,30 +1,37 @@
 import axios from "axios";
-import store from "@/store";
-import { updateAccessToken, clearAuthSession } from "@/features/auth/authSlice";
+import { signOut, getSession } from "next-auth/react";
 
 // -----------------------------------------------------
 // Base API instance
 // -----------------------------------------------------
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
   },
-  withCredentials: true, // Needed for refresh token cookie
+  withCredentials: true,
 });
 
 // -----------------------------------------------------
 // Request Interceptor → attach access token
 // -----------------------------------------------------
 api.interceptors.request.use(
-  (config) => {
-    const state = store.getState();
-    const token = state.auth.accessToken;
-
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    // Try to attach access token from next-auth session (client-side)
+    if (typeof window !== "undefined") {
+      try {
+        // getSession resolves to the current session with custom fields from session callback
+        const sess = await getSession();
+        const token = sess?.accessToken;
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
     console.log("📤 Request:", config.method?.toUpperCase(), config.url);
@@ -35,133 +42,49 @@ api.interceptors.request.use(
   }
 );
 
-// -----------------------------------------------------
-// Token Refresh Logic
-// -----------------------------------------------------
-let isRefreshing = false;
-let refreshPromise = null;
-let subscribers = [];
-
-function addSubscriber(cb) {
-  subscribers.push(cb);
-}
-
-function onRefreshed(token) {
-  subscribers.forEach((cb) => cb(token));
-  subscribers = [];
-}
-
-// -----------------------------------------------------
-// Response Interceptor → Handle 401 + Refresh Token
-// -----------------------------------------------------
+// In the NextAuth world token refresh happens in NextAuth callbacks. On 401 we'll
+// attempt one quick re-check of the session and retry once before forcing sign out.
 api.interceptors.response.use(
   (response) => response,
-
   async (error) => {
     const { config, response } = error;
 
-    // Network errors
-    if (!response) {
-      console.error("❌ Network Error:", error.message);
-      return Promise.reject(error);
-    }
+    if (!response) return Promise.reject(error);
 
-    // Skip if it's NOT a 401
-    if (response.status !== 401) {
-      console.error("❌ API Error:", response.status, response.data);
-      return Promise.reject(error);
-    }
+    // Only try to do a single retry for 401s.
+    if (response.status === 401 && !config.__isRetry) {
+      config.__isRetry = true;
 
-    // Prevent retrying refresh request itself
-    if (config.url?.includes("/auth/refresh")) {
-      console.warn("⚠️ Refresh endpoint returned 401 - forcing logout");
-      store.dispatch(clearAuthSession());
-      if (typeof window !== "undefined") window.location.href = "/auth/login";
-      return Promise.reject(error);
-    }
+      try {
+        // Re-fetch session (jwt callback will attempt to refresh if needed)
+        const sess = await getSession();
+        const newToken = sess?.accessToken;
 
-    // Avoid infinite retry loops
-    if (config.__isRetry) {
-      console.error("❌ Refresh failed — rejecting retry");
-      store.dispatch(clearAuthSession());
-      if (typeof window !== "undefined") window.location.href = "/auth/login";
-      return Promise.reject(error);
-    }
-
-    config.__isRetry = true;
-
-    // -------------------------------------------------
-    // Start refresh request if not started already
-    // -------------------------------------------------
-    if (!isRefreshing) {
-      isRefreshing = true;
-
-      console.log("🔄 Refreshing access token...");
-
-      refreshPromise = axios
-        .post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          {},
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
-          }
-        )
-        .then(({ data }) => {
-          const newToken = data.accessToken;
-
-          console.log("✅ Token refreshed successfully");
-
-          // Update default headers so new requests use updated token
-          api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
-
-          // Update Redux store
-          store.dispatch(updateAccessToken(newToken));
-
-          // Resolve queued subscribers
-          onRefreshed(newToken);
-
-          return newToken;
-        })
-        .catch((refreshErr) => {
-          console.error("❌ Refresh failed:", refreshErr.message);
-
-          // Reject all queued requests
-          onRefreshed(null);
-
-          store.dispatch(clearAuthSession());
-
-          if (typeof window !== "undefined") {
-            window.location.href = "/auth/login";
-          }
-
-          throw refreshErr;
-        })
-        .finally(() => {
-          isRefreshing = false;
-          refreshPromise = null;
-        });
-    }
-
-    // -------------------------------------------------
-    // Queue requests while refresh is happening
-    // -------------------------------------------------
-    return new Promise((resolve, reject) => {
-      addSubscriber((token) => {
-        if (!token) {
-          return reject(error);
+        if (newToken) {
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${newToken}`;
+          return api(config);
         }
+      } catch (e) {
+        // ignore and allow sign out path below to execute
+      }
 
-        // Attach updated token to original request
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${token}`;
+      // Force sign out / redirect to login
+      if (typeof window !== "undefined") {
+        // pick up the locale from the pathname so signOut redirects back to localized login
+        try {
+          const match = window?.location?.pathname?.match(
+            /^\/([a-z]{2})(?:\/|$)/i
+          );
+          const loc = match ? match[1] : "en";
+          signOut({ callbackUrl: `/${loc}/auth/login` });
+        } catch (e) {
+          signOut({ callbackUrl: "/auth/login" });
+        }
+      }
+    }
 
-        resolve(api(config));
-      });
-    });
+    return Promise.reject(error);
   }
 );
 

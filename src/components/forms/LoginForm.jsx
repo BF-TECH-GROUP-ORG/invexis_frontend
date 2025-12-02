@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAccessToken } from "@/lib/authUtils";
-import { useDispatch, useSelector } from "react-redux";
+import { signIn } from "next-auth/react";
+import { useSelector } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,12 +10,11 @@ import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment, CircularProgress } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
-import { loginUser } from "@/store/authActions";
 import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
+  // keep redux user/theme selectors — auth will come from NextAuth now
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("auth");
@@ -49,7 +48,7 @@ const LoginPage = () => {
       process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
       (typeof window !== "undefined" &&
         localStorage.getItem("DEV_BYPASS_AUTH") === "true");
-    
+
     if (BYPASS) {
       const params = new URLSearchParams(window.location.search);
       const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
@@ -68,14 +67,24 @@ const LoginPage = () => {
 
     setSubmitting(true);
     try {
-      await dispatch(loginUser(identifier, password));
-      
-      // Redirect to callback URL if present, otherwise go to inventory
       const params = new URLSearchParams(window.location.search);
       const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
-      router.push(callbackUrl);
+
+      // Use next-auth credentials provider
+      const result = await signIn("credentials", {
+        redirect: false,
+        identifier,
+        password,
+      });
+
+      if (result?.error) {
+        setError(result.error || "Login failed");
+      } else {
+        // Successful sign in — route to callbackUrl
+        router.push(callbackUrl);
+      }
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err?.message || "Login failed");
     } finally {
       setSubmitting(false);
     }

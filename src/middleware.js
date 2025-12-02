@@ -1,79 +1,81 @@
 import { NextResponse } from "next/server";
+import { withAuth } from "next-auth/middleware";
 
-export function middleware(request) {
-  const { pathname } = request.nextUrl;
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/signup",
+  "/auth/reset-password",
+  "/auth/verify-email",
+  "/auth/otp-login",
+  "/auth/google-callback",
+];
 
-  // Extract locale from pathname (e.g., /en/inventory -> en)
-  const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
-  const locale = localeMatch ? localeMatch[1] : "en"; // Default to 'en' if no locale found
-  
-  // Remove locale from pathname for comparison
-  const pathWithoutLocale = localeMatch 
-    ? pathname.slice(locale.length + 1) || "/" 
-    : pathname;
+export default withAuth(
+  function middleware(req) {
+    const { pathname } = req.nextUrl;
+    const token = req.nextauth.token;
 
-  // Define public routes that don't require authentication (without locale prefix)
-  const publicPaths = [
-    "/auth/login",
-    "/auth/signup",
-    "/auth/reset-password",
-    "/auth/verify-email",
-    "/auth/otp-login",
-    "/auth/google-callback",
-  ];
+    // Extract locale
+    const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+    const locale = localeMatch ? localeMatch[1] : "en";
+    const pathWithoutLocale = localeMatch
+      ? pathname.slice(locale.length + 1) || "/"
+      : pathname;
 
-  // Check if the current path is public
-  const isPublicPath = publicPaths.some((path) =>
-    pathWithoutLocale.startsWith(path)
-  );
+    const isPublicPath = PUBLIC_PATHS.some((p) =>
+      pathWithoutLocale.startsWith(p)
+    );
+    const isAuthPath = pathWithoutLocale.startsWith("/auth/");
 
-  // Get the refresh token from cookies
-  const refreshToken = request.cookies.get("refreshToken")?.value;
-
-  // Check for bypass flag (development only)
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
-
-  // If user is authenticated and on home page, redirect to dashboard
-  if (refreshToken && pathWithoutLocale === "/") {
-    return NextResponse.redirect(new URL(`/${locale}/inventory/dashboard`, request.url));
-  }
-
-  // Allow access to public paths
-  if (isPublicPath) {
-    // If user is already authenticated and trying to access login/signup, redirect to dashboard
-    if (refreshToken && (pathWithoutLocale.includes("/auth/login") || pathWithoutLocale.includes("/auth/signup"))) {
-      return NextResponse.redirect(new URL(`/${locale}/inventory/dashboard`, request.url));
+    // 1. If user is authenticated and tries to access public auth pages (login/signup), redirect to dashboard
+    if (token && isAuthPath) {
+      return NextResponse.redirect(
+        new URL(`/${locale}/inventory/dashboard`, req.url)
+      );
     }
+
+    // 2. If user is authenticated and on root "/", redirect to dashboard
+    if (token && pathWithoutLocale === "/") {
+      return NextResponse.redirect(
+        new URL(`/${locale}/inventory/dashboard`, req.url)
+      );
+    }
+
+    // 3. If user is NOT authenticated and path is NOT public, redirect to localized login
+    const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
+    if (!token && !isPublicPath && !bypassAuth) {
+      const loginUrl = new URL(`/${locale}/auth/login`, req.url);
+      loginUrl.searchParams.set("callbackUrl", req.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // 4. RBAC: Protect admin-only routes (centralized list — edit this to add/remove admin paths)
+    const ADMIN_ONLY_PATHS = [
+      
+      // add more admin-only prefixes here when needed
+    ];
+
+    if (ADMIN_ONLY_PATHS.some((p) => pathWithoutLocale.startsWith(p))) {
+      const userRole = token?.user?.role;
+      if (userRole !== "super_admin" && userRole !== "admin") {
+        return NextResponse.redirect(
+          new URL(`/${locale}/unauthorized`, req.url)
+        );
+      }
+    }
+
     return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        // We handle redirection manually in the middleware function to support dynamic locales
+        return true;
+      },
+    },
   }
+);
 
-  if (bypassAuth) {
-    return NextResponse.next();
-  }
-
-  // If no refresh token and trying to access protected route, redirect to login
-  if (!refreshToken) {
-    const loginUrl = new URL(`/${locale}/auth/login`, request.url);
-    // Store the original URL to redirect back after login
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Allow the request to proceed
-  return NextResponse.next();
-}
-
-// Configure which routes the middleware should run on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - api routes (they have their own auth)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|images|.*\\..*|api).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|images|.*\\..*|api).*)"],
 };
