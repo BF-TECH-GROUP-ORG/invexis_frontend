@@ -138,7 +138,84 @@ export default function EditProductPage({ params }) {
         variants: Array.isArray(formData.variants) ? formData.variants : [],
       };
 
-      await dispatch(updateProduct({ id, updates: fullProductData })).unwrap();
+      // If there are data-URL images (base64) embedded in formData.images, convert to FormData
+      const images = Array.isArray(fullProductData.images) ? fullProductData.images : [];
+      const dataUrlImages = images.filter((im) => {
+        const url = typeof im === 'string' ? im : im?.url || '';
+        return typeof url === 'string' && url.startsWith('data:');
+      });
+
+      const dataURLToBlob = (dataURL) => {
+        const parts = dataURL.split(',');
+        const meta = parts[0];
+        const isBase64 = meta.indexOf('base64') >= 0;
+        const contentType = meta.split(':')[1].split(';')[0];
+        const raw = parts[1];
+        const rawData = isBase64 ? atob(raw) : decodeURIComponent(raw);
+        const uInt8Array = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          uInt8Array[i] = rawData.charCodeAt(i);
+        }
+        return new Blob([uInt8Array], { type: contentType });
+      };
+
+      if (dataUrlImages.length > 0) {
+        const PER_FILE_LIMIT = 8 * 1024 * 1024; // 8MB per file
+        const TOTAL_LIMIT = 25 * 1024 * 1024; // 25MB total
+        let totalSize = 0;
+        const form = new FormData();
+
+        // Build payload without images (we'll append new images as files)
+        const payload = { ...fullProductData, images: [] };
+
+        // Preserve existing image URLs in payload.images
+        images.forEach((im) => {
+          const url = typeof im === 'string' ? im : im?.url || '';
+          if (typeof url === 'string' && url.startsWith('data:')) return; // handled below
+          if (url) payload.images.push(typeof im === 'string' ? im : { url: url, alt: im.alt, isPrimary: im.isPrimary });
+        });
+
+        // Append new image files
+        images.forEach((im, idx) => {
+          const url = typeof im === 'string' ? im : im?.url || '';
+          if (typeof url === 'string' && url.startsWith('data:')) {
+            const blob = dataURLToBlob(url);
+            if (!blob.type || !blob.type.startsWith('image/')) throw new Error(`Invalid file type for image ${idx + 1}`);
+            if (blob.size > PER_FILE_LIMIT) throw new Error(`Image ${idx + 1} exceeds ${PER_FILE_LIMIT / (1024 * 1024)}MB limit`);
+            totalSize += blob.size;
+            form.append('images', blob, `image_${Date.now()}_${idx}.jpg`);
+          }
+        });
+
+        if (totalSize > TOTAL_LIMIT) throw new Error(`Total upload size exceeds ${TOTAL_LIMIT / (1024 * 1024)}MB`);
+
+        // Sanitize and append payload fields (excluding images which are files)
+        const appendValue = (key, value) => {
+          if (value === undefined || value === null) return;
+          if (typeof value === 'object') form.append(key, JSON.stringify(value));
+          else form.append(key, String(value));
+        };
+
+        // Exclude images (handled) and large raw fields if present
+        const SKIP_KEYS = ['images', 'createdAt', 'updatedAt'];
+        const sanitized = { ...payload };
+        for (const [k, v] of Object.entries(sanitized)) {
+          if (SKIP_KEYS.includes(k)) continue;
+          appendValue(k, v);
+        }
+
+        // Finally dispatch FormData
+        await dispatch(updateProduct({ id, updates: form })).unwrap();
+      } else {
+        // No embedded data URLs — send JSON but strip any large fields
+        const sanitized = { ...fullProductData };
+        delete sanitized.createdAt;
+        delete sanitized.updatedAt;
+        // Ensure we don't send huge nested raw dumps
+        if (sanitized.raw && typeof sanitized.raw === 'string' && sanitized.raw.length > 10000) delete sanitized.raw;
+
+        await dispatch(updateProduct({ id, updates: sanitized })).unwrap();
+      }
       handleSuccess();
     } catch (error) {
       console.error("Update failed:", error);
