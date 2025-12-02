@@ -420,4 +420,4 @@ export const userAPI = {
 export default axiosClient;
 
 // Export all API modules
-export { documentAPI, authAPI, userAPI };
+// named api modules are already exported via their declarations above
