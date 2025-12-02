@@ -1,10 +1,13 @@
 const { default: axios } = require("axios");
 
 const DEBT_API_URL = process.env.NEXT_PUBLIC_DEBT_API_URL;
-const companyId = "07f0c16d-95af-4cd6-998b-edfea57d87d7";
 
 // Get all debts for a company
-export const getDebts = async () => {
+export const getDebts = async (companyId) => {
+    if (typeof companyId === 'object') {
+        console.error("Invalid companyId passed to getDebts:", companyId);
+        throw new Error("Invalid companyId: Object passed instead of string");
+    }
     try {
         const response = await axios.get(`${DEBT_API_URL}/company/${companyId}/debts`, {
             headers: {
@@ -20,7 +23,7 @@ export const getDebts = async () => {
 };
 
 // Get a single debt by ID
-export const getDebtById = async (debtId) => {
+export const getDebtById = async (debtId, companyId) => {
     try {
         const response = await axios.get(`${DEBT_API_URL}company/${companyId}/debts/${debtId}`, {
             headers: {
@@ -36,7 +39,7 @@ export const getDebtById = async (debtId) => {
 };
 
 // Create a new debt
-export const createDebt = async (debtData) => {
+export const createDebt = async (debtData, companyId) => {
     try {
         const response = await axios.post(`${DEBT_API_URL}company/${companyId}/debts`, debtData, {
             headers: {
@@ -52,7 +55,7 @@ export const createDebt = async (debtData) => {
 };
 
 // Update an existing debt
-export const updateDebt = async (debtId, debtData) => {
+export const updateDebt = async (debtId, debtData, companyId) => {
     try {
         const response = await axios.patch(`${DEBT_API_URL}company/${companyId}/debts/${debtId}`, debtData, {
             headers: {
@@ -68,7 +71,7 @@ export const updateDebt = async (debtId, debtData) => {
 };
 
 // Delete a debt
-export const deleteDebt = async (debtId) => {
+export const deleteDebt = async (debtId, companyId) => {
     try {
         const response = await axios.delete(`${DEBT_API_URL}company/${companyId}/debts/${debtId}`, {
             headers: {
@@ -100,7 +103,7 @@ export const recordRepayment = async (repaymentData) => {
 };
 
 // Mark debt as paid (creates repayment for remaining amount and marks PAID)
-export const markDebtAsPaid = async (debtId) => {
+export const markDebtAsPaid = async (debtId, companyId, userId, userName) => {
     try {
         const payload = {
             companyId: companyId,
@@ -108,8 +111,8 @@ export const markDebtAsPaid = async (debtId) => {
             paymentMethod: "CASH", // Default to CASH, can be customized
             paymentReference: `MARK-PAID-${Date.now()}`,
             createdBy: {
-                id: "temp-user-id", // TODO: Get from user context
-                name: "POS User" // TODO: Get from user context
+                id: userId || "temp-user-id",
+                name: userName || "POS User"
             }
         };
 
@@ -127,14 +130,14 @@ export const markDebtAsPaid = async (debtId) => {
 };
 
 // Cancel a debt (mark as CANCELLED)
-export const cancelDebt = async (debtId, reason = "customer_requested_refund_or_writeoff") => {
+export const cancelDebt = async (debtId, companyId, userId, userName, reason = "customer_requested_refund_or_writeoff") => {
     try {
         const payload = {
             companyId: companyId,
             reason: reason,
             performedBy: {
-                id: "temp-user-id", // TODO: Get from user context
-                name: "POS User" // TODO: Get from user context
+                id: userId || "temp-user-id",
+                name: userName || "POS User"
             }
         };
 

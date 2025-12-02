@@ -18,14 +18,21 @@ import {
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useState } from "react";
 
+import { useSession } from "next-auth/react";
+
 const DebtsPage = () => {
   const t = useTranslations("debtsPage");
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const { data: session } = useSession();
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   // Fetch debts data from backend
   const { data: debtsData = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["debts"],
-    queryFn: getDebts,
+    queryKey: ["debts", companyId],
+    queryFn: () => getDebts(companyId),
+    enabled: !!companyId,
     select: (response) => {
       // API returns paginated data: { items: [...], total: N, page: N, limit: N }
       if (response?.items && Array.isArray(response.items)) return response.items;

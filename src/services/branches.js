@@ -2,11 +2,9 @@ const { default: axios } = require("axios");
 
 const BRANCH_API_URL = process.env.NEXT_PUBLIC_BRANCHES_API_URL;
 
-const companyId = "07f0c16d-95af-4cd6-998b-edfea57d87d7";
-
-export const getBranches = async () => {
+export const getBranches = async (companyId) => {
     try {
-        
+
         const response = await axios.get(`${BRANCH_API_URL}/?companyId=${companyId}`,
             {
                 headers: {
@@ -24,9 +22,9 @@ export const getBranches = async () => {
 };
 
 
-export const getBranchById = async (branchId) => {
+export const getBranchById = async (branchId, companyId) => {
     try {
-        const response = await axios.get(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {  
+        const response = await axios.get(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },
@@ -39,10 +37,15 @@ export const getBranchById = async (branchId) => {
     }
 };
 
-
+// Create a new branch
 export const createBranch = async (branchData) => {
+    // Ensure companyId is a string if it exists in branchData
+    if (branchData.companyId && typeof branchData.companyId === 'object') {
+        branchData.companyId = branchData.companyId.id || branchData.companyId._id;
+    }
+
     try {
-        const response = await axios.post(BRANCH_API_URL, branchData, {
+        const response = await axios.post(`${BRANCH_API_URL}/shop`, branchData, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },
@@ -73,13 +76,13 @@ export const updateBranch = async (branchId, branchData) => {
 };
 
 
-export const deleteBranch = async (branchId) => {
+export const deleteBranch = async (branchId, companyId) => {
     try {
         const response = await axios.delete(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },
-            
+
         });
         console.log("Branch deleted:", response.data);
         return response.data;

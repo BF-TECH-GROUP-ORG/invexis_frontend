@@ -9,7 +9,10 @@ import { singleProductFetch, SellProduct } from "@/services/salesService";
 
 const paymentMethods = ["cash", "card", "mobile", "wallet", "bank_transfer"];
 
-const   SellProductsInputs = ({ id }) => {
+import { useSession } from "next-auth/react";
+
+const SellProductsInputs = ({ id }) => {
+  const { data: session } = useSession();
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [soldPrice, setSoldPrice] = useState("");
@@ -25,7 +28,7 @@ const   SellProductsInputs = ({ id }) => {
   // Required by your backend
   const [companyId, setCompanyId] = useState("");
   const [shopId, setShopId] = useState("");
-  const [soldBy, setSoldBy] = useState("691d8f766fb4aca9a9fa618d"); // Logged-in user ID or email
+  const [soldBy, setSoldBy] = useState("");
 
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,27 +47,23 @@ const   SellProductsInputs = ({ id }) => {
         const product = await singleProductFetch(id);
         setProductName(product?.data?.name || "Unknown Product");
         setProductPrice(product?.data?.pricing?.salePrice || 0);
-        setCompanyId(product?.data?.companyId || "");
 
-        // 2. Get logged-in user & shop from localStorage (adjust key names if needed)
-        // 2. Get logged-in user & shop from localStorage (adjust key names if needed)
-        // HARDCODED FOR TESTING AS REQUESTED
-        const TEST_ID = "691d8f766fb4aca9a9fa619b";
-
-        setSoldBy(TEST_ID);
-        setShopId(TEST_ID);
-        // Fallback for companyId if not in product
-        if (!product?.data?.companyId) {
-          setCompanyId(TEST_ID);
+        // Use session data
+        if (session?.user) {
+          setSoldBy(session.user._id);
+          setShopId(session.user.shops?.[0] || "");
+          const companyObj = session.user.companies?.[0];
+          setCompanyId(typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id || ""));
         }
+
       } catch (err) {
         console.error("Error loading data:", err);
         setProductName("Unknown Product");
       }
     };
 
-    if (id) loadData();
-  }, [id]);
+    if (id && session) loadData();
+  }, [id, session]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
@@ -153,14 +152,9 @@ const   SellProductsInputs = ({ id }) => {
 
     const totalAfterDiscount = subtotal - itemDiscount;
 
-    // HARDCODED FOR TESTING AS REQUESTED
-    // Ensure these are never empty even if state fails
-    const TEST_UUID = "a6e0c5ff-8665-449d-9864-612ab1c9b9f2"; // Valid UUIDv4
-    const TEST_MONGO_ID = "691d8f766fb4aca9a9fa619b"; // Valid MongoDB ObjectId
-
-    const finalCompanyId = companyId || TEST_UUID;
-    const finalShopId = shopId || TEST_UUID;
-    const finalSoldBy = soldBy || TEST_MONGO_ID;
+    const finalCompanyId = companyId;
+    const finalShopId = shopId;
+    const finalSoldBy = soldBy;
 
     // FINAL PAYLOAD THAT WORKS (tested against 400 errors)
     const payload = {

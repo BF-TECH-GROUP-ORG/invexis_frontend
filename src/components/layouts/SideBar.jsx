@@ -49,11 +49,11 @@ const navItems = [
 
   // MANAGEMENT
   {
-    title: "Staff & Branches",
+    title: "Staff & Shops",
     icon: <Users size={22} />,
     children: [
       { title: "Staff List", path: "/inventory/workers/list", prefetch: true },
-      { title: "Branches", path: "/inventory/companies", prefetch: true },
+      { title: "Shops", path: "/inventory/companies", prefetch: true },
     ],
   },
   {
