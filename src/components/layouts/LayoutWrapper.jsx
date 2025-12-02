@@ -2,6 +2,7 @@
 
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import SideBar from "@/components/layouts/SideBar";
 import TopNavBar from "@/components/layouts/NavBar";
 import DevBypassToggle from "@/components/shared/DevBypassToggle";
@@ -42,8 +43,21 @@ export default function LayoutWrapper({ children }) {
     setMounted(true);
   }, []);
 
+  const pathname = usePathname();
+
   if (!mounted) {
     return null;
+  }
+
+  // If the current route is the unauthorized page we render it full-screen and hide
+  // the app chrome (sidebar/topnav). This keeps the unauthorized page isolated.
+  if (pathname?.includes("/unauthorized")) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        {children}
+        <DevBypassToggle />
+      </div>
+    );
   }
 
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
@@ -60,7 +74,8 @@ export default function LayoutWrapper({ children }) {
 
   return (
     <DashboardLayout>
-      <ProtectedRoute allowedRoles={["admin", "worker", "manager"]}>
+      {/* Layout-level protection: only require authenticated session; per-route RBAC enforced in middleware */}
+      <ProtectedRoute>
         <div className="flex h-screen">
           <div className="flex-1 flex flex-col">
             <main className="flex-1 p-4">{children}</main>

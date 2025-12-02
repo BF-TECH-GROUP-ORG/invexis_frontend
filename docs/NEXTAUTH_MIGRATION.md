@@ -17,7 +17,6 @@ What I changed
 -- Added NextAuth API route: src/app/api/auth/[...nextauth]/route.js (CredentialsProvider + refresh logic)
 - Wrapped app with NextAuth's <SessionProvider> (src/providers/ClientProviders.jsx)
 - Login form now uses signIn('credentials') (src/components/forms/LoginForm.jsx)
-- Google/OAuth callback page now seeds NextAuth session by calling signIn('credentials',{ oauth:true, accessToken, userPayload }) (src/app/[locale]/auth/google-callback/page.jsx)
 - Replaced localStorage/Redux token usage with NextAuth session usage across the app
   - Updated axios instances to attach access token from NextAuth session on the client (src/lib/axios.js, src/utils/axiosClient.js)
   - The response interceptors attempt a single session re-check and will signOut/redirect if refresh fails
@@ -43,9 +42,7 @@ How refresh works
 
 Next steps / remaining items
  You might want to remove the old Redux auth slice entirely once you are fully migrated — for backward compatibility we kept a minimal stub in the code but tokens are no longer stored in Redux.
- Convert OAuth flows to native NextAuth providers (Google) — done: the NextAuth Google provider is enabled by setting GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
-   - The login UI now calls signIn('google') using the NextAuth client helper.
-   - Remove any backend-only OAuth endpoints if you fully migrate to NextAuth (optional).
+ Convert OAuth flows to native NextAuth providers when needed — this codebase currently uses the Credentials provider only.
 
 Manual test route added
 -----------------------

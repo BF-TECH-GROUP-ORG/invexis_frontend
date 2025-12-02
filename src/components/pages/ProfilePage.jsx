@@ -33,9 +33,11 @@ import {
 } from "@mui/icons-material";
 import IOSSwitch from "@/components/shared/IosSwitch";
 import Link from "next/link";
+import { useLocale } from "next-intl"
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const locale = useLocale();
 
   const [activeTab, setActiveTab] = useState("info");
   const [settings, setSettings] = useState({
@@ -141,7 +143,7 @@ export default function ProfilePage() {
           </p>
 
           <div className="mt-4 flex justify-center gap-4">
-            <Link href="/account/edit-profile">
+            <Link href={`/${ locale }/account/edit-profile`}>
               <button className="px-4 py-2 bg-[#081422] text-white rounded-lg hover:bg-[#0f2239]">
                 Edit Profile
               </button>

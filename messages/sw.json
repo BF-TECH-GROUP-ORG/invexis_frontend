@@ -60,9 +60,6 @@
       "subtitle": "Tunathibitisha anwani yako ya barua pepe...",
       "verifying": "Tunathibitisha..."
     },
-    "googleCallback": {
-      "title": "Kuingia kwa Google"
-    },
     "otp": {
       "request": {
         "title": "Omba OTP",
@@ -222,32 +219,32 @@
     "title": "Sheria na Sera ya Faragha",
     "description": "Tafadhali angalia na kukubali Sheria na Masharti yetu na Sera ya Faragha kabla ya kuendelea."
   },
-  "sales":{
-     "title": "Dhibiti na Fuatilia Rekodi Zote za Mauzo",
-  "dashboard": "Dashibodi",
-  "products": "Bidhaa",
-  "list": "Orodha",
-  "stockOut": "Ondoa Stoki",
-  "stockOutHistory": "Historia ya Uondoaji wa Stoki",
-  "filter":"kichujio",
-  "export": "Hamisha nje",
-  "sale": "Uuzaji",
-  "productName": "Jina la Bidhaa",
-  "category": "Kategoria",
-  "unitPrice": "Bei kwa Kimoja",
-  "Returned": "Zimerudishwa",
-  "Discount": "Punguzo",
-  "date": "Tarehe",
-  "totalValue": "Thamani Jumla",
-  "action": "Kitendo",
-  "saleProducts": "Ondoa Bidhaa Kwenye Stoki",
-  "saleSubTitile": "Rekodi maelezo ya bidhaa zinazoondoka dukani au ghala",
-  "back": "Rudi",
-  "Edit": "Hariri",
-  "Delete": "Futa",
-  "view": "Tazama Zaidi"
-},
-"reciept": {
+  "sales": {
+    "title": "Dhibiti na Fuatilia Rekodi Zote za Mauzo",
+    "dashboard": "Dashibodi",
+    "products": "Bidhaa",
+    "list": "Orodha",
+    "stockOut": "Ondoa Stoki",
+    "stockOutHistory": "Historia ya Uondoaji wa Stoki",
+    "filter": "kichujio",
+    "export": "Hamisha nje",
+    "sale": "Uuzaji",
+    "productName": "Jina la Bidhaa",
+    "category": "Kategoria",
+    "unitPrice": "Bei kwa Kimoja",
+    "Returned": "Zimerudishwa",
+    "Discount": "Punguzo",
+    "date": "Tarehe",
+    "totalValue": "Thamani Jumla",
+    "action": "Kitendo",
+    "saleProducts": "Ondoa Bidhaa Kwenye Stoki",
+    "saleSubTitile": "Rekodi maelezo ya bidhaa zinazoondoka dukani au ghala",
+    "back": "Rudi",
+    "Edit": "Hariri",
+    "Delete": "Futa",
+    "view": "Tazama Zaidi"
+  },
+  "reciept": {
     "quantitySold": "Idadi Iliyouzwa",
     "soldPrice": "Bei ya Kuuza (RWF)",
     "discount": "Punguzo",
@@ -278,7 +275,7 @@
     "searchPlaceholder": "Tafuta kwa jina la mkopaji au namba ya simu...",
     "confirmCancelTitle": "Futa Deni",
     "confirmCancelMessage": "Una uhakika unataka kufuta deni hili? Kitendo hiki hakiwezi kurudiwa.",
-    "markPayed":"Weka ImeLipwa"
+    "markPayed": "Weka ImeLipwa"
   },
 
   "Debtstable": {
@@ -294,7 +291,4 @@
     "cleared": "Iliyolipwa",
     "pending": "Inasubiri"
   }
-
-
 }
-

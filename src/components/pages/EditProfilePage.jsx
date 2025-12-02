@@ -18,11 +18,13 @@ import { useRouter } from "next/navigation";
 import { authAPI } from "@/utils/axiosClient";
 import toast from "react-hot-toast";
 import { signIn, getSession } from "next-auth/react";
+import { useLocale } from "next-intl";
 
 export default function EditProfilePage() {
   // no redux dispatch — session is managed by NextAuth
   const router = useRouter();
   const { user } = useAuth();
+  const locale = useLocale();
 
   const [activeSection, setActiveSection] = useState("profile");
   const fileInputRef = useRef(null);
@@ -580,7 +582,7 @@ export default function EditProfilePage() {
           type="submit"
           onClick={async (e) => {
             await handleSubmit(e);
-            router.push("/account/profile"); // redirect to profile page
+            router.push(`${locale}/account/profile`); // redirect to profile page
           }}
           sx={{
             backgroundColor: "#ff782d",
