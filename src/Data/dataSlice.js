@@ -1,20 +1,21 @@
-
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "@/utils/axiosClient";
-import mockData from "@Data/mockData";
+// mockData removed — fall back to empty data when API unavailable
 
 // ==================== ASYNC THUNKS ====================
 
-export const fetchData = createAsyncThunk("documents/fetchData", async (_, thunkAPI) => {
-  try {
-    const res = await axiosClient.get("/documents");
-    return res.data;
-  } catch (err) {
-    console.warn("API failed, falling back to mockData");
-    return mockData;
+export const fetchData = createAsyncThunk(
+  "documents/fetchData",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosClient.get("/documents");
+      return res.data;
+    } catch (err) {
+      console.warn("API failed, falling back to empty data", err);
+      return [];
+    }
   }
-});
+);
 
 // ✅ Create Document
 export const createDocument = createAsyncThunk(
@@ -28,11 +29,11 @@ export const createDocument = createAsyncThunk(
       const newDoc = {
         ...documentData,
         id: Date.now().toString(),
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         version: "v1.0",
         uploadedBy: "Current User",
-        lastModified: new Date().toISOString().split('T')[0],
-        size: "0 KB"
+        lastModified: new Date().toISOString().split("T")[0],
+        size: "0 KB",
       };
       return newDoc;
     }
@@ -71,7 +72,10 @@ export const bulkUpdateStatus = createAsyncThunk(
   "documents/bulkUpdateStatus",
   async ({ ids, status }, { rejectWithValue }) => {
     try {
-      const res = await axiosClient.patch("/documents/bulk-status", { ids, status });
+      const res = await axiosClient.patch("/documents/bulk-status", {
+        ids,
+        status,
+      });
       return { ids, status };
     } catch (err) {
       return { ids, status }; // Fallback
@@ -84,9 +88,13 @@ export const exportDocuments = createAsyncThunk(
   "documents/export",
   async ({ format, filters }, { rejectWithValue }) => {
     try {
-      const res = await axiosClient.post("/documents/export", { format, filters }, {
-        responseType: "blob",
-      });
+      const res = await axiosClient.post(
+        "/documents/export",
+        { format, filters },
+        {
+          responseType: "blob",
+        }
+      );
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Failed to export");
@@ -234,7 +242,9 @@ const dataSlice = createSlice({
     // Update document
     builder
       .addCase(updateDocument.fulfilled, (state, action) => {
-        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        const index = state.items.findIndex(
+          (item) => item.id === action.payload.id
+        );
         if (index !== -1) {
           state.items[index] = action.payload;
         }
@@ -249,7 +259,9 @@ const dataSlice = createSlice({
     // Delete documents
     builder
       .addCase(deleteDocument.fulfilled, (state, action) => {
-        state.items = state.items.filter((item) => !action.payload.includes(item.id));
+        state.items = state.items.filter(
+          (item) => !action.payload.includes(item.id)
+        );
         state.selected = [];
       })
       .addCase(deleteDocument.rejected, (state, action) => {
@@ -257,14 +269,13 @@ const dataSlice = createSlice({
       });
 
     // Bulk update status
-    builder
-      .addCase(bulkUpdateStatus.fulfilled, (state, action) => {
-        const { ids, status } = action.payload;
-        state.items = state.items.map(item =>
-          ids.includes(item.id) ? { ...item, status } : item
-        );
-        state.selected = [];
-      });
+    builder.addCase(bulkUpdateStatus.fulfilled, (state, action) => {
+      const { ids, status } = action.payload;
+      state.items = state.items.map((item) =>
+        ids.includes(item.id) ? { ...item, status } : item
+      );
+      state.selected = [];
+    });
 
     // Export documents
     builder
@@ -359,7 +370,10 @@ export const selectFilteredData = (state) => {
   if (dateRange.start && dateRange.end) {
     filtered = filtered.filter((it) => {
       const docDate = new Date(it.date);
-      return docDate >= new Date(dateRange.start) && docDate <= new Date(dateRange.end);
+      return (
+        docDate >= new Date(dateRange.start) &&
+        docDate <= new Date(dateRange.end)
+      );
     });
   }
 
@@ -395,11 +409,13 @@ export const selectDocumentStats = (state) => {
     workshop: items.filter((it) => it.status === "Workshop").length,
     archived: items.filter((it) => it.status === "Archived").length,
     totalAmount: items.reduce((sum, it) => sum + (it.amount || 0), 0),
-    thisMonth: items.filter(it => {
+    thisMonth: items.filter((it) => {
       const docDate = new Date(it.date);
       const now = new Date();
-      return docDate.getMonth() === now.getMonth() && 
-             docDate.getFullYear() === now.getFullYear();
+      return (
+        docDate.getMonth() === now.getMonth() &&
+        docDate.getFullYear() === now.getFullYear()
+      );
     }).length,
     highPriority: items.filter((it) => it.priority === "high").length,
   };
@@ -407,13 +423,17 @@ export const selectDocumentStats = (state) => {
 
 // ✅ Get unique categories
 export const selectCategories = (state) => {
-  const categories = new Set(state.documents.items.map(item => item.category).filter(Boolean));
-  return ['All', ...Array.from(categories)];
+  const categories = new Set(
+    state.documents.items.map((item) => item.category).filter(Boolean)
+  );
+  return ["All", ...Array.from(categories)];
 };
 
 // ✅ Get unique assignees
 export const selectAssignees = (state) => {
-  const assignees = new Set(state.documents.items.map(item => item.assignee).filter(Boolean));
+  const assignees = new Set(
+    state.documents.items.map((item) => item.assignee).filter(Boolean)
+  );
   return Array.from(assignees);
 };
 

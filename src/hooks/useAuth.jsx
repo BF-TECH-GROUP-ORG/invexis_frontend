@@ -1,8 +1,9 @@
 // Hook: get current authenticated user and helper data from Redux store
-import { useSelector } from 'react-redux';
+import { useSession } from "next-auth/react";
 
 export default function useAuth() {
-  const user = useSelector((state) => state.auth?.user || null);
-  const isAuthenticated = Boolean(user);
-  return { user, isAuthenticated };
+  const { data: session, status } = useSession();
+  const user = session?.user ?? null;
+  const isAuthenticated = status === "authenticated";
+  return { user, isAuthenticated, status };
 }

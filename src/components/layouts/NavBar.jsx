@@ -1,32 +1,46 @@
- "use client";
+"use client";
 
 import { useState } from "react";
 import { Search, Bell } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { logoutUser } from "@/store/authActions";
-import { useDispatch, useSelector } from "react-redux";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
-  const { user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
   const notifications = [
-    { id: 1, title: "Invoice", desc: "Boost efficiency, save time & money", time: "9:50 AM" },
-    { id: 2, title: "Invoice", desc: "Boost efficiency, save time & money", time: "9:50 AM" },
-    { id: 3, title: "Invoice", desc: "Boost efficiency, save time & money", time: "9:50 AM" },
+    {
+      id: 1,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
+    {
+      id: 2,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
+    {
+      id: 3,
+      title: "Invoice",
+      desc: "Boost efficiency, save time & money",
+      time: "9:50 AM",
+    },
   ];
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
     router.push(`/${locale}/auth/login`);
   };
 
@@ -34,10 +48,11 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
+          isMobile
             ? "px-4 py-3" // Mobile: full width, smaller padding
             : "px-6 py-2" // Desktop: adjusted for sidebar
-          }`}
+        }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}
@@ -63,7 +78,8 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
         <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
           <div className="relative">
-            <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
+            <Bell
+              className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
               onClick={() => setNotifOpen(true)}
             />
             {notifications.length > 0 && (
@@ -80,8 +96,12 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
           >
             {!isMobile && (
               <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-gray-900">{user?.username || "John Doe"}</p>
-                <p className="text-xs text-gray-500">{user?.email || "john.doe@example.com"}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.username || "John Doe"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {user?.email || "john.doe@example.com"}
+                </p>
               </div>
             )}
             <div className="relative">
@@ -102,7 +122,13 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
       <AnimatePresence>
         {profileOpen && (
           <>
-            <motion.div className="fixed inset-0 bg-black/30 z-40" onClick={() => setProfileOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div
+              className="fixed inset-0 bg-black/30 z-40"
+              onClick={() => setProfileOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
             <motion.div
               className="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl z-50 overflow-y-auto"
               initial={{ x: "100%" }}
@@ -112,14 +138,17 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
             >
               <div className="flex items-center justify-between p-6 border-b">
                 <h2 className="text-xl font-semibold">Profile</h2>
-                <button onClick={() => setProfileOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setProfileOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
                   X
                 </button>
               </div>
 
               <div className="p-8 text-center">
                 <Image
-                // user?.profileImage ||
+                  // user?.profileImage ||
                   src="https://i.pinimg.com/736x/ba/bd/6f/babd6f62117554b8631508891fbe21f9.jpg"
                   alt="Avatar"
                   width={120}
@@ -131,16 +160,27 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
               </div>
 
               <nav className="px-6 space-y-1">
-                <Link href={`/${locale}/inventory/dashboard`} prefetch={true} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
+                <Link
+                  href={`/${locale}/inventory/dashboard`}
+                  prefetch={true}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50"
+                >
                   Dashboard
                 </Link>
-                <Link href={`/${locale}/account/profile`} prefetch={true} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50">
+                <Link
+                  href={`/${locale}/account/profile`}
+                  prefetch={true}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50"
+                >
                   Profile Settings
                 </Link>
               </nav>
 
               <div className="absolute bottom-0 left-0 right-0 p-6 border-t">
-                <button onClick={handleLogout} className="w-full py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                >
                   Logout
                 </button>
               </div>
@@ -153,7 +193,13 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
       <AnimatePresence>
         {notifOpen && (
           <>
-            <motion.div className="fixed inset-0 bg-black/30 z-40" onClick={() => setNotifOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div
+              className="fixed inset-0 bg-black/30 z-40"
+              onClick={() => setNotifOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
             <motion.div
               className="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl z-50 overflow-y-auto"
               initial={{ x: "100%" }}
@@ -163,18 +209,26 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
             >
               <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
                 <h2 className="text-xl font-semibold">Notifications</h2>
-                <button onClick={() => setNotifOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
                   X
                 </button>
               </div>
               <div className="p-4">
                 {notifications.map((n) => (
-                  <div key={n.id} className="flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border-b last:border-0">
+                  <div
+                    key={n.id}
+                    className="flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border-b last:border-0"
+                  >
                     <div className="w-12 h-12 bg-orange-100 rounded-lg flex-shrink-0" />
                     <div className="flex-1">
                       <h4 className="font-medium">{n.title}</h4>
                       <p className="text-sm text-gray-600 mt-1">{n.desc}</p>
-                      <span className="text-xs text-gray-400 mt-2 block">{n.time}</span>
+                      <span className="text-xs text-gray-400 mt-2 block">
+                        {n.time}
+                      </span>
                     </div>
                   </div>
                 ))}

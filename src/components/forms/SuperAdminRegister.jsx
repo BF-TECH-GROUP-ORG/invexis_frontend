@@ -9,10 +9,13 @@ import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 
 import AuthService from "@/services/AuthService";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 // ... inside component
 export default function SuperAdminRegister() {
   const router = useRouter();
+  const locale = useLocale();
+  const localizedPath = (p) => `/${locale}${p.startsWith("/") ? p : "/" + p}`;
   // ...
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ export default function SuperAdminRegister() {
     try {
       await AuthService.register(formData);
       // alert("Super Admin registered successfully!"); // Optional
-      router.push("/auth/login");
+      router.push(localizedPath("/auth/login"));
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {

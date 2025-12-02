@@ -3,8 +3,9 @@
  * Handles token storage and retrieval from localStorage
  */
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
+// Tokens are now handled by NextAuth — don't store them in localStorage.
+const ACCESS_TOKEN_KEY = "accessToken"; // kept for backward compat but not used
+const REFRESH_TOKEN_KEY = "refreshToken"; // kept for backward compat but not used
 const USER_KEY = "user";
 
 /**
@@ -12,8 +13,8 @@ const USER_KEY = "user";
  * @returns {string|null}
  */
 export const getAccessToken = () => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  // DEPRECATED: NextAuth stores tokens in session cookies/JWTs. Use next-auth getSession / useSession.
+  return null;
 };
 
 /**
@@ -21,8 +22,8 @@ export const getAccessToken = () => {
  * @returns {string|null}
  */
 export const getRefreshToken = () => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  // DEPRECATED: refresh tokens are HttpOnly cookies managed by the backend/NextAuth.
+  return null;
 };
 
 /**
@@ -40,8 +41,7 @@ export const getUser = () => {
  * @param {string} token
  */
 export const setAccessToken = (token) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  // NO-OP: do not store access tokens in localStorage; NextAuth manages tokens.
 };
 
 /**
@@ -49,8 +49,7 @@ export const setAccessToken = (token) => {
  * @param {string} token
  */
 export const setRefreshToken = (token) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  // NO-OP: do not store refresh tokens in localStorage; backend should set HttpOnly cookies.
 };
 
 /**
@@ -69,8 +68,7 @@ export const setUser = (user) => {
  * @param {object} user
  */
 export const setAuthData = (accessToken, refreshToken, user) => {
-  setAccessToken(accessToken);
-  setRefreshToken(refreshToken);
+  // NO-OP for tokens — we only keep user in local storage if needed
   setUser(user);
 };
 
@@ -79,8 +77,7 @@ export const setAuthData = (accessToken, refreshToken, user) => {
  */
 export const removeTokens = () => {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  // Do not remove tokens here — NextAuth controls session cookies; remove user only
   localStorage.removeItem(USER_KEY);
 };
 
@@ -89,5 +86,6 @@ export const removeTokens = () => {
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return !!getAccessToken();
+  // Use next-auth useSession / getSession in the app instead of this helper.
+  return false;
 };

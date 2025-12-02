@@ -240,8 +240,13 @@ export default function FormWrapper({
         {oauthOptions.includes("google") && (
           <IconButton
             onClick={() => {
-              const googleAuthUrl = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || "https://granitic-jule-haunting.ngrok-free.dev/api/auth/google";
-              window.location.href = googleAuthUrl;
+              // Use NextAuth Google provider if configured
+              try {
+                // eslint-disable-next-line no-undef
+                window?.next && window?.next.auth ? null : null;
+              } catch (e) {}
+              // Use the next-auth client helper to start the Google sign in flow
+              import("next-auth/react").then(({ signIn }) => signIn("google"));
             }}
             sx={{
               borderRadius: "50%",

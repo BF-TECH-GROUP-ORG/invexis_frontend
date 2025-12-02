@@ -1,6 +1,6 @@
 "use client";
 
-import { useSelector } from "react-redux";
+import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import SideBar from "@/components/layouts/SideBar";
 import TopNavBar from "@/components/layouts/NavBar";
@@ -9,9 +9,9 @@ import DashboardLayout from "./DashboardLayout";
 import ProtectedRoute from "@/lib/ProtectedRoute";
 
 export default function LayoutWrapper({ children }) {
-  // support both accessToken & token names from different code paths
-  const { user, accessToken, token } = useSelector((state) => state.auth);
-  const authToken = accessToken || token;
+  // Use NextAuth session for auth
+  const { user, status } = useAuth();
+  // authToken not stored in client-side storage; NextAuth session contains tokens
   // Consider runtime localStorage toggle for bypass (DEV_BYPASS_AUTH) as well
   const getBypass = () => {
     if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return true;
@@ -47,7 +47,7 @@ export default function LayoutWrapper({ children }) {
   }
 
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
-  const isLoggedIn = BYPASS || Boolean(user && authToken);
+  const isLoggedIn = BYPASS || Boolean(user);
 
   if (!isLoggedIn) {
     return (

@@ -47,7 +47,8 @@ export default function OnBoardingScreens({ steps }) {
 
     if (BYPASS && locale) return redirect(`/${locale}/inventory`);
     if (BYPASS) return redirect(`/inventory`);
-    return redirect("/auth/login");
+    // Ensure localized redirect to the login page when onboarding completed
+    return redirect(locale ? `/${locale}/auth/login` : `/en/auth/login`);
   }
 
   const handleNext = () => {
