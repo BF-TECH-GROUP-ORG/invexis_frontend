@@ -1,5 +1,15 @@
 "use client";
-
+    import {
+  Stepper,
+  Step,
+  StepLabel,
+  Button,
+  Box,
+  Typography,
+  CircularProgress,
+  Card,
+} from "@mui/material";
+import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import React, { useState } from "react";
 import {
   Box,
@@ -18,6 +28,8 @@ import {
   Snackbar,
   Alert,
   Paper,
+  InputAdornment,
+  Select,
 } from "@mui/material";
 import { HiArrowRight, HiArrowLeft } from "react-icons/hi2";
 import { ThemeRegistry } from "@/providers/ThemeRegistry";
@@ -47,9 +59,10 @@ export default function AddWorkerForm() {
   const [worker, setWorker] = useState({
     firstName: "",
     lastName: "",
-    username: "",
+    // username: "",
     email: "",
     phone: "",
+    countryCode: "+250",
     password: "",
     role: "worker",
     dateOfBirth: "",
@@ -107,7 +120,7 @@ export default function AddWorkerForm() {
       // Personal Information validation
       if (!worker.firstName.trim()) errors.firstName = "First name is required";
       if (!worker.lastName.trim()) errors.lastName = "Last name is required";
-      if (!worker.username.trim()) errors.username = "Username is required";
+      // if (!worker.username.trim()) errors.username = "Username is required";
       if (!worker.email.trim()) {
         errors.email = "Email is required";
       } else if (!/\S+@\S+\.\S+/.test(worker.email)) {
@@ -268,25 +281,27 @@ export default function AddWorkerForm() {
             <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom>
               Personal Information
             </Typography>
-            <TextField
-              label="First Name"
-              value={worker.firstName}
-              onChange={(e) => handleChange("firstName", e.target.value)}
-              required
-              error={!!fieldErrors.firstName}
-              helperText={fieldErrors.firstName}
-              fullWidth
-            />
-            <TextField
-              label="Last Name"
-              value={worker.lastName}
-              onChange={(e) => handleChange("lastName", e.target.value)}
-              required
-              error={!!fieldErrors.lastName}
-              helperText={fieldErrors.lastName}
-              fullWidth
-            />
-            <TextField
+            <div className="flex gap-4 w-full">
+              <TextField
+                label="First Name"
+                value={worker.firstName}
+                onChange={(e) => handleChange("firstName", e.target.value)}
+                required
+                error={!!fieldErrors.firstName}
+                helperText={fieldErrors.firstName}
+                fullWidth
+              />
+              <TextField
+                label="Last Name"
+                value={worker.lastName}
+                onChange={(e) => handleChange("lastName", e.target.value)}
+                required
+                error={!!fieldErrors.lastName}
+                helperText={fieldErrors.lastName}
+                fullWidth
+              />
+            </div>
+            {/* <TextField
               label="Username"
               value={worker.username}
               onChange={(e) => handleChange("username", e.target.value)}
@@ -294,7 +309,8 @@ export default function AddWorkerForm() {
               error={!!fieldErrors.username}
               helperText={fieldErrors.username}
               fullWidth
-            />
+            /> */}
+
             <TextField
               label="Email"
               type="email"
@@ -306,14 +322,105 @@ export default function AddWorkerForm() {
               fullWidth
             />
             <TextField
-              label="Phone"
-              value={worker.phone}
-              onChange={(e) => handleChange("phone", e.target.value)}
-              required
-              error={!!fieldErrors.phone}
-              helperText={fieldErrors.phone}
-              fullWidth
-            />
+  label="Phone"
+  value={
+    worker.phone.startsWith(worker.countryCode || "+250")
+      ? worker.phone.slice((worker.countryCode || "+250").length)
+      : worker.phone
+  }
+  onChange={(e) => {
+    const code = worker.countryCode || "+250";
+    handleChange("phone", code + e.target.value);
+  }}
+  required
+  error={!!fieldErrors.phone}
+  helperText={fieldErrors.phone}
+  fullWidth
+  variant="outlined"   // ← gives the border you want
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start" sx={{ p: 0 }}>
+        <Select
+          value={worker.countryCode || "+250"}
+          onChange={(e) => {
+            const newCode = e.target.value;
+            const currentCode = worker.countryCode || "+250";
+            const currentLocal = worker.phone.startsWith(currentCode)
+              ? worker.phone.slice(currentCode.length)
+              : worker.phone;
+
+            handleChange("countryCode", newCode);
+            handleChange("phone", newCode + currentLocal);
+          }}
+          variant="standard"
+          disableUnderline
+          sx={{
+            background: "transparent",
+
+            // remove all borders, focus rings, hover states
+            "& .MuiSelect-select": {
+              padding: 0,
+              paddingRight: "6px !important",
+              border: "none !important",
+              outline: "none !important",
+              background: "transparent",
+            },
+            "& .MuiSelect-select:focus": {
+              outline: "none !important",
+              background: "transparent",
+            },
+            "& fieldset": { border: "none" },
+            "&:hover": { background: "transparent" },
+            "&.Mui-focused": {
+              outline: "none !important",
+              border: "none !important",
+              background: "transparent",
+            }
+          }}
+          MenuProps={{
+            PaperProps: { sx: { maxHeight: 300 } }
+          }}
+        >
+          {[
+            { code: "+250", flag: "🇷🇼" },
+            { code: "+255", flag: "🇹🇿" },
+            { code: "+256", flag: "🇺🇬" },
+            { code: "+257", flag: "🇧🇮" },
+            { code: "+243", flag: "🇨🇩" },
+          ].map((option) => (
+            <MenuItem key={option.code} value={option.code}>
+              <span style={{ marginRight: "8px", fontSize: "1.2rem" }}>
+                {option.flag}
+              </span>
+              {option.code}
+            </MenuItem>
+          ))}
+        </Select>
+
+        {/* Divider like the screenshot */}
+        <div
+          style={{
+            width: "1px",
+            height: "26px",
+            background: "#ccc",
+            marginLeft: "6px",
+            marginRight: "8px",
+          }}
+        />
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      background: "transparent",
+    },
+    "& .MuiOutlinedInput-input": {
+      paddingLeft: "4px", // ensures typing is not blocked
+    }
+  }}
+/>
+
             <TextField
               label="Password"
               type="password"
@@ -496,152 +603,223 @@ export default function AddWorkerForm() {
   };
 
   return (
-    <ThemeRegistry>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
+
+
+const steps = [
+  "Personal Details",
+  "Account Details",
+  "Tax Details",
+  "Summary",
+  "Receipt",
+];
+
+export default function AddNewWorkerForm({
+  activeStep,
+  handleNext,
+  handleBack,
+  handleSubmit,
+  renderStepContent,
+  createWorkerMutation,
+}) {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#f5f7fa",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        py: 4,
+      }}
+    >
+      <Card
+        elevation={8}
         sx={{
-          maxWidth: 800,
-          mx: "auto",
-          mt: 4,
-          p: 4,
+          maxWidth: 1100,
+          width: "100%",
+          borderRadius: "16px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: { xs: "column", lg: "row" },
+          mx: 2,
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Typography variant="h4" fontWeight={700} color="#081422" gutterBottom>
-            Add New Worker
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            Complete all steps to create a new worker account
-          </Typography>
-
-          {/* Stepper */}
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+        {/* LEFT SIDE - Form Content */}
+        <Box
+          sx={{
+            flex: 1,
+            p: { xs: 4, md: 6 },
+            bgcolor: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Header */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              color="#081422"
+              sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+            >
+              Add New Worker
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Complete all steps to create a new worker account
+            </Typography>
+          </Box>
 
           {/* Step Content */}
-          <Box sx={{ minHeight: 400, mb: 3 }}>
+          <Box sx={{ flexGrow: 1, minHeight: 420 }}>
             {renderStepContent(activeStep)}
           </Box>
 
-          {/* Navigation Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
+          {/* Navigation - Fixed at bottom */}
+          <Box
+            sx={{
+              mt: 6,
+              pt: 4,
+              borderTop: "1px solid #e0e0e0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Button
               onClick={handleBack}
               disabled={activeStep === 0}
               startIcon={<HiArrowLeft />}
               variant="outlined"
               sx={{
-                borderRadius: "10px",
+                borderRadius: "12px",
                 textTransform: "none",
-                px: 3,
+                px: 4,
+                py: 1.5,
+                fontWeight: 600,
+                borderColor: "#081422",
+                color: "#081422",
               }}
             >
               Back
             </Button>
 
-            <Box sx={{ display: "flex", gap: 2 }}>
-              {activeStep === steps.length - 1 ? (
-                <Button
-                  type="submit"
-                  variant="contained"
-                  endIcon={
-                    createWorkerMutation.isLoading ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <HiArrowRight />
-                    )
-                  }
-                  disabled={createWorkerMutation.isLoading}
-                  sx={{
-                    backgroundColor: "#081422",
-                    "&:hover": { backgroundColor: "#0b2036" },
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    px: 4,
-                  }}
-                >
-                  {createWorkerMutation.isLoading ? "Creating..." : "Create Worker"}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  variant="contained"
-                  endIcon={<HiArrowRight />}
-                  sx={{
-                    backgroundColor: "#081422",
-                    "&:hover": { backgroundColor: "#0b2036" },
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    px: 4,
-                  }}
-                >
-                  Next
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </Paper>
-
-        {/* Error Dialog */}
-        <Dialog
-          open={errorDialog.open}
-          onClose={() => setErrorDialog({ open: false, message: "", details: null })}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle sx={{ bgcolor: "#d32f2f", color: "white", fontWeight: "bold" }}>
-            Error Creating Worker
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Typography variant="body1" gutterBottom>
-              {errorDialog.message}
-            </Typography>
-            {errorDialog.details && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {JSON.stringify(errorDialog.details, null, 2)}
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
             <Button
-              onClick={() => setErrorDialog({ open: false, message: "", details: null })}
-              variant="outlined"
-            >
-              Close
-            </Button>
-            <Button
-              onClick={handleSubmit}
               variant="contained"
-              sx={{ bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+              onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+              endIcon={
+                createWorkerMutation.isLoading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <HiArrowRight />
+                )
+              }
+              disabled={createWorkerMutation.isLoading}
+              sx={{
+                bgcolor: "#00a89d", // DNB teal
+                "&:hover": { bgcolor: "#008a80" },
+                borderRadius: "12px",
+                textTransform: "none",
+                px: 5,
+                py: 1.5,
+                fontWeight: 600,
+                boxShadow: "0 4px 12px rgba(0, 168, 157, 0.3)",
+              }}
             >
-              Try Again
+              {createWorkerMutation.isLoading
+                ? "Creating..."
+                : activeStep === steps.length - 1
+                ? "Create Worker"
+                : "Next"}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </Box>
+        </Box>
 
-        {/* Success Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        {/* RIGHT SIDE - Vertical Stepper */}
+        <Box
+          sx={{
+            width: { xs: "100%", lg: 300 },
+            bgcolor: "#f8fffe",
+            borderLeft: { lg: "1px solid #e0e0e0" },
+            borderTop: { xs: "1px solid #e0e0e0", lg: "none" },
+            p: 4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            variant="filled"
-            sx={{ width: "100%" }}
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            sx={{
+              width: "100%",
+              "& .MuiStepLabel-label": {
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                color: "#081422",
+                mt: 1,
+              },
+              "& .MuiStepLabel-label.Mui-active": {
+                color: "#00a89d",
+                fontWeight: 700,
+              },
+              "& .MuiStepLabel-label.Mui-completed": {
+                color: "#00a89d",
+              },
+              "& .MuiStepIcon-root": {
+                width: 42,
+                height: 42,
+                fontSize: "1.4rem",
+              },
+              "& .MuiStepIcon-root.Mui-active": {
+                color: "#00a89d",
+                fontWeight: "bold",
+              },
+              "& .MuiStepIcon-root.Mui-completed": {
+                color: "#00a89d",
+              },
+              "& .MuiStepConnector-line": {
+                borderLeftWidth: "3px",
+                borderColor: "#00a89d",
+                minHeight: "60px",
+              },
+              "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": {
+                borderColor: "#00a89d",
+              },
+              "& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line": {
+                borderColor: "#00a89d",
+              },
+            }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Box>
-    </ThemeRegistry>
+            {steps.map((label, index) => (
+              <Step key={label} completed={activeStep > index}>
+                <StepLabel
+                  StepIconProps={{
+                    sx: {
+                      "& .MuiStepIcon-text": {
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                      },
+                    },
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {index + 1}. {label}
+                  </Typography>
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Box>
+      </Card>
+    </Box>
   );
 }
+  );
+}
+
+
+
+
+
+
+

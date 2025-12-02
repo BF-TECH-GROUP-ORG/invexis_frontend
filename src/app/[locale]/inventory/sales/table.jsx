@@ -293,6 +293,8 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useSession } from "next-auth/react";
+
 const DataTable = () => {
   const t = useTranslations("sales");
   const navigation = useRouter();
@@ -300,8 +302,17 @@ const DataTable = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [exportAnchor, setExportAnchor] = useState(null);
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
-  const companyId = "a6e0c5ff-8665-449d-9864-612ab1c9b9f2"; // Hardcoded as requested
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  console.log("Sales Table Debug:", {
+    sessionUser: session?.user,
+    companyObj,
+    companyId,
+    typeOfCompanyObj: typeof companyObj
+  });
 
   // Get current month and year for default filtering
   const currentDate = new Date();
@@ -311,6 +322,7 @@ const DataTable = () => {
   const { data: rows = [] } = useQuery({
     queryKey: ["salesHistory", companyId],
     queryFn: () => getSalesHistory(companyId),
+    enabled: !!companyId,
     select: (data) => {
       if (!data || !Array.isArray(data)) return [];
       return data.map((sale) => ({
@@ -748,6 +760,8 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
     handleClosePriceModal();
   };
 
+  const { data: session } = useSession();
+
   // Handle sell button
   const handleSellSelected = () => {
     const items = Object.values(selectedItems).map(item => ({
@@ -757,8 +771,8 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
     }));
 
     const payload = {
-      soldBy: "691d8f766fb4aca9a9fa619b", // Placeholder
-      shopId: "691d8f766fb4aca9a9fa619b", // Placeholder
+      soldBy: session?.user?._id || "",
+      shopId: session?.user?.shops?.[0] || "",
       items
     };
 

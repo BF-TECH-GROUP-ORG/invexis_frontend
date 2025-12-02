@@ -138,6 +138,10 @@ const generateCustomerId = (phone) => {
 
 
 export const getSalesHistory = async (companyId) => {
+  if (typeof companyId === 'object') {
+    console.error("Invalid companyId passed to getSalesHistory:", companyId);
+    throw new Error("Invalid companyId: Object passed instead of string");
+  }
   try {
     const response = await axios.get(`${SALES_URL}?companyId=${companyId}`, {
       headers: {

@@ -16,6 +16,7 @@ import { getAllProducts } from "@/services/salesService";
 import { SellProduct } from "@/services/salesService";
 import { useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
@@ -105,6 +106,9 @@ const CurrentInventory = () => {
   const router = useRouter();
   const locale = useLocale();
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   const [search, setSearch] = useState("");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -300,9 +304,9 @@ const CurrentInventory = () => {
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     const payload = {
-      companyId: "a6e0c5ff-8665-449d-9864-612ab1c9b9f2",
-      shopId: "691d8f766fb4aca9a9fa619b",
-      soldBy: "691d8f766fb4aca9a9fa619b",
+      companyId: companyId,
+      shopId: session?.user?.shops?.[0] || "",
+      soldBy: session?.user?._id || "",
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail.trim() || "",

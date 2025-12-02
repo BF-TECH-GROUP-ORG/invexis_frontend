@@ -13,6 +13,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
+import { useSession } from "next-auth/react";
 // import { useTranslations } from "next-intl"; // Assuming translations might not be fully set up for companies yet, using hardcoded strings or generic keys if possible.
 import { deleteBranch } from "@/services/branches";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -278,6 +279,10 @@ const CompaniesTable = ({ initialRows = [] }) => {
         severity: "success"
     });
 
+    const { data: session } = useSession();
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
     const rows = useMemo(() => {
         if (!initialRows || !Array.isArray(initialRows)) return [];
         return initialRows.map((shop) => ({
@@ -292,7 +297,7 @@ const CompaniesTable = ({ initialRows = [] }) => {
     }, [initialRows]);
 
     const deleteMutation = useMutation({
-        mutationFn: (branchId) => deleteBranch(branchId),
+        mutationFn: (branchId) => deleteBranch(branchId, companyId),
         onSuccess: () => {
             queryClient.invalidateQueries(["branches"]);
             console.log("Branch deleted and cache invalidated");

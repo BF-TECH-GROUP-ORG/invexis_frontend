@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import { getBranchById, updateBranch } from "@/services/branches";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 const steps = ["Basic Information", "Location Details", "Settings & Review"];
 
@@ -158,6 +159,10 @@ const EditBranchPage = () => {
         setActiveStep((prev) => prev - 1);
     };
 
+    const { data: session } = useSession();
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
     const handleSubmit = async () => {
         if (!validateStep(activeStep)) return;
 
@@ -166,7 +171,7 @@ const EditBranchPage = () => {
 
         try {
             const payload = {
-                companyId: "07f0c16d-95af-4cd6-998b-edfea57d87d7",
+                companyId: companyId,
                 name: formData.name,
                 address_line1: formData.address_line1,
                 address_line2: formData.address_line2,
