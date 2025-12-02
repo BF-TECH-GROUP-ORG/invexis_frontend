@@ -327,7 +327,8 @@ const DataTable = () => {
         action: "more"
       }));
     },
-    // staleTime removed to ensure fresh data on every mount/navigation
+    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,   // 10 minutes - cache persists for 10 minutes
   });
 
   // Delete mutation

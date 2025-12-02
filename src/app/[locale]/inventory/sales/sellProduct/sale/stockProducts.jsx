@@ -443,16 +443,16 @@ const CurrentInventory = () => {
         <TableContainer sx={{ maxHeight: "calc(100vh - 350px)" }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: "#FF6D00" }}>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Select</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Product ID</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Product Name</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Category</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Stock</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Min Price (FRW)</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Selling Price (FRW)</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Quantity</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+              <TableRow>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Select</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Product ID</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Product Name</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Category</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Stock</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Min Price (FRW)</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Selling Price (FRW)</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Quantity</TableCell>
+                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
 

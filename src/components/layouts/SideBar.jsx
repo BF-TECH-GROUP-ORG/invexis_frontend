@@ -489,14 +489,14 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                               : [...prev, item.title]
                           )
                         }
-                        className={`relative flex items-center justify-between px-3 py-3 rounded-lg cursor-pointer transition ${parentActive
-                          ? "bg-orange-50 text-orange-700 border border-orange-200"
+                        className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
+                          ? "border-orange-500 border-l-3 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
-                        {parentActive && (
+                        {/* {parentActive && (
                           <span className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full"></span>
-                        )}
+                        )} */}
 
                         <div className="flex items-center gap-3">
                           {item.icon}
