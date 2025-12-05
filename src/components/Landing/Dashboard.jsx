@@ -10,7 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Printer,
-  Calendar,
+  Package,
+  TrendingUp,
+  AlertTriangle,
   Check,
   MoreVertical,
   Eye,
@@ -18,6 +20,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
+import ProductTable from '@/components/inventory/products/ProductTable';
 
 export default function AnalyticsDashboard({
   products = [],
@@ -32,19 +35,15 @@ export default function AnalyticsDashboard({
     shopRevenue: 0
   }
 }) {
-  const [selectedShop, setSelectedShop] = useState(stats.shopName || 'All Shops');
+  const [selectedShop, setSelectedShop] = useState(shops.length > 0 ? (shops[0].name || shops[0]) : (stats.shopName || 'All Shops'));
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Filter states
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [tempStatusFilter, setTempStatusFilter] = useState('All Statuses');
-
-  // Actions dropdown state
+  const [selectedIds, setSelectedIds] = useState([]);
   const [openActionDropdown, setOpenActionDropdown] = useState(null);
   const actionDropdownRefs = useRef({});
 
-  // Format current date as DD/MM/YYYY
   const today = new Date();
   const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
   const [currentDate] = useState(formattedDate);
@@ -52,7 +51,6 @@ export default function AnalyticsDashboard({
   const shopDropdownRef = useRef(null);
   const filterRef = useRef(null);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (shopDropdownRef.current && !shopDropdownRef.current.contains(event.target)) {
@@ -61,7 +59,6 @@ export default function AnalyticsDashboard({
       if (filterRef.current && !filterRef.current.contains(event.target)) {
         setIsFilterOpen(false);
       }
-      // Check action dropdowns
       if (openActionDropdown !== null) {
         const currentDropdownRef = actionDropdownRefs.current[openActionDropdown];
         if (currentDropdownRef && !currentDropdownRef.contains(event.target)) {
@@ -87,33 +84,59 @@ export default function AnalyticsDashboard({
     toast.success("Filters applied successfully");
   };
 
-  // Filter products based on status
   const filteredProducts = products.filter(product => {
-    if (statusFilter === 'All Statuses') return true;
-    return product.status === statusFilter;
+    const matchesStatus = statusFilter === 'All Statuses' || product.status === statusFilter;
+    const matchesShop = selectedShop === 'All Shops' ||
+      product.shop === selectedShop ||
+      product.warehouse === selectedShop ||
+      product.shop?.name === selectedShop ||
+      product.warehouse?.name === selectedShop;
+    return matchesStatus && matchesShop;
   });
 
-  // Action handlers
+  const dynamicStats = {
+    totalProducts: filteredProducts.length,
+    totalStockQuantity: filteredProducts.reduce((acc, product) => acc + (parseInt(product.stock) || 0), 0),
+    lowStockCount: filteredProducts.filter(product => product.status === 'Low Stock' || (parseInt(product.stock) > 0 && parseInt(product.stock) < 10)).length,
+    outOfStockCount: filteredProducts.filter(product => product.status === 'Out of Stock' || parseInt(product.stock) === 0).length,
+  };
+
+  dynamicStats.lowStockPercentage = dynamicStats.totalProducts > 0
+    ? Math.round((dynamicStats.lowStockCount / dynamicStats.totalProducts) * 100)
+    : 0;
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredProducts.map(p => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(sid => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
   const handleViewProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Viewing product: ${product.name}`);
-    // TODO: Navigate to product view page
     console.log('View product:', product);
   };
 
   const handleEditProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Editing product: ${product.name}`);
-    // TODO: Navigate to product edit page
     console.log('Edit product:', product);
   };
 
   const handleDeleteProduct = (product) => {
     setOpenActionDropdown(null);
-    // TODO: Show confirmation dialog before deleting
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
       toast.success(`Product deleted: ${product.name}`);
-      // TODO: Call delete API
       console.log('Delete product:', product);
     }
   };
@@ -143,6 +166,37 @@ export default function AnalyticsDashboard({
     );
   };
 
+  const statCards = [
+    {
+      title: "Total Products",
+      value: dynamicStats.totalProducts,
+      Icon: Package,
+      delay: 0
+    },
+    {
+      title: "Total Stock",
+      value: dynamicStats.totalStockQuantity.toLocaleString(),
+      Icon: TrendingUp,
+      delay: 0.1
+    },
+    {
+      title: "Low Stock",
+      value: dynamicStats.lowStockCount,
+      Icon: AlertTriangle,
+      delay: 0.2
+    },
+    {
+      title: "Out of Stock",
+      value: dynamicStats.outOfStockCount,
+      Icon: () => (
+        <svg className="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      ),
+      delay: 0.3
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white p-6 font-sans">
       <Toaster position="top-right" />
@@ -153,78 +207,29 @@ export default function AnalyticsDashboard({
           <div className="text-sm font-medium text-gray-500">As of {currentDate}</div>
         </div>
 
-        {/* Metrics Cards */}
+        {/* Metrics Cards - Clean Design */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Products in Inventory */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Total Products in Inventory</h3>
-            <div className="flex items-baseline space-x-2 mb-4">
-              <span className="text-4xl font-bold text-gray-900">{stats.totalProducts}</span>
-              <span className="text-xl font-bold text-blue-500">SKUs</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-gray-500">Currently in system</span>
-            </div>
-          </div>
-
-          {/* Total Stock Quantity Available */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Total Stock Quantity Available</h3>
-            <div className="text-3xl font-bold text-gray-900 mb-4">{stats.totalStockQuantity.toLocaleString()}</div>
-            <div className="flex items-center space-x-1 text-xs font-medium text-emerald-500">
-              <span>Items across all products</span>
-            </div>
-          </div>
-
-          {/* Low Stock Alerts */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Low Stock Alerts</h3>
-            <div className="flex items-center justify-between">
-              <div className="relative w-20 h-20">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  {/* Background Circle (Gray) */}
-                  <path
-                    d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="5"
-                  />
-                  {/* Progress Circle (Orange) */}
-                  <path
-                    d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
-                    fill="none"
-                    stroke="#f97316"
-                    strokeWidth="5"
-                    strokeDasharray={`${stats.lowStockPercentage}, 100`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-orange-500">{stats.lowStockCount}</span>
+          {statCards.map((stat) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: stat.delay }}
+              className="bg-white border border-[#E5E5E5] rounded-xl p-6 hover:border-[#EA580C] transition-all duration-200"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-[#333]">{stat.title}</h3>
+                  <p className="text-3xl font-bold text-[#1F1F1F] mt-2">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <stat.Icon size={36} className="text-[#F97316]" />
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center text-xs">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                  <span className="text-gray-700 font-medium">Low Stock</span>
-                </div>
-                <div className="flex items-center text-xs">
-                  <span className="text-gray-500">Below minimum threshold</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Out of Stock Items */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Out of Stock Items</h3>
-            <div className="flex items-baseline space-x-2 mb-4">
-              <span className="text-4xl font-bold text-red-600">{stats.outOfStockCount}</span>
-              <span className="text-xl font-bold text-gray-500">Products</span>
-            </div>
-            <div className="text-xs font-medium text-red-500">⚠️ Require immediate restocking</div>
-          </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Main Content Card - Inventory Status Table */}
@@ -241,7 +246,7 @@ export default function AnalyticsDashboard({
               {/* Total Value Pill */}
               <div className="inline-flex items-center px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                 <span className="text-sm font-medium text-gray-600 mr-2">Viewing inventory for:</span>
-                <span className="text-sm font-bold text-emerald-500">{selectedShop}</span>
+                <span className="text-sm font-bold text-orange-600">{selectedShop}</span>
               </div>
 
               {/* Actions */}
@@ -264,7 +269,7 @@ export default function AnalyticsDashboard({
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                       >
                         All Shops
-                        {selectedShop === 'All Shops' && <Check className="w-4 h-4 text-emerald-500" />}
+                        {selectedShop === 'All Shops' && <Check className="w-4 h-4 text-orange-500" />}
                       </button>
                       {shops.map((shop) => (
                         <button
@@ -273,7 +278,7 @@ export default function AnalyticsDashboard({
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                         >
                           {shop.name}
-                          {selectedShop === shop.name && <Check className="w-4 h-4 text-emerald-500" />}
+                          {selectedShop === shop.name && <Check className="w-4 h-4 text-orange-500" />}
                         </button>
                       ))}
                     </div>
@@ -301,7 +306,7 @@ export default function AnalyticsDashboard({
                           <select
                             value={tempStatusFilter}
                             onChange={(e) => setTempStatusFilter(e.target.value)}
-                            className="w-full px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="w-full px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500"
                           >
                             <option>All Statuses</option>
                             <option>In Stock</option>
@@ -312,7 +317,7 @@ export default function AnalyticsDashboard({
 
                         <button
                           onClick={handleFilterApply}
-                          className="w-full mt-2 px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+                          className="w-full mt-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
                         >
                           Apply Filters
                         </button>
@@ -325,82 +330,29 @@ export default function AnalyticsDashboard({
           </div>
 
           {/* Table */}
-          <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-50/50 border-y border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock Qty</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-200">
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{product.price}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
-                      <td className="px-6 py-3 whitespace-nowrap">
-                        <StatusBadge status={product.status} />
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="relative inline-block" ref={(el) => actionDropdownRefs.current[product.id] = el}>
-                          <button
-                            onClick={() => toggleActionDropdown(product.id)}
-                            className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            <MoreVertical className="w-5 h-5" />
-                          </button>
-
-                          {openActionDropdown === product.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-20">
-                              <button
-                                onClick={() => handleViewProduct(product)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Eye className="w-4 h-4" />
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => handleEditProduct(product)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Edit Product
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(product)}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete Product
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 border-b border-gray-200">
-                      No products found matching your filters.
-                    </td>
-                  </tr>
-                )}
-                {/* Empty rows to match the look of the table in the image if needed, but data is better */}
-                {[1, 2, 3, 4].map((i) => (
-                  <tr key={`empty-${i}`} className="h-16 border-b border-gray-200">
-                    <td colSpan="6" className=""></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="w-full">
+            <ProductTable
+              products={filteredProducts}
+              selectedIds={selectedIds}
+              onSelectIds={setSelectedIds}
+              onView={(id) => {
+                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                if (p) handleViewProduct(p);
+              }}
+              onEdit={(id) => {
+                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                if (p) handleEditProduct(p);
+              }}
+              onDelete={(id) => {
+                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                if (p) handleDeleteProduct(p);
+              }}
+              pagination={{
+                page: 1, // Simple pagination for now as Dashboard seems single page or handled externally?
+                limit: 100, // Show all filtered
+                total: filteredProducts.length
+              }}
+            />
           </div>
 
           {/* Pagination */}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List, Folder, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List, Folder, CheckCircle, XCircle, Search } from "lucide-react";
 import { fetchCategories, deleteCategory } from "@/features/categories/categoriesSlice";
 import { canManageCategories, hasPermission } from "@/lib/permissions";
 import CategoryTable from "./CategoryTable";
@@ -226,48 +226,56 @@ export default function CategoryList() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search categories..."
+                  className="w-full sm:w-72 pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                />
+              </div>
+
               {selectedIds.length > 0 && canManage && (
-                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-sm">
                   <Trash2 size={18} /> Delete ({selectedIds.length})
                 </button>
               )}
 
-              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50 transition shadow-sm text-gray-700">
                 <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh
               </button>
 
-              {/* <button onClick={() => setShowFilterModal(true)} className="relative flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                <Filter size={18} /> Filters
-                {activeFiltersCount > 0 && <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFiltersCount}</span>}
-              </button> */}
-
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                <Download size={18} /> Export
+              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition shadow-sm text-gray-700">
+                <Download size={18} />
               </button>
 
-              <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
-                <button onClick={() => setViewMode("table")} className={`px-3 py-2 ${viewMode === "table" ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}><List size={18} /></button>
-                <button onClick={() => setViewMode("grid")} className={`px-3 py-2 ${viewMode === "grid" ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}><Grid size={18} /></button>
+              <div className="flex border border-gray-300 rounded-full overflow-hidden p-0.5">
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`p-2 rounded-full transition-all ${viewMode === "table" ? "bg-orange-500 text-white shadow-sm" : "hover:bg-gray-100 text-gray-600"}`}
+                >
+                  <List size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-orange-500 text-white shadow-sm" : "hover:bg-gray-100 text-gray-600"}`}
+                >
+                  <Grid size={18} />
+                </button>
               </div>
 
               {/* Allow shop workers to add Level-3 categories; Super Admins can add any level */}
               <button
                 onClick={handleAddNew}
-                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 shadow-md"
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full hover:from-orange-600 hover:to-orange-700 transition shadow-sm font-medium"
               >
                 <Plus size={18} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
               </button>
             </div>
-          </div>
-
-          <div className="mt-4">
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search categories..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            />
           </div>
 
           {activeFiltersCount > 0 && (

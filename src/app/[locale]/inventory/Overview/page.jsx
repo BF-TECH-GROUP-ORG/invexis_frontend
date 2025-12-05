@@ -27,16 +27,33 @@ export default function DashboardPage() {
         // TODO: Get real company ID from context/auth
         const companyId = 'COMPANY_123';
 
-        const [salesData, productsData, shopsData] = await Promise.all([
+        const [salesResult, productsResult, shopsResult] = await Promise.allSettled([
           getSalesHistory(companyId),
           getProducts({ limit: 1000 }), // Fetch enough products for stats
           getAllShops()
         ]);
 
-        const sales = salesData?.data || salesData || [];
-        const products = productsData?.products || productsData || [];
-        const fetchedShops = shopsData || [];
+        const sales = salesResult.status === 'fulfilled' ? (salesResult.value?.data || salesResult.value || []) : [];
+
+        // Extract products from various possible response structures
+        let products = [];
+        if (productsResult.status === 'fulfilled') {
+          const data = productsResult.value;
+          if (Array.isArray(data)) {
+            products = data;
+          } else if (Array.isArray(data?.products)) {
+            products = data.products;
+          } else if (Array.isArray(data?.data)) {
+            products = data.data;
+          } else if (Array.isArray(data?.items)) {
+            products = data.items;
+          }
+        }
+
+        const fetchedShops = shopsResult.status === 'fulfilled' ? (shopsResult.value || []) : [];
         setShops(fetchedShops);
+
+        console.log('Fetched products:', products.length, 'items');
 
         // Calculate Inventory Stats
         let totalStockQuantity = 0;
@@ -106,7 +123,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
