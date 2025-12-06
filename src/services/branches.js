@@ -1,18 +1,17 @@
 const { default: axios } = require("axios");
 
-const BRANCH_API_URL = process.env.NEXT_PUBLIC_BRANCHES_API_URL;
+const BRANCH_API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const getBranches = async (companyId) => {
     try {
 
-        const response = await axios.get(`${BRANCH_API_URL}/?companyId=${companyId}`,
+        const response = await axios.get(`${BRANCH_API_URL}/shop/?companyId=${companyId}`,
             {
                 headers: {
                     "ngrok-skip-browser-warning": "true",
                 },
             }
         );
-
         console.log("Branches fetched:", response.data);
         return response.data;
     } catch (error) {

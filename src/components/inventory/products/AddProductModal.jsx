@@ -1,4 +1,3 @@
-// src/components/inventory/products/AddProductModal.jsx
 "use client";
 
 import { useState } from "react";

@@ -31,15 +31,7 @@ export const AuthService = {
     }
   },
 
-  loginWithGoogle: () => {
-    // Use next-auth's client signIn where available, else fallback to backend redirect
-    try {
-      import("next-auth/react").then(({ signIn }) => signIn("google"));
-    } catch (e) {
-      const base = process.env.NEXT_PUBLIC_API_URL;
-      window.location.href = `${base}/auth/google`;
-    }
-  },
+  // Google auth removed — handled only by Credentials/NextAuth now
 
   register: async (userData) => {
     try {

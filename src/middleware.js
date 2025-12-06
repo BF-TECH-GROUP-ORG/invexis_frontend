@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "next-auth/middleware";
+import { getAllowedRolesForPath } from "./lib/rbac";
 
 const PUBLIC_PATHS = [
   "/auth/login",
@@ -7,7 +8,6 @@ const PUBLIC_PATHS = [
   "/auth/reset-password",
   "/auth/verify-email",
   "/auth/otp-login",
-  "/auth/google-callback",
 ];
 
 export default withAuth(
@@ -49,15 +49,12 @@ export default withAuth(
       return NextResponse.redirect(loginUrl);
     }
 
-    // 4. RBAC: Protect admin-only routes (centralized list — edit this to add/remove admin paths)
-    const ADMIN_ONLY_PATHS = [
-      
-      // add more admin-only prefixes here when needed
-    ];
-
-    if (ADMIN_ONLY_PATHS.some((p) => pathWithoutLocale.startsWith(p))) {
+    // 4. RBAC check — central mapping drives allowed roles for given path prefixes
+    const allowed = getAllowedRolesForPath(pathWithoutLocale);
+    if (allowed && Array.isArray(allowed) && allowed.length > 0) {
       const userRole = token?.user?.role;
-      if (userRole !== "super_admin" && userRole !== "admin") {
+      // company_admins always have full admin-like access, allow them
+      if (userRole !== "company_admin" && !allowed.includes(userRole)) {
         return NextResponse.redirect(
           new URL(`/${locale}/unauthorized`, req.url)
         );

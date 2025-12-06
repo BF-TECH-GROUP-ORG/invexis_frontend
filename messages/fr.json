@@ -60,9 +60,6 @@
       "subtitle": "Nous vérifions votre adresse e-mail...",
       "verifying": "Vérification..."
     },
-    "googleCallback": {
-      "title": "Connexion avec Google"
-    },
     "otp": {
       "request": {
         "title": "Demander un OTP",
@@ -222,30 +219,30 @@
     "title": "Conditions générales et politique de confidentialité",
     "description": "Veuillez consulter et accepter nos Conditions générales et notre Politique de confidentialité avant de continuer."
   },
-  "sales":{
-    "title":"Gérer et suivre tous les enregistrements de ventes",
-    "dashboard":"Tableau de bord",
-    "products":"Produits",
-    "list":"Liste",
-    "stockOut":"Sortie de stock",
-    "stockOutHistory":"Historique des sorties de stock",
-    "filter":"filtre",
+  "sales": {
+    "title": "Gérer et suivre tous les enregistrements de ventes",
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "list": "Liste",
+    "stockOut": "Sortie de stock",
+    "stockOutHistory": "Historique des sorties de stock",
+    "filter": "filtre",
     "export": "Exporter",
-  "sale": "Vente",
-  "productName": "Nom du produit",
-  "category": "Catégorie",
-  "unitPrice": "Prix unitaire",
-  "Returned": "Retourné",
-  "Discount": "Remise",
-  "date": "Date",
-  "totalValue": "Valeur totale",
-  "action": "Action",
-  "saleProducts": "Sortie de Produit du Stock",
-  "saleSubTitile": "Enregistrer les détails des produits quittant le magasin ou l'entrepôt",
-  "back": "Retour",
-  "Edit": "Modifier",
-  "Delete": "Supprimer",
-  "view": "Voir Plus"
+    "sale": "Vente",
+    "productName": "Nom du produit",
+    "category": "Catégorie",
+    "unitPrice": "Prix unitaire",
+    "Returned": "Retourné",
+    "Discount": "Remise",
+    "date": "Date",
+    "totalValue": "Valeur totale",
+    "action": "Action",
+    "saleProducts": "Sortie de Produit du Stock",
+    "saleSubTitile": "Enregistrer les détails des produits quittant le magasin ou l'entrepôt",
+    "back": "Retour",
+    "Edit": "Modifier",
+    "Delete": "Supprimer",
+    "view": "Voir Plus"
   },
   "reciept": {
     "quantitySold": "Quantité vendue",
@@ -277,7 +274,7 @@
     "paymentMethod": "Mode de paiement",
     "customerInformation": "Informations du Client"
   },
-  
+
   "debtsPage": {
     "title": "Suivi des Dettes et Remboursements",
     "subtitle": "Surveillez efficacement les dettes en cours et les échéances de remboursement.",
@@ -293,7 +290,7 @@
     "searchPlaceholder": "Rechercher par nom ou téléphone du débiteur...",
     "confirmCancelTitle": "Annuler la Dette",
     "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette dette ? Cette action est irréversible.",
-    "markPayed":"Marquer comme Payé"
+    "markPayed": "Marquer comme Payé"
   },
 
   "Debtstable": {
@@ -309,7 +306,4 @@
     "cleared": "Payée",
     "pending": "En Attente"
   }
-
-
-  
 }

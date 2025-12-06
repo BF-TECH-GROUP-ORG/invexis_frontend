@@ -1,4 +1,4 @@
-import ProfilePage from "@/components/ProfilePage";
+import ProfilePage from "@/components/pages/ProfilePage";
 import React from "react";
 
 export const metadata = {

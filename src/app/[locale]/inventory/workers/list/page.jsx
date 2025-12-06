@@ -1,5 +1,5 @@
 import WorkersListPage from "@/components/pages/WorkersListPage";
-import React from "react";
+import WorkersProtectedWrapper from "@/components/clients/WorkersProtectedWrapper";
 
 export const metadata = {
   title: "Workers List",
@@ -8,7 +8,7 @@ export const metadata = {
 const WorkersList = () => {
   return (
     <div>
-      <WorkersListPage />
+      <WorkersProtectedWrapper />
     </div>
   );
 };

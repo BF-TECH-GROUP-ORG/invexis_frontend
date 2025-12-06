@@ -68,7 +68,7 @@ const LoginPage = () => {
     setSubmitting(true);
     try {
       const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
+      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory/dashboard`;
 
       // Use next-auth credentials provider
       const result = await signIn("credentials", {
@@ -115,7 +115,7 @@ const LoginPage = () => {
             submitIcon={<HiArrowRight />}
             isLoading={submitting}
             error={error}
-            oauthOptions={["google", "otp"]}
+            oauthOptions={["otp"]}
             extraLinks={[
               {
                 href: `/${locale}/auth/signup`,

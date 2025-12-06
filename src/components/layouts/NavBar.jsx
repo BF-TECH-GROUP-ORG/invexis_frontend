@@ -106,8 +106,12 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
             )}
             <div className="relative">
               <Image
-                src="https://i.pinimg.com/736x/ba/bd/6f/babd6f62117554b8631508891fbe21f9.jpg"
-                alt="User Avatar"
+                src={
+                  user?.profilePicture ||
+                  user?.profileImage ||
+                  "/images/user1.jpeg"
+                }
+                alt={user?.username || "User Avatar"}
                 width={40}
                 height={40}
                 className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover ring-2 ring-orange-300"
@@ -148,9 +152,12 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
 
               <div className="p-8 text-center">
                 <Image
-                  // user?.profileImage ||
-                  src="https://i.pinimg.com/736x/ba/bd/6f/babd6f62117554b8631508891fbe21f9.jpg"
-                  alt="Avatar"
+                  src={
+                    user?.profilePicture ||
+                    user?.profileImage ||
+                    "/images/user1.jpeg"
+                  }
+                  alt={user?.username || "Avatar"}
                   width={120}
                   height={120}
                   className="w-30 h-30 rounded-full mx-auto ring-4 ring-orange-400"
