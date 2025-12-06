@@ -3,9 +3,9 @@ import * as productsService from '@/services/productsService';
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchAll',
-  async ({ page = 1, limit = 20, category, search } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 20, category, search, companyId } = {}, { rejectWithValue }) => {
     try {
-      const data = await productsService.getProducts({ page, limit, category, search });
+      const data = await productsService.getProducts({ page, limit, category, search, companyId });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -114,7 +114,7 @@ export const searchProducts = createAsyncThunk(
   }
 );
 
-const productsSlice = createSlice({ 
+const productsSlice = createSlice({
   name: 'products',
   initialState: {
     items: [],

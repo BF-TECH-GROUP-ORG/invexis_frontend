@@ -1,30 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Card,
-  CardHeader,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Avatar,
-  IconButton,
-  Tooltip,
-  Typography,
-  Chip,
-  Box,
-  Checkbox,
-  TextField,
-  FormControlLabel,
-  Switch,
-  TablePagination,
-  Select,
-  MenuItem,
-  InputAdornment,
-} from "@mui/material";
+import {Card,CardHeader,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Avatar,IconButton,Tooltip,Typography,Chip,Box,Checkbox,TextField,FormControlLabel,Switch,TablePagination,Select,MenuItem,InputAdornment,} from "@mui/material";
 import { HiDotsVertical, HiSearch } from "react-icons/hi";
 import IOSSwitch from "../shared/IosSwitch";
 import UsersPageHeader from "./UsersPageHeader";
@@ -117,7 +94,7 @@ export default function WorkersTable() {
   };
 
   return (
-    <Card sx={{ borderRadius: 3, boxShadow: "0 2px 10px rgba(0,0,0,0.01)" }}>
+    <div>
       <UsersPageHeader onAddUser={handleAddUser} />
 
       {/* 🔍 Top Controls */}
@@ -301,6 +278,6 @@ export default function WorkersTable() {
           rowsPerPageOptions={[5, 10, 25]}
         />
       </Box>
-    </Card>
+    </div>
   );
 }

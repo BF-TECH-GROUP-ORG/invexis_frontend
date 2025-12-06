@@ -412,115 +412,101 @@ const NewBranchPage = () => {
 
     return (
         <div>
-            <div className="flex  items-center justify-center space-x-4">
+            <div className="flex flex-col-reverse lg:flex-row gap-8 min-h-[600px] max-w-6xl mx-auto p-6">
+                {/* Main Form Area */}
+                <div className="flex-grow w-full lg:w-3/4">
+                    {renderStepContent(activeStep)}
 
-                {/* top stepper */}
-                <div>
-                    <div className="">
-                        <Box className="flex space-x-24">
-                            {steps.map((step, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        mb: 3,
-                                        cursor: "pointer",
-                                        opacity: index > activeStep ? 0.5 : 1,
-                                    }}
-                                    onClick={() => {
-                                        if (index < activeStep || (index === activeStep + 1 && validateStep(activeStep))) {
-                                            setActiveStep(index);
-                                        }
-                                    }}
-                                >
-                                    <Box
-                                        sx={{
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: "50%",
-                                            bgcolor: index === activeStep ? "#FF6D00" : "#fff",
-                                            color: index === activeStep ? "#fff" : "#666",
-                                            border: index === activeStep ? "none" : "2px solid #e0e0e0",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            fontWeight: "600",
-                                            fontSize: "16px",
-                                            mr: 2,
-                                            flexShrink: 0,
-                                            transition: "all 0.3s ease"
-                                        }}
-                                    >
-                                        {index + 1}
-                                    </Box>
-                                    <Box>
-                                        <Typography
-                                            variant="body2"
-                                            fontWeight={index === activeStep ? "600" : "500"}
-                                            sx={{ color: index === activeStep ? "#000" : "#666" }}
-                                        >
-                                            {step.label}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            sx={{ color: "#999" }}
-                                        >
-                                            {step.description}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Box>
-                    </div>
-
-                    {/* Main Form Area */}
-                    <div>
-                        {renderStepContent(activeStep)}
-
-                        {/* Navigation Buttons */}
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, pt: 3, borderTop: "1px solid #e0e0e0" }}>
+                    {/* Navigation Buttons */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, pt: 3, borderTop: "1px solid #e0e0e0" }}>
+                        <Button
+                            disabled={activeStep === 0 || loading}
+                            onClick={handleBack}
+                            variant="outlined"
+                            sx={{ minWidth: 120 }}
+                        >
+                            Back
+                        </Button>
+                        {activeStep === steps.length - 1 ? (
                             <Button
-                                disabled={activeStep === 0 || loading}
-                                onClick={handleBack}
-                                variant="outlined"
-                                sx={{ minWidth: 120 }}
+                                variant="contained"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                sx={{
+                                    bgcolor: "#FF6D00",
+                                    "&:hover": { bgcolor: "#E65100" },
+                                    minWidth: 120
+                                }}
                             >
-                                Back
+                                {loading ? <CircularProgress size={24} color="inherit" /> : "Create Branch"}
                             </Button>
-                            {activeStep === steps.length - 1 ? (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    sx={{
-                                        bgcolor: "#FF6D00",
-                                        "&:hover": { bgcolor: "#E65100" },
-                                        minWidth: 120
-                                    }}
-                                >
-                                    {loading ? <CircularProgress size={24} color="inherit" /> : "Create Branch"}
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleNext}
-                                    sx={{
-                                        bgcolor: "#FF6D00",
-                                        "&:hover": { bgcolor: "#E65100" },
-                                        minWidth: 120
-                                    }}
-                                >
-                                    Next
-                                </Button>
-                            )}
-                        </Box>
-                    </div>
-
+                        ) : (
+                            <Button
+                                variant="contained"
+                                onClick={handleNext}
+                                sx={{
+                                    bgcolor: "#FF6D00",
+                                    "&:hover": { bgcolor: "#E65100" },
+                                    minWidth: 120
+                                }}
+                            >
+                                Next
+                            </Button>
+                        )}
+                    </Box>
                 </div>
-                {/* Vertical Stepper Sidebar */}
 
+                {/* Divider */}
+                <div className="w-full h-px lg:w-px lg:h-auto bg-gray-200 my-4 lg:my-0 lg:mx-4"></div>
 
+                {/* Right Stepper */}
+                <div className="w-full lg:w-1/4 lg:min-w-[250px]">
+                    <Box className="flex flex-row lg:flex-col space-x-4 lg:space-x-0 lg:space-y-8 sticky top-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                        {steps.map((step, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    cursor: "pointer",
+                                    opacity: index > activeStep ? 0.5 : 1,
+                                    minWidth: { xs: "fit-content", lg: "auto" }
+                                }}
+                                onClick={() => {
+                                    if (index < activeStep || (index === activeStep + 1 && validateStep(activeStep))) {
+                                        setActiveStep(index);
+                                    }
+                                }}
+                            >
+                                <div
+                                    className={`
+                                        w-10 h-10 rounded-full flex items-center justify-center font-semibold text-base mr-3 flex-shrink-0 transition-all duration-300
+                                        ${index === activeStep
+                                            ? "bg-[#FF6D00] text-white ring-2 ring-[#FF6D00] ring-offset-2"
+                                            : "bg-white text-gray-500 border-2 border-gray-200"}
+                                    `}
+                                >
+                                    {index + 1}
+                                </div>
+                                <Box sx={{ display: { xs: "none", sm: "block" } }}>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight={index === activeStep ? "600" : "500"}
+                                        sx={{ color: index === activeStep ? "#000" : "#666" }}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{ color: "#999" }}
+                                    >
+                                        {step.description}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        ))}
+                    </Box>
+                </div>
             </div>
 
             {/* Success/Error Snackbar */}

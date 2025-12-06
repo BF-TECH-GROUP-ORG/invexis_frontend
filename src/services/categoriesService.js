@@ -6,7 +6,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_INVE
 
 const COMPANY = process.env.NEXT_PUBLIC_COMPANY_API_URL;
 
-const companyId = "02451e1b-9cc8-480a-ae22-bd247c54ad71";
+
 
 // Only send the ngrok skip header when the API base points to ngrok (helps avoid unnecessary CORS preflights)
 const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
@@ -50,6 +50,8 @@ export async function ParentCategories() {
 
 export async function getCategories(params = {}) {
   try {
+    const { companyId } = params;
+    if (!companyId) throw new Error("Company ID is required");
     const res = await axios.get(`${API_BASE}/categories/company/${companyId}/level3`, { headers: defaultHeaders });
     return res.data;
   } catch (err) {
@@ -59,6 +61,8 @@ export async function getCategories(params = {}) {
 
 export async function createCategory(payload) {
   try {
+    const { companyId } = payload;
+    if (!companyId) throw new Error("Company ID is required for creation");
     const res = await axios.post(`${API_BASE}/categories/company/${companyId}/level3`, payload, { headers: defaultHeaders });
     return res.data;
   } catch (err) {

@@ -34,12 +34,12 @@ const navItems = [
     path: "/inventory/dashboard",
     prefetch: true,
   },
-  {
-    title: "Analytics",
-    icon: <BarChart3 size={22} />,
-    path: "/inventory/analytics",
-    prefetch: true,
-  },
+  // {
+  //   title: "Analytics",
+  //   icon: <BarChart3 size={22} />,
+  //   path: "/inventory/analytics",
+  //   prefetch: true,
+  // },
   {
     title: "Reports",
     icon: <FileSpreadsheet size={22} />,
@@ -62,7 +62,7 @@ const navItems = [
     children: [
       { title: "Overview", path: "/inventory/Overview", prefetch: true },
       { title: "Products", path: "/inventory/products", prefetch: true },
-      {title: "Categories", path: "/inventory/categories", prefetch: true },
+      { title: "Categories", path: "/inventory/categories", prefetch: true },
       { title: "Reports", path: "/inventory/report", prefetch: true },
       { title: "Alerts", path: "/inventory/alerts", prefetch: true },
 
@@ -391,9 +391,8 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed overflow-auto inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${
-          expanded ? "w-64" : "w-16"
-}`}
+        className={`hidden md:block fixed overflow-auto inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
+          }`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
@@ -405,9 +404,8 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
           </button>
 
           <div
-            className={`overflow-auto transition-all ${
-              expanded ? "w-40" : "w-0"
-            }`}
+            className={`overflow-auto transition-all ${expanded ? "w-40" : "w-0"
+              }`}
           >
             <span className="text-xl font-bold text-gray-900">
               INVEX<span className="text-orange-500 font-extrabold">iS</span>
@@ -416,13 +414,12 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
         </div>
 
         {/* NAVIGATION */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-8">
+        <nav className={`flex-1 overflow-y-auto py-4 space-y-8 ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${
-                expanded ? "" : "opacity-0"
-              }`}
+              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+                }`}
             >
               Overview
             </h3>
@@ -435,7 +432,7 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                 className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
                   ? "bg-orange-500 text-white"
                   : "text-gray-700 hover:bg-orange-50"
-                  }`}
+                  } ${expanded ? "" : "justify-center"}`}
               >
                 {item.icon}
                 {expanded && <span>{item.title}</span>}
@@ -446,9 +443,8 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
           {/* MANAGEMENT */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${
-                expanded ? "" : "opacity-0"
-              }`}
+              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+                }`}
             >
               Management
             </h3>
@@ -467,10 +463,10 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                     <Link
                       href={`/${locale}${item.path}`}
                       prefetch={item.prefetch}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                        ? "bg-orange-500 text-white"
+                      className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
+                        ? "border-orange-500 border-l-3 text-orange-500"
                         : "text-gray-700 hover:bg-orange-50"
-                        }`}
+                        } ${expanded ? "" : "justify-center"}`}
                     >
                       {item.icon}
                       {expanded && <span>{item.title}</span>}
@@ -489,14 +485,12 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                               : [...prev, item.title]
                           )
                         }
-                        className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
+                        className={`relative flex items-center ${expanded ? "justify-between" : "justify-center"} px-3 py-3  cursor-pointer transition ${parentActive
                           ? "border-orange-500 border-l-3 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
-                        {/* {parentActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full"></span>
-                        )} */}
+
 
                         <div className="flex items-center gap-3">
                           {item.icon}
@@ -506,9 +500,8 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                         {expanded && (
                           <ChevronDown
                             size={18}
-                            className={`${
-                              openMenus.includes(item.title) ? "rotate-180" : ""
-                            }`}
+                            className={`${openMenus.includes(item.title) ? "rotate-180" : ""
+                              }`}
                           />
                         )}
                       </div>
@@ -517,17 +510,16 @@ export default function SideBar({ expanded: controlledExpanded, setExpanded: set
                       {expanded &&
                         item.children &&
                         openMenus.includes(item.title) && (
-                          <div className="ml-10 mt-2 border-l-2 border-orange-200 pl-4 space-y-1">
+                          <div className="ml-5 mt-2  border-orange-200 pl-4 space-y-1">
                             {item.children.map((child) => (
                               <Link
                                 key={child.title}
                                 href={`/${locale}${child.path}`}
                                 prefetch={child.prefetch}
-                                className={`block px-3 py-2 text-sm rounded-md transition ${
-                                  isActive(child.path)
-                                    ? "bg-orange-500 text-white"
-                                    : "text-gray-600 hover:bg-gray-100"
-                                }`}
+                                className={`block px-3 py-2 text-sm  transition ${isActive(child.path)
+                                  ? "border-l border-orange-500 text-orange-500"
+                                  : "text-gray-600 hover:bg-gray-100"
+                                  }`}
                               >
                                 {child.title}
                               </Link>

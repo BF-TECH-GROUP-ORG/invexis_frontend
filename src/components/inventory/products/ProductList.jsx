@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Plus, Filter, Download, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { useSession } from "next-auth/react";
 import { fetchProducts, deleteProduct } from "@/features/products/productsSlice";
 import { fetchCategories } from "@/features/categories/categoriesSlice";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
@@ -16,6 +17,9 @@ import ProductStats from "./ProductStats";
 export default function ProductList() {
   const dispatch = useDispatch();
   const pathname = usePathname(); // Only this — no more useRouter()
+  const { data: session } = useSession();
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   // Redux state
   const productsState = useSelector((state) => state.products || {});
@@ -49,24 +53,29 @@ export default function ProductList() {
   };
 
   useEffect(() => {
-    dispatch(fetchProducts({ page: 1, limit: 20 }));
-    dispatch(fetchCategories());
-    dispatch(fetchWarehouses());
-  }, [dispatch]);
+    if (companyId) {
+      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
+      dispatch(fetchCategories({ companyId }));
+      dispatch(fetchWarehouses());
+    }
+  }, [dispatch, companyId]);
 
   useEffect(() => {
     const page = pagination?.page || 1;
-    dispatch(
-      fetchProducts({
-        page,
-        limit: 20,
-        search: filters.search || undefined,
-        category: filters.category || undefined,
-        warehouse: filters.warehouse || undefined,
-        status: filters.status || undefined,
-      })
-    );
-  }, [dispatch, pagination?.page, filters]);
+    if (companyId) {
+      dispatch(
+        fetchProducts({
+          page,
+          limit: 20,
+          search: filters.search || undefined,
+          category: filters.category || undefined,
+          warehouse: filters.warehouse || undefined,
+          status: filters.status || undefined,
+          companyId,
+        })
+      );
+    }
+  }, [dispatch, pagination?.page, filters, companyId]);
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this product?")) return;
@@ -160,7 +169,7 @@ export default function ProductList() {
 
             {/* Add Product — Pure <Link> */}
             <Link
-            prefetch={true}
+              prefetch={true}
               href={routes.add}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition shadow-sm"
             >
