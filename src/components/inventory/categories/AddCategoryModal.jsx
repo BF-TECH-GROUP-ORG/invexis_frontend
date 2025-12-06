@@ -18,7 +18,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
 
   const [formData, setFormData] = useState({
     name: editData?.name || "",
-    companyId: user?.company?._id || editData?.companyId || "",
+    companyId: user?.companies[0] || editData?.companyId || "",
     parentCategory: editData?.parentCategory?._id || editData?.parentCategory || "",
     description: editData?.description || "",
     attributes: editData?.attributes || []
@@ -38,17 +38,37 @@ export default function AddCategoryModal({ onClose, editData = null }) {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const data = await ParentCategories();
-        // Handle if data is array or { data: array }
-        const parents = Array.isArray(data) ? data : (data.data || []);
-        setParentOptions(parents.filter(cat => cat._id !== editData?._id));
+        let currentCompanyId = editData?.companyId;
+
+        if (!currentCompanyId && user) {
+          // Try user.company
+          if (user.company) {
+            currentCompanyId = typeof user.company === 'string' ? user.company : (user.company._id || user.company.id);
+          }
+          // Try user.companies array if still not found
+          if (!currentCompanyId && user.companies && Array.isArray(user.companies) && user.companies.length > 0) {
+            const companyObj = user.companies[0];
+            currentCompanyId = typeof companyObj === 'string' ? companyObj : (companyObj._id || companyObj.id);
+          }
+        }
+
+        console.log("Fetching parents for company:", currentCompanyId, "User object:", user);
+
+        if (currentCompanyId) {
+          const data = await ParentCategories(currentCompanyId);
+          // Handle if data is array or { data: array }
+          const parents = Array.isArray(data) ? data : (data.data || []);
+          setParentOptions(parents.filter(cat => cat._id !== editData?._id));
+        } else {
+          console.log("No company ID found in user object or editData");
+        }
       } catch (error) {
         console.error("Error fetching parent categories:", error);
         // toast.error("Failed to load parent categories");
       }
     };
     fetchParents();
-  }, [editData?._id]);
+  }, [editData?._id, user?.company?._id]);
 
   const addOption = () => {
     if (optionInput.trim() && !newAttribute.options.includes(optionInput.trim())) {

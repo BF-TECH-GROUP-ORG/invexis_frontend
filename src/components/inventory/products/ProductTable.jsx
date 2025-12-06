@@ -22,6 +22,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Package } from "lucide-react";
 
 export default function ProductTable({
   products = [],
@@ -82,10 +83,37 @@ export default function ProductTable({
 
   const rows = products || [];
 
-  // Determine pagination values (MUI expects count, page, rowsPerPage)
   const page = pagination.page ? Math.max(0, (pagination.page || 1) - 1) : 0;
   const rowsPerPage = pagination.limit || 20;
   const total = pagination.total || rows.length;
+
+  // Status badge component
+  const StatusBadge = ({ status, stock }) => {
+    const isActive = status === "active" || status === "in_stock" || stock > 0;
+    const isInactive = status === "inactive" || status === "out_of_stock" || stock === 0;
+
+    if (isActive) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          • Active
+        </span>
+      );
+    }
+
+    if (isInactive) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          • Inactive
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        {status}
+      </span>
+    );
+  };
 
   return (
     <div>
@@ -99,14 +127,14 @@ export default function ProductTable({
                 onChange={handleSelectAll}
               />
             </TableCell>
-            <TableCell>Product</TableCell>
-            <TableCell>SKU</TableCell>
+            <TableCell>Product name</TableCell>
             <TableCell>Category</TableCell>
-            <TableCell align="right">Price</TableCell>
-            <TableCell align="right">Stock</TableCell>
-            <TableCell>Warehouse</TableCell>
+            <TableCell>Unit price</TableCell>
+            <TableCell align="center">In stock</TableCell>
+            <TableCell>Discount</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell align="center">Actions</TableCell>
+            <TableCell>Total Value</TableCell>
+            <TableCell align="center">Action</TableCell>
           </TableRow>
         </TableHead>
 
@@ -114,12 +142,19 @@ export default function ProductTable({
           {rows.map((product) => {
             const id = product._id || product.id;
             const name = product.name || product.ProductName || "Unnamed";
-            const sku = product.sku || product.SKU || "N/A";
             const category = product.category?.name || product.category || product.Category || "Uncategorized";
-            const price = (product.pricing?.basePrice ?? product.price ?? product.UnitPrice ?? 0).toFixed ? Number(product.pricing?.basePrice ?? product.price ?? product.UnitPrice ?? 0).toFixed(2) : (product.pricing?.basePrice ?? product.price ?? product.UnitPrice ?? 0);
+            const basePrice = product.pricing?.basePrice ?? product.price ?? product.UnitPrice ?? 0;
+            const salePrice = product.pricing?.salePrice ?? 0;
             const stock = product.inventory?.quantity ?? product.stock ?? 0;
-            const warehouse = product.warehouse?.name || product.warehouse || product.Warehouse || "-";
-            const status = product.status || product.availability || (stock > 0 ? "in_stock" : "out_of_stock");
+            const status = product.status || product.availability || (stock > 0 ? "active" : "inactive");
+
+            // Calculate discount percentage
+            const discountPercent = salePrice > 0 && basePrice > 0
+              ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+              : 0;
+
+            // Calculate total value (price * stock)
+            const totalValue = basePrice * stock;
 
             return (
               <TableRow key={id} hover>
@@ -130,32 +165,73 @@ export default function ProductTable({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     {product.images && product.images[0] && product.images[0].url ? (
-                      <div className="w-12 h-12 relative rounded overflow-hidden">
+                      <div className="w-10 h-10 relative rounded overflow-hidden bg-gray-100 flex-shrink-0">
                         <Image
                           src={product.images[0].url}
                           alt={name}
                           fill
-                          sizes="48px"
+                          sizes="40px"
                           className="object-cover"
                           unoptimized={product.images[0].url.includes('cdn.example.com')}
                         />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 bg-white rounded flex items-center justify-center">#</div>
+                      <div className="w-10 h-10 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
+                        <Package size={20} className="text-orange-600" />
+                      </div>
                     )}
-                    <div>
-                      <div className="font-medium">{name}</div>
-                      <div className="text-xs text-gray-500">{product.brand || ''}</div>
+                    <div className="min-w-0">
+                      <div className="font-medium text-gray-900 truncate">{name}</div>
+                      {product.brand && (
+                        <div className="text-xs text-gray-500 truncate">{product.brand}</div>
+                      )}
                     </div>
                   </div>
                 </TableCell>
 
-                <TableCell>{sku}</TableCell>
-                <TableCell>{category}</TableCell>
-                <TableCell align="right">${price}</TableCell>
-                <TableCell align="right">{stock}</TableCell>
-                <TableCell>{warehouse}</TableCell>
-                <TableCell>{status.replaceAll('_', ' ')}</TableCell>
+                <TableCell>
+                  <span className="text-sm text-gray-700">{category}</span>
+                </TableCell>
+
+                <TableCell>
+                  <span className="font-medium text-gray-900">
+                    {basePrice.toLocaleString('en-US', {
+                      style: 'currency',
+                      currency: product.pricing?.currency || 'RWF',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    })}
+                  </span>
+                </TableCell>
+
+                <TableCell align="center">
+                  <span className="font-semibold text-gray-900">{stock}</span>
+                </TableCell>
+
+                <TableCell>
+                  {discountPercent > 0 ? (
+                    <span className="text-sm font-medium text-orange-600">
+                      {discountPercent}%
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  <StatusBadge status={status} stock={stock} />
+                </TableCell>
+
+                <TableCell>
+                  <span className="font-medium text-gray-900">
+                    {totalValue.toLocaleString('en-US', {
+                      style: 'currency',
+                      currency: product.pricing?.currency || 'RWF',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    })}
+                  </span>
+                </TableCell>
 
                 <TableCell align="center">
                   <IconButton size="small" onClick={(e) => openMenu(e, id)}>

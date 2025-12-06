@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { createDocument, updateDocument } from "@/Data/dataSlice";
+import { createDocument, updateDocument } from "@/features/documents/dataSlice";
 
 export default function DocumentModal({ mode, document, onClose }) {
   const dispatch = useDispatch();
@@ -40,7 +40,7 @@ export default function DocumentModal({ mode, document, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const dataToSend = {
       ...formData,
       amount: Number(formData.amount),
