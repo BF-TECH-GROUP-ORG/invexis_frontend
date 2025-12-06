@@ -19,7 +19,7 @@ import {
   HiKey,
 } from "react-icons/hi2";
 import { HiEyeOff } from "react-icons/hi";
-import { FaGoogle, FaApple } from "react-icons/fa";
+import { FaApple } from "react-icons/fa";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import SettingsDropdown from "./SettingsDropdown";
@@ -237,27 +237,7 @@ export default function FormWrapper({
 
       {/* OAuth + Phone + OTP Authentication */}
       <div className="flex justify-center gap-4 flex-wrap">
-        {oauthOptions.includes("google") && (
-          <IconButton
-            onClick={() => {
-              // Use NextAuth Google provider if configured
-              try {
-                // eslint-disable-next-line no-undef
-                window?.next && window?.next.auth ? null : null;
-              } catch (e) {}
-              // Use the next-auth client helper to start the Google sign in flow
-              import("next-auth/react").then(({ signIn }) => signIn("google"));
-            }}
-            sx={{
-              borderRadius: "50%",
-              border: "1px solid #e0e0e0",
-              width: "50px",
-              height: "50px",
-            }}
-          >
-            <FaGoogle className="text-xl text-red-500" />
-          </IconButton>
-        )}
+        {/* Google OAuth option removed — intentionally omitted */}
         {oauthOptions.includes("apple") && (
           <IconButton
             sx={{

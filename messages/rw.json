@@ -60,9 +60,6 @@
       "subtitle": "Turi kugenzura aderesi ya imeyili yawe...",
       "verifying": "Kugenzura..."
     },
-    "googleCallback": {
-      "title": "Kwinjira ukoresheje Google"
-    },
     "otp": {
       "request": {
         "title": "Saba OTP",
@@ -222,43 +219,43 @@
     "title": "Amategeko & Itegeko ry'Ibanga",
     "description": "Nyamuneka soma kandi wemere Amategeko yacu & Amabwiriza hamwe Itegeko ry'Ibanga mbere yo kuendelea."
   },
-  "sales":{
-    "title":"Cunga kandi Ukurikirane Amakuru yose y'Ubucuruzi",
-    "dashboard":"Dashibodi",
-    "products":"Ibicuruzwa",
-    "list":"Urutonde",
-    "stockOut":"Gusohora Imbiko",
-    "stockOutHistory":"Amateka yo Gusohora Imbiko",
-    "filter":"Akayunguruzo",
-  "export": "Kohereza hanze",
-  "sale": "Gucuruza",
-  "productName": "Izina ry'ibicuruzwa",
-  "category": "Icyiciro",
-  "unitPrice": "Igiciro kuri buri kimwe",
-  "Returned": "Byasubijwe",
-  "Discount": "Igabanyabiciro",
-  "date": "Itariki",
-  "totalValue": "Agaciro k'ibicuruzwa byose",
-  "action": "Igikorwa",
-  "saleProducts": "Gusohora Ibicuruzwa muri Stok",
-  "saleSubTitile": "Andika ibisobanuro by'ibicuruzwa bisohoka mu iduka cyangwa mu bubiko",
-  "back": "Subira inyuma",
-  "Edit": "Hindura",
-  "Delete": "Siba",
-  "view": "Reba Byinshi"
+  "sales": {
+    "title": "Cunga kandi Ukurikirane Amakuru yose y'Ubucuruzi",
+    "dashboard": "Dashibodi",
+    "products": "Ibicuruzwa",
+    "list": "Urutonde",
+    "stockOut": "Gusohora Imbiko",
+    "stockOutHistory": "Amateka yo Gusohora Imbiko",
+    "filter": "Akayunguruzo",
+    "export": "Kohereza hanze",
+    "sale": "Gucuruza",
+    "productName": "Izina ry'ibicuruzwa",
+    "category": "Icyiciro",
+    "unitPrice": "Igiciro kuri buri kimwe",
+    "Returned": "Byasubijwe",
+    "Discount": "Igabanyabiciro",
+    "date": "Itariki",
+    "totalValue": "Agaciro k'ibicuruzwa byose",
+    "action": "Igikorwa",
+    "saleProducts": "Gusohora Ibicuruzwa muri Stok",
+    "saleSubTitile": "Andika ibisobanuro by'ibicuruzwa bisohoka mu iduka cyangwa mu bubiko",
+    "back": "Subira inyuma",
+    "Edit": "Hindura",
+    "Delete": "Siba",
+    "view": "Reba Byinshi"
   },
-  "reciept":{
-  "quantitySold": "Umubare Wacurujwe",
-  "soldPrice": "Igiciro Cyacurujwe (RwF)",
-  "discount": "Igabanyabiciro",
-  "soldDate": "Itariki Yacurujweho",
-  "isReturned": "Byasubijwe?",
-  "warranty": "Icyemezo cya garanti",
-  "buyerDetails": "Amakuru Y’umuguzi",
-  "buyer": "Umuguzi",
-  "buyerPhoneNumber": "Numero y’Umuguzi",
-  "print": "Sohora dokima",
-  "edit": "Hindura"
+  "reciept": {
+    "quantitySold": "Umubare Wacurujwe",
+    "soldPrice": "Igiciro Cyacurujwe (RwF)",
+    "discount": "Igabanyabiciro",
+    "soldDate": "Itariki Yacurujweho",
+    "isReturned": "Byasubijwe?",
+    "warranty": "Icyemezo cya garanti",
+    "buyerDetails": "Amakuru Y’umuguzi",
+    "buyer": "Umuguzi",
+    "buyerPhoneNumber": "Numero y’Umuguzi",
+    "print": "Sohora dokima",
+    "edit": "Hindura"
   },
   "debtsPage": {
     "title": "Umuyobozi w'Imyenda n'Igihembo",
@@ -275,7 +272,7 @@
     "searchPlaceholder": "Shakisha izina ry'umwenda cyangwa telefone...",
     "confirmCancelTitle": "Hagarika Imyenda",
     "confirmCancelMessage": "Urashaka koko guhagarika iyi myenda? Iyi ntambwe ntishobora gusubirwaho.",
-    "markPayed":"Shyira mu byishyuwe"
+    "markPayed": "Shyira mu byishyuwe"
   },
 
   "Debtstable": {
@@ -291,6 +288,4 @@
     "cleared": "Yishyuwe",
     "pending": "Itegereje"
   }
-
-
 }

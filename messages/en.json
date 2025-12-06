@@ -60,9 +60,6 @@
       "subtitle": "We are verifying your email address...",
       "verifying": "Verifying..."
     },
-    "googleCallback": {
-      "title": "Signing in with Google"
-    },
     "otp": {
       "request": {
         "title": "Request OTP",
@@ -227,45 +224,45 @@
     "title": "Terms & Privacy Policy",
     "description": "Please review and accept our Terms & Conditions and Privacy Policy before proceeding."
   },
-  "sales":{
-    "title":"Manage and Track All Sales Records",
-    "dashboard":"Dashboard",
-    "products":"Products",
-    "list":"List",
-    "stockOut":"Stock Out",
-    "stockOutHistory":"Stock-Out History",
-    "filter":"filter",
-    "export":"Export",
-    "sale":"Sale",
-    "productName":"Product Name",
-    "category":"Category",
-    "unitPrice":"Unit Price",
-    "Returned":"Returned",
-    "Discount":"Discount",
-    "date":"Date",
-    "totalValue":"Total Value",
-    "action":"Action",
-    "saleProducts":"Stock Out Product",
-    "saleSubTitile":"Record details for products leaving the store or warehouse",
+  "sales": {
+    "title": "Manage and Track All Sales Records",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "list": "List",
+    "stockOut": "Stock Out",
+    "stockOutHistory": "Stock-Out History",
+    "filter": "filter",
+    "export": "Export",
+    "sale": "Sale",
+    "productName": "Product Name",
+    "category": "Category",
+    "unitPrice": "Unit Price",
+    "Returned": "Returned",
+    "Discount": "Discount",
+    "date": "Date",
+    "totalValue": "Total Value",
+    "action": "Action",
+    "saleProducts": "Stock Out Product",
+    "saleSubTitile": "Record details for products leaving the store or warehouse",
     "back": "Back",
     "Edit": "Edit",
     "Delete": "Delete",
     "view": "View More"
   },
-  "reciept":{
-  "quantitySold": "Quantity Sold",
-  "soldPrice": "Sold Price (RwF)",
-  "discount": "Discount",
-  "soldDate": "Sold Date",
-  "isReturned": "Is Returned",
-  "warranty": "Warranty",
-  "buyerDetails": "Buyer Details",
-  "buyer": "Buyer",
-  "buyerPhoneNumber": "Buyer Phone Number",
-  "print": "Print",
-  "edit": "Edit"
-},
-"updateProduct": {
+  "reciept": {
+    "quantitySold": "Quantity Sold",
+    "soldPrice": "Sold Price (RwF)",
+    "discount": "Discount",
+    "soldDate": "Sold Date",
+    "isReturned": "Is Returned",
+    "warranty": "Warranty",
+    "buyerDetails": "Buyer Details",
+    "buyer": "Buyer",
+    "buyerPhoneNumber": "Buyer Phone Number",
+    "print": "Print",
+    "edit": "Edit"
+  },
+  "updateProduct": {
     "pageTitle": "Edit Sales",
     "pageSubtitle": "Update this sale’s information including product details, payment, and customer data.",
     "sectionCustomer": "Customer Information",
@@ -281,7 +278,7 @@
     "paymentMethod": "Payment Method",
     "customerInformation": "Customer Information"
   },
- 
+
   "debtsPage": {
     "title": "Liabilities & Repayment Tracker",
     "subtitle": "Monitor outstanding debts and repayment schedules efficiently.",
@@ -297,7 +294,7 @@
     "searchPlaceholder": "Search debtor name or phone...",
     "confirmCancelTitle": "Cancel Debt",
     "confirmCancelMessage": "Are you sure you want to cancel this debt? This action cannot be undone.",
-    "markPayed":"Mark as Paid"
+    "markPayed": "Mark as Paid"
   },
 
   "Debtstable": {
@@ -313,7 +310,4 @@
     "cleared": "Cleared",
     "pending": "Pending"
   }
-
-
-
 }

@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -115,18 +114,7 @@ const handler = NextAuth({
         }
       },
     }),
-    // Google OAuth provider (if env vars exist)
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            authorization: {
-              params: { scope: "openid email profile" },
-            },
-          }),
-        ]
-      : []),
+    // No external OAuth providers enabled (Google removed)
   ],
   callbacks: {
     async jwt({ token, user, account, profile }) {
@@ -145,21 +133,7 @@ const handler = NextAuth({
         };
       }
 
-      // Google OAuth sign in
-      if (account?.provider === "google") {
-        return {
-          ...token,
-          accessToken: account.access_token || token.accessToken,
-          user: token.user || {
-            name: profile?.name,
-            email: profile?.email,
-            role: token.user?.role,
-          },
-          accessTokenExpires: account.expires_at
-            ? account.expires_at * 1000
-            : Date.now() + 15 * 60 * 1000,
-        };
-      }
+      // For non-Credentials providers we fall back to refresh handling below
 
       // Token still valid
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {

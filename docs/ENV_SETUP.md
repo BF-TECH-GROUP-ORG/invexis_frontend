@@ -6,7 +6,7 @@ Create a `.env.local` file in the root directory with the following content:
 ```env
 NEXT_PUBLIC_API_URL=https://granitic-jule-haunting.ngrok-free.dev
 NEXT_PUBLIC_AUTH_API_URL=https://granitic-jule-haunting.ngrok-free.dev/api/auth
-NEXT_PUBLIC_GOOGLE_AUTH_URL=https://granitic-jule-haunting.ngrok-free.dev/api/auth/google/signup
+# (Google OAuth removed from this project)
 ```
 
 ## Important Notes
