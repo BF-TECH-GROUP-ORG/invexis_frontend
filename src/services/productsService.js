@@ -28,7 +28,7 @@ export async function getProducts({ page = 1, limit = 20, category, search, comp
     if (search) params.search = search;
     if (companyId) params.companyId = companyId;
 
-    const res = await axios.get(`${API_BASE}/inventory/v1/products`, { params, headers: defaultHeaders });
+    const res = await axios.get(`${API_BASE}/inventory/v1/companies/${companyId}/products`, { params, headers: defaultHeaders });
     return res.data;
   } catch (err) {
     throw err;

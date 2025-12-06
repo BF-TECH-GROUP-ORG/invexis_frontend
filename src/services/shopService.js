@@ -23,7 +23,10 @@ export const getAllShops = async () => {
         console.warn("Unexpected API response structure:", response.data);
         return [];
     } catch (error) {
-        console.error('Failed to fetch shops:', error.message);
+        // Only log warnings in development for 404 errors
+        if (process.env.NODE_ENV === 'development') {
+            console.warn('Failed to fetch shops:', error.response?.status === 404 ? '404 - Endpoint not found' : error.message);
+        }
         return [];
     }
 };

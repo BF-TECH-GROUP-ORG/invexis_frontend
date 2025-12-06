@@ -14,7 +14,7 @@ import {
   resetFilters,
   exportDocuments,
   selectCategories,
-} from "@/Data/dataSlice";
+} from "@/features/documents/dataSlice";
 
 export default function Controls({ onAddNew }) {
   const dispatch = useDispatch();
@@ -109,11 +109,10 @@ export default function Controls({ onAddNew }) {
           {/* Filters Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 border rounded-md flex items-center gap-2 transition-colors ${
-              hasActiveFilters
-                ? "bg-orange-50 border-orange-500 text-orange-700"
-                : "border-gray-300 hover:bg-gray-50"
-            }`}
+            className={`px-4 py-2 border rounded-md flex items-center gap-2 transition-colors ${hasActiveFilters
+              ? "bg-orange-50 border-orange-500 text-orange-700"
+              : "border-gray-300 hover:bg-gray-50"
+              }`}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -138,9 +137,8 @@ export default function Controls({ onAddNew }) {
           <div className="flex border border-gray-300 rounded-md overflow-hidden">
             <button
               onClick={() => dispatch(setViewMode("table"))}
-              className={`px-3 py-2 ${
-                viewMode === "table" ? "bg-orange-500 text-white" : "bg-white hover:bg-gray-50"
-              }`}
+              className={`px-3 py-2 ${viewMode === "table" ? "bg-orange-500 text-white" : "bg-white hover:bg-gray-50"
+                }`}
               title="Table View"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,9 +152,8 @@ export default function Controls({ onAddNew }) {
             </button>
             <button
               onClick={() => dispatch(setViewMode("grid"))}
-              className={`px-3 py-2 ${
-                viewMode === "grid" ? "bg-orange-500 text-white" : "bg-white hover:bg-gray-50"
-              }`}
+              className={`px-3 py-2 ${viewMode === "grid" ? "bg-orange-500 text-white" : "bg-white hover:bg-gray-50"
+                }`}
               title="Grid View"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -29,7 +29,7 @@ export default function StepMoreInfo({ formData, updateFormData }) {
       exit={{ opacity: 0, x: -50 }}
       className="space-y-6"
     >
-      <div className="bg-white p-6 rounded-xl border border-gray-200">
+      <div className="bg-white p-4 rounded-lg border border-gray-200">
         <h3 className="text-lg font-semibold mb-4">Product Attributes</h3>
         <p className="text-sm text-gray-500 mb-6">
           Add custom attributes like Material, Care Instructions, etc.
@@ -42,7 +42,7 @@ export default function StepMoreInfo({ formData, updateFormData }) {
                 type="text"
                 value={attr.name}
                 onChange={(e) => handleAttributeChange(index, "name", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 placeholder="Name (e.g. Material)"
               />
             </div>
@@ -51,13 +51,13 @@ export default function StepMoreInfo({ formData, updateFormData }) {
                 type="text"
                 value={attr.value}
                 onChange={(e) => handleAttributeChange(index, "value", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 placeholder="Value (e.g. 100% Cotton)"
               />
             </div>
             <button
               onClick={() => handleRemoveAttribute(index)}
-              className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition"
+              className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition"
             >
               <Trash2 size={20} />
             </button>
