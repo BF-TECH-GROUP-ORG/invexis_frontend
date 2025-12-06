@@ -1,8 +1,10 @@
-"use client";
+"use client"
 import { useRouter } from "next/navigation";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip
 } from "@mui/material";
+import { InputAdornment } from "@mui/material";
+import { HiSearch } from "react-icons/hi";  
 import { useLocale } from "next-intl";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import CloudDownloadRoundedIcon from "@mui/icons-material/CloudDownloadRounded";
@@ -241,7 +243,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
                 <InputLabel>{selectedColumnType === 'number' ? 'Filter amount' : 'Filter value'}</InputLabel>
                 {selectedColumnType === 'number' ? (
                     <TextField
-                        size="small"
+                        size="small"    
                         variant="outlined"
                         name="value"
                         value={filterCriteria.value}
@@ -447,7 +449,7 @@ const CompaniesTable = ({ initialRows = [] }) => {
     }, [search, activeFilter, rows]);
 
     return (
-        <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
+        <Paper sx={{border:"1px solid #ddd", width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
             <FilterPopover
                 anchorEl={filterAnchorEl}
                 onClose={handleCloseFilter}
@@ -476,17 +478,22 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 </Typography>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                   
                     <TextField
-                        size="small"
-                        variant="outlined"
-                        placeholder="Search…"
-                        sx={{ border: "2px orange solid", borderRadius: 2 }}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        InputProps={{
-                            startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-                        }}
-                    />
+                              placeholder="Search workers..."
+                              variant="outlined"
+                              size="small"
+                              value={search}
+                              onChange={(e) => setSearch(e.target.value)}
+                              sx={{ flex: 1, maxWidth: 300 }}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <HiSearch size={18} />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
 
                     <IconButton onClick={handleOpenFilter} variant="contained"  >
                         <FilterAltRoundedIcon
@@ -518,12 +525,12 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#1976d2" }}>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Branch Name</TableCell>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Location</TableCell>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Created By</TableCell>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Capacity</TableCell>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Status</TableCell>
-                            <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>Actions</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Branch Name</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Location</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Created By</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Capacity</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Status</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
 

@@ -11,10 +11,12 @@ import {
   Stepper,
   Step,
   StepLabel,
+  StepConnector,
   Card,
   InputAdornment,
   Select,
 } from "@mui/material";
+import Link from "next/link";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { useMutation } from "@tanstack/react-query";
 import { createWorker } from "@/services/workersService";
@@ -250,12 +252,14 @@ export default function AddWorkerForm() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", py: 4 }}>
-      <Card elevation={8} sx={{ maxWidth: 1100, width: "100%", borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: { xs: "column", lg: "row" }, mx: 2 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", py: 4 }} className="border-2 border-gray-200 rounded-xl" >
+      <div className="flex w-full items-center">
         <Box sx={{ flex: 1, p: { xs: 4, md: 6 }, bgcolor: "white", display: "flex", flexDirection: "column" }}>
           <Box sx={{ mb: 4 }}>
             <Typography variant="h4" fontWeight={700} color="#081422" sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}>Add New Worker</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>Complete all steps to create a new worker account</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>inventory /<span className="hover:text-orange-500 cursor-pointer font-bold  ">
+              <Link href={`/${locale}/inventory/workers/list`} prefetch={true} >workers</Link> </span>  / <span className="text-orange-500 cursor-pointer font-bold  ">Add-Worker</span> </Typography>
           </Box>
 
           <Box sx={{ flexGrow: 1, minHeight: 420 }}>{renderStepContent(activeStep)}</Box>
@@ -267,23 +271,91 @@ export default function AddWorkerForm() {
               disabled={createWorkerMutation.isLoading} sx={{
                 bgcolor: "#", "&:hover": { bgcolor: "#fe6600ff" }, borderRadius: "12px", textTransform: "none", px: 5,
                 py: 1.5,
-                fontWeight: 600, boxShadow: "0 4px 12px rgba(0, 168, 157, 0.3)"
+                fontWeight: 600,
               }}>{createWorkerMutation.isLoading ? "Creating..." : activeStep === stepLabels.length - 1 ? "Create Worker" : "Next"}</Button>
           </Box>
         </Box>
 
-        <Box sx={{ width: { xs: "100%", lg: 300 },  borderLeft: { lg: "1px solid #e0e0e0" }, borderTop: { xs: "1px solid #e0e0e0", lg: "none" }, p: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Stepper activeStep={activeStep} orientation="vertical" sx={{ width: "100%", "& .MuiStepLabel-label": { fontSize: "1.1rem", fontWeight: 600, color: "#081422", mt: 1 }, "& .MuiStepLabel-label.Mui-active": { color: "#fe6600ff", fontWeight: 700 }, "& .MuiStepLabel-label.Mui-completed": { color: "#fe6600ff" }, "& .MuiStepIcon-root": { width: 42, height: 42, fontSize: "1.4rem" }, "& .MuiStepIcon-root.Mui-active": { color: "#fe6600ff", fontWeight: "bold" }, "& .MuiStepIcon-root.Mui-completed": { color: "#fe6600ff" }, "& .MuiStepConnector-line": { borderLeftWidth: "3px", borderColor: "#", minHeight: "60px" }, "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": { borderColor: "#fe6600ff" }, "& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line": { borderColor: "#fe6600ff" } }}>
+        <Box
+          sx={{
+            width: { xs: "100%", lg: 500 },
+            borderTop: { xs: "1px solid #e0e0e0", lg: "none" },
+            py: { xs: 4, lg: 6 },
+            px: { xs: 2, lg: 0 },
+          }}
+        >
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            connector={
+              <StepConnector
+                sx={{
+                  "& .MuiStepConnector-line": {
+                    borderLeftWidth: "3px",
+                    borderColor: "#d0d0d0",
+                    minHeight: "40px",
+                    marginLeft: "30px"
+                  }
+                }}
+              />
+            }
+          >
             {stepLabels.map((label, index) => (
               <Step key={label} completed={activeStep > index}>
-                <StepLabel StepIconProps={{ sx: { "& .MuiStepIcon-text": { fontWeight: 700, fontSize: "1rem" } } }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{index + 1}. {label}</Typography>
+                <StepLabel
+                  StepIconComponent={() => (
+                    <Box
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: "50%",
+                        border: "3px solid",
+                        borderColor:
+                          index === activeStep
+                            ? "#fe6600"
+                            : index < activeStep
+                              ? "#fe6600"
+                              : "#d0d0d0",
+                        backgroundColor:
+                          index === activeStep ? "#fe6600" : "transparent",
+                        color: index === activeStep ? "white" : "#666",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.6rem",
+                        fontWeight: 700,
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      {index < activeStep ? "✓" : index + 1}
+                    </Box>
+                  )}
+                >
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "1.25rem",
+                        color: index <= activeStep ? "#081422" : "#888",
+                        mb: 0.5,
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#666", fontSize: "0.95rem" }}
+                    >
+                      Step {index + 1} of {stepLabels.length}
+                    </Typography>
+                  </Box>
                 </StepLabel>
               </Step>
-            ))}       
+            ))}
           </Stepper>
         </Box>
-      </Card>
-    </Box>
+      </div>
+    </div>
   );
 } 
