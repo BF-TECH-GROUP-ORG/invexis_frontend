@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { deleteProductApi } from '@/services/productsService';
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { deleteProductApi } from "@/services/productsService";
 import {
   ChevronDown,
   Filter,
@@ -17,10 +17,10 @@ import {
   MoreVertical,
   Eye,
   Edit,
-  Trash2
-} from 'lucide-react';
-import { toast, Toaster } from 'react-hot-toast';
-import ProductTable from '@/components/inventory/products/ProductTable';
+  Trash2,
+} from "lucide-react";
+import { toast, Toaster } from "react-hot-toast";
+import ProductTable from "@/components/inventory/products/ProductTable";
 
 export default function AnalyticsDashboard({
   products = [],
@@ -31,21 +31,27 @@ export default function AnalyticsDashboard({
     lowStockCount: 0,
     lowStockPercentage: 0,
     outOfStockCount: 0,
-    shopName: 'All Shops',
-    shopRevenue: 0
-  }
+    shopName: "All Shops",
+    shopRevenue: 0,
+  },
 }) {
-  const [selectedShop, setSelectedShop] = useState(shops.length > 0 ? (shops[0].name || shops[0]) : (stats.shopName || 'All Shops'));
+  const [selectedShop, setSelectedShop] = useState(
+    shops.length > 0 ? shops[0].name || shops[0] : stats.shopName || "All Shops"
+  );
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const [tempStatusFilter, setTempStatusFilter] = useState('All Statuses');
+  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [tempStatusFilter, setTempStatusFilter] = useState("All Statuses");
   const [selectedIds, setSelectedIds] = useState([]);
   const [openActionDropdown, setOpenActionDropdown] = useState(null);
   const actionDropdownRefs = useRef({});
 
   const today = new Date();
-  const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+  const formattedDate = `${today.getDate().toString().padStart(2, "0")}/${(
+    today.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}/${today.getFullYear()}`;
   const [currentDate] = useState(formattedDate);
 
   const shopDropdownRef = useRef(null);
@@ -53,14 +59,18 @@ export default function AnalyticsDashboard({
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (shopDropdownRef.current && !shopDropdownRef.current.contains(event.target)) {
+      if (
+        shopDropdownRef.current &&
+        !shopDropdownRef.current.contains(event.target)
+      ) {
         setIsShopDropdownOpen(false);
       }
       if (filterRef.current && !filterRef.current.contains(event.target)) {
         setIsFilterOpen(false);
       }
       if (openActionDropdown !== null) {
-        const currentDropdownRef = actionDropdownRefs.current[openActionDropdown];
+        const currentDropdownRef =
+          actionDropdownRefs.current[openActionDropdown];
         if (currentDropdownRef && !currentDropdownRef.contains(event.target)) {
           setOpenActionDropdown(null);
         }
@@ -84,9 +94,11 @@ export default function AnalyticsDashboard({
     toast.success("Filters applied successfully");
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesStatus = statusFilter === 'All Statuses' || product.status === statusFilter;
-    const matchesShop = selectedShop === 'All Shops' ||
+  const filteredProducts = products.filter((product) => {
+    const matchesStatus =
+      statusFilter === "All Statuses" || product.status === statusFilter;
+    const matchesShop =
+      selectedShop === "All Shops" ||
       product.shop === selectedShop ||
       product.warehouse === selectedShop ||
       product.shop?.name === selectedShop ||
@@ -96,18 +108,31 @@ export default function AnalyticsDashboard({
 
   const dynamicStats = {
     totalProducts: filteredProducts.length,
-    totalStockQuantity: filteredProducts.reduce((acc, product) => acc + (parseInt(product.stock) || 0), 0),
-    lowStockCount: filteredProducts.filter(product => product.status === 'Low Stock' || (parseInt(product.stock) > 0 && parseInt(product.stock) < 10)).length,
-    outOfStockCount: filteredProducts.filter(product => product.status === 'Out of Stock' || parseInt(product.stock) === 0).length,
+    totalStockQuantity: filteredProducts.reduce(
+      (acc, product) => acc + (parseInt(product.stock) || 0),
+      0
+    ),
+    lowStockCount: filteredProducts.filter(
+      (product) =>
+        product.status === "Low Stock" ||
+        (parseInt(product.stock) > 0 && parseInt(product.stock) < 10)
+    ).length,
+    outOfStockCount: filteredProducts.filter(
+      (product) =>
+        product.status === "Out of Stock" || parseInt(product.stock) === 0
+    ).length,
   };
 
-  dynamicStats.lowStockPercentage = dynamicStats.totalProducts > 0
-    ? Math.round((dynamicStats.lowStockCount / dynamicStats.totalProducts) * 100)
-    : 0;
+  dynamicStats.lowStockPercentage =
+    dynamicStats.totalProducts > 0
+      ? Math.round(
+          (dynamicStats.lowStockCount / dynamicStats.totalProducts) * 100
+        )
+      : 0;
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedIds(filteredProducts.map(p => p.id));
+      setSelectedIds(filteredProducts.map((p) => p.id));
     } else {
       setSelectedIds([]);
     }
@@ -115,7 +140,7 @@ export default function AnalyticsDashboard({
 
   const handleSelectOne = (id) => {
     if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter(sid => sid !== id));
+      setSelectedIds(selectedIds.filter((sid) => sid !== id));
     } else {
       setSelectedIds([...selectedIds, id]);
     }
@@ -124,20 +149,20 @@ export default function AnalyticsDashboard({
   const handleViewProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Viewing product: ${product.name}`);
-    console.log('View product:', product);
+    console.log("View product:", product);
   };
 
   const handleEditProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Editing product: ${product.name}`);
-    console.log('Edit product:', product);
+    console.log("Edit product:", product);
   };
 
   const handleDeleteProduct = (product) => {
     setOpenActionDropdown(null);
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
       toast.success(`Product deleted: ${product.name}`);
-      console.log('Delete product:', product);
+      console.log("Delete product:", product);
     }
   };
 
@@ -148,19 +173,23 @@ export default function AnalyticsDashboard({
   const StatusBadge = ({ status }) => {
     const getStatusStyle = (status) => {
       switch (status) {
-        case 'In Stock':
-          return 'bg-green-50 text-green-600 border border-green-100';
-        case 'Low Stock':
-          return 'bg-orange-50 text-orange-600 border border-orange-100';
-        case 'Out of Stock':
-          return 'bg-red-50 text-red-600 border border-red-100';
+        case "In Stock":
+          return "bg-green-50 text-green-600 border border-green-100";
+        case "Low Stock":
+          return "bg-orange-50 text-orange-600 border border-orange-100";
+        case "Out of Stock":
+          return "bg-red-50 text-red-600 border border-red-100";
         default:
-          return 'bg-gray-50 text-gray-600 border border-gray-100';
+          return "bg-gray-50 text-gray-600 border border-gray-100";
       }
     };
 
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(status)}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+          status
+        )}`}
+      >
         {status}
       </span>
     );
@@ -171,29 +200,51 @@ export default function AnalyticsDashboard({
       title: "Total Products",
       value: dynamicStats.totalProducts,
       Icon: Package,
-      delay: 0
+      color: "#3b82f6",
+      bgColor: "#eff6ff",
+      key: "total",
+      delay: 0,
     },
     {
       title: "Total Stock",
       value: dynamicStats.totalStockQuantity.toLocaleString(),
       Icon: TrendingUp,
-      delay: 0.1
+      color: "#10b981",
+      bgColor: "#ecfdf5",
+      key: "stock",
+      delay: 0.1,
     },
     {
       title: "Low Stock",
       value: dynamicStats.lowStockCount,
       Icon: AlertTriangle,
-      delay: 0.2
+      color: "#f59e0b",
+      bgColor: "#fef3c7",
+      key: "low_stock",
+      delay: 0.2,
     },
     {
       title: "Out of Stock",
       value: dynamicStats.outOfStockCount,
       Icon: () => (
-        <svg className="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       ),
-      delay: 0.3
+      color: "#ef4444",
+      bgColor: "#fee2e2",
+      key: "out_of_stock",
+      delay: 0.3,
     },
   ];
 
@@ -203,30 +254,44 @@ export default function AnalyticsDashboard({
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-2 sm:gap-0">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Inventory Management</h1>
-          <div className="text-sm font-medium text-gray-500">As of {currentDate}</div>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">
+            Inventory Management
+          </h1>
+          <div className="text-sm font-medium text-gray-500">
+            As of {currentDate}
+          </div>
         </div>
 
         {/* Metrics Cards - Clean Design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          {statCards.map((stat) => (
-            <div
-              key={stat.title}
-              className="border-2 border-[#d1d5db] rounded-2xl p-6 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-[#6b7280]">{stat.title}</h3>
-                  <p className="text-3xl font-bold text-[#081422] mt-2">
-                    {stat.value}
-                  </p>
-                </div>
-                <div className="p-3 bg-orange-50 rounded-xl">
-                  <stat.Icon size={24} className="text-[#ff782d]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {statCards.map((card) => {
+            const Icon = card.Icon;
+            return (
+              <div
+                key={card.key}
+                className="border-2 rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all cursor-pointer border-[#d1d5db]"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-[#6b7280] font-medium mb-1">
+                      {card.title}
+                    </p>
+                    <p className="text-2xl font-bold text-[#081422] mb-2">
+                      {card.value}
+                    </p>
+                  </div>
+                  {card.Icon && (
+                    <div
+                      className="p-3 rounded-xl shrink-0"
+                      style={{ backgroundColor: card.bgColor }}
+                    >
+                      <Icon size={24} style={{ color: card.color }} />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Main Content Card - Inventory Status Table */}
@@ -234,39 +299,56 @@ export default function AnalyticsDashboard({
           <div className="p-4 sm:p-6">
             {/* Title Section */}
             <div className="mb-6 sm:mb-8">
-              <h2 className="text-lg font-bold text-gray-900">Inventory Status Overview</h2>
-              <p className="text-sm text-gray-500 mt-1">Complete inventory tracking with stock levels and status</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Inventory Status Overview
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Complete inventory tracking with stock levels and status
+              </p>
             </div>
 
             {/* Toolbar Section */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 relative">
               {/* Total Value Pill */}
               <div className="w-full lg:w-auto inline-flex items-center px-4 sm:px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                <span className="text-sm font-medium text-gray-600 mr-2">Viewing inventory for:</span>
-                <span className="text-sm font-bold text-orange-600 truncate max-w-[150px]">{selectedShop}</span>
+                <span className="text-sm font-medium text-gray-600 mr-2">
+                  Viewing inventory for:
+                </span>
+                <span className="text-sm font-bold text-orange-600 truncate max-w-[150px]">
+                  {selectedShop}
+                </span>
               </div>
 
               {/* Actions */}
               <div className="w-full lg:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 relative">
                 {/* Shops Dropdown Trigger */}
-                <div className="relative w-full sm:w-auto" ref={shopDropdownRef}>
+                <div
+                  className="relative w-full sm:w-auto"
+                  ref={shopDropdownRef}
+                >
                   <button
                     onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
                     className="flex w-full sm:w-auto justify-between sm:justify-start items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 border sm:border-none p-3 sm:p-0 rounded-lg sm:rounded-none"
                   >
                     <span className="truncate">{selectedShop}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isShopDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isShopDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
 
                   {/* Dropdown Menu */}
                   {isShopDropdownOpen && (
                     <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                       <button
-                        onClick={() => handleShopSelect('All Shops')}
+                        onClick={() => handleShopSelect("All Shops")}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                       >
                         All Shops
-                        {selectedShop === 'All Shops' && <Check className="w-4 h-4 text-orange-500" />}
+                        {selectedShop === "All Shops" && (
+                          <Check className="w-4 h-4 text-orange-500" />
+                        )}
                       </button>
                       {shops.map((shop) => (
                         <button
@@ -275,7 +357,9 @@ export default function AnalyticsDashboard({
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                         >
                           {shop.name}
-                          {selectedShop === shop.name && <Check className="w-4 h-4 text-orange-500" />}
+                          {selectedShop === shop.name && (
+                            <Check className="w-4 h-4 text-orange-500" />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -297,14 +381,20 @@ export default function AnalyticsDashboard({
                   {/* Filter Popup */}
                   {isFilterOpen && (
                     <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-72 bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-10">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Filter Products</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                        Filter Products
+                      </h3>
 
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Stock Status</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Stock Status
+                          </label>
                           <select
                             value={tempStatusFilter}
-                            onChange={(e) => setTempStatusFilter(e.target.value)}
+                            onChange={(e) =>
+                              setTempStatusFilter(e.target.value)
+                            }
                             className="w-full px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500"
                           >
                             <option>All Statuses</option>
@@ -335,21 +425,27 @@ export default function AnalyticsDashboard({
               selectedIds={selectedIds}
               onSelectIds={setSelectedIds}
               onView={(id) => {
-                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
                 if (p) handleViewProduct(p);
               }}
               onEdit={(id) => {
-                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
                 if (p) handleEditProduct(p);
               }}
               onDelete={(id) => {
-                const p = filteredProducts.find(prod => (prod.id || prod._id) === id);
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
                 if (p) handleDeleteProduct(p);
               }}
               pagination={{
                 page: 1, // Simple pagination for now as Dashboard seems single page or handled externally?
                 limit: 100, // Show all filtered
-                total: filteredProducts.length
+                total: filteredProducts.length,
               }}
             />
           </div>

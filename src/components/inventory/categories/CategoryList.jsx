@@ -256,21 +256,21 @@ export default function CategoryList() {
                   value={filters.search}
                   onChange={(e) => handleSearch(e.target.value)}
                   placeholder="Search categories..."
-                  className="w-full sm:w-[312px] pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                  className="w-full sm:w-[312px] pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
                 />
               </div>
 
               {selectedIds.length > 0 && canManage && (
-                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-sm">
+                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
                   <Trash2 size={18} /> Delete ({selectedIds.length})
                 </button>
               )}
 
-              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50 transition shadow-sm text-gray-700">
+              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50 transition text-gray-700">
                 <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh
               </button>
 
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition shadow-sm text-gray-700">
+              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700">
                 <Download size={18} />
               </button>
 
@@ -283,7 +283,7 @@ export default function CategoryList() {
                 </button>
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-orange-500 text-white shadow-sm" : "hover:bg-gray-100 text-gray-600"}`}
+                  className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-orange-500 text-white" : "hover:bg-gray-100 text-gray-600"}`}
                 >
                   <Grid size={18} />
                 </button>
@@ -292,9 +292,9 @@ export default function CategoryList() {
               {/* Allow shop workers to add Level-3 categories; Super Admins can add any level */}
               <button
                 onClick={handleAddNew}
-                className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition shadow-sm font-medium"
+                className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
               >
-                <Plus size={18} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
+                <Plus size={24} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
               </button>
             </div>
           </div>

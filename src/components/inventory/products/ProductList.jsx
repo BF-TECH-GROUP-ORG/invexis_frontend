@@ -214,7 +214,7 @@ export default function ProductList() {
     <div className="space-y-6">
       <ProductStats stats={stats} />
 
-      <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-lg p-6 border border-gray-200">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
@@ -239,7 +239,7 @@ export default function ProductList() {
             {selectedIds.length > 0 && (
               <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-sm"
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 <Trash2 size={18} />
                 Delete ({selectedIds.length})
@@ -250,7 +250,7 @@ export default function ProductList() {
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition shadow-sm ${isFilterOpen || filters.category || filters.warehouse || filters.status
+                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${isFilterOpen || filters.category || filters.warehouse || filters.status
                   ? 'border-orange-500 text-orange-600 bg-orange-50'
                   : 'border-gray-300 hover:bg-gray-50 text-gray-700'
                   }`}
@@ -263,7 +263,7 @@ export default function ProductList() {
               </button>
 
               {isFilterOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-20 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-gray-100 p-4 z-20 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-900">Filter Products</h3>
                     <button
@@ -326,7 +326,7 @@ export default function ProductList() {
 
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition shadow-sm text-gray-700"
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
             >
               <Download size={18} />
               Export PDF
@@ -335,9 +335,9 @@ export default function ProductList() {
             <Link
               prefetch={true}
               href={routes.add}
-              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition shadow-sm font-medium"
+              className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
             >
-              <Plus size={18} />
+              <Plus size={24} />
               Add Product
             </Link>
           </div>
