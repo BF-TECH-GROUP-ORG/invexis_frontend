@@ -12,6 +12,8 @@ export const getBranches = async (companyId) => {
                 },
             }
         );
+        // console.log("baraka joshuah")
+        console.log("Branches fetched:", companyId);
         console.log("Branches fetched:", response.data);
         return response.data;
     } catch (error) {
@@ -20,10 +22,10 @@ export const getBranches = async (companyId) => {
     }
 };
 
-
+    
 export const getBranchById = async (branchId, companyId) => {
     try {
-        const response = await axios.get(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {
+        const response = await axios.get(`${BRANCH_API_URL}/shop/${branchId}?companyId=${companyId}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },
@@ -58,9 +60,9 @@ export const createBranch = async (branchData) => {
 };
 
 
-export const updateBranch = async (branchId, branchData) => {
+export const updateBranch = async (branchId, branchData, companyId) => {
     try {
-        const response = await axios.patch(`${BRANCH_API_URL}/${branchId}`, branchData, {
+        const response = await axios.patch(`${BRANCH_API_URL}/shop/${branchId}?companyId=${companyId}`, branchData, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },
@@ -77,7 +79,7 @@ export const updateBranch = async (branchId, branchData) => {
 
 export const deleteBranch = async (branchId, companyId) => {
     try {
-        const response = await axios.delete(`${BRANCH_API_URL}/${branchId}?companyId=${companyId}`, {
+        const response = await axios.delete(`${BRANCH_API_URL}/shop/${branchId}?companyId=${companyId}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true",
             },

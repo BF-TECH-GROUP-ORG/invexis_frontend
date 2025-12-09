@@ -19,39 +19,108 @@ import {
 import Link from "next/link";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { useMutation } from "@tanstack/react-query";
-import { createWorker } from "@/services/workersService";
+import { createWorker, updateWorker } from "@/services/workersService";
+import { getBranches } from "@/services/branches";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 
 const positions = ["Sales Representative", "Cashier", "Manager", "Stock Keeper"];
 const departments = ["sales", "finance", "logistics", "hr"];
 const genders = ["male", "female", "other"];
 const stepLabels = ["Personal Information", "Job Information", "Contact & Address"];
 
-export default function AddWorkerForm() {
+// Helper function to ensure all fields have default values
+const getDefaultWorker = () => ({
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  countryCode: "+250",
+  password: "",
+  role: "worker",
+  dateOfBirth: "",
+  gender: "",
+  nationalId: "",
+  position: "",
+  department: "",
+  companies: [],
+  shops: [],
+  emergencyContact: { name: "", phone: "" },
+  address: { street: "", city: "", state: "", postalCode: "", country: "" },
+  preferences: { language: "en", notifications: { email: true, sms: true, inApp: true } },
+});
+
+// Helper to merge initialData with defaults to avoid undefined values
+const initializeWorkerData = (data) => {
+  const defaults = getDefaultWorker();
+  if (!data) return defaults;
+
+  return {
+    ...defaults,
+    ...data,
+    emergencyContact: {
+      ...defaults.emergencyContact,
+      ...(data.emergencyContact || {}),
+    },
+    address: {
+      ...defaults.address,
+      ...(data.address || {}),
+    },
+    preferences: {
+      ...defaults.preferences,
+      ...(data.preferences || {}),
+      notifications: {
+        ...defaults.preferences.notifications,
+        ...(data.preferences?.notifications || {}),
+      },
+    },
+  };
+};
+
+export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const router = useRouter();
   const locale = useLocale();
+  const { data: session } = useSession();
   const [activeStep, setActiveStep] = useState(0);
+  const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
-  const [worker, setWorker] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    countryCode: "+250",
-    password: "",
-    role: "worker",
-    dateOfBirth: "",
-    gender: "",
-    nationalId: "",
-    position: "",
-    department: "",
-    companies: ["09a89de8-4a0f-4f40-a4ce-bcef7bfc364d"],
-    shops: ["shop-uuid-123"],
-    emergencyContact: { name: "", phone: "" },
-    address: { street: "", city: "", state: "", postalCode: "", country: "" },
-    preferences: { language: "en", notifications: { email: true, sms: true, inApp: true } },
-  });
+  const [availableShops, setAvailableShops] = useState([]);
+
+  // Update worker state when initialData changes (e.g., after fetching in edit mode)
+  React.useEffect(() => {
+    if (initialData) {
+      setWorker(initializeWorkerData(initialData));
+    }
+  }, [initialData]);
+
+  // Fetch shops when component mounts or company changes
+  React.useEffect(() => {
+    const fetchShops = async () => {
+      const companyObj = session?.user?.companies?.[0];
+      const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+      if (companyId) {
+        // Update worker state with companyId if not already set
+        setWorker(prev => {
+          if (prev.companies && Array.isArray(prev.companies) && prev.companies.includes(companyId)) return prev;
+          return { ...prev, companies: [companyId] };
+        });
+
+        const response = await getBranches(companyId);
+        // Safely handle different response structures
+        const shopsList = Array.isArray(response)
+          ? response
+          : (response?.shops || response?.branches || response?.data || []);
+
+        console.log("Processed shops list:", shopsList);
+        setAvailableShops(Array.isArray(shopsList) ? shopsList : []);
+      }
+    };
+    if (session) {
+      fetchShops();
+    }
+  }, [session]);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [errorDialog, setErrorDialog] = useState({ open: false, message: "", details: null });
@@ -77,8 +146,10 @@ export default function AddWorkerForm() {
       else if (!/\S+@\S+\.\S+/.test(worker.email)) errors.email = "Email is invalid";
       if (!worker.phone.trim()) errors.phone = "Phone is required";
       else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, ""))) errors.phone = "Invalid phone format (e.g., +250...)";
-      if (!worker.password.trim()) errors.password = "Password is required";
-      else if (worker.password.length < 6) errors.password = "Password must be at least 6 characters";
+      if (!isEditMode) {
+        if (!worker.password.trim()) errors.password = "Password is required";
+        else if (worker.password.length < 6) errors.password = "Password must be at least 6 characters";
+      }
       if (!worker.gender) errors.gender = "Gender is required";
     }
 
@@ -129,14 +200,14 @@ export default function AddWorkerForm() {
   const handleBack = () => setActiveStep((s) => Math.max(0, s - 1));
 
   const createWorkerMutation = useMutation({
-    mutationFn: createWorker,
+    mutationFn: (data) => isEditMode ? updateWorker(initialData.id || initialData._id, data, session?.accessToken) : createWorker(data),
     onSuccess: () => {
-      setSnackbar({ open: true, message: "Worker created successfully!", severity: "success" });
+      setSnackbar({ open: true, message: isEditMode ? "Worker updated successfully!" : "Worker created successfully!", severity: "success" });
       setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);
     },
     onError: (error) => {
-      console.error("Worker creation error:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to create worker";
+      console.error("Worker save error:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || (isEditMode ? "Failed to update worker" : "Failed to create worker");
       setErrorDialog({ open: true, message: errorMessage, details: error?.response?.data || null });
     },
   });
@@ -177,7 +248,7 @@ export default function AddWorkerForm() {
 
             <TextField
               label="Phone"
-              value={worker.phone.startsWith(worker.countryCode || "+250") ? worker.phone.slice((worker.countryCode || "+250").length) : worker.phone}
+              value={(worker.phone || "").startsWith(worker.countryCode || "+250") ? (worker.phone || "").slice((worker.countryCode || "+250").length) : (worker.phone || "")}
               onChange={(e) => {
                 const code = worker.countryCode || "+250";
                 handleChange("phone", code + e.target.value);
@@ -211,7 +282,7 @@ export default function AddWorkerForm() {
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px", background: "transparent" }, "& .MuiOutlinedInput-input": { paddingLeft: "4px" } }}
             />
 
-            <TextField label="Password" type="password" value={worker.password} onChange={(e) => handleChange("password", e.target.value)} required error={!!fieldErrors.password} helperText={fieldErrors.password} fullWidth />
+            <TextField label="Password" type="password" value={worker.password} onChange={(e) => handleChange("password", e.target.value)} required={!isEditMode} error={!!fieldErrors.password} helperText={fieldErrors.password} fullWidth placeholder={isEditMode ? "Leave blank to keep current password" : ""} />
 
             <TextField label="Date of Birth" type="date" InputLabelProps={{ shrink: true }} value={worker.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} fullWidth />
 
@@ -228,6 +299,20 @@ export default function AddWorkerForm() {
             <TextField label="National ID" value={worker.nationalId} onChange={(e) => handleChange("nationalId", e.target.value.toUpperCase())} error={!!fieldErrors.nationalId} helperText={fieldErrors.nationalId} fullWidth />
             <TextField select label="Position" value={worker.position} onChange={(e) => handleChange("position", e.target.value)} required error={!!fieldErrors.position} helperText={fieldErrors.position} fullWidth>{positions.map((pos) => <MenuItem key={pos} value={pos}>{pos}</MenuItem>)}</TextField>
             <TextField select label="Department" value={worker.department} onChange={(e) => handleChange("department", e.target.value)} required error={!!fieldErrors.department} helperText={fieldErrors.department} fullWidth>{departments.map((dep) => <MenuItem key={dep} value={dep}>{dep.charAt(0).toUpperCase() + dep.slice(1)}</MenuItem>)}</TextField>
+
+            <TextField
+              select
+              label="Shop"
+              value={worker.shops[0] || ""}
+              onChange={(e) => handleChange("shops", [e.target.value])}
+              fullWidth
+            >
+              {availableShops.map((shop) => (
+                <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
+                  {shop.name || shop.shopName || "Unnamed Shop"}
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
         );
 
@@ -256,10 +341,10 @@ export default function AddWorkerForm() {
       <div className="flex w-full items-center">
         <Box sx={{ flex: 1, p: { xs: 4, md: 6 }, bgcolor: "white", display: "flex", flexDirection: "column" }}>
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" fontWeight={700} color="#081422" sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}>Add New Worker</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>Complete all steps to create a new worker account</Typography>
+            <Typography variant="h4" fontWeight={700} color="#081422" sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}>{isEditMode ? "Edit Worker" : "Add New Worker"}</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>{isEditMode ? "Update worker information" : "Complete all steps to create a new worker account"}</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>inventory /<span className="hover:text-orange-500 cursor-pointer font-bold  ">
-              <Link href={`/${locale}/inventory/workers/list`} prefetch={true} >workers</Link> </span>  / <span className="text-orange-500 cursor-pointer font-bold  ">Add-Worker</span> </Typography>
+              <Link href={`/${locale}/inventory/workers/list`} prefetch={true} >workers</Link> </span>  / <span className="text-orange-500 cursor-pointer font-bold  ">{isEditMode ? "Edit-Worker" : "Add-Worker"}</span> </Typography>
           </Box>
 
           <Box sx={{ flexGrow: 1, minHeight: 420 }}>{renderStepContent(activeStep)}</Box>
@@ -272,7 +357,7 @@ export default function AddWorkerForm() {
                 bgcolor: "#", "&:hover": { bgcolor: "#fe6600ff" }, borderRadius: "12px", textTransform: "none", px: 5,
                 py: 1.5,
                 fontWeight: 600,
-              }}>{createWorkerMutation.isLoading ? "Creating..." : activeStep === stepLabels.length - 1 ? "Create Worker" : "Next"}</Button>
+              }}>{createWorkerMutation.isLoading ? (isEditMode ? "Updating..." : "Creating...") : activeStep === stepLabels.length - 1 ? (isEditMode ? "Update Worker" : "Create Worker") : "Next"}</Button>
           </Box>
         </Box>
 

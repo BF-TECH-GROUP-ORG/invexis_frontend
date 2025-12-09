@@ -16,7 +16,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
 import { useSession } from "next-auth/react";
-// import { useTranslations } from "next-intl"; // Assuming translations might not be fully set up for companies yet, using hardcoded strings or generic keys if possible.
 import { deleteBranch } from "@/services/branches";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { jsPDF } from "jspdf";
@@ -284,6 +283,8 @@ const CompaniesTable = ({ initialRows = [] }) => {
     const { data: session } = useSession();
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+    console.log(companyId)
 
     const rows = useMemo(() => {
         if (!initialRows || !Array.isArray(initialRows)) return [];
