@@ -17,7 +17,7 @@ const nextConfig = {
         hostname: "cdn.example.com",
       },
     ],
-  },  
+  },
   experimental: {
     // Enable optimized prefetching
     optimizePackageImports: ['@mui/material', '@mui/icons-material', 'lucide-react'],
