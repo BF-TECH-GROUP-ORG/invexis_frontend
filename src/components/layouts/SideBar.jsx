@@ -69,7 +69,8 @@ const navItems = [
       { title: "Products", path: "/inventory/products", prefetch: true },
       { title: "Categories", path: "/inventory/categories", prefetch: true },
       { title: "Reports", path: "/inventory/report", prefetch: true },
-      { title: "Alerts", path: "/inventory/alerts", prefetch: true },
+      { title: "Stock settings", path: "/inventory/stock", prefetch: true },
+    
     ],
   },
 

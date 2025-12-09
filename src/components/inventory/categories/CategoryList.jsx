@@ -200,25 +200,39 @@ export default function CategoryList() {
       )}
 
       {/* Stats */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6">
-        {Object.entries(stats).map(([key, value]) => (
-          <div key={key} className="bg-white p-5 justify-between flex rounded-xl border space-y-3">
-            <div className="flex h-full items-center">
-              <div className="text-orange-500">
-                {key === 'total' && <Folder size={32} strokeWidth={2} />}
-                {key === 'active' && <CheckCircle size={32} strokeWidth={2} />}
-                {key === 'inactive' && <XCircle size={32} strokeWidth={2} />}
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6">
+        {Object.entries(stats).map(([key, value]) => {
+          const config = {
+            total: { icon: Folder, color: "#ff782d", bgColor: "#fff8f5", label: "Total Categories" },
+            active: { icon: CheckCircle, color: "#10b981", bgColor: "#f0fdf4", label: "Active Categories" },
+            inactive: { icon: XCircle, color: "#ef4444", bgColor: "#fff1f2", label: "Inactive Categories" },
+          }[key] || { icon: Folder, color: "#6b7280", bgColor: "#f9fafb", label: key };
+
+          const Icon = config.icon;
+
+          return (
+            <div
+              key={key}
+              className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-[#6b7280] font-medium mb-1">{config.label}</p>
+                  <p className="text-2xl font-bold text-[#081422] mb-2">{value}</p>
+                </div>
+                <div
+                  className="p-3 rounded-xl shrink-0"
+                  style={{ backgroundColor: config.bgColor }}
+                >
+                  <Icon size={24} style={{ color: config.color }} />
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold">{value}</p>
-              <h2 className="">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
-            </div>
-          </div>
-        ))}
-      </motion.div>
+          );
+        })}
+      </div>
 
-      <div className="bg-white rounded-xl shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-300">
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -242,7 +256,7 @@ export default function CategoryList() {
                   value={filters.search}
                   onChange={(e) => handleSearch(e.target.value)}
                   placeholder="Search categories..."
-                  className="w-full sm:w-72 pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                  className="w-full sm:w-[312px] pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
                 />
               </div>
 
@@ -278,7 +292,7 @@ export default function CategoryList() {
               {/* Allow shop workers to add Level-3 categories; Super Admins can add any level */}
               <button
                 onClick={handleAddNew}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full hover:from-orange-600 hover:to-orange-700 transition shadow-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition shadow-sm font-medium"
               >
                 <Plus size={18} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
               </button>

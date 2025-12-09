@@ -335,7 +335,7 @@ export default function ProductList() {
             <Link
               prefetch={true}
               href={routes.add}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full hover:from-orange-600 hover:to-orange-700 transition shadow-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition shadow-sm font-medium"
             >
               <Plus size={18} />
               Add Product

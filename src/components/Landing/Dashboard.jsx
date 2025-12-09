@@ -198,72 +198,69 @@ export default function AnalyticsDashboard({
   ];
 
   return (
-    <div className="min-h-screen bg-white p-6 font-sans">
+    <div className="min-h-screen bg-white p-4 sm:p-6 font-sans">
       <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-2 sm:gap-0">
           <h1 className="text-2xl font-bold text-[#1A1A1A]">Inventory Management</h1>
           <div className="text-sm font-medium text-gray-500">As of {currentDate}</div>
         </div>
 
         {/* Metrics Cards - Clean Design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           {statCards.map((stat) => (
-            <motion.div
+            <div
               key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: stat.delay }}
-              className="bg-white border border-[#E5E5E5] rounded-xl p-6 hover:border-[#EA580C] transition-all duration-200"
+              className="border-2 border-[#d1d5db] rounded-2xl p-6 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-[#333]">{stat.title}</h3>
-                  <p className="text-3xl font-bold text-[#1F1F1F] mt-2">
+                  <h3 className="text-sm font-medium text-[#6b7280]">{stat.title}</h3>
+                  <p className="text-3xl font-bold text-[#081422] mt-2">
                     {stat.value}
                   </p>
                 </div>
-                <div className="flex items-center">
-                  <stat.Icon size={36} className="text-[#F97316]" />
+                <div className="p-3 bg-orange-50 rounded-xl">
+                  <stat.Icon size={24} className="text-[#ff782d]" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Main Content Card - Inventory Status Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6">
+        <div className="bg-white rounded-2xl border border-gray-300 overflow-hidden">
+          <div className="p-4 sm:p-6">
             {/* Title Section */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <h2 className="text-lg font-bold text-gray-900">Inventory Status Overview</h2>
               <p className="text-sm text-gray-500 mt-1">Complete inventory tracking with stock levels and status</p>
             </div>
 
             {/* Toolbar Section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 relative">
               {/* Total Value Pill */}
-              <div className="inline-flex items-center px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+              <div className="w-full lg:w-auto inline-flex items-center px-4 sm:px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                 <span className="text-sm font-medium text-gray-600 mr-2">Viewing inventory for:</span>
-                <span className="text-sm font-bold text-orange-600">{selectedShop}</span>
+                <span className="text-sm font-bold text-orange-600 truncate max-w-[150px]">{selectedShop}</span>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-8 relative">
+              <div className="w-full lg:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 relative">
                 {/* Shops Dropdown Trigger */}
-                <div className="relative" ref={shopDropdownRef}>
+                <div className="relative w-full sm:w-auto" ref={shopDropdownRef}>
                   <button
                     onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+                    className="flex w-full sm:w-auto justify-between sm:justify-start items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 border sm:border-none p-3 sm:p-0 rounded-lg sm:rounded-none"
                   >
-                    <span>{selectedShop}</span>
+                    <span className="truncate">{selectedShop}</span>
                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isShopDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Dropdown Menu */}
                   {isShopDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                       <button
                         onClick={() => handleShopSelect('All Shops')}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
@@ -286,18 +283,20 @@ export default function AnalyticsDashboard({
                 </div>
 
                 {/* Filters Trigger */}
-                <div className="relative" ref={filterRef}>
+                <div className="relative w-full sm:w-auto" ref={filterRef}>
                   <button
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+                    className="flex w-full sm:w-auto justify-between sm:justify-start items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 border sm:border-none p-3 sm:p-0 rounded-lg sm:rounded-none"
                   >
-                    <Filter className="w-4 h-4 text-gray-400" />
-                    <span>Filters</span>
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-gray-400" />
+                      <span>Filters</span>
+                    </div>
                   </button>
 
                   {/* Filter Popup */}
                   {isFilterOpen && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-10">
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-72 bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-10">
                       <h3 className="text-sm font-semibold text-gray-900 mb-3">Filter Products</h3>
 
                       <div className="space-y-3">
@@ -330,7 +329,7 @@ export default function AnalyticsDashboard({
           </div>
 
           {/* Table */}
-          <div className="w-full">
+          <div className="w-full overflow-x-auto">
             <ProductTable
               products={filteredProducts}
               selectedIds={selectedIds}
