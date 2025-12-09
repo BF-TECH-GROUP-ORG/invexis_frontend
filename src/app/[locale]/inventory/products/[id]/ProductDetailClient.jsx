@@ -6,7 +6,7 @@ import { store } from '@/store';
 import { fetchProductById, deleteProduct } from '@/features/products/productsSlice';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Edit, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Download, QrCode, X } from 'lucide-react';
 
 function Field({ label, value }) {
   let display;
@@ -137,6 +137,7 @@ function DetailInner({ id }) {
               { id: 'pricing', label: 'Pricing' },
               { id: 'inventory', label: 'Inventory' },
               { id: 'images', label: 'Images' },
+              { id: 'codes', label: 'QR/Barcode' },
               { id: 'specs', label: 'Specifications' },
               { id: 'raw', label: 'Raw' },
             ].map((t) => (
@@ -257,6 +258,40 @@ function DetailInner({ id }) {
                         </button>
                       </div>
                     )) : <div className="text-gray-500">No images available</div>}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'codes' && (
+                <div className="space-y-6">
+                  {/* QR Code */}
+                  <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">QR Code</h3>
+                    <div className="flex flex-col items-center">
+                      <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200 inline-block">
+                        {product.qrCodeUrl ? (
+                          <img src={product.qrCodeUrl} alt="QR Code" className="w-64 h-64 object-contain" />
+                        ) : (
+                          <div className="w-64 h-64 flex items-center justify-center text-gray-400 text-sm">No QR Code Available</div>
+                        )}
+                      </div>
+                      {product.qrCode && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded">{product.qrCode}</p>}
+                    </div>
+                  </div>
+
+                  {/* Barcode */}
+                  <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Barcode</h3>
+                    <div className="flex flex-col items-center">
+                      <div className="bg-white p-4 inline-block border rounded-lg">
+                        {product.barcodeUrl ? (
+                          <img src={product.barcodeUrl} alt="Barcode" className="h-32 object-contain" />
+                        ) : (
+                          <div className="h-32 w-80 bg-gray-50 flex items-center justify-center text-gray-400 text-sm rounded-lg border-2 border-dashed">No Barcode Available</div>
+                        )}
+                      </div>
+                      {product.barcode && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded tracking-widest">{product.barcode}</p>}
+                    </div>
                   </div>
                 </div>
               )}
