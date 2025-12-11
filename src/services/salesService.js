@@ -2,21 +2,20 @@
 import axios from 'axios';
 
 
-const URL = process.env.NEXT_PUBLIC_INVENTORY_API_URL
-const SALES_URL = process.env.NEXT_PUBLIC_SALES_API_URL
-const DEBT_URL = process.env.NEXT_PUBLIC_DEBT_API_URL
+const URL = process.env.NEXT_PUBLIC_API_URL
+const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales/`
+const DEBT_URL = `${process.env.NEXT_PUBLIC_API_URL}/debt/`
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (companyId) => {
   try {
-    const response = await axios.get(URL, {
+    const response = await axios.get(`${URL}/inventory/v1/companies/${companyId}/products`, {
       headers: {
-        'ngrok-skip-browser-warning': 'true',   // This line fixes everything
-        // Optional: you can use any value, even '69420' works
-        // 'ngrok-skip-browser-warning': '69420',
+        'ngrok-skip-browser-warning': 'true',  
       },
     });
 
     const apiData = response.data;
+    console.log('Products fetched:', apiData.data);  
 
     // Safely handle success flag
     if (apiData.success === false) {
@@ -30,11 +29,12 @@ export const getAllProducts = async () => {
       id: product._id || product.id,
       ProductId: product.sku || product.asin || product._id.slice(-8),
       ProductName: product.name || 'No Name',
-      Category: product.category?.name || product.subcategory?.name || 'Uncategorized',
+      Category: product.category?.name,
       Quantity: product.inventory?.quantity || 0,
       Price: product.effectivePrice || product.pricing?.salePrice || product.pricing?.basePrice || 0,
       brand: product.brand || 'No Brand',
-      manufacturer: product.manufacturer
+      manufacturer: product.manufacturer,
+      costPrice:product.pricing?.cost,
     }));
 
     return products;
@@ -44,6 +44,18 @@ export const getAllProducts = async () => {
     return [];
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export const singleProductFetch = async (productId) => {

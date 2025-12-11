@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +8,8 @@ import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { useSocket } from "@/providers/SocketProvider";
+import { subscribeToNotifications } from "@/utils/socket";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
@@ -15,29 +17,25 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
   const user = session?.user;
   const router = useRouter();
 
+  const { socket } = useSocket();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const notifications = [
-    {
-      id: 1,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 2,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 3,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    if (socket && user?.id) {
+      subscribeToNotifications(socket, user.id, (data) => {
+        const newNotification = {
+          id: data.id || Date.now(),
+          title: data.title || "New Notification",
+          desc: data.message || data.desc || "",
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setNotifications((prev) => [newNotification, ...prev]);
+      });
+    }
+  }, [socket, user?.id]);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -48,11 +46,10 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
-          isMobile
-            ? "px-4 py-3" // Mobile: full width, smaller padding
-            : "px-6 py-2" // Desktop: adjusted for sidebar
-        }`}
+        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+          ? "px-4 py-3" // Mobile: full width, smaller padding
+          : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}
