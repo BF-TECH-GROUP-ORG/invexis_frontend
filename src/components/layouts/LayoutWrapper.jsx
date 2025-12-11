@@ -8,10 +8,16 @@ import TopNavBar from "@/components/layouts/NavBar";
 import DevBypassToggle from "@/components/shared/DevBypassToggle";
 import DashboardLayout from "./DashboardLayout";
 import ProtectedRoute from "@/lib/ProtectedRoute";
+import GlobalLoader from "@/components/shared/GlobalLoader";
+import { useLoading } from "@/contexts/LoadingContext";
+import useRouteLoading from "@/hooks/useRouteLoading";
 
 export default function LayoutWrapper({ children }) {
   // Use NextAuth session for auth
   const { user, status } = useAuth();
+  const { isLoading: globalLoading } = useLoading();
+  const { isNavigating } = useRouteLoading();
+
   // authToken not stored in client-side storage; NextAuth session contains tokens
   // Consider runtime localStorage toggle for bypass (DEV_BYPASS_AUTH) as well
   const getBypass = () => {
@@ -46,7 +52,25 @@ export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
 
   if (!mounted) {
-    return null;
+    return <GlobalLoader visible={true} text="Loading..." />;
+  }
+
+  // Show loader during navigation or global loading
+  const showLoader = globalLoading || isNavigating;
+
+  // If the current route is an error page or not-found, render standalone (no sidebar/navbar)
+  // Also exclude auth pages from dashboard layout
+  const isErrorPage =
+    pathname?.includes("/errors/") || pathname?.endsWith("/not-found");
+  const isAuthPage = pathname?.includes("/auth/");
+
+  if (isErrorPage) {
+    return (
+      <>
+        <GlobalLoader visible={showLoader} text="Loading..." />
+        {!showLoader && children}
+      </>
+    );
   }
 
   // If the current route is the unauthorized page we render it full-screen and hide
@@ -65,24 +89,34 @@ export default function LayoutWrapper({ children }) {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        {children}
-        <DevBypassToggle />
-      </div>
+      <>
+        <GlobalLoader visible={showLoader} text="Loading..." />
+        {!showLoader && (
+          <div className="min-h-screen bg-gray-50">
+            {children}
+            <DevBypassToggle />
+          </div>
+        )}
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
-      {/* Layout-level protection: only require authenticated session; per-route RBAC enforced in middleware */}
-      <ProtectedRoute>
-        <div className="flex h-screen">
-          <div className="flex-1 flex flex-col">
-            <main className="flex-1 p-4">{children}</main>
-          </div>
-        </div>
-      </ProtectedRoute>
-      <DevBypassToggle />
-    </DashboardLayout>
+    <>
+      <GlobalLoader visible={showLoader} text="Loading..." />
+      {!showLoader && (
+        <DashboardLayout>
+          {/* Layout-level protection: only require authenticated session; per-route RBAC enforced in middleware */}
+          <ProtectedRoute>
+            <div className="flex h-screen">
+              <div className="flex-1 flex flex-col">
+                <main className="flex-1 p-4">{children}</main>
+              </div>
+            </div>
+          </ProtectedRoute>
+          <DevBypassToggle />
+        </DashboardLayout>
+      )}
+    </>
   );
 }
