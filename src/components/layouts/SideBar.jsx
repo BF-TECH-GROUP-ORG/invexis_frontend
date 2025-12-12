@@ -185,17 +185,20 @@ const navItems = [
     ],
   },
   {
-    title: "Documents",
+    title: "Documents", 
     icon: <FileText size={22} />,
+    path: "/inventory/documents",
     roles: ["manager", "company_admin"],
-    children: [
-      { title: "Invoices", path: "/inventory/invoices/list", prefetch: true },
-      {
-        title: "Payment History",
-        path: "/inventory/invoices/details",
-        prefetch: true,
-      },
-    ],
+     prefetch: true,
+  
+    // children: [
+    //   // { title: "Documents", path: "/inventory/documents", prefetch: true },
+    //   // {
+    //   //   title: "Payment History",
+    //   //   path: "/inventory/invoices/details",
+    //   //   prefetch: true,
+    //   // },
+    // ],
   },
   {
     title: "Announcements",
