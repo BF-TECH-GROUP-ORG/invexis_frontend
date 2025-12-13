@@ -244,7 +244,7 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
                     key={n.id}
                     className="flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border-b last:border-0"
                   >
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex-shrink-0" />
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg shrink-0" />
                     <div className="flex-1">
                       <h4 className="font-medium">{n.title}</h4>
                       <p className="text-sm text-gray-600 mt-1">{n.desc}</p>
