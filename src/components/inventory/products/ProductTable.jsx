@@ -4,38 +4,47 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Checkbox from '@mui/material/Checkbox';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import TablePagination from '@mui/material/TablePagination';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Checkbox,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Tooltip,
+  Box,
+  Typography,
+  Avatar,
+  TablePagination,
+} from "@mui/material";
+import {
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  MoreVert as MoreVertIcon,
+} from "@mui/icons-material";
 import { Package } from "lucide-react";
 
 export default function ProductTable({
   products = [],
   loading = false,
   selectedIds = [],
-  onSelectIds = () => { },
-  onDelete = () => { },
-  onView = () => { },
-  onEdit = () => { },
+  onSelectIds = () => {},
+  onDelete = () => {},
+  onView = () => {},
+  onEdit = () => {},
   viewUrl,
   editUrl,
   pagination = {},
-  onPageChange = () => { },
+  onPageChange = () => {},
 }) {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuRowId, setMenuRowId] = useState(null);
@@ -87,205 +96,337 @@ export default function ProductTable({
   const rowsPerPage = pagination.limit || 20;
   const total = pagination.total || rows.length;
 
-  // Status badge component
-  const StatusBadge = ({ status, stock }) => {
-    const isActive = status === "active" || status === "in_stock" || stock > 0;
-    const isInactive = status === "inactive" || status === "out_of_stock" || stock === 0;
-
-    if (isActive) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          • Active
-        </span>
-      );
-    }
-
-    if (isInactive) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          • Inactive
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-        {status}
-      </span>
-    );
-  };
-
   return (
     <div>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell padding="checkbox">
-              <Checkbox
-                indeterminate={selectedIds.length > 0 && selectedIds.length < rows.length}
-                checked={rows.length > 0 && selectedIds.length === rows.length}
-                onChange={handleSelectAll}
-              />
-            </TableCell>
-            <TableCell>Product name</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Unit price</TableCell>
-            <TableCell align="center">In stock</TableCell>
-            <TableCell>Discount</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Total Value</TableCell>
-            <TableCell align="center">Action</TableCell>
-          </TableRow>
-        </TableHead>
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          overflow: "hidden",
+        }}
+      >
+        <Table size="medium">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={
+                    selectedIds.length > 0 && selectedIds.length < rows.length
+                  }
+                  checked={
+                    rows.length > 0 && selectedIds.length === rows.length
+                  }
+                  onChange={handleSelectAll}
+                  size="small"
+                />
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Product Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Category
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Unit Price
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 600, color: "#4b5563" }}
+              >
+                Stock
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Discount
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Status
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Total Value
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 600, color: "#4b5563" }}
+              >
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
 
-        <TableBody>
-          {rows.map((product) => {
-            const id = product._id || product.id;
-            const name = product.name || product.ProductName || "Unnamed";
-            const category = product.category?.name || product.category || product.Category || "Uncategorized";
-            const basePrice = product.pricing?.basePrice ?? product.price ?? product.UnitPrice ?? 0;
-            const salePrice = product.pricing?.salePrice ?? 0;
-            const stock = product.inventory?.quantity ?? product.stock ?? 0;
-            const status = product.status || product.availability || (stock > 0 ? "active" : "inactive");
+          <TableBody>
+            {rows.map((product) => {
+              const id = product._id || product.id;
+              const name = product.name || product.ProductName || "Unnamed";
+              const category =
+                product.category?.name ||
+                product.category ||
+                product.Category ||
+                "Uncategorized";
+              const basePrice =
+                product.pricing?.basePrice ??
+                product.price ??
+                product.UnitPrice ??
+                0;
+              const salePrice = product.pricing?.salePrice ?? 0;
+              const stock = product.inventory?.quantity ?? product.stock ?? 0;
+              const status =
+                product.status ||
+                product.availability ||
+                (stock > 0 ? "active" : "inactive");
 
-            // Calculate discount percentage
-            const discountPercent = salePrice > 0 && basePrice > 0
-              ? Math.round(((basePrice - salePrice) / basePrice) * 100)
-              : 0;
+              // Calculate discount percentage
+              const discountPercent =
+                salePrice > 0 && basePrice > 0
+                  ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+                  : 0;
 
-            // Calculate total value (price * stock)
-            const totalValue = basePrice * stock;
+              // Calculate total value (price * stock)
+              const totalValue = basePrice * stock;
 
-            return (
-              <TableRow key={id} hover>
-                <TableCell padding="checkbox">
-                  <Checkbox checked={selectedIds.includes(id)} onChange={() => handleSelectOne(id)} />
-                </TableCell>
+              return (
+                <TableRow
+                  key={id}
+                  hover
+                  selected={selectedIds.includes(id)}
+                  sx={{
+                    "&:hover": { backgroundColor: "#f4f6f8" },
+                    cursor: "pointer",
+                  }}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.includes(id)}
+                      onChange={() => handleSelectOne(id)}
+                      size="small"
+                    />
+                  </TableCell>
 
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    {product.images && product.images[0] && product.images[0].url ? (
-                      <div className="w-10 h-10 relative rounded overflow-hidden bg-gray-100 flex-shrink-0">
-                        <Image
-                          src={product.images[0].url}
-                          alt={name}
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                          unoptimized={product.images[0].url.includes('cdn.example.com')}
-                        />
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        {product.images &&
+                        product.images[0] &&
+                        product.images[0].url ? (
+                          <Avatar
+                            src={product.images[0].url}
+                            alt={name}
+                            variant="rounded"
+                            sx={{ width: 40, height: 40 }}
+                          />
+                        ) : (
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              bgcolor: "orange.50",
+                              color: "orange.500",
+                            }}
+                          >
+                            <Package size={20} />
+                          </Avatar>
+                        )}
                       </div>
+                      <Box minWidth={0}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          color="text.primary"
+                          noWrap
+                        >
+                          {name}
+                        </Typography>
+                        {product.brand && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                            display="block"
+                          >
+                            {product.brand}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </TableCell>
+
+                  <TableCell>
+                    <Chip
+                      label={category}
+                      size="small"
+                      sx={{
+                        backgroundColor: "#E0F2FE",
+                        color: "#0369A1",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                      }}
+                    />
+                  </TableCell>
+
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color="text.primary"
+                    >
+                      {basePrice.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: product.pricing?.currency || "RWF",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell align="center">
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color={stock < 10 ? "error.main" : "text.primary"}
+                    >
+                      {stock}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell>
+                    {discountPercent > 0 ? (
+                      <Chip
+                        label={`-${discountPercent}%`}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#ECFDF5",
+                          color: "#15803D",
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                          height: 24,
+                        }}
+                      />
                     ) : (
-                      <div className="w-10 h-10 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
-                        <Package size={20} className="text-orange-600" />
-                      </div>
+                      <Typography variant="caption" color="text.disabled">
+                        -
+                      </Typography>
                     )}
-                    <div className="min-w-0">
-                      <div className="font-medium text-gray-900 truncate">{name}</div>
-                      {product.brand && (
-                        <div className="text-xs text-gray-500 truncate">{product.brand}</div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
+                  </TableCell>
 
-                <TableCell>
-                  <span className="text-sm text-gray-700">{category}</span>
-                </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={
+                        status === "active"
+                          ? "Active"
+                          : status === "inactive"
+                          ? "Inactive"
+                          : status
+                      }
+                      size="small"
+                      sx={{
+                        backgroundColor:
+                          status === "active" ? "#E8F5E9" : "#FFEBEE",
+                        color: status === "active" ? "#2E7D32" : "#C62828",
+                        fontWeight: 600,
+                        textTransform: "capitalize",
+                        fontSize: "0.75rem",
+                      }}
+                    />
+                  </TableCell>
 
-                <TableCell>
-                  <span className="font-medium text-gray-900">
-                    {basePrice.toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: product.pricing?.currency || 'RWF',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    })}
-                  </span>
-                </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      color="text.primary"
+                    >
+                      {totalValue.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: product.pricing?.currency || "RWF",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </Typography>
+                  </TableCell>
 
-                <TableCell align="center">
-                  <span className="font-semibold text-gray-900">{stock}</span>
-                </TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="Actions">
+                      <IconButton size="small" onClick={(e) => openMenu(e, id)}>
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-                <TableCell>
-                  {discountPercent > 0 ? (
-                    <span className="text-sm font-medium text-orange-600">
-                      {discountPercent}%
-                    </span>
-                  ) : (
-                    <span className="text-sm text-gray-400">-</span>
-                  )}
-                </TableCell>
-
-                <TableCell>
-                  <StatusBadge status={status} stock={stock} />
-                </TableCell>
-
-                <TableCell>
-                  <span className="font-medium text-gray-900">
-                    {totalValue.toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: product.pricing?.currency || 'RWF',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    })}
-                  </span>
-                </TableCell>
-
-                <TableCell align="center">
-                  <IconButton size="small" onClick={(e) => openMenu(e, id)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-
-      <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
+      <Menu
+        anchorEl={menuAnchor}
+        open={!!menuAnchor}
+        onClose={closeMenu}
+        PaperProps={{
+          elevation: 0,
+          sx: {
+            minWidth: 140,
+            borderRadius: 2,
+            mt: 0.5,
+            border: "1px solid #E5E7EB",
+          },
+        }}
+      >
         {viewUrl ? (
-          <MenuItem component={Link} href={viewUrl(menuRowId)} onClick={closeMenu}>
+          <MenuItem
+            component={Link}
+            href={viewUrl(menuRowId)}
+            onClick={closeMenu}
+          >
             <ListItemIcon>
               <VisibilityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>View</ListItemText>
+            <ListItemText>View Details</ListItemText>
           </MenuItem>
         ) : (
           <MenuItem onClick={handleView}>
             <ListItemIcon>
               <VisibilityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>View</ListItemText>
+            <ListItemText>View Details</ListItemText>
           </MenuItem>
         )}
 
         {editUrl ? (
-          <MenuItem component={Link} href={editUrl(menuRowId)} onClick={closeMenu}>
+          <MenuItem
+            component={Link}
+            href={editUrl(menuRowId)}
+            onClick={closeMenu}
+          >
             <ListItemIcon>
               <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Edit</ListItemText>
+            <ListItemText>Edit Product</ListItemText>
           </MenuItem>
         ) : (
           <MenuItem onClick={handleEdit}>
             <ListItemIcon>
               <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Edit</ListItemText>
+            <ListItemText>Edit Product</ListItemText>
           </MenuItem>
         )}
 
-        <MenuItem onClick={handleDelete}>
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText sx={{ color: 'error.main' }}>Delete</ListItemText>
+          <ListItemText>Delete Product</ListItemText>
         </MenuItem>
       </Menu>
 
-      <div className="p-2 flex justify-end">
+      <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white rounded-b-xl">
+        <Typography variant="body2" color="text.secondary">
+          Showing {(page + 1) * rowsPerPage - rowsPerPage + 1} to{" "}
+          {Math.min((page + 1) * rowsPerPage, total)} of {total} results
+        </Typography>
         <TablePagination
           component="div"
           count={total}
@@ -294,6 +435,7 @@ export default function ProductTable({
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[10, 20, 50]}
           onRowsPerPageChange={(e) => onPageChange(1, Number(e.target.value))}
+          sx={{ border: "none" }}
         />
       </div>
     </div>
