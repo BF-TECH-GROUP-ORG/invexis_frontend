@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Trash2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function StepVariations({
@@ -12,6 +12,7 @@ export default function StepVariations({
 }) {
     const [variants, setVariants] = useState(formData.variants || []);
     const [variations, setVariations] = useState(formData.variations || []);
+    const [expandedRow, setExpandedRow] = useState(null);
 
     useEffect(() => {
         // Sync local state with formData if it changes externally
@@ -75,17 +76,25 @@ export default function StepVariations({
             combinations = cartesian(...optionsArrays);
         }
 
-        const baseSku = formData.sku || (formData.name ? formData.name.substring(0, 3).toUpperCase() : 'SKU');
-
         const newVariations = combinations.map(combo => {
-            // Create a unique SKU suffix or similar
-            const skuSuffix = combo.map(c => c.value.substring(0, 3).toUpperCase()).join("-");
+            // Convert array of {name, value} to object {name: value}
+            // e.g. { "color": "Red", "storage": "256GB" }
+            const options = combo.reduce((acc, curr) => {
+                // Use lowercase keys for consistency if desired, or keep as is.
+                // The payload example used lowercase "color", "storage".
+                // We'll lowercase the key to match common conventions.
+                acc[curr.name.toLowerCase()] = curr.value;
+                return acc;
+            }, {});
+
             return {
-                attributes: combo,
-                sku: `${baseSku}-${skuSuffix}-${Math.floor(Math.random() * 1000)}`,
-                price: formData.pricing?.basePrice || 0,
-                quantity: 0,
-                images: [],
+                options: options,
+                weight: { value: 0, unit: 'g' },
+                dimensions: { length: 0, width: 0, height: 0, unit: 'mm' },
+                initialStock: 0,
+                lowStockThreshold: 10,
+                minReorderQty: 5,
+                isActive: true
             };
         });
 
@@ -100,6 +109,24 @@ export default function StepVariations({
         updateFormData({ variations: newVariations });
     };
 
+    const updateVariationNested = (index, parent, field, value) => {
+        const newVariations = [...variations];
+        if (!newVariations[index][parent]) {
+            newVariations[index][parent] = {};
+        }
+        newVariations[index][parent][field] = value;
+        setVariations(newVariations);
+        updateFormData({ variations: newVariations });
+    };
+
+    const toggleRow = (index) => {
+        if (expandedRow === index) {
+            setExpandedRow(null);
+        } else {
+            setExpandedRow(index);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, x: 50 }}
@@ -110,19 +137,19 @@ export default function StepVariations({
             <div className="bg-white p-6 rounded-xl border border-gray-200">
                 <h3 className="text-lg font-semibold mb-4">Product Variants</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Add variants like Color or Size to generate combinations.
+                    Define attributes like Color or Size to generate all possible combinations.
                 </p>
 
                 {variants.map((variant, vIndex) => (
                     <div key={vIndex} className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex-1 mr-4">
-                                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Variant Name</label>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Attribute Name</label>
                                 <input
                                     type="text"
                                     value={variant.name}
                                     onChange={(e) => handleVariantNameChange(vIndex, e.target.value)}
-                                    placeholder="e.g. Color, Size"
+                                    placeholder="e.g. Color, Storage"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                                 />
                             </div>
@@ -148,7 +175,7 @@ export default function StepVariations({
                             </div>
                             <input
                                 type="text"
-                                placeholder="Type option and press Enter"
+                                placeholder="Type option and press Enter (e.g. Red, 256GB)"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
@@ -167,7 +194,7 @@ export default function StepVariations({
                     className="flex items-center gap-2 text-orange-600 font-medium hover:text-orange-700"
                 >
                     <Plus size={18} />
-                    Add Variant Type
+                    Add Attribute
                 </button>
             </div>
 
@@ -175,7 +202,7 @@ export default function StepVariations({
                 <div className="flex justify-center">
                     <button
                         onClick={generateVariations}
-                        className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
+                        className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md"
                     >
                         <RefreshCw size={18} />
                         Generate Variations
@@ -189,44 +216,166 @@ export default function StepVariations({
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead>
-                                <tr className="border-b border-gray-200">
-                                    <th className="py-3 px-4">Variant</th>
-                                    <th className="py-3 px-4">SKU</th>
-                                    <th className="py-3 px-4">Price</th>
-                                    <th className="py-3 px-4">Quantity</th>
+                                <tr className="border-b border-gray-200 bg-gray-50">
+                                    <th className="py-3 px-4 rounded-tl-lg">Options</th>
+                                    <th className="py-3 px-4">Stock</th>
+                                    <th className="py-3 px-4">Weight</th>
+                                    <th className="py-3 px-4">Status</th>
+                                    <th className="py-3 px-4 rounded-tr-lg w-10"></th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-gray-100">
                                 {variations.map((variation, index) => (
-                                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-3 px-4 font-medium">
-                                            {variation.attributes.map(a => `${a.name}: ${a.value}`).join(", ")}
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <input
-                                                type="text"
-                                                value={variation.sku}
-                                                onChange={(e) => updateVariation(index, 'sku', e.target.value)}
-                                                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
-                                            />
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <input
-                                                type="number"
-                                                value={variation.price}
-                                                onChange={(e) => updateVariation(index, 'price', e.target.value)}
-                                                className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
-                                            />
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <input
-                                                type="number"
-                                                value={variation.quantity}
-                                                onChange={(e) => updateVariation(index, 'quantity', e.target.value)}
-                                                className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
-                                            />
-                                        </td>
-                                    </tr>
+                                    <>
+                                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                            <td className="py-3 px-4 font-medium">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {Object.entries(variation.options || {}).map(([key, val]) => (
+                                                        <span key={key} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                            {key}: {val}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <input
+                                                    type="number"
+                                                    value={variation.initialStock}
+                                                    onChange={(e) => updateVariation(index, 'initialStock', Number(e.target.value))}
+                                                    className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
+                                                    placeholder="0"
+                                                />
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="number"
+                                                        value={variation.weight?.value || 0}
+                                                        onChange={(e) => updateVariationNested(index, 'weight', 'value', Number(e.target.value))}
+                                                        className="w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
+                                                    />
+                                                    <span className="text-gray-500 text-xs">{variation.weight?.unit || 'g'}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <button
+                                                    onClick={() => updateVariation(index, 'isActive', !variation.isActive)}
+                                                    className={`px-2 py-1 rounded text-xs font-medium ${variation.isActive
+                                                        ? "bg-green-100 text-green-800"
+                                                        : "bg-gray-100 text-gray-800"
+                                                        }`}
+                                                >
+                                                    {variation.isActive ? "Active" : "Inactive"}
+                                                </button>
+                                            </td>
+                                            <td className="py-3 px-4 text-right">
+                                                <button
+                                                    onClick={() => toggleRow(index)}
+                                                    className="text-gray-400 hover:text-orange-500 transition-colors"
+                                                >
+                                                    {expandedRow === index ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {expandedRow === index && (
+                                            <tr className="bg-gray-50">
+                                                <td colSpan="5" className="p-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        {/* Inventory Details */}
+                                                        <div className="bg-white p-3 rounded border border-gray-200">
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Inventory Settings</h4>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Low Stock Threshold</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variation.lowStockThreshold}
+                                                                        onChange={(e) => updateVariation(index, 'lowStockThreshold', Number(e.target.value))}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Min Reorder Qty</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variation.minReorderQty}
+                                                                        onChange={(e) => updateVariation(index, 'minReorderQty', Number(e.target.value))}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Dimensions */}
+                                                        <div className="bg-white p-3 rounded border border-gray-200">
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Dimensions ({variation.dimensions?.unit || 'mm'})</h4>
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Length</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variation.dimensions?.length || 0}
+                                                                        onChange={(e) => updateVariationNested(index, 'dimensions', 'length', Number(e.target.value))}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Width</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variation.dimensions?.width || 0}
+                                                                        onChange={(e) => updateVariationNested(index, 'dimensions', 'width', Number(e.target.value))}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Height</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={variation.dimensions?.height || 0}
+                                                                        onChange={(e) => updateVariationNested(index, 'dimensions', 'height', Number(e.target.value))}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Weight & Units */}
+                                                        <div className="bg-white p-3 rounded border border-gray-200">
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Units</h4>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Weight Unit</label>
+                                                                    <select
+                                                                        value={variation.weight?.unit || 'g'}
+                                                                        onChange={(e) => updateVariationNested(index, 'weight', 'unit', e.target.value)}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                                                                    >
+                                                                        <option value="g">g</option>
+                                                                        <option value="kg">kg</option>
+                                                                        <option value="lb">lb</option>
+                                                                        <option value="oz">oz</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs text-gray-500 mb-1">Dim Unit</label>
+                                                                    <select
+                                                                        value={variation.dimensions?.unit || 'mm'}
+                                                                        onChange={(e) => updateVariationNested(index, 'dimensions', 'unit', e.target.value)}
+                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                                                                    >
+                                                                        <option value="mm">mm</option>
+                                                                        <option value="cm">cm</option>
+                                                                        <option value="in">in</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 ))}
                             </tbody>
                         </table>

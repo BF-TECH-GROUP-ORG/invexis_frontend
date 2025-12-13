@@ -11,16 +11,19 @@ import Step3Pricing from "./steps/Step3Pricing";
 import Step4Inventory from "./steps/Step4Inventory";
 import Step5Category from "./steps/Step5Category";
 import Step6Specs from "./steps/Step6Specs";
+import StepVariations from "@/components/inventory/products/ProductFormSteps/StepVariations";
 import Step7SEO from "./steps/Step7SEO";
 import ProductReview from "./review/ProductReview";
+import SuccessModal from "./shared/SuccessModal";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export default function AddProductWizard({ companyId, shopId }) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -72,7 +75,11 @@ export default function AddProductWizard({ companyId, shopId }) {
     // Step 6: Specs
     specs: {},
 
-    // Step 7: SEO
+    // Step 7: Variations
+    variants: [],
+    variations: [],
+
+    // Step 8: SEO
     seo: {
       metaTitle: "",
       metaDescription: "",
@@ -93,7 +100,6 @@ export default function AddProductWizard({ companyId, shopId }) {
       case 1:
         return formData.name && formData.name.length >= 3;
       case 2:
-      case 2:
         return true; // Images are now optional
       case 3:
         return formData.pricing.basePrice > 0;
@@ -105,6 +111,9 @@ export default function AddProductWizard({ companyId, shopId }) {
         // Specs validation handled in Step6Specs
         return true;
       case 7:
+        // Variations validation (optional or check if variations exist if needed)
+        return true;
+      case 8:
         return formData.seo.metaTitle && formData.seo.slug;
       default:
         return true;
@@ -188,12 +197,17 @@ export default function AddProductWizard({ companyId, shopId }) {
       videoFiles: formData.videoFiles,
 
       specs: specsArray,
+      variations: formData.variations,
 
       seo: formData.seo,
     };
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault(); // Prevent default form submission if triggered by event
+
+    if (isSubmitting) return; // Prevent multiple submissions
+
     try {
       setIsSubmitting(true);
       const rawPayload = preparePayload();
@@ -236,7 +250,7 @@ export default function AddProductWizard({ companyId, shopId }) {
             // Append video URLs
             value.forEach((url) => fd.append("videoUrls", url));
           } else if (typeof value === "object" && value !== null) {
-            // Stringify complex objects (pricing, specs, inventory, seo, etc.)
+            // Stringify complex objects (pricing, specs, inventory, seo, variations, etc.)
             fd.append(key, JSON.stringify(value));
           } else if (value !== undefined && value !== null) {
             // Append primitive values
@@ -256,14 +270,71 @@ export default function AddProductWizard({ companyId, shopId }) {
 
       const response = await createProduct(finalPayload);
 
-      toast.success("Product created successfully!");
-      router.push(`/${router.locale || "en"}/inventory/products`);
+      // toast.success("Product created successfully!"); // Handled by modal now
+      setShowSuccessModal(true);
+
+      // Optional: Reset form or redirect after modal close
+      // router.push(`/${router.locale || "en"}/inventory/products`);
     } catch (error) {
       console.error("Error creating product:", error);
       toast.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleReset = () => {
+    setShowSuccessModal(false);
+    setCurrentStep(1);
+    setShowReview(false);
+    setFormData({
+      // Reset to initial state (simplified for brevity, ideally use initial state constant)
+      companyId: companyId || "",
+      shopId: shopId || "",
+      name: "",
+      description: "",
+      brand: "",
+      manufacturer: "",
+      tags: [],
+      condition: "new",
+      availability: "in_stock",
+      visibility: "public",
+      isFeatured: false,
+      status: "active",
+      images: [],
+      videoUrls: [],
+      videoFiles: [],
+      pricing: {
+        basePrice: 0,
+        salePrice: null,
+        listPrice: 0,
+        costPrice: 0,
+        currency: "USD",
+        priceTiers: [],
+      },
+      inventory: {
+        quantity: 0,
+        minStockLevel: 0,
+        maxStockLevel: 0,
+        trackQuantity: true,
+        allowBackorder: false,
+        sku: "",
+        barcode: "",
+      },
+      supplierName: "",
+      categoryId: "",
+      categoryName: "",
+      parentCategoryName: "",
+      specs: {},
+      variants: [],
+      variations: [],
+      seo: {
+        metaTitle: "",
+        metaDescription: "",
+        keywords: [],
+        slug: "",
+      },
+    });
   };
 
   const renderStep = () => {
@@ -305,6 +376,14 @@ export default function AddProductWizard({ companyId, shopId }) {
           <Step6Specs formData={formData} updateFormData={updateFormData} />
         );
       case 7:
+        return (
+          <StepVariations
+            formData={formData}
+            updateFormData={updateFormData}
+            errors={{}}
+          />
+        );
+      case 8:
         return <Step7SEO formData={formData} updateFormData={updateFormData} />;
       default:
         return null;
@@ -313,6 +392,12 @@ export default function AddProductWizard({ companyId, shopId }) {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleReset}
+        productName={formData.name}
+      />
+
       <div className="bg-white rounded-lg shadow-lg">
         {/* Header */}
         <div className="border-b border-gray-200 p-6">
