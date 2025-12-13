@@ -10,12 +10,14 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useSocket } from "@/providers/SocketProvider";
 import { subscribeToNotifications } from "@/utils/socket";
+import { useLoading } from "@/contexts/LoadingContext";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
   const { data: session } = useSession();
   const user = session?.user;
   const router = useRouter();
+  const { setLoading, setLoadingText } = useLoading();
 
   const { socket } = useSocket();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -38,8 +40,24 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
   }, [socket, user?.id]);
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push(`/${locale}/auth/login`);
+    try {
+      // Immediately show loader and set text
+      setLoadingText("Logging out...");
+      setLoading(true);
+
+      // Close profile sidebar
+      setProfileOpen(false);
+
+      // Sign out without redirecting (we'll handle navigation manually)
+      await signOut({ redirect: false });
+
+      // Navigate to login page - loader will stay visible during navigation
+      router.push(`/${locale}/auth/login`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Hide loader on error
+      setLoading(false);
+    }
   };
 
   return (

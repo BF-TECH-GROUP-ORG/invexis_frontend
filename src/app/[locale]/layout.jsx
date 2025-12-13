@@ -22,6 +22,7 @@ export function generateStaticParams() {
 }
 
 import AuthProvider from "@/providers/AuthProvider";
+import { LoadingProvider } from "@/contexts/LoadingContext";
 
 // ... existing imports
 
@@ -37,18 +38,19 @@ export default async function RootLayout({ children, params }) {
 
   // Get messages for the locale
 
-
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="font-metropolis antialiased">
         <NextIntlClientProvider>
           <ClientProviders>
             <AuthProvider>
-              <ThemeRegistry>
-                {/* Initialize settings from localStorage */}
-                <SettingsInitializer />
-                <LayoutWrapper>{children}</LayoutWrapper>
-              </ThemeRegistry>
+              <LoadingProvider>
+                <ThemeRegistry>
+                  {/* Initialize settings from localStorage */}
+                  <SettingsInitializer />
+                  <LayoutWrapper>{children}</LayoutWrapper>
+                </ThemeRegistry>
+              </LoadingProvider>
             </AuthProvider>
           </ClientProviders>
         </NextIntlClientProvider>

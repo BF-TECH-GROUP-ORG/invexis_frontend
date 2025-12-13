@@ -1,26 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import Image from "next/image";
 import { useDispatch } from "react-redux";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Checkbox,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Tooltip,
+  Box,
+  Typography,
+  Avatar,
+} from "@mui/material";
 import { MoreVertical, Edit, Trash2, Folder } from "lucide-react";
 import { toggleCategoryActive } from "@/features/categories/categoriesSlice";
 import { toast } from "react-hot-toast";
 
 export default function CategoryTable({
-  categories,
+  categories = [],
   loading,
-  selectedIds,
+  selectedIds = [],
   onSelectIds,
   onDelete,
   onEdit,
-  canManage = false
+  canManage = false,
 }) {
   const dispatch = useDispatch();
-  const [menuOpen, setMenuOpen] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [menuRowId, setMenuRowId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      onSelectIds(categories.map(cat => cat._id));
+      onSelectIds(categories.map((cat) => cat._id));
     } else {
       onSelectIds([]);
     }
@@ -28,7 +51,7 @@ export default function CategoryTable({
 
   const handleSelectOne = (id) => {
     if (selectedIds.includes(id)) {
-      onSelectIds(selectedIds.filter(sid => sid !== id));
+      onSelectIds(selectedIds.filter((sid) => sid !== id));
     } else {
       onSelectIds([...selectedIds, id]);
     }
@@ -36,11 +59,33 @@ export default function CategoryTable({
 
   const handleToggleActive = async (id) => {
     try {
-      await dispatch(toggleCategoryActive(id));
+      await dispatch(toggleCategoryActive(id)).unwrap();
       toast.success("Category status updated!");
     } catch (error) {
-      toast.error("Failed to update category");
+      // toast.error("Failed to update category");
     }
+  };
+
+  const openMenu = (event, category) => {
+    setMenuAnchor(event.currentTarget);
+    setMenuRowId(category._id);
+    setSelectedCategory(category);
+  };
+
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setMenuRowId(null);
+    setSelectedCategory(null);
+  };
+
+  const handleEditAction = () => {
+    if (onEdit && selectedCategory) onEdit(selectedCategory);
+    closeMenu();
+  };
+
+  const handleDeleteAction = () => {
+    if (onDelete && menuRowId) onDelete(menuRowId);
+    closeMenu();
   };
 
   if (loading) {
@@ -53,116 +98,216 @@ export default function CategoryTable({
 
   if (!categories || categories.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        <Folder className="mx-auto mb-4 text-gray-400" size={64} />
-        <p className="text-lg">No categories found</p>
-        <p className="text-sm mt-2">Create categories to get started</p>
+      <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+        <Folder className="mx-auto mb-4 text-gray-400" size={48} />
+        <p className="text-lg font-medium text-gray-900">No categories found</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Create categories to get started
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="">
-      <table className="w-full">
-        <thead className="border-b bg-gray-50">
-          <tr className="text-left text-sm text-gray-600">
-            <th className="pb-3 px-4">
-              <input
-                type="checkbox"
-                checked={selectedIds.length === categories.length && categories.length > 0}
-                onChange={handleSelectAll}
-                className="rounded"
-              />
-            </th>
-            <th className="pb-3 px-4">Category Name</th>
-            <th className="pb-3 px-4">Level</th>
-            <th className="pb-3 px-4">Parent</th>
-            <th className="pb-3 px-4">Status</th>
-            <th className="pb-3 px-4">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((category) => (
-            <tr key={category._id} className="border-b hover:bg-gray-50 transition">
-              <td className="py-3 px-4">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(category._id)}
-                  onChange={() => handleSelectOne(category._id)}
-                  className="rounded"
+    <>
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          overflow: "hidden",
+        }}
+      >
+        <Table size="medium">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={
+                    selectedIds.length > 0 &&
+                    selectedIds.length < categories.length
+                  }
+                  checked={
+                    categories.length > 0 &&
+                    selectedIds.length === categories.length
+                  }
+                  onChange={handleSelectAll}
+                  size="small"
                 />
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  {category.image?.url ? (
-                    <img
-                      src={category.image.url}
-                      alt={category.name}
-                      className="w-10 h-10 rounded object-cover"
-                    />
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Category Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Level
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Parent
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Status
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: 600, color: "#4b5563" }}
+              >
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {categories.map((category) => (
+              <TableRow
+                key={category._id}
+                hover
+                selected={selectedIds.includes(category._id)}
+                sx={{
+                  "&:hover": { backgroundColor: "#f4f6f8" },
+                  cursor: "pointer",
+                }}
+              >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectedIds.includes(category._id)}
+                    onChange={() => handleSelectOne(category._id)}
+                    size="small"
+                  />
+                </TableCell>
+
+                <TableCell>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    {category.image?.url ? (
+                      <Avatar
+                        src={category.image.url}
+                        alt={category.name}
+                        variant="rounded"
+                        sx={{ width: 40, height: 40 }}
+                      />
+                    ) : (
+                      <Avatar
+                        variant="rounded"
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor: "orange.50",
+                          color: "orange.500",
+                        }}
+                      >
+                        <Folder size={20} />
+                      </Avatar>
+                    )}
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="text.primary"
+                      >
+                        {category.name}
+                      </Typography>
+                      {category.slug && (
+                        <Typography variant="caption" color="text.secondary">
+                          {category.slug}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </TableCell>
+
+                <TableCell>
+                  <Chip
+                    label={`Level ${category.level}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#F3F4F6",
+                      color: "#374151",
+                      fontWeight: 600,
+                      height: 24,
+                      fontSize: "0.75rem",
+                    }}
+                  />
+                </TableCell>
+
+                <TableCell>
+                  {category.parentCategory ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {category.parentCategory.name}
+                    </Typography>
                   ) : (
-                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                      <Folder size={20} className="text-gray-400" />
-                    </div>
+                    <Typography variant="caption" color="text.disabled">
+                      -
+                    </Typography>
                   )}
-                  <div>
-                    <span className="font-medium">{category.name}</span>
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                <span className="px-2 py-1 bg-gray-100 rounded text-sm">
-                  Level {category.level}
-                </span>
-              </td>
-              <td className="py-3 px-4 text-sm text-gray-600">
-                {category.parentCategory?.name || "-"}
-              </td>
-              <td className="py-3 px-4">
-                <button
-                  onClick={() => handleToggleActive(category._id)}
-                  className={`px-3 py-1 rounded text-xs font-medium transition ${category.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                    } hover:opacity-80`}
-                >
-                  {category.isActive ? "Active" : "Inactive"}
-                </button>
-              </td>
-              <td className="py-3 px-4 relative">
-                <button
-                  onClick={() => setMenuOpen(menuOpen === category._id ? null : category._id)}
-                  className="p-1 hover:bg-gray-100 rounded transition"
-                >
-                  <MoreVertical size={18} />
-                </button>
-                {menuOpen === category._id && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-10">
-                    <button
-                      onClick={() => {
-                        setMenuOpen(null);
-                        if (onEdit) onEdit(category);
-                      }}
-                      className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition"
+                </TableCell>
+
+                <TableCell>
+                  <Chip
+                    label={category.isActive ? "Active" : "Inactive"}
+                    size="small"
+                    onClick={() => handleToggleActive(category._id)}
+                    sx={{
+                      backgroundColor: category.isActive
+                        ? "#E8F5E9"
+                        : "#FFEBEE",
+                      color: category.isActive ? "#2E7D32" : "#C62828",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      height: 24,
+                      fontSize: "0.75rem",
+                    }}
+                  />
+                </TableCell>
+
+                <TableCell align="center">
+                  <Tooltip title="Actions">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => openMenu(e, category)}
                     >
-                      <Edit size={16} /> Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMenuOpen(null);
-                        onDelete(category._id);
-                      }}
-                      className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 text-red-600 text-left transition"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
-                  </div>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                      <MoreVertical size={18} />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        PaperProps={{
+          elevation: 0,
+          sx: {
+            minWidth: 140,
+            borderRadius: 2,
+            mt: 0.5,
+            border: "1px solid #E5E7EB",
+            // boxShadow:
+            //   "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+          },
+        }}
+      >
+        <MenuItem onClick={handleEditAction} sx={{ fontSize: "0.875rem" }}>
+          <ListItemIcon>
+            <Edit size={16} />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleDeleteAction}
+          sx={{ color: "error.main", fontSize: "0.875rem" }}
+        >
+          <ListItemIcon>
+            <Trash2 size={16} className="text-red-600" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
+    </>
   );
 }
