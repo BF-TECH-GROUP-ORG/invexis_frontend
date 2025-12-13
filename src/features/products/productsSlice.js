@@ -1,11 +1,20 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as productsService from '@/services/productsService';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import * as productsService from "@/services/productsService";
 
 export const fetchProducts = createAsyncThunk(
-  'products/fetchAll',
-  async ({ page = 1, limit = 20, category, search, companyId } = {}, { rejectWithValue }) => {
+  "products/fetchAll",
+  async (
+    { page = 1, limit = 20, category, search, companyId } = {},
+    { rejectWithValue }
+  ) => {
     try {
-      const data = await productsService.getProducts({ page, limit, category, search, companyId });
+      const data = await productsService.getProducts({
+        page,
+        limit,
+        category,
+        search,
+        companyId,
+      });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -14,7 +23,7 @@ export const fetchProducts = createAsyncThunk(
 );
 
 export const fetchFeaturedProducts = createAsyncThunk(
-  'products/fetchFeatured',
+  "products/fetchFeatured",
   async (_, { rejectWithValue }) => {
     try {
       const data = await productsService.getFeaturedProducts();
@@ -26,7 +35,7 @@ export const fetchFeaturedProducts = createAsyncThunk(
 );
 
 export const fetchProductById = createAsyncThunk(
-  'products/fetchById',
+  "products/fetchById",
   async (id, { rejectWithValue }) => {
     try {
       const data = await productsService.getProductById(id);
@@ -38,27 +47,27 @@ export const fetchProductById = createAsyncThunk(
 );
 
 export const createProduct = createAsyncThunk(
-  'products/create',
+  "products/create",
   async (productData, { rejectWithValue }) => {
     try {
       // Support FormData uploads (when productData is a FormData including files)
-      if (typeof FormData !== 'undefined' && productData instanceof FormData) {
-        const data = await productsService.createProductApi(productData);
+      if (typeof FormData !== "undefined" && productData instanceof FormData) {
+        const data = await productsService.createProduct(productData);
         return data;
       }
 
-      const slugify = (s = '') =>
+      const slugify = (s = "") =>
         s
           .toString()
           .toLowerCase()
           .trim()
-          .replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-_]/g, '');
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-_]/g, "");
 
       const payload = { ...productData };
       if (!payload.slug && payload.name) payload.slug = slugify(payload.name);
 
-      const data = await productsService.createProductApi(payload);
+      const data = await productsService.createProduct(payload);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -67,10 +76,10 @@ export const createProduct = createAsyncThunk(
 );
 
 export const updateProduct = createAsyncThunk(
-  'products/update',
+  "products/update",
   async ({ id, updates }, { rejectWithValue }) => {
     try {
-      const data = await productsService.updateProductApi(id, updates);
+      const data = await productsService.updateProduct(id, updates);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -79,10 +88,10 @@ export const updateProduct = createAsyncThunk(
 );
 
 export const deleteProduct = createAsyncThunk(
-  'products/delete',
+  "products/delete",
   async (id, { rejectWithValue }) => {
     try {
-      await productsService.deleteProductApi(id);
+      await productsService.deleteProduct(id);
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -91,10 +100,10 @@ export const deleteProduct = createAsyncThunk(
 );
 
 export const updateStock = createAsyncThunk(
-  'products/updateStock',
+  "products/updateStock",
   async ({ id, stockData }, { rejectWithValue }) => {
     try {
-      const data = await productsService.updateStockApi(id, stockData);
+      const data = await productsService.updateStock(id, stockData);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -103,10 +112,10 @@ export const updateStock = createAsyncThunk(
 );
 
 export const searchProducts = createAsyncThunk(
-  'products/search',
+  "products/search",
   async (query, { rejectWithValue }) => {
     try {
-      const data = await productsService.searchProductsApi(query);
+      const data = await productsService.searchProducts(query);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -115,7 +124,7 @@ export const searchProducts = createAsyncThunk(
 );
 
 const productsSlice = createSlice({
-  name: 'products',
+  name: "products",
   initialState: {
     items: [],
     featured: [],
@@ -163,15 +172,15 @@ const productsSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         const payloadData = action.payload?.data || action.payload;
-        const index = state.items.findIndex(p => p._id === payloadData?._id);
+        const index = state.items.findIndex((p) => p._id === payloadData?._id);
         if (index !== -1 && payloadData) state.items[index] = payloadData;
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.items = state.items.filter(p => p._id !== action.payload);
+        state.items = state.items.filter((p) => p._id !== action.payload);
       })
       .addCase(updateStock.fulfilled, (state, action) => {
         const payloadData = action.payload?.data || action.payload;
-        const index = state.items.findIndex(p => p._id === payloadData?._id);
+        const index = state.items.findIndex((p) => p._id === payloadData?._id);
         if (index !== -1 && payloadData) state.items[index] = payloadData;
       })
       .addCase(searchProducts.fulfilled, (state, action) => {
@@ -180,5 +189,6 @@ const productsSlice = createSlice({
   },
 });
 
-export const { setSelectedProduct, clearSearchResults, clearError } = productsSlice.actions;
-export default productsSlice.reducer; 
+export const { setSelectedProduct, clearSearchResults, clearError } =
+  productsSlice.actions;
+export default productsSlice.reducer;

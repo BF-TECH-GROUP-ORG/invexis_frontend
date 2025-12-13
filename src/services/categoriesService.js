@@ -1,96 +1,174 @@
-import axios from 'axios';
+import apiClient from "@/lib/apiClient";
+import { getCacheStrategy } from "@/lib/cacheConfig";
 
 // Prefer a local proxy base when available (NEXT_PUBLIC_API_URL), otherwise use the explicit inventory API URL.
 // This mirrors productsService so local dev can set `NEXT_PUBLIC_API_URL=/api` and avoid CORS.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-
-
-
-
-// Only send the ngrok skip header when the API base points to ngrok (helps avoid unnecessary CORS preflights)
-const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
-  ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
-  : {};
-
-if (typeof window !== 'undefined') {
-  console.info('CategoriesService: using API base ->', API_BASE);
+if (typeof window !== "undefined") {
+  console.info("CategoriesService: using API base ->", API_BASE);
 }
 
-// function to get company id
+/**
+ * Get company details by ID
+ * @param {string} companyId - Company ID
+ * @returns {Promise<Object>} Company data
+ *
+ * CACHING: Organization data cached for 1 hour (semi-static)
+ */
 export async function getCompanyId(companyId) {
-  try {
-    if (!companyId) throw new Error("Company ID is required to fetch company details");
-    const res = await axios.get(`${API_BASE}/company/companies/${companyId}`, { headers: defaultHeaders });
-    console.log('receved data', res.data)
-    return res.data;
-  } catch (err) {
-    // propagate the error so calling code can handle it (no mock fallback)
-    throw err;
-  }
-}
+  if (!companyId)
+    throw new Error("Company ID is required to fetch company details");
 
-// get category by ids
-export async function ParentCategories(companyId) {
-  try {
-    console.log("ParentCategories service called with:", companyId);
-    const companyData = await getCompanyId(companyId);
-    // Extract category_ids from the response
-    // Based on user provided structure: { data: { category_ids: [...] }, ... }
-    const categoryIds = companyData?.data?.category_ids || [];
+  const cacheStrategy = getCacheStrategy("ORGANIZATION");
 
-    if (!categoryIds.length) {
-      return { data: [] };
+  const data = await apiClient.get(
+    `${API_BASE}/company/companies/${companyId}`,
+    {
+      cache: cacheStrategy,
     }
+  );
 
-    const res = await axios.post(`${API_BASE}/inventory/v1/categories/by-ids`, { ids: categoryIds }, { headers: defaultHeaders });
-    console.log('receved data', res.data)
-    return res.data;
-  } catch (err) {
-    // propagate the error so calling code can handle it (no mock fallback)
-    throw err;
-  }
+  console.log("received data", data);
+  return data;
 }
 
+/**
+ * Get parent categories for a company
+ * @param {string} companyId - Company ID
+ * @returns {Promise<Object>} Categories data
+ *
+ * CACHING: Categories cached for 30 minutes (semi-static, updated infrequently)
+ */
+export async function ParentCategories(companyId) {
+  console.log("ParentCategories service called with:", companyId);
+
+  const companyData = await getCompanyId(companyId);
+  const categoryIds = companyData?.data?.category_ids || [];
+
+  if (!categoryIds.length) {
+    return { data: [] };
+  }
+
+  const cacheStrategy = getCacheStrategy("CATEGORIES");
+
+  const data = await apiClient.post(
+    `${API_BASE}/inventory/v1/categories/by-ids`,
+    { ids: categoryIds },
+    { cache: cacheStrategy }
+  );
+
+  console.log("received data", data);
+  return data;
+}
+
+/**
+ * Get all level 3 categories for a company
+ * @param {Object} params - Request parameters
+ * @param {string} params.companyId - Company ID
+ * @returns {Promise<Object>} Categories data
+ *
+ * CACHING: Categories cached for 30 minutes
+ */
 export async function getCategories(params = {}) {
-  try {
-    const { companyId } = params;
-    if (!companyId) throw new Error("Company ID is required");
-    const res = await axios.get(`${API_BASE}/inventory/v1/categories/company/${companyId}/level3`, { headers: defaultHeaders });
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  const { companyId } = params;
+  if (!companyId) throw new Error("Company ID is required");
+
+  const cacheStrategy = getCacheStrategy("CATEGORIES");
+
+  return apiClient.get(
+    `${API_BASE}/inventory/v1/categories/company/${companyId}/level3`,
+    {
+      cache: cacheStrategy,
+    }
+  );
 }
 
-//create category
+/**
+ * Create a new category
+ * @param {Object} payload - Category data
+ * @param {string} payload.companyId - Company ID
+ * @returns {Promise<Object>} Created category data
+ *
+ * CACHING: POST request - never cached. Clears categories cache after creation.
+ */
 export async function createCategory(payload) {
-  try {
-    const { companyId } = payload;
-    if (!companyId) throw new Error("Company ID is required for creation");
-    const res = await axios.post(`${API_BASE}/inventory/v1/categories/company/${companyId}/level3`, payload, { headers: defaultHeaders });
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  const { companyId } = payload;
+  if (!companyId) throw new Error("Company ID is required for creation");
+
+  const data = await apiClient.post(
+    `${API_BASE}/inventory/v1/categories/company/${companyId}/level3`,
+    payload
+  );
+
+  // Clear categories cache since we modified data
+  apiClient.clearCache("/categories");
+
+  return data;
 }
 
+/**
+ * Update an existing category
+ * @param {string} id - Category ID
+ * @param {Object} updates - Category updates
+ * @returns {Promise<Object>} Updated category data
+ *
+ * CACHING: PUT request - never cached. Clears categories cache after update.
+ */
 export async function updateCategory(id, updates) {
-  try {
-    const res = await axios.put(`${API_BASE}/inventory/v1/categories/${id}`, updates, { headers: defaultHeaders });
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  const data = await apiClient.put(
+    `${API_BASE}/inventory/v1/categories/${id}`,
+    updates
+  );
+
+  // Clear categories cache since we modified data
+  apiClient.clearCache("/categories");
+
+  return data;
 }
 
+/**
+ * Delete a category
+ * @param {string} id - Category ID
+ * @returns {Promise<Object>} Deletion response
+ *
+ * CACHING: DELETE request - never cached. Clears categories cache after deletion.
+ */
 export async function deleteCategory(id) {
-  try {
-    const res = await axios.delete(`${API_BASE}/inventory/v1/categories/${id}`, { headers: defaultHeaders });
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  const data = await apiClient.delete(
+    `${API_BASE}/inventory/v1/categories/${id}`
+  );
+
+  // Clear categories cache since we modified data
+  apiClient.clearCache("/categories");
+
+  return data;
 }
 
-export default { getCategories, createCategory, updateCategory, deleteCategory, ParentCategories, getCompanyId };
+/**
+ * Get category with parent hierarchy
+ * @param {string} id - Level 3 Category ID
+ * @returns {Promise<Object>} Category hierarchy data
+ *
+ * CACHING: Category hierarchy cached for 1 hour
+ */
+export async function getCategoryWithParent(id) {
+  const cacheStrategy = getCacheStrategy("CATEGORIES");
+
+  return apiClient.get(
+    `${API_BASE}/inventory/v1/categories/level3/${id}/with-parent`,
+    {
+      cache: cacheStrategy,
+    }
+  );
+}
+
+export default {
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  ParentCategories,
+  getCompanyId,
+  getCategoryWithParent,
+};

@@ -73,6 +73,20 @@ export default function LayoutWrapper({ children }) {
     );
   }
 
+  // Define public routes that don't require authentication
+  const PUBLIC_ROUTES_PATTERNS = [
+    /^\/[a-z]{2}\/?$/, // "/" with locale (e.g., /en, /fr)
+    /^\/[a-z]{2}\/welcome/, // "/welcome" pages
+    /^\/[a-z]{2}\/auth\//, // "/auth/*" pages
+    /^\/[a-z]{2}\/errors\//, // "/errors/*" pages
+    /^\/[a-z]{2}\/not-found$/, // "/not-found" page
+    /^\/[a-z]{2}\/unauthorized$/, // "/unauthorized" page
+  ];
+
+  const isPublicRoute = PUBLIC_ROUTES_PATTERNS.some((pattern) =>
+    pattern.test(pathname || "")
+  );
+
   // If the current route is the unauthorized page we render it full-screen and hide
   // the app chrome (sidebar/topnav). This keeps the unauthorized page isolated.
   if (pathname?.includes("/unauthorized")) {
@@ -87,6 +101,22 @@ export default function LayoutWrapper({ children }) {
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
   const isLoggedIn = BYPASS || Boolean(user);
 
+  // Allow unauthenticated access to public routes (home, welcome, auth pages, etc.)
+  if (!isLoggedIn && isPublicRoute) {
+    return (
+      <>
+        <GlobalLoader visible={showLoader} text="Loading..." />
+        {!showLoader && (
+          <div className="min-h-screen bg-gray-50">
+            {children}
+            <DevBypassToggle />
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // For protected routes, if not logged in, ProtectedRoute will handle redirect
   if (!isLoggedIn) {
     return (
       <>
