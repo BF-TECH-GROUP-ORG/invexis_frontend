@@ -198,22 +198,22 @@ const AnalyticsPage = () => {
         {
             title: "Total Daily Sales",
             value: summary.totalDailySales || 0,
-            icon: <Store size={45} className="text-purple-500 bg-purple-50 p-2 rounded-xl" />
+            icon: <Store size={45} className="text-purple-500 bg-purple-50 p-3 rounded-xl" />
         },
         {
             title: "Total Daily Profit",
             value: summary.totalDailyProfit || 0,
-            icon: <Users size={45} className="text-green-500 bg-green-50 p-2 rounded-xl" />
+            icon: <Users size={45} className="text-green-500 bg-green-50 p-3 rounded-xl" />
         },
         {
             title: "Total Returned Products",
             value: summary.totalReturnedProducts || 0,
-            icon: <Boxes size={45} className="text-blue-500 bg-blue-50 p-2 rounded-xl" />
+            icon: <Boxes size={45} className="text-blue-500 bg-blue-50 p-3 rounded-xl" />
         },
         {
             title: "Total Number of Discounts",
             value: summary.totalDiscounts || 0,
-            icon: <CircleX size={45} className="text-red-500 bg-red-50 p-2 rounded-xl" />
+            icon: <CircleX size={45} className="text-red-500 bg-red-50 p-3 rounded-xl" />
         },
     ];
 
@@ -231,7 +231,7 @@ const AnalyticsPage = () => {
                     <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-lg font-semibold">{card.title}</h2>
+                                <h2 className="text-gray-500 text-sm">{card.title}</h2>
                                 <p className="text-sm text-gray-500">{card.discription}</p>
                             </div>
                             <div>

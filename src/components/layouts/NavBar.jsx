@@ -8,12 +8,9 @@ import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
-<<<<<<< HEAD
 import { useLoading } from "@/contexts/LoadingContext";
-=======
 import { useSocket } from "@/providers/SocketProvider";
 import { subscribeToNotifications } from "@/utils/socket";
->>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();

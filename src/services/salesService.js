@@ -1,18 +1,6 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-<<<<<<< HEAD
-const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
-const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sale`;
-const DEBT_URL = `${process.env.NEXT_PUBLIC_DEBT_API_URL}/debt`;
-
-export const getAllProducts = async () => {
-  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
-
-  try {
-    const apiData = await apiClient.get(URL, { cache: cacheStrategy });
-
-=======
 
 const URL = process.env.NEXT_PUBLIC_API_URL
 const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales/`
@@ -30,7 +18,6 @@ export const getAllProducts = async (companyId) => {
     console.log('Products fetched:', apiData.data);  
 
     // Safely handle success flag
->>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
     if (apiData.success === false) {
       console.error("API returned error:", apiData.message);
       return [];
@@ -41,19 +28,6 @@ export const getAllProducts = async (companyId) => {
     return rawProducts.map((product) => ({
       id: product._id || product.id,
       ProductId: product.sku || product.asin || product._id.slice(-8),
-<<<<<<< HEAD
-      ProductName: product.name || "No Name",
-      Category:
-        product.category?.name || product.subcategory?.name || "Uncategorized",
-      Quantity: product.inventory?.quantity || 0,
-      Price:
-        product.effectivePrice ||
-        product.pricing?.salePrice ||
-        product.pricing?.basePrice ||
-        0,
-      brand: product.brand || "No Brand",
-      manufacturer: product.manufacturer,
-=======
       ProductName: product.name || 'No Name',
       Category: product.category?.name,
       Quantity: product.inventory?.quantity || 0,
@@ -61,7 +35,6 @@ export const getAllProducts = async (companyId) => {
       brand: product.brand || 'No Brand',
       manufacturer: product.manufacturer,
       costPrice:product.pricing?.cost,
->>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
     }));
   } catch (error) {
     console.log("Failed to fetch products:", error.message);
@@ -69,27 +42,6 @@ export const getAllProducts = async (companyId) => {
   }
 };
 
-<<<<<<< HEAD
-/**
- * Get single product by ID
- *
- * CACHING: Product metadata cached for 1 hour
- */
-=======
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
 export const singleProductFetch = async (productId) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 

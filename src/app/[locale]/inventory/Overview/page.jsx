@@ -1,33 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "@/features/products/productsSlice";
 import AnalyticsDashboard from "@/components/Landing/Dashboard";
 import { getSalesHistory } from "@/services/salesService";
-import { getProducts } from "@/services/productsService";
 import { getAllShops } from "@/services/shopService";
 import useAuth from "@/hooks/useAuth";
 
 export default function DashboardPage() {
   const { user, status } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [tableProducts, setTableProducts] = useState([]);
+  const dispatch = useDispatch();
+
+  // Redux State
+  const { items: products, loading: productsLoading } = useSelector(
+    (state) => state.products
+  );
+
+  // Local State for non-Redux data
+  const [loadingLocal, setLoadingLocal] = useState(true);
   const [shops, setShops] = useState([]);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalStockQuantity: 0,
-    lowStockCount: 0,
-    lowStockPercentage: 0,
-    outOfStockCount: 0,
-    shopName: "All Shops",
-    shopRevenue: 0,
-  });
+  // const [stats, setStats] = useState(...); // Now derived
+  const [salesData, setSalesData] = useState([]);
 
   useEffect(() => {
     if (status === "loading") return;
 
     const fetchData = async () => {
       try {
-        // Get company ID from user object
         const companyObj = user?.company || user?.companies?.[0];
         const companyId =
           typeof companyObj === "string"
@@ -36,121 +36,99 @@ export default function DashboardPage() {
 
         if (!companyId) {
           console.warn("No company ID found for dashboard");
-          setLoading(false);
+          setLoadingLocal(false);
           return;
         }
 
-        setLoading(true);
+        setLoadingLocal(true);
 
-        const [salesResult, productsResult, shopsResult] =
-          await Promise.allSettled([
-            getSalesHistory(companyId),
-            getProducts({ limit: 1000, companyId }), // Fetch enough products for stats
-            getAllShops(),
-          ]);
+        // Dispatch Redux action for products (fetching 1000 for stats)
+        dispatch(fetchProducts({ limit: 1000, companyId }));
+
+        // Fetch other data manually
+        const [salesResult, shopsResult] = await Promise.allSettled([
+          getSalesHistory(companyId),
+          getAllShops(),
+        ]);
 
         const sales =
           salesResult.status === "fulfilled"
             ? salesResult.value?.data || salesResult.value || []
             : [];
-
-        // Extract products from various possible response structures
-        let products = [];
-        if (productsResult.status === "fulfilled") {
-          const data = productsResult.value;
-          if (Array.isArray(data)) {
-            products = data;
-          } else if (Array.isArray(data?.products)) {
-            products = data.products;
-          } else if (Array.isArray(data?.data)) {
-            products = data.data;
-          } else if (Array.isArray(data?.items)) {
-            products = data.items;
-          }
-        }
+        setSalesData(sales);
 
         const fetchedShops =
           shopsResult.status === "fulfilled" ? shopsResult.value || [] : [];
         setShops(fetchedShops);
-
-        console.log("Fetched products:", products.length, "items");
-
-        // Calculate Inventory Stats
-        let totalStockQuantity = 0;
-        let lowStockCount = 0;
-        let outOfStockCount = 0;
-
-        // Process Products for inventory stats
-        products.forEach((product) => {
-          const qty = Number(
-            product.inventory?.quantity || product.quantity || 0
-          );
-          const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
-
-          totalStockQuantity += qty;
-
-          if (qty <= 0) {
-            outOfStockCount++;
-          } else if (qty <= lowStockThreshold) {
-            lowStockCount++;
-          }
-        });
-
-        // Calculate Percentages
-        const lowStockPercentage =
-          products.length > 0
-            ? Math.round((lowStockCount / products.length) * 100)
-            : 0;
-
-        setStats({
-          totalProducts: products.length,
-          totalStockQuantity,
-          lowStockCount,
-          lowStockPercentage,
-          outOfStockCount,
-          shopName: "All Shops",
-          shopRevenue: 0, // Keep for compatibility
-        });
-
-        // Format Products for Table
-        const formattedProducts = products.map((product) => {
-          const qty = Number(
-            product.inventory?.quantity || product.quantity || 0
-          );
-          const price = Number(
-            product.pricing?.salePrice || product.price || 0
-          );
-          const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
-
-          let status = "In Stock";
-          if (qty <= 0) status = "Out of Stock";
-          else if (qty <= lowStockThreshold) status = "Low Stock";
-
-          return {
-            id: product._id || product.id,
-            name: product.name,
-            category:
-              product.category?.name || product.category || "Uncategorized",
-            price: `${price.toLocaleString()} FRW`,
-            stock: qty,
-            status: status,
-          };
-        });
-
-        setTableProducts(formattedProducts);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
-        setLoading(false);
+        setLoadingLocal(false);
       }
     };
 
     if (status === "authenticated") {
       fetchData();
     } else if (status === "unauthenticated") {
-      setLoading(false);
+      setLoadingLocal(false);
     }
-  }, [status, user]);
+  }, [status, user, dispatch]);
+
+  // Derived State: Stats and Formatted Products
+  const { stats, tableProducts } = useMemo(() => {
+    const safeProducts = Array.isArray(products) ? products : [];
+
+    let totalStockQuantity = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+
+    safeProducts.forEach((product) => {
+      const qty = Number(product.inventory?.quantity || product.quantity || 0);
+      const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
+
+      totalStockQuantity += qty;
+      if (qty <= 0) outOfStockCount++;
+      else if (qty <= lowStockThreshold) lowStockCount++;
+    });
+
+    const lowStockPercentage =
+      safeProducts.length > 0
+        ? Math.round((lowStockCount / safeProducts.length) * 100)
+        : 0;
+
+    const computedStats = {
+      totalProducts: safeProducts.length,
+      totalStockQuantity,
+      lowStockCount,
+      lowStockPercentage,
+      outOfStockCount,
+      shopName: "All Shops",
+      shopRevenue: 0,
+    };
+
+    const formatted = safeProducts.map((product) => {
+      const qty = Number(product.inventory?.quantity || product.quantity || 0);
+      const price = Number(product.pricing?.salePrice || product.price || 0);
+      const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
+
+      let status = "In Stock";
+      if (qty <= 0) status = "Out of Stock";
+      else if (qty <= lowStockThreshold) status = "Low Stock";
+
+      return {
+        id: product._id || product.id,
+        name: product.name,
+        category: product.category?.name || product.category || "Uncategorized",
+        price: `${price.toLocaleString()} FRW`,
+        stock: qty,
+        status: status,
+      };
+    });
+
+    return { stats: computedStats, tableProducts: formatted };
+  }, [products]);
+
+  const loading = loadingLocal || productsLoading;
 
   if (loading) {
     return (

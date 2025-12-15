@@ -26,9 +26,18 @@ import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { getDepartmentsByCompany } from "@/services/departmentsService";
 
-const positions = ["Sales Representative", "Cashier", "Manager", "Stock Keeper"];
+const positions = [
+  "Sales Representative",
+  "Cashier",
+  "Manager",
+  "Stock Keeper",
+];
 const genders = ["male", "female", "other"];
-const stepLabels = ["Personal Information", "Job Information", "Contact & Address"];
+const stepLabels = [
+  "Personal Information",
+  "Job Information",
+  "Contact & Address",
+];
 
 // Helper function to ensure all fields have default values
 const getDefaultWorker = () => ({
@@ -48,7 +57,10 @@ const getDefaultWorker = () => ({
   shops: [],
   emergencyContact: { name: "", phone: "" },
   address: { street: "", city: "", state: "", postalCode: "", country: "" },
-  preferences: { language: "en", notifications: { email: true, sms: true, inApp: true } },
+  preferences: {
+    language: "en",
+    notifications: { email: true, sms: true, inApp: true },
+  },
 });
 
 // Helper to merge initialData with defaults to avoid undefined values
@@ -99,12 +111,20 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   React.useEffect(() => {
     const fetchShopsAndDepartments = async () => {
       const companyObj = session?.user?.companies?.[0];
-      const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+      const companyId =
+        typeof companyObj === "string"
+          ? companyObj
+          : companyObj?.id || companyObj?._id;
 
       if (companyId) {
         // Update worker state with companyId if not already set
-        setWorker(prev => {
-          if (prev.companies && Array.isArray(prev.companies) && prev.companies.includes(companyId)) return prev;
+        setWorker((prev) => {
+          if (
+            prev.companies &&
+            Array.isArray(prev.companies) &&
+            prev.companies.includes(companyId)
+          )
+            return prev;
           return { ...prev, companies: [companyId] };
         });
 
@@ -112,7 +132,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         const response = await getBranches(companyId);
         const shopsList = Array.isArray(response)
           ? response
-          : (response?.shops || response?.branches || response?.data || []);
+          : response?.shops || response?.branches || response?.data || [];
 
         console.log("Processed shops list:", shopsList);
         setAvailableShops(Array.isArray(shopsList) ? shopsList : []);
@@ -129,8 +149,16 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   }, [session]);
 
   const [fieldErrors, setFieldErrors] = useState({});
-  const [errorDialog, setErrorDialog] = useState({ open: false, message: "", details: null });
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [errorDialog, setErrorDialog] = useState({
+    open: false,
+    message: "",
+    details: null,
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const handleChange = (key, value) => {
     setWorker((prev) => ({ ...prev, [key]: value }));
@@ -138,9 +166,13 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   };
 
   const handleNestedChange = (parent, key, value) => {
-    setWorker((prev) => ({ ...prev, [parent]: { ...prev[parent], [key]: value } }));
+    setWorker((prev) => ({
+      ...prev,
+      [parent]: { ...prev[parent], [key]: value },
+    }));
     const errorKey = `${parent}.${key}`;
-    if (fieldErrors[errorKey]) setFieldErrors((prev) => ({ ...prev, [errorKey]: "" }));
+    if (fieldErrors[errorKey])
+      setFieldErrors((prev) => ({ ...prev, [errorKey]: "" }));
   };
 
   const getStepErrors = (step) => {
@@ -149,12 +181,15 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       if (!worker.firstName.trim()) errors.firstName = "First name is required";
       if (!worker.lastName.trim()) errors.lastName = "Last name is required";
       if (!worker.email.trim()) errors.email = "Email is required";
-      else if (!/\S+@\S+\.\S+/.test(worker.email)) errors.email = "Email is invalid";
+      else if (!/\S+@\S+\.\S+/.test(worker.email))
+        errors.email = "Email is invalid";
       if (!worker.phone.trim()) errors.phone = "Phone is required";
-      else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, ""))) errors.phone = "Invalid phone format (e.g., +250...)";
+      else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, "")))
+        errors.phone = "Invalid phone format (e.g., +250...)";
       if (!isEditMode) {
         if (!worker.password.trim()) errors.password = "Password is required";
-        else if (worker.password.length < 6) errors.password = "Password must be at least 6 characters";
+        else if (worker.password.length < 6)
+          errors.password = "Password must be at least 6 characters";
       }
       if (!worker.gender) errors.gender = "Gender is required";
     }
@@ -162,18 +197,34 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     if (step === 1) {
       if (!worker.position) errors.position = "Position is required";
       if (!worker.department) errors.department = "Department is required";
-      if (worker.nationalId && !/^[A-Z0-9]{5,20}$/.test(worker.nationalId)) errors.nationalId = "National ID must be 5-20 uppercase alphanumeric characters";
+      if (worker.nationalId && !/^[A-Z0-9]{5,20}$/.test(worker.nationalId))
+        errors.nationalId =
+          "National ID must be 5-20 uppercase alphanumeric characters";
     }
 
     if (step === 2) {
-      if (!worker.emergencyContact.name.trim()) errors["emergencyContact.name"] = "Emergency contact name is required";
-      if (!worker.emergencyContact.phone.trim()) errors["emergencyContact.phone"] = "Emergency contact phone is required";
-      else if (!/^\+?[1-9]\d{1,14}$/.test(worker.emergencyContact.phone.replace(/[\s-]/g, ""))) errors["emergencyContact.phone"] = "Invalid phone format (e.g., +250...)";
-      if (!worker.address.street.trim()) errors["address.street"] = "Street is required";
-      if (!worker.address.city.trim()) errors["address.city"] = "City is required";
-      if (!worker.address.state.trim()) errors["address.state"] = "State is required";
-      if (!worker.address.postalCode.trim()) errors["address.postalCode"] = "Postal code is required";
-      if (!worker.address.country.trim()) errors["address.country"] = "Country is required";
+      if (!worker.emergencyContact.name.trim())
+        errors["emergencyContact.name"] = "Emergency contact name is required";
+      if (!worker.emergencyContact.phone.trim())
+        errors["emergencyContact.phone"] =
+          "Emergency contact phone is required";
+      else if (
+        !/^\+?[1-9]\d{1,14}$/.test(
+          worker.emergencyContact.phone.replace(/[\s-]/g, "")
+        )
+      )
+        errors["emergencyContact.phone"] =
+          "Invalid phone format (e.g., +250...)";
+      if (!worker.address.street.trim())
+        errors["address.street"] = "Street is required";
+      if (!worker.address.city.trim())
+        errors["address.city"] = "City is required";
+      if (!worker.address.state.trim())
+        errors["address.state"] = "State is required";
+      if (!worker.address.postalCode.trim())
+        errors["address.postalCode"] = "Postal code is required";
+      if (!worker.address.country.trim())
+        errors["address.country"] = "Country is required";
     }
 
     return errors;
@@ -206,15 +257,31 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const handleBack = () => setActiveStep((s) => Math.max(0, s - 1));
 
   const createWorkerMutation = useMutation({
-    mutationFn: (data) => isEditMode ? updateWorker(initialData.id || initialData._id, data, session?.accessToken) : createWorker(data),
+    mutationFn: (data) =>
+      isEditMode
+        ? updateWorker(initialData.id || initialData._id, data)
+        : createWorker(data),
     onSuccess: () => {
-      setSnackbar({ open: true, message: isEditMode ? "Worker updated successfully!" : "Worker created successfully!", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: isEditMode
+          ? "Worker updated successfully!"
+          : "Worker created successfully!",
+        severity: "success",
+      });
       setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);
     },
     onError: (error) => {
       console.error("Worker save error:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || (isEditMode ? "Failed to update worker" : "Failed to create worker");
-      setErrorDialog({ open: true, message: errorMessage, details: error?.response?.data || null });
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        (isEditMode ? "Failed to update worker" : "Failed to create worker");
+      setErrorDialog({
+        open: true,
+        message: errorMessage,
+        details: error?.response?.data || null,
+      });
     },
   });
 
@@ -230,8 +297,15 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     delete payload.username;
     delete payload.department;
 
-    if (payload.nationalId) payload.nationalId = payload.nationalId.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (payload.emergencyContact?.phone) payload.emergencyContact.phone = payload.emergencyContact.phone.replace(/[\s-]/g, "");
+    if (payload.nationalId)
+      payload.nationalId = payload.nationalId
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+    if (payload.emergencyContact?.phone)
+      payload.emergencyContact.phone = payload.emergencyContact.phone.replace(
+        /[\s-]/g,
+        ""
+      );
     if (payload.phone) payload.phone = payload.phone.replace(/[\s-=]/g, "");
 
     await createWorkerMutation.mutateAsync(payload);
@@ -242,19 +316,55 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       case 0:
         return (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              color="#081422"
+              gutterBottom
+            >
               Personal Information
             </Typography>
             <div className="flex gap-4 w-full">
-              <TextField label="First Name" value={worker.firstName} onChange={(e) => handleChange("firstName", e.target.value)} required error={!!fieldErrors.firstName} helperText={fieldErrors.firstName} fullWidth />
-              <TextField label="Last Name" value={worker.lastName} onChange={(e) => handleChange("lastName", e.target.value)} required error={!!fieldErrors.lastName} helperText={fieldErrors.lastName} fullWidth />
+              <TextField
+                label="First Name"
+                value={worker.firstName}
+                onChange={(e) => handleChange("firstName", e.target.value)}
+                required
+                error={!!fieldErrors.firstName}
+                helperText={fieldErrors.firstName}
+                fullWidth
+              />
+              <TextField
+                label="Last Name"
+                value={worker.lastName}
+                onChange={(e) => handleChange("lastName", e.target.value)}
+                required
+                error={!!fieldErrors.lastName}
+                helperText={fieldErrors.lastName}
+                fullWidth
+              />
             </div>
 
-            <TextField label="Email" type="email" value={worker.email} onChange={(e) => handleChange("email", e.target.value)} required error={!!fieldErrors.email} helperText={fieldErrors.email} fullWidth />
+            <TextField
+              label="Email"
+              type="email"
+              value={worker.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              required
+              error={!!fieldErrors.email}
+              helperText={fieldErrors.email}
+              fullWidth
+            />
 
             <TextField
               label="Phone"
-              value={(worker.phone || "").startsWith(worker.countryCode || "+250") ? (worker.phone || "").slice((worker.countryCode || "+250").length) : (worker.phone || "")}
+              value={
+                (worker.phone || "").startsWith(worker.countryCode || "+250")
+                  ? (worker.phone || "").slice(
+                      (worker.countryCode || "+250").length
+                    )
+                  : worker.phone || ""
+              }
               onChange={(e) => {
                 const code = worker.countryCode || "+250";
                 handleChange("phone", code + e.target.value);
@@ -267,33 +377,103 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start" sx={{ p: 0 }}>
-                    <Select value={worker.countryCode || "+250"} onChange={(e) => {
-                      const newCode = e.target.value;
-                      const currentCode = worker.countryCode || "+250";
-                      const currentLocal = worker.phone.startsWith(currentCode) ? worker.phone.slice(currentCode.length) : worker.phone;
-                      handleChange("countryCode", newCode);
-                      handleChange("phone", newCode + currentLocal);
-                    }} variant="standard" disableUnderline sx={{ background: "transparent", "& .MuiSelect-select": { padding: 0 } }} MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}>
-                      {[{ code: "+250", flag: "🇷🇼" }, { code: "+255", flag: "🇹🇿" }, { code: "+256", flag: "🇺🇬" }, { code: "+257", flag: "🇧🇮" }, { code: "+243", flag: "🇨🇩" }].map((option) => (
+                    <Select
+                      value={worker.countryCode || "+250"}
+                      onChange={(e) => {
+                        const newCode = e.target.value;
+                        const currentCode = worker.countryCode || "+250";
+                        const currentLocal = worker.phone.startsWith(
+                          currentCode
+                        )
+                          ? worker.phone.slice(currentCode.length)
+                          : worker.phone;
+                        handleChange("countryCode", newCode);
+                        handleChange("phone", newCode + currentLocal);
+                      }}
+                      variant="standard"
+                      disableUnderline
+                      sx={{
+                        background: "transparent",
+                        "& .MuiSelect-select": { padding: 0 },
+                      }}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
+                    >
+                      {[
+                        { code: "+250", flag: "🇷🇼" },
+                        { code: "+255", flag: "🇹🇿" },
+                        { code: "+256", flag: "🇺🇬" },
+                        { code: "+257", flag: "🇧🇮" },
+                        { code: "+243", flag: "🇨🇩" },
+                      ].map((option) => (
                         <MenuItem key={option.code} value={option.code}>
-                          <span style={{ marginRight: "8px", fontSize: "1.2rem" }}>{option.flag}</span>
+                          <span
+                            style={{ marginRight: "8px", fontSize: "1.2rem" }}
+                          >
+                            {option.flag}
+                          </span>
                           {option.code}
                         </MenuItem>
                       ))}
                     </Select>
-                    <div style={{ width: "1px", height: "26px", background: "#ccc", marginLeft: "6px", marginRight: "8px" }} />
+                    <div
+                      style={{
+                        width: "1px",
+                        height: "26px",
+                        background: "#ccc",
+                        marginLeft: "6px",
+                        marginRight: "8px",
+                      }}
+                    />
                   </InputAdornment>
                 ),
               }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px", background: "transparent" }, "& .MuiOutlinedInput-input": { paddingLeft: "4px" } }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  background: "transparent",
+                },
+                "& .MuiOutlinedInput-input": { paddingLeft: "4px" },
+              }}
             />
 
-            <TextField label="Password" type="password" value={worker.password} onChange={(e) => handleChange("password", e.target.value)} required={!isEditMode} error={!!fieldErrors.password} helperText={fieldErrors.password} fullWidth placeholder={isEditMode ? "Leave blank to keep current password" : ""} />
+            <TextField
+              label="Password"
+              type="password"
+              value={worker.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              required={!isEditMode}
+              error={!!fieldErrors.password}
+              helperText={fieldErrors.password}
+              fullWidth
+              placeholder={
+                isEditMode ? "Leave blank to keep current password" : ""
+              }
+            />
 
-            <TextField label="Date of Birth" type="date" InputLabelProps={{ shrink: true }} value={worker.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} fullWidth />
+            <TextField
+              label="Date of Birth"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={worker.dateOfBirth}
+              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+              fullWidth
+            />
 
-            <TextField select label="Gender" value={worker.gender} onChange={(e) => handleChange("gender", e.target.value)} required error={!!fieldErrors.gender} helperText={fieldErrors.gender} fullWidth>
-              {genders.map((g) => <MenuItem key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</MenuItem>)}
+            <TextField
+              select
+              label="Gender"
+              value={worker.gender}
+              onChange={(e) => handleChange("gender", e.target.value)}
+              required
+              error={!!fieldErrors.gender}
+              helperText={fieldErrors.gender}
+              fullWidth
+            >
+              {genders.map((g) => (
+                <MenuItem key={g} value={g}>
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </MenuItem>
+              ))}
             </TextField>
           </Box>
         );
@@ -301,9 +481,40 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       case 1:
         return (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom>Job Information</Typography>
-            <TextField label="National ID" value={worker.nationalId} onChange={(e) => handleChange("nationalId", e.target.value.toUpperCase())} error={!!fieldErrors.nationalId} helperText={fieldErrors.nationalId} fullWidth />
-            <TextField select label="Position" value={worker.position} onChange={(e) => handleChange("position", e.target.value)} required error={!!fieldErrors.position} helperText={fieldErrors.position} fullWidth>{positions.map((pos) => <MenuItem key={pos} value={pos}>{pos}</MenuItem>)}</TextField>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              color="#081422"
+              gutterBottom
+            >
+              Job Information
+            </Typography>
+            <TextField
+              label="National ID"
+              value={worker.nationalId}
+              onChange={(e) =>
+                handleChange("nationalId", e.target.value.toUpperCase())
+              }
+              error={!!fieldErrors.nationalId}
+              helperText={fieldErrors.nationalId}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Position"
+              value={worker.position}
+              onChange={(e) => handleChange("position", e.target.value)}
+              required
+              error={!!fieldErrors.position}
+              helperText={fieldErrors.position}
+              fullWidth
+            >
+              {positions.map((pos) => (
+                <MenuItem key={pos} value={pos}>
+                  {pos}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Department"
@@ -316,12 +527,17 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             >
               {availableDepartments.length > 0 ? (
                 availableDepartments.map((dept) => (
-                  <MenuItem key={dept.id || dept._id || dept.department_id} value={dept.id || dept._id || dept.department_id}>
+                  <MenuItem
+                    key={dept.id || dept._id || dept.department_id}
+                    value={dept.id || dept._id || dept.department_id}
+                  >
                     {dept.display_name || dept.name || dept.department_name}
                   </MenuItem>
                 ))
               ) : (
-                <MenuItem value="" disabled>No departments available</MenuItem>
+                <MenuItem value="" disabled>
+                  No departments available
+                </MenuItem>
               )}
             </TextField>
 
@@ -344,15 +560,100 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       case 2:
         return (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom>Emergency Contact</Typography>
-            <TextField label="Emergency Contact Name" value={worker.emergencyContact.name} onChange={(e) => handleNestedChange("emergencyContact", "name", e.target.value)} required error={!!fieldErrors["emergencyContact.name"]} helperText={fieldErrors["emergencyContact.name"]} fullWidth />
-            <TextField label="Emergency Contact Phone" value={worker.emergencyContact.phone} onChange={(e) => handleNestedChange("emergencyContact", "phone", e.target.value)} required error={!!fieldErrors["emergencyContact.phone"]} helperText={fieldErrors["emergencyContact.phone"]} fullWidth />
-            <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom sx={{ mt: 2 }}>Address</Typography>
-            <TextField label="Street" value={worker.address.street} onChange={(e) => handleNestedChange("address", "street", e.target.value)} required error={!!fieldErrors["address.street"]} helperText={fieldErrors["address.street"]} fullWidth />
-            <TextField label="City" value={worker.address.city} onChange={(e) => handleNestedChange("address", "city", e.target.value)} required error={!!fieldErrors["address.city"]} helperText={fieldErrors["address.city"]} fullWidth />
-            <TextField label="State" value={worker.address.state} onChange={(e) => handleNestedChange("address", "state", e.target.value)} required error={!!fieldErrors["address.state"]} helperText={fieldErrors["address.state"]} fullWidth />
-            <TextField label="Postal Code" value={worker.address.postalCode} onChange={(e) => handleNestedChange("address", "postalCode", e.target.value)} required error={!!fieldErrors["address.postalCode"]} helperText={fieldErrors["address.postalCode"]} fullWidth />
-            <TextField label="Country" value={worker.address.country} onChange={(e) => handleNestedChange("address", "country", e.target.value)} required error={!!fieldErrors["address.country"]} helperText={fieldErrors["address.country"]} fullWidth />
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              color="#081422"
+              gutterBottom
+            >
+              Emergency Contact
+            </Typography>
+            <TextField
+              label="Emergency Contact Name"
+              value={worker.emergencyContact.name}
+              onChange={(e) =>
+                handleNestedChange("emergencyContact", "name", e.target.value)
+              }
+              required
+              error={!!fieldErrors["emergencyContact.name"]}
+              helperText={fieldErrors["emergencyContact.name"]}
+              fullWidth
+            />
+            <TextField
+              label="Emergency Contact Phone"
+              value={worker.emergencyContact.phone}
+              onChange={(e) =>
+                handleNestedChange("emergencyContact", "phone", e.target.value)
+              }
+              required
+              error={!!fieldErrors["emergencyContact.phone"]}
+              helperText={fieldErrors["emergencyContact.phone"]}
+              fullWidth
+            />
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              color="#081422"
+              gutterBottom
+              sx={{ mt: 2 }}
+            >
+              Address
+            </Typography>
+            <TextField
+              label="Street"
+              value={worker.address.street}
+              onChange={(e) =>
+                handleNestedChange("address", "street", e.target.value)
+              }
+              required
+              error={!!fieldErrors["address.street"]}
+              helperText={fieldErrors["address.street"]}
+              fullWidth
+            />
+            <TextField
+              label="City"
+              value={worker.address.city}
+              onChange={(e) =>
+                handleNestedChange("address", "city", e.target.value)
+              }
+              required
+              error={!!fieldErrors["address.city"]}
+              helperText={fieldErrors["address.city"]}
+              fullWidth
+            />
+            <TextField
+              label="State"
+              value={worker.address.state}
+              onChange={(e) =>
+                handleNestedChange("address", "state", e.target.value)
+              }
+              required
+              error={!!fieldErrors["address.state"]}
+              helperText={fieldErrors["address.state"]}
+              fullWidth
+            />
+            <TextField
+              label="Postal Code"
+              value={worker.address.postalCode}
+              onChange={(e) =>
+                handleNestedChange("address", "postalCode", e.target.value)
+              }
+              required
+              error={!!fieldErrors["address.postalCode"]}
+              helperText={fieldErrors["address.postalCode"]}
+              fullWidth
+            />
+            <TextField
+              label="Country"
+              value={worker.address.country}
+              onChange={(e) =>
+                handleNestedChange("address", "country", e.target.value)
+              }
+              required
+              error={!!fieldErrors["address.country"]}
+              helperText={fieldErrors["address.country"]}
+              fullWidth
+            />
           </Box>
         );
 
@@ -362,27 +663,121 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", py: 4 }} className="border-2 border-gray-200 rounded-xl" >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        py: 4,
+      }}
+      className="border-2 border-gray-200 rounded-xl"
+    >
       <div className="flex w-full items-center">
-        <Box sx={{ flex: 1, p: { xs: 4, md: 6 }, bgcolor: "white", display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            flex: 1,
+            p: { xs: 4, md: 6 },
+            bgcolor: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" fontWeight={700} color="#081422" sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}>{isEditMode ? "Edit Worker" : "Add New Worker"}</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>{isEditMode ? "Update worker information" : "Complete all steps to create a new worker account"}</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>inventory /<span className="hover:text-orange-500 cursor-pointer font-bold  ">
-              <Link href={`/${locale}/inventory/workers/list`} prefetch={true} >workers</Link> </span>  / <span className="text-orange-500 cursor-pointer font-bold  ">{isEditMode ? "Edit-Worker" : "Add-Worker"}</span> </Typography>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              color="#081422"
+              sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+            >
+              {isEditMode ? "Edit Worker" : "Add New Worker"}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              {isEditMode
+                ? "Update worker information"
+                : "Complete all steps to create a new worker account"}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              inventory /
+              <span className="hover:text-orange-500 cursor-pointer font-bold  ">
+                <Link
+                  href={`/${locale}/inventory/workers/list`}
+                  prefetch={true}
+                >
+                  workers
+                </Link>{" "}
+              </span>{" "}
+              /{" "}
+              <span className="text-orange-500 cursor-pointer font-bold  ">
+                {isEditMode ? "Edit-Worker" : "Add-Worker"}
+              </span>{" "}
+            </Typography>
           </Box>
 
-          <Box sx={{ flexGrow: 1, minHeight: 420 }}>{renderStepContent(activeStep)}</Box>
+          <Box sx={{ flexGrow: 1, minHeight: 420 }}>
+            {renderStepContent(activeStep)}
+          </Box>
 
-          <Box sx={{ mt: 6, pt: 4, borderTop: "1px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Button onClick={handleBack} disabled={activeStep === 0} startIcon={<HiArrowLeft />} variant="outlined" sx={{ borderRadius: "12px", textTransform: "none", px: 4, py: 1.5, fontWeight: 600, borderColor: "#081422", color: "#081422" }}>Back</Button>
-
-            <Button variant="contained" onClick={activeStep === stepLabels.length - 1 ? handleSubmit : handleNext} endIcon={createWorkerMutation.isLoading ? <CircularProgress size={20} color="inherit" /> : <HiArrowRight />}
-              disabled={createWorkerMutation.isLoading} sx={{
-                bgcolor: "#", "&:hover": { bgcolor: "#fe6600ff" }, borderRadius: "12px", textTransform: "none", px: 5,
+          <Box
+            sx={{
+              mt: 6,
+              pt: 4,
+              borderTop: "1px solid #e0e0e0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              onClick={handleBack}
+              disabled={activeStep === 0}
+              startIcon={<HiArrowLeft />}
+              variant="outlined"
+              sx={{
+                borderRadius: "12px",
+                textTransform: "none",
+                px: 4,
                 py: 1.5,
                 fontWeight: 600,
-              }}>{createWorkerMutation.isLoading ? (isEditMode ? "Updating..." : "Creating...") : activeStep === stepLabels.length - 1 ? (isEditMode ? "Update Worker" : "Create Worker") : "Next"}</Button>
+                borderColor: "#081422",
+                color: "#081422",
+              }}
+            >
+              Back
+            </Button>
+
+            <Button
+              variant="contained"
+              onClick={
+                activeStep === stepLabels.length - 1 ? handleSubmit : handleNext
+              }
+              endIcon={
+                createWorkerMutation.isLoading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <HiArrowRight />
+                )
+              }
+              disabled={createWorkerMutation.isLoading}
+              sx={{
+                bgcolor: "#",
+                "&:hover": { bgcolor: "#fe6600ff" },
+                borderRadius: "12px",
+                textTransform: "none",
+                px: 5,
+                py: 1.5,
+                fontWeight: 600,
+              }}
+            >
+              {createWorkerMutation.isLoading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Creating..."
+                : activeStep === stepLabels.length - 1
+                ? isEditMode
+                  ? "Update Worker"
+                  : "Create Worker"
+                : "Next"}
+            </Button>
           </Box>
         </Box>
 
@@ -404,8 +799,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                     borderLeftWidth: "3px",
                     borderColor: "#d0d0d0",
                     minHeight: "40px",
-                    marginLeft: "30px"
-                  }
+                    marginLeft: "15px",
+                  },
                 }}
               />
             }
@@ -416,23 +811,23 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                   StepIconComponent={() => (
                     <Box
                       sx={{
-                        width: 64,
-                        height: 64,
+                        width: 52,
+                        height: 52,
                         borderRadius: "50%",
                         border: "3px solid",
                         borderColor:
                           index === activeStep
                             ? "#fe6600"
                             : index < activeStep
-                              ? "#fe6600"
-                              : "#d0d0d0",
+                            ? "#fe6600"
+                            : "#d0d0d0",
                         backgroundColor:
                           index === activeStep ? "#fe6600" : "transparent",
                         color: index === activeStep ? "white" : "#666",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "1.6rem",
+                        fontSize: "1 rem",
                         fontWeight: 700,
                         transition: "all 0.3s ease",
                       }}
@@ -446,7 +841,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                       variant="h6"
                       sx={{
                         fontWeight: 600,
-                        fontSize: "1.25rem",
+                        fontSize: "1rem",
                         color: index <= activeStep ? "#081422" : "#888",
                         mb: 0.5,
                       }}
@@ -455,7 +850,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ color: "#666", fontSize: "0.95rem" }}
+                      sx={{ color: "#666", fontSize: "0.8rem" }}
                     >
                       Step {index + 1} of {stepLabels.length}
                     </Typography>
@@ -468,4 +863,4 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       </div>
     </div>
   );
-} 
+}
