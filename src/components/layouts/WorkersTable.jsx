@@ -65,11 +65,8 @@ export default function WorkersTable() {
   // Get companyId from next-auth session
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
-  const companyId =
-    typeof companyObj === "string"
-      ? companyObj
-      : companyObj?.id || companyObj?._id;
-
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+  console.log(session?.accessToken)
   useEffect(() => {
     const fetchWorkers = async () => {
       // Only fetch if companyId is available
@@ -82,7 +79,8 @@ export default function WorkersTable() {
 
       try {
         const data = await getWorkersByCompanyId(companyId);
-        console.log(data);
+        console.log(companyId)
+        console.log(data)
 
         if (data && Array.isArray(data)) {
           console.log(`✅ Successfully fetched ${data.length} workers`);
@@ -166,13 +164,13 @@ export default function WorkersTable() {
 
     setDeleting(true);
     console.log("Session object:", session);
-    console.log("Token to be sent:", session?.user?.token);
+    console.log("Session object:", session);
     try {
-      if (!session?.user?.token) {
+      if (!session?.accessToken) {
         // console.error("No token found in session!");
         // You might want to show an error or return here
       }
-      await deleteWorker(selectedWorkerId, companyId, session?.accessToken);
+      await deleteWorker(selectedWorkerId, companyId);
       // Refresh list
       const updatedWorkers = workers.filter((w) => w.id !== selectedWorkerId);
       setWorkers(updatedWorkers);

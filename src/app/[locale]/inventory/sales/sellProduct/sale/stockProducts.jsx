@@ -132,8 +132,8 @@ const CurrentInventory = () => {
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
     queryFn: () => getAllProducts(companyId),
-    enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
+    enabled: !!companyId,
   });
 
   // Sell mutation
@@ -206,14 +206,12 @@ const CurrentInventory = () => {
           qty: 1,
           minPrice: product.Price,
           price: product.Price,
-          minPrice: product.Price,
-          price: product.Price,
-          costPrice: product.costPrice,
-          category: product.Category
+          shopId: product.shopId
         }
       });
     }
   };
+
 
   // Handle quantity change
   const handleQuantityChange = (productId, newQty) => {
@@ -298,18 +296,17 @@ const CurrentInventory = () => {
       productName: item.name,
       quantity: item.qty,
       unitPrice: item.price,
+      unitPrice: item.price,
       totalPrice: item.price * item.qty,
       discount: 0,
-      discount: 0,
-      costPrice: item.costPrice,
-      category: item.category
+      shopId: item.shopId
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     const payload = {
       companyId: companyId,
-      shopId: session?.user?.shops?.[0] || "c2c679fa-caba-4477-9a47-21dea330ca87",
+      shopId: items[0]?.shopId || session?.user?.shops?.[0] || "",
       soldBy: session?.user?._id || "",
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
