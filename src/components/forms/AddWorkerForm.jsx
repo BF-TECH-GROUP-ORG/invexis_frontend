@@ -24,9 +24,9 @@ import { getBranches } from "@/services/branches";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
+import { getDepartmentsByCompany } from "@/services/departmentsService";
 
 const positions = ["Sales Representative", "Cashier", "Manager", "Stock Keeper"];
-const departments = ["sales", "finance", "logistics", "hr"];
 const genders = ["male", "female", "other"];
 const stepLabels = ["Personal Information", "Job Information", "Contact & Address"];
 
@@ -36,7 +36,7 @@ const getDefaultWorker = () => ({
   lastName: "",
   email: "",
   phone: "",
-  countryCode: "+250",
+  // countryCode: "+250",
   password: "",
   role: "worker",
   dateOfBirth: "",
@@ -86,6 +86,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
   const [availableShops, setAvailableShops] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
 
   // Update worker state when initialData changes (e.g., after fetching in edit mode)
   React.useEffect(() => {
@@ -94,9 +95,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
   }, [initialData]);
 
-  // Fetch shops when component mounts or company changes
+  // Fetch shops and departments when component mounts or company changes
   React.useEffect(() => {
-    const fetchShops = async () => {
+    const fetchShopsAndDepartments = async () => {
       const companyObj = session?.user?.companies?.[0];
       const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
@@ -107,18 +108,23 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           return { ...prev, companies: [companyId] };
         });
 
+        // Fetch shops
         const response = await getBranches(companyId);
-        // Safely handle different response structures
         const shopsList = Array.isArray(response)
           ? response
           : (response?.shops || response?.branches || response?.data || []);
 
         console.log("Processed shops list:", shopsList);
         setAvailableShops(Array.isArray(shopsList) ? shopsList : []);
+
+        // Fetch departments
+        const departments = await getDepartmentsByCompany(companyId);
+        console.log("Fetched departments:", departments);
+        setAvailableDepartments(Array.isArray(departments) ? departments : []);
       }
     };
     if (session) {
-      fetchShops();
+      fetchShopsAndDepartments();
     }
   }, [session]);
 
@@ -298,7 +304,26 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             <Typography variant="h6" fontWeight={600} color="#081422" gutterBottom>Job Information</Typography>
             <TextField label="National ID" value={worker.nationalId} onChange={(e) => handleChange("nationalId", e.target.value.toUpperCase())} error={!!fieldErrors.nationalId} helperText={fieldErrors.nationalId} fullWidth />
             <TextField select label="Position" value={worker.position} onChange={(e) => handleChange("position", e.target.value)} required error={!!fieldErrors.position} helperText={fieldErrors.position} fullWidth>{positions.map((pos) => <MenuItem key={pos} value={pos}>{pos}</MenuItem>)}</TextField>
-            <TextField select label="Department" value={worker.department} onChange={(e) => handleChange("department", e.target.value)} required error={!!fieldErrors.department} helperText={fieldErrors.department} fullWidth>{departments.map((dep) => <MenuItem key={dep} value={dep}>{dep.charAt(0).toUpperCase() + dep.slice(1)}</MenuItem>)}</TextField>
+            <TextField
+              select
+              label="Department"
+              value={worker.department}
+              onChange={(e) => handleChange("department", e.target.value)}
+              required
+              error={!!fieldErrors.department}
+              helperText={fieldErrors.department}
+              fullWidth
+            >
+              {availableDepartments.length > 0 ? (
+                availableDepartments.map((dept) => (
+                  <MenuItem key={dept.id || dept._id || dept.department_id} value={dept.id || dept._id || dept.department_id}>
+                    {dept.display_name || dept.name || dept.department_name}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="" disabled>No departments available</MenuItem>
+              )}
+            </TextField>
 
             <TextField
               select

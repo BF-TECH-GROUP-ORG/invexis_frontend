@@ -1,6 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
+<<<<<<< HEAD
 const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
 const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sale`;
 const DEBT_URL = `${process.env.NEXT_PUBLIC_DEBT_API_URL}/debt`;
@@ -11,6 +12,25 @@ export const getAllProducts = async () => {
   try {
     const apiData = await apiClient.get(URL, { cache: cacheStrategy });
 
+=======
+
+const URL = process.env.NEXT_PUBLIC_API_URL
+const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales/`
+const DEBT_URL = `${process.env.NEXT_PUBLIC_API_URL}/debt/`
+
+export const getAllProducts = async (companyId) => {
+  try {
+    const response = await axios.get(`${URL}/inventory/v1/companies/${companyId}/products`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',  
+      },
+    });
+
+    const apiData = response.data;
+    console.log('Products fetched:', apiData.data);  
+
+    // Safely handle success flag
+>>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
     if (apiData.success === false) {
       console.error("API returned error:", apiData.message);
       return [];
@@ -21,6 +41,7 @@ export const getAllProducts = async () => {
     return rawProducts.map((product) => ({
       id: product._id || product.id,
       ProductId: product.sku || product.asin || product._id.slice(-8),
+<<<<<<< HEAD
       ProductName: product.name || "No Name",
       Category:
         product.category?.name || product.subcategory?.name || "Uncategorized",
@@ -32,6 +53,15 @@ export const getAllProducts = async () => {
         0,
       brand: product.brand || "No Brand",
       manufacturer: product.manufacturer,
+=======
+      ProductName: product.name || 'No Name',
+      Category: product.category?.name,
+      Quantity: product.inventory?.quantity || 0,
+      Price: product.effectivePrice || product.pricing?.salePrice || product.pricing?.basePrice || 0,
+      brand: product.brand || 'No Brand',
+      manufacturer: product.manufacturer,
+      costPrice:product.pricing?.cost,
+>>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
     }));
   } catch (error) {
     console.log("Failed to fetch products:", error.message);
@@ -39,11 +69,27 @@ export const getAllProducts = async () => {
   }
 };
 
+<<<<<<< HEAD
 /**
  * Get single product by ID
  *
  * CACHING: Product metadata cached for 1 hour
  */
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 64baf11d32ed8639334fdb9d01dddc073219f66d
 export const singleProductFetch = async (productId) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
