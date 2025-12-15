@@ -39,14 +39,14 @@ export const createWorker = async (workerData) => {
 // Cache object to store fetched shops by companyId
 const shopsCache = {};
 
-export const getWorkersByCompanyId = async (companyId, token) => {
+export const getWorkersByCompanyId = async (companyId, accessToken) => {
 
     try {
         const url = `${AUTH_URL}/auth/company/${companyId}/workers`
         const response = await axios.get(url, {
             headers: {
                 'ngrok-skip-browser-warning': 'true',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${accessToken}`,
             },
         });
         console.log("Workers by company fetched:", response.data);

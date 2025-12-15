@@ -46,6 +46,8 @@ export default function WorkersTable() {
 
       try {
         const data = await getWorkersByCompanyId(companyId , session?.accessToken);
+        console.log(session?.accessToken)
+        console.log(companyId)
         console.log(data)
 
         if (data && Array.isArray(data)) {
@@ -129,9 +131,9 @@ export default function WorkersTable() {
 
     setDeleting(true);
     console.log("Session object:", session);
-    console.log("Token to be sent:", session?.user?.token);
+    console.log("Token to be sent:", session?.accessToken);
     try {
-      if (!session?.user?.token) {
+      if (!session?.accessToken) {
         // console.error("No token found in session!");
         // You might want to show an error or return here
       }
