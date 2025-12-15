@@ -138,9 +138,6 @@ export default function ProductTable({
                 Stock
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Discount
-              </TableCell>
-              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 Status
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
@@ -161,18 +158,33 @@ export default function ProductTable({
               const name = product.name || product.ProductName || "Unnamed";
               const category =
                 product.category?.name ||
-                product.category ||
+                product.categoryId?.name ||
                 product.Category ||
                 "Uncategorized";
               const basePrice =
                 product.pricing?.basePrice ??
+                product.pricingId?.basePrice ??
                 product.price ??
                 product.UnitPrice ??
                 0;
-              const salePrice = product.pricing?.salePrice ?? 0;
-              const stock = product.inventory?.quantity ?? product.stock ?? 0;
+              const salePrice =
+                product.pricing?.salePrice ?? product.pricingId?.salePrice ?? 0;
+              
+              // Use sale price if available and lower than base price
+              const effectivePrice = (salePrice > 0 && salePrice < basePrice) ? salePrice : basePrice;
+
+              const stock =
+                product.stock?.total ??
+                product.stock?.available ??
+                product.inventory?.quantity ??
+                product.stock ??
+                0;
               const status =
-                product.status ||
+                (typeof product.status === "object"
+                  ? product.status.active
+                    ? "active"
+                    : "inactive"
+                  : product.status) ||
                 product.availability ||
                 (stock > 0 ? "active" : "inactive");
 
@@ -183,7 +195,7 @@ export default function ProductTable({
                   : 0;
 
               // Calculate total value (price * stock)
-              const totalValue = basePrice * stock;
+              const totalValue = effectivePrice * stock;
 
               return (
                 <TableRow
@@ -271,9 +283,12 @@ export default function ProductTable({
                       fontWeight={600}
                       color="text.primary"
                     >
-                      {basePrice.toLocaleString("en-US", {
+                      {effectivePrice.toLocaleString("en-US", {
                         style: "currency",
-                        currency: product.pricing?.currency || "RWF",
+                        currency:
+                          product.pricing?.currency ||
+                          product.pricingId?.currency ||
+                          "RWF",
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })}
@@ -288,26 +303,6 @@ export default function ProductTable({
                     >
                       {stock}
                     </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    {discountPercent > 0 ? (
-                      <Chip
-                        label={`-${discountPercent}%`}
-                        size="small"
-                        sx={{
-                          backgroundColor: "#ECFDF5",
-                          color: "#15803D",
-                          fontWeight: 600,
-                          fontSize: "0.75rem",
-                          height: 24,
-                        }}
-                      />
-                    ) : (
-                      <Typography variant="caption" color="text.disabled">
-                        -
-                      </Typography>
-                    )}
                   </TableCell>
 
                   <TableCell>
@@ -339,7 +334,10 @@ export default function ProductTable({
                     >
                       {totalValue.toLocaleString("en-US", {
                         style: "currency",
-                        currency: product.pricing?.currency || "RWF",
+                        currency:
+                          product.pricing?.currency ||
+                          product.pricingId?.currency ||
+                          "RWF",
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })}

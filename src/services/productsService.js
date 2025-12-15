@@ -21,7 +21,8 @@ export async function getProducts({
   search,
   companyId,
 } = {}) {
-  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+  // Disable cache to ensure real-time data
+  const cacheStrategy = { noStore: true };
 
   const params = { page, limit };
   if (category) params.category = category;

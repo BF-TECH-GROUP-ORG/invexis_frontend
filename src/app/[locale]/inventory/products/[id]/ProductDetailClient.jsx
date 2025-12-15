@@ -84,7 +84,7 @@ function DetailInner({ id }) {
   }
 
   const images = Array.isArray(product.images) ? product.images : product.images ? [product.images] : [];
-  const currency = product.pricing?.currency || 'USD';
+  const currency = product.pricing?.currency || product.pricingId?.currency || 'RWF';
   const fmt = (v) => (typeof v === 'number' ? new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(v) : v ?? 'N/A');
 
   const openLightbox = (index = 0) => {
@@ -107,11 +107,11 @@ function DetailInner({ id }) {
             </button>
             <div>
               <h1 className="text-2xl font-bold">{product.name}</h1>
-              <p className="text-sm text-gray-500">SKU: <span className="font-medium">{product.sku || 'N/A'}</span></p>
+              <p className="text-sm text-gray-500">SKU: <span className="font-medium">{product.sku || product.identifiers?.sku || 'N/A'}</span></p>
               <div className="mt-2 flex items-center gap-2">
-                <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded">{product.status || 'status unknown'}</span>
+                <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded">{(typeof product.status === 'object' ? (product.status.active ? 'Active' : 'Inactive') : product.status) || product.availability || 'status unknown'}</span>
                 <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">{product.visibility || 'public'}</span>
-                <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded">{product.category?.name || 'Uncategorized'}</span>
+                <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded">{product.category?.name || product.categoryId?.name || 'Uncategorized'}</span>
               </div>
             </div>
           </div>
@@ -186,29 +186,38 @@ function DetailInner({ id }) {
             <div>
               {activeTab === 'overview' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Selling Price</p>
-                      <p className="text-xl font-bold text-green-600">{fmt(product.price ?? product.pricing?.basePrice)}</p>
+                      <p className="text-xl font-bold text-green-600">{fmt(product.pricing?.basePrice ?? product.pricingId?.basePrice ?? product.price)}</p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Cost Price</p>
-                      <p className="text-xl font-semibold">{fmt(product.costPrice ?? product.pricing?.cost)}</p>
+                      <p className="text-xl font-semibold">{fmt(product.pricing?.cost ?? product.pricingId?.cost ?? product.costPrice)}</p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Stock</p>
-                      <p className="text-xl font-semibold">{product.stock ?? product.inventory?.quantity ?? 0}</p>
+                      <p className="text-xl font-semibold">{product.stock?.total ?? product.stock?.available ?? product.inventory?.quantity ?? 0}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500">Total Value</p>
+                      <p className="text-xl font-bold text-orange-600">
+                        {fmt(
+                          (product.pricing?.basePrice ?? product.pricingId?.basePrice ?? product.price ?? 0) * 
+                          (product.stock?.total ?? product.stock?.available ?? product.inventory?.quantity ?? 0)
+                        )}
+                      </p>
                     </div>
                   </div>
 
                   <div className="bg-white border rounded-lg p-4">
                     <h3 className="text-sm text-gray-600 mb-2">Overview</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Field label="Category" value={product.category?.name || product.category || 'N/A'} />
+                      <Field label="Category" value={product.category?.name || product.categoryId?.name || product.category || 'N/A'} />
                       <Field label="Warehouse" value={product.warehouse?.name || product.warehouse || 'N/A'} />
                       <Field label="Date Entered" value={product.createdAt ? new Date(product.createdAt).toLocaleString() : 'N/A'} />
                       <Field label="Expiry Date" value={product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : 'N/A'} />
-                      <Field label="Status" value={product.status || 'N/A'} />
+                      <Field label="Status" value={(typeof product.status === 'object' ? (product.status.active ? 'Active' : 'Inactive') : product.status) || 'N/A'} />
                       <Field label="Visibility" value={product.visibility || 'public'} />
                     </div>
                   </div>
@@ -229,8 +238,8 @@ function DetailInner({ id }) {
               {activeTab === 'pricing' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field label="Selling Price" value={fmt(product.price ?? product.pricing?.basePrice)} />
-                    <Field label="Cost Price" value={fmt(product.costPrice ?? product.pricing?.cost)} />
+                    <Field label="Selling Price" value={fmt(product.pricing?.basePrice ?? product.pricingId?.basePrice ?? product.price)} />
+                    <Field label="Cost Price" value={fmt(product.pricing?.cost ?? product.pricingId?.cost ?? product.costPrice)} />
                     <Field label="Discount" value={product.discount ?? product.pricing?.discount ?? '0'} />
                     <Field label="Currency" value={currency} />
                   </div>
@@ -240,7 +249,7 @@ function DetailInner({ id }) {
               {activeTab === 'inventory' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field label="Stock" value={product.stock ?? product.inventory?.quantity ?? 0} />
+                    <Field label="Stock" value={product.stock?.total ?? product.stock?.available ?? product.inventory?.quantity ?? 0} />
                     <Field label="Min Stock" value={product.minStockLevel ?? 'N/A'} />
                     <Field label="Max Stock" value={product.maxStockLevel ?? 'N/A'} />
                     <Field label="Track Inventory" value={product.trackInventory ? 'Yes' : 'No'} />
@@ -269,13 +278,13 @@ function DetailInner({ id }) {
                     <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">QR Code</h3>
                     <div className="flex flex-col items-center">
                       <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200 inline-block">
-                        {product.qrCodeUrl ? (
-                          <img src={product.qrCodeUrl} alt="QR Code" className="w-64 h-64 object-contain" />
+                        {(product.codes?.qrCodeUrl || product.qrCodeUrl) ? (
+                          <img src={product.codes?.qrCodeUrl || product.qrCodeUrl} alt="QR Code" className="w-64 h-64 object-contain" />
                         ) : (
                           <div className="w-64 h-64 flex items-center justify-center text-gray-400 text-sm">No QR Code Available</div>
                         )}
                       </div>
-                      {product.qrCode && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded">{product.qrCode}</p>}
+                      {(product.codes?.qrPayload || product.qrCode) && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded">{product.codes?.qrPayload || product.qrCode}</p>}
                     </div>
                   </div>
 
@@ -284,13 +293,13 @@ function DetailInner({ id }) {
                     <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Barcode</h3>
                     <div className="flex flex-col items-center">
                       <div className="bg-white p-4 inline-block border rounded-lg">
-                        {product.barcodeUrl ? (
-                          <img src={product.barcodeUrl} alt="Barcode" className="h-32 object-contain" />
+                        {(product.codes?.barcodeUrl || product.barcodeUrl) ? (
+                          <img src={product.codes?.barcodeUrl || product.barcodeUrl} alt="Barcode" className="h-32 object-contain" />
                         ) : (
                           <div className="h-32 w-80 bg-gray-50 flex items-center justify-center text-gray-400 text-sm rounded-lg border-2 border-dashed">No Barcode Available</div>
                         )}
                       </div>
-                      {product.barcode && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded tracking-widest">{product.barcode}</p>}
+                      {(product.codes?.barcodePayload || product.barcode) && <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded tracking-widest">{product.codes?.barcodePayload || product.barcode}</p>}
                     </div>
                   </div>
                 </div>
