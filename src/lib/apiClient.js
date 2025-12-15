@@ -7,6 +7,7 @@
 
 import axios from "axios";
 import api from "@/lib/axios"; // Authenticated instance
+import { getSession } from "next-auth/react";
 
 // In-memory cache (for client-side requests)
 const cache = new Map();
@@ -277,7 +278,7 @@ async function patch(url, data, options = {}) {
  * DELETE request (never cached)
  */
 async function del(url, options = {}) {
-  const { retries = 3, ...axiosConfig } = options;
+  const { retries = 1, ...axiosConfig } = options;
   return retryRequest(() => apiClient.delete(url, axiosConfig), retries).then(
     (response) => response.data
   );

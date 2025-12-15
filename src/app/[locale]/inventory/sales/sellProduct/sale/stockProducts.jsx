@@ -134,9 +134,10 @@ const CurrentInventory = () => {
   const [customerErrors, setCustomerErrors] = useState({});
 
   const { data: products = [], isLoading: loading } = useQuery({
-    queryKey: ["allProducts"],
-    queryFn: getAllProducts,
+    queryKey: ["allProducts", companyId],
+    queryFn: () => getAllProducts(companyId),
     staleTime: 5 * 60 * 1000,
+    enabled: !!companyId,
   });
 
   // Sell mutation
@@ -208,11 +209,13 @@ const CurrentInventory = () => {
           name: product.ProductName,
           qty: 1,
           minPrice: product.Price,
-          price: product.Price
+          price: product.Price,
+          shopId: product.shopId
         }
       });
     }
   };
+
 
   // Handle quantity change
   const handleQuantityChange = (productId, newQty) => {
@@ -297,15 +300,17 @@ const CurrentInventory = () => {
       productName: item.name,
       quantity: item.qty,
       unitPrice: item.price,
+      unitPrice: item.price,
       totalPrice: item.price * item.qty,
-      discount: 0
+      discount: 0,
+      shopId: item.shopId
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     const payload = {
       companyId: companyId,
-      shopId: session?.user?.shops?.[0] || "",
+      shopId: items[0]?.shopId || session?.user?.shops?.[0] || "",
       soldBy: session?.user?._id || "",
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),

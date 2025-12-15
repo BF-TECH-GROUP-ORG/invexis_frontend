@@ -87,7 +87,7 @@ export default function AddProductWizard({ companyId, shopId }) {
       slug: "",
     },
   });
-
+  console.log(formData);
   const updateFormData = (updates) => {
     setFormData((prev) => ({
       ...prev,

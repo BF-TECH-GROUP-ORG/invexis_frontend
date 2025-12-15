@@ -2,14 +2,19 @@ import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
 const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
-const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sale`;
+const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales`;
 const DEBT_URL = `${process.env.NEXT_PUBLIC_DEBT_API_URL}/debt`;
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (companyId = null) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
   try {
-    const apiData = await apiClient.get(URL, { cache: cacheStrategy });
+    let requestUrl = URL;
+    if (companyId) {
+      requestUrl = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/companies/${companyId}/products`;
+    }
+
+    const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy });
 
     if (apiData.success === false) {
       console.error("API returned error:", apiData.message);
@@ -17,14 +22,15 @@ export const getAllProducts = async () => {
     }
 
     const rawProducts = apiData.data || [];
+    console.log("Products fetched:", rawProducts);
 
     return rawProducts.map((product) => ({
       id: product._id || product.id,
-      ProductId: product.sku || product.asin || product._id.slice(-8),
+      ProductId: product.identifiers?.sku || product.sku || product.asin || product._id.slice(-8),
       ProductName: product.name || "No Name",
       Category:
         product.category?.name || product.subcategory?.name || "Uncategorized",
-      Quantity: product.inventory?.quantity || 0,
+      Quantity: product.stock?.available || product.inventory?.quantity || 0,
       Price:
         product.effectivePrice ||
         product.pricing?.salePrice ||
@@ -32,6 +38,7 @@ export const getAllProducts = async () => {
         0,
       brand: product.brand || "No Brand",
       manufacturer: product.manufacturer,
+      shopId: product.shopId,
     }));
   } catch (error) {
     console.log("Failed to fetch products:", error.message);
@@ -69,7 +76,7 @@ export const singleProductFetch = async (productId) => {
  */
 export const SellProduct = async (saleData, isDebt = false) => {
   try {
-    const endpoint = isDebt ? `${DEBT_URL}/create` : SALES_URL;
+    const endpoint = isDebt ? `${DEBT_URL}/create` : `${SALES_URL}`;
 
     console.log("--- SellProduct Service Called ---");
     console.log("Transaction Type:", isDebt ? "DEBT" : "REGULAR SALE");
