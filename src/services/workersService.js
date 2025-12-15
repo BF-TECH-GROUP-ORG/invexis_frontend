@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient";
+import { getCacheStrategy } from "@/lib/cacheConfig";
 
 const WORKERS_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const AUTH_URL = WORKERS_BASE_URL; // Using same base URL as per original file structure
@@ -10,6 +11,10 @@ export const createWorker = async (workerData) => {
       workerData
     );
     console.log("Worker created successfully:", response);
+
+    // Invalidate workers cache
+    apiClient.clearCache(`${AUTH_URL}/auth/company`);
+
     return response;
   } catch (error) {
     console.error(
@@ -26,7 +31,11 @@ const shopsCache = {};
 export const getWorkersByCompanyId = async (companyId) => {
   try {
     const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
-    const response = await apiClient.get(url);
+    const cacheStrategy = getCacheStrategy("STAFF");
+
+    const response = await apiClient.get(url, {
+      cache: cacheStrategy,
+    });
     console.log("Workers by company fetched:", response);
     return response.workers;
   } catch (error) {
@@ -46,7 +55,11 @@ export const getShopsByCompanyId = async (companyId) => {
 
   try {
     const url = `${WORKERS_BASE_URL}/auth/company/${companyId}/shops`;
-    const response = await apiClient.get(url);
+    const cacheStrategy = getCacheStrategy("SHOPS");
+
+    const response = await apiClient.get(url, {
+      cache: cacheStrategy,
+    });
     console.log("Shops by company fetched:", response);
     const shops = response.shops || response || [];
     shopsCache[companyId] = shops;
@@ -62,6 +75,10 @@ export const deleteWorker = async (workerId, companyId) => {
     const url = `${WORKERS_BASE_URL}/auth/company/${companyId}/workers/${workerId}`;
     const response = await apiClient.delete(url);
     console.log("Worker deleted successfully:", response);
+
+    // Invalidate workers cache
+    apiClient.clearCache(`${AUTH_URL}/auth/company`);
+
     return response;
   } catch (error) {
     console.error(
@@ -74,12 +91,17 @@ export const deleteWorker = async (workerId, companyId) => {
 
 export const updateWorker = async (workerId, workerData) => {
   try {
-    // Note: Adjust endpoint if needed based on backend API
     const response = await apiClient.put(
       `${AUTH_URL}/auth/users/${workerId}`,
       workerData
     );
     console.log("Worker updated successfully:", response);
+
+    // Invalidate workers cache
+    apiClient.clearCache(`${AUTH_URL}/auth/company`);
+    // Also invalidate specific worker detail if cached
+    apiClient.clearCache(`${AUTH_URL}/auth/users/${workerId}`);
+
     return response;
   } catch (error) {
     console.error(
@@ -101,7 +123,12 @@ export const getWorkerById = async (workerId) => {
     const url = `${AUTH_URL}/auth/users/${workerId}`;
     console.log("Fetching worker from:", url);
 
-    const response = await apiClient.get(url);
+    // Use STAFF strategy but maybe shorter? Reusing STAFF (1 hour) for consistency, relying on clearCache on update.
+    const cacheStrategy = getCacheStrategy("STAFF");
+
+    const response = await apiClient.get(url, {
+      cache: cacheStrategy,
+    });
     console.log("Worker fetched successfully:", response);
 
     // Return the user data, handling different response structures

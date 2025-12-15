@@ -26,12 +26,12 @@ import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { getDepartmentsByCompany } from "@/services/departmentsService";
 
-const positions = [
-  "Sales Representative",
-  "Cashier",
-  "Manager",
-  "Stock Keeper",
-];
+// const positions = [
+//   "Sales Representative",
+//   "Cashier",
+//   "Manager",
+//   "Stock Keeper",
+// ];
 const genders = ["male", "female", "other"];
 const stepLabels = [
   "Personal Information",
@@ -51,7 +51,7 @@ const getDefaultWorker = () => ({
   dateOfBirth: "",
   gender: "",
   nationalId: "",
-  position: "",
+  // position: "",
   department: "",
   companies: [],
   shops: [],
@@ -195,7 +195,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
 
     if (step === 1) {
-      if (!worker.position) errors.position = "Position is required";
+      // if (!worker.position) errors.position = "Position is required";
       if (!worker.department) errors.department = "Department is required";
       if (worker.nationalId && !/^[A-Z0-9]{5,20}$/.test(worker.nationalId))
         errors.nationalId =
@@ -269,6 +269,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           : "Worker created successfully!",
         severity: "success",
       });
+      router.refresh();
       setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);
     },
     onError: (error) => {
@@ -499,7 +500,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               helperText={fieldErrors.nationalId}
               fullWidth
             />
-            <TextField
+            {/* <TextField
               select
               label="Position"
               value={worker.position}
@@ -514,7 +515,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                   {pos}
                 </MenuItem>
               ))}
-            </TextField>
+            </TextField> */}
             <TextField
               select
               label="Department"

@@ -32,7 +32,10 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
           id: data.id || Date.now(),
           title: data.title || "New Notification",
           desc: data.message || data.desc || "",
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         };
         setNotifications((prev) => [newNotification, ...prev]);
       });
@@ -52,10 +55,11 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
       await signOut({ redirect: false });
 
       // Navigate to login page - loader will stay visible during navigation
-      router.push(`/${locale}/auth/login`);
+      await router.push(`/${locale}/auth/login`);
     } catch (error) {
       console.error("Logout failed:", error);
-      // Hide loader on error
+    } finally {
+      // Ensure loader is disabled after navigation attempt
       setLoading(false);
     }
   };
@@ -64,10 +68,11 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
-          ? "px-4 py-3" // Mobile: full width, smaller padding
-          : "px-6 py-2" // Desktop: adjusted for sidebar
-          }`}
+        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
+          isMobile
+            ? "px-4 py-3" // Mobile: full width, smaller padding
+            : "px-6 py-2" // Desktop: adjusted for sidebar
+        }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}
