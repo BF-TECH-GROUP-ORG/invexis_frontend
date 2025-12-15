@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, X, ChevronDown, Check, Search } from "lucide-react";
+import { Plus, Filter, Download, Trash2, X, ChevronDown, Check, Search, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { useSession } from "next-auth/react";
+import apiClient from "@/lib/apiClient";
 import { fetchProducts, deleteProduct } from "@/features/products/productsSlice";
 import { fetchCategories } from "@/features/categories/categoriesSlice";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
@@ -62,7 +63,7 @@ export default function ProductList() {
   const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
 
   const routes = {
-    add: `${basePath}/add`,
+    add: `${basePath}/add-wizard`,
     view: (id) => `${basePath}/${id}`,
     edit: (id) => `${basePath}/${id}/edit`,
   };
@@ -126,6 +127,14 @@ export default function ProductList() {
     }
   };
 
+  const handleRefresh = () => {
+    apiClient.clearCache();
+    if (companyId) {
+      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
+      toast.success("Cache cleared & data refreshed");
+    }
+  };
+
   const handleExportPDF = async () => {
     const doc = new jsPDF();
 
@@ -142,8 +151,8 @@ export default function ProductList() {
     const tableRows = [];
 
     for (const product of products) {
-      const price = product.pricing?.basePrice || product.price || 0;
-      const stock = product.inventory?.quantity || product.stock || 0;
+      const price = product.pricing?.basePrice || product.pricingId?.basePrice || product.price || 0;
+      const stock = product.stock?.total ?? product.stock?.available ?? product.inventory?.quantity ?? product.stock ?? 0;
       const totalValue = price * stock;
       const status = stock > 0 ? "In Stock" : "Out of Stock";
       const discount = product.pricing?.discount || product.discount || 0;
@@ -152,7 +161,7 @@ export default function ProductList() {
       const rowData = [
         "", // Placeholder for image
         `${product.name}\n${product.description ? String(product.description).substring(0, 30) + '...' : ''}`,
-        product.category?.name || "N/A",
+        product.category?.name || product.categoryId?.name || "N/A",
         `Qty: ${stock}\nPrice: $${price.toLocaleString()}${discount > 0 ? `\nDisc: ${discount}%` : ''}`,
         status,
         `$${totalValue.toLocaleString()}`
@@ -196,16 +205,17 @@ export default function ProductList() {
   const stats = {
     total: products.length,
     inStock: products.filter((p) => {
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      const qty = p.stock?.total ?? p.stock?.available ?? p.inventory?.quantity ?? p.stock ?? 0;
       return qty > 0;
     }).length,
     lowStock: products.filter((p) => {
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
-      return qty > 0 && qty < 20;
+      const qty = p.stock?.total ?? p.stock?.available ?? p.inventory?.quantity ?? p.stock ?? 0;
+      const threshold = p.stock?.lowStockThreshold ?? 20;
+      return qty > 0 && qty < threshold;
     }).length,
     totalValue: products.reduce((sum, p) => {
-      const price = p.pricing?.basePrice ?? p.price ?? 0;
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      const price = p.pricing?.basePrice ?? p.pricingId?.basePrice ?? p.price ?? 0;
+      const qty = p.stock?.total ?? p.stock?.available ?? p.inventory?.quantity ?? p.stock ?? 0;
       return sum + (price * qty);
     }, 0),
   };
@@ -323,6 +333,14 @@ export default function ProductList() {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
+              title="Clear Cache & Refresh"
+            >
+              <RefreshCw size={18} />
+            </button>
 
             <button
               onClick={handleExportPDF}
