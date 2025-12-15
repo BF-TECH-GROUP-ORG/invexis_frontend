@@ -153,7 +153,15 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload?.data || action.payload || [];
+        const rawItems = action.payload?.data || action.payload || [];
+        // Filter out deleted items if backend returns them
+        state.items = rawItems.filter(
+          (item) =>
+            !item.isDeleted &&
+            (!item.status ||
+              typeof item.status !== "object" ||
+              !item.status.isDeleted)
+        );
         state.pagination = action.payload?.pagination || state.pagination;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
@@ -176,7 +184,9 @@ const productsSlice = createSlice({
         if (index !== -1 && payloadData) state.items[index] = payloadData;
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.items = state.items.filter((p) => p._id !== action.payload);
+        state.items = state.items.filter(
+          (p) => p._id !== action.payload && p.id !== action.payload
+        );
       })
       .addCase(updateStock.fulfilled, (state, action) => {
         const payloadData = action.payload?.data || action.payload;
