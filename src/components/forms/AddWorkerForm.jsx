@@ -200,7 +200,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const handleBack = () => setActiveStep((s) => Math.max(0, s - 1));
 
   const createWorkerMutation = useMutation({
-    mutationFn: (data) => isEditMode ? updateWorker(initialData.id || initialData._id, data, session?.accessToken) : createWorker(data),
+    mutationFn: (data) => isEditMode ? updateWorker(initialData.id || initialData._id, data) : createWorker(data),
     onSuccess: () => {
       setSnackbar({ open: true, message: isEditMode ? "Worker updated successfully!" : "Worker created successfully!", severity: "success" });
       setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);

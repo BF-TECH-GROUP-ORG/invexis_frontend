@@ -33,7 +33,7 @@ export default function WorkersTable() {
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-
+  console.log(session?.accessToken)
   useEffect(() => {
     const fetchWorkers = async () => {
       // Only fetch if companyId is available
@@ -45,8 +45,7 @@ export default function WorkersTable() {
       }
 
       try {
-        const data = await getWorkersByCompanyId(companyId , session?.accessToken);
-        console.log(session?.accessToken)
+        const data = await getWorkersByCompanyId(companyId);
         console.log(companyId)
         console.log(data)
 
@@ -131,13 +130,13 @@ export default function WorkersTable() {
 
     setDeleting(true);
     console.log("Session object:", session);
-    console.log("Token to be sent:", session?.accessToken);
+    console.log("Session object:", session);
     try {
       if (!session?.accessToken) {
         // console.error("No token found in session!");
         // You might want to show an error or return here
       }
-      await deleteWorker(selectedWorkerId, companyId, session?.accessToken);
+      await deleteWorker(selectedWorkerId, companyId);
       // Refresh list
       const updatedWorkers = workers.filter(w => w.id !== selectedWorkerId);
       setWorkers(updatedWorkers);
@@ -145,10 +144,8 @@ export default function WorkersTable() {
       setSelectedWorkerId(null);
     } catch (error) {
       console.error("Failed to delete worker:", error);
-      // console.log(session?.user)
-      console.log('Access token:', session?.accessToken)
       console.log('Company ID:', companyId)
-      console.log('Worker ID:', selectedWorkerId) 
+      console.log('Worker ID:', selectedWorkerId)
 
       // Optionally show error snackbar here
     } finally {
