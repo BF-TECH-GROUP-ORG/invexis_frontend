@@ -9,22 +9,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useLoading } from "@/contexts/LoadingContext";
-<<<<<<< HEAD
 import { useSocket } from "@/providers/SocketProvider";
 import { subscribeToNotifications } from "@/utils/socket";
-=======
-import { formatDistanceToNow } from 'date-fns';
-
-// Redux
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchAnnouncements,
-  markAnnouncementRead,
-  selectUnreadCount,
-  selectAllAnnouncements
-} from "@/features/announcements/announcementsSlice";
-import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
->>>>>>> ec8cea989ec1c0404406021c8cdd53b8c4ce3a33
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
