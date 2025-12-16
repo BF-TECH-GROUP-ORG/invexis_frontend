@@ -1,38 +1,29 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+    isOnboardingCompleted: false,
+    step: 0,
+};
 
 const onboardingSlice = createSlice({
-    name: "onboarding",
-    initialState: {
-        completed: false,
-        activeStep: 0,
-    },
+    name: 'onboarding',
+    initialState,
     reducers: {
         completeOnboarding: (state) => {
-            state.completed = true;
-            localStorage.setItem("onboardingCompleted", "true");
-        },
-        loadOnboarding: (state) => {
-            const savedCompleted = localStorage.getItem("onboardingCompleted");
-            const savedStep = localStorage.getItem("onboardingActiveStep");
-
-            state.completed = savedCompleted === "true";
-            state.activeStep = savedStep ? parseInt(savedStep, 10) : 0;
+            state.isOnboardingCompleted = true;
         },
         setActiveStep: (state, action) => {
-            state.activeStep = action.payload;
-            localStorage.setItem("onboardingActiveStep", action.payload.toString());
+            state.step = action.payload;
         },
-        resetOnboarding: (state) => {
-            state.completed = false;
-            state.activeStep = 0;
-            localStorage.removeItem("onboardingCompleted");
-            localStorage.removeItem("onboardingActiveStep");
-        }
-    }
+    },
 });
 
+export const { completeOnboarding, setActiveStep } = onboardingSlice.actions;
 
-export const { completeOnboarding, loadOnboarding, setActiveStep, resetOnboarding } = onboardingSlice.actions;
+export const loadOnboarding = () => ({ type: 'onboarding/load' });
 
+// Selectors
+export const selectIsOnboardingCompleted = (state) => state.onboarding?.isOnboardingCompleted;
+export const selectOnboardingStep = (state) => state.onboarding?.step;
 
 export default onboardingSlice.reducer;

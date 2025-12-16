@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,17 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useLoading } from "@/contexts/LoadingContext";
+import { formatDistanceToNow } from 'date-fns';
+
+// Redux
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchAnnouncements,
+  markAnnouncementRead,
+  selectUnreadCount,
+  selectAllAnnouncements
+} from "@/features/announcements/announcementsSlice";
+import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
@@ -20,26 +31,19 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const notifications = [
-    {
-      id: 1,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 2,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 3,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-  ];
+  // Redux State
+  const dispatch = useDispatch();
+  const unreadCount = useSelector(selectUnreadCount);
+  const allAnnouncements = useSelector(selectAllAnnouncements);
+  const notifications = allAnnouncements.slice(0, 5); // Show top 5
+
+  // Initialize Socket Global Listener here (since NavBar is always present)
+  useAnnouncementSocket();
+
+  useEffect(() => {
+    // Initial fetch
+    dispatch(fetchAnnouncements());
+  }, [dispatch]);
 
   const handleLogout = async () => {
     try {
@@ -62,15 +66,22 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     }
   };
 
+  const handleNotificationClick = (n) => {
+    if (!n.isRead) {
+      dispatch(markAnnouncementRead(n.id));
+    }
+    // Optional: navigate to details
+    // router.push(`/${locale}/inventory/announcements?id=${n.id}`);
+  };
+
   return (
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
-          isMobile
-            ? "px-4 py-3" // Mobile: full width, smaller padding
-            : "px-6 py-2" // Desktop: adjusted for sidebar
-        }`}
+        className={`sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+          ? "px-4 py-3" // Mobile: full width, smaller padding
+          : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}

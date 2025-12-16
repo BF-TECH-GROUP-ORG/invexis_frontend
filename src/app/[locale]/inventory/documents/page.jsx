@@ -1,10 +1,10 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchData } from '@/features/documents/documentsSlice';
+import { fetchData, archiveDocument, trashDocument } from '@/features/documents/documentsSlice';
 import FolderNavigation from '@/components/documents/FolderNavigation';
 import PreviewPanel from '@/components/documents/PreviewPanel';
-import EventSimulator from '@/components/documents/EventSimulator';
+import { Search } from 'lucide-react';
 
 // Explorer Components
 import YearGrid from '@/components/documents/explorer/YearGrid';
@@ -14,7 +14,7 @@ import RecentDocsList from '@/components/documents/explorer/RecentDocsList';
 
 export default function DocumentsPage() {
   const dispatch = useDispatch();
-  const { items: allDocs, status } = useSelector((state) => state.documents);
+  const { items: allDocs = [], status } = useSelector((state) => state.documents || {});
 
   // Navigation State
   const [drillState, setDrillState] = useState({
@@ -23,6 +23,9 @@ export default function DocumentsPage() {
     month: null
   });
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [selectedIds, setSelectedIds] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
 
   useEffect(() => {
@@ -33,16 +36,44 @@ export default function DocumentsPage() {
 
   // --- Derived Data Logic ---
   const filteredByCategory = useMemo(() => {
-    if (drillState.category === "All Files") return allDocs;
-    // Map sidebar labels to data categories if needed, or loosely match
-    return allDocs.filter(d =>
-      drillState.category === "All Files" ||
-      d.category === drillState.category ||
-      (drillState.category === "Sales & Orders" && ["Sales", "Orders", "Finance"].includes(d.category)) ||
-      (drillState.category === "Financial" && d.category === "Finance") ||
-      (drillState.category === "Inventory" && d.category === "Procurement")
-    );
-  }, [allDocs, drillState.category]);
+    const docs = Array.isArray(allDocs) ? allDocs : [];
+
+    return docs.filter(d => {
+      // 1. Handle System Folders (Trash / Archived)
+      if (drillState.category === "Trash") {
+        return d.status === 'Trash';
+      }
+      if (drillState.category === "Archived") {
+        return d.status === 'Archived';
+      }
+
+      // 2. Handle Active Folders (Exclude Trash/Archived)
+      if (d.status === 'Trash' || d.status === 'Archived') {
+        return false;
+      }
+
+      // 3. Category Matching
+      const matchCategory = drillState.category === "All Files" ||
+        d.category === drillState.category ||
+        (drillState.category === "Sales & Orders" && ["Sales", "Orders", "Finance"].includes(d.category)) ||
+        (drillState.category === "Financial" && d.category === "Finance") ||
+        (drillState.category === "Inventory" && d.category === "Procurement");
+
+      if (!matchCategory) return false;
+
+      // 4. Search Filtering
+      if (searchTerm) {
+        const lowerTerm = searchTerm.toLowerCase();
+        return (
+          d.name?.toLowerCase().includes(lowerTerm) ||
+          d.date?.includes(lowerTerm) ||
+          d.type?.toLowerCase().includes(lowerTerm)
+        );
+      }
+
+      return true;
+    });
+  }, [allDocs, drillState.category, searchTerm]);
 
   // Recent Docs (Top 4 by date)
   const recentDocs = useMemo(() => {
@@ -76,7 +107,25 @@ export default function DocumentsPage() {
   // --- Handlers ---
   const handleCategorySelect = (cat) => {
     setDrillState({ category: cat, year: null, month: null });
-  }
+    setSelectedIds([]); // Clear selection on navigate
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkAction = async (actionType) => {
+    if (actionType === 'trash') {
+      const promises = selectedIds.map(id => dispatch(trashDocument(id)));
+      await Promise.all(promises);
+    } else if (actionType === 'archive') {
+      const promises = selectedIds.map(id => dispatch(archiveDocument(id)));
+      await Promise.all(promises);
+    }
+    setSelectedIds([]); // Clear after action
+  };
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -105,14 +154,30 @@ export default function DocumentsPage() {
                 </>
               )}
             </div>
-            <EventSimulator />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
+              />
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pb-20"> {/* Added padding for toolbar */}
             {/* Render Logic */}
             {!drillState.year ? (
               <>
-                <RecentDocsList documents={recentDocs} onOpenValues={setSelectedDoc} />
+                <RecentDocsList
+                  documents={recentDocs}
+                  onOpenValues={setSelectedDoc}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                />
                 <YearGrid
                   years={availableYears}
                   onSelectYear={(y) => setDrillState(prev => ({ ...prev, year: y }))}
@@ -132,13 +197,48 @@ export default function DocumentsPage() {
                 month={drillState.month}
                 onOpenValues={setSelectedDoc}
                 onBack={() => setDrillState(prev => ({ ...prev, month: null }))}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
               />
             )}
           </div>
+
+          {/* Floating Bulk Action Toolbar */}
+          {selectedIds.length > 0 && (
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-[#081422] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-6 z-40 animate-in slide-in-from-bottom-4 fade-in duration-300">
+              <span className="text-sm font-medium border-r border-gray-600 pr-6">
+                {selectedIds.length} Selected
+              </span>
+
+              <button
+                onClick={() => handleBulkAction('archive')}
+                className="flex items-center gap-2 text-sm font-bold hover:text-orange-400 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                Archive
+              </button>
+
+              <button
+                onClick={() => handleBulkAction('trash')}
+                className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Trash
+              </button>
+
+              <button
+                onClick={() => setSelectedIds([])}
+                className="ml-2 hover:bg-gray-700/50 p-1 rounded-full text-gray-400 hover:text-white transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Right Pane: Folder Navigation */}
-        <div className="w-64 border-l border-gray-200 bg-white flex-shrink-0 z-10">
+        <div className="border-l border-gray-200 bg-white flex-shrink-0 transition-all duration-300">
           <FolderNavigation onSelect={handleCategorySelect} activeCategory={drillState.category} />
         </div>
 
