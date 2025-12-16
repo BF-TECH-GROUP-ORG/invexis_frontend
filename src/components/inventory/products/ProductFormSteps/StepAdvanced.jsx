@@ -17,7 +17,7 @@ export default function StepAdvanced({
       className="space-y-6"
     >
       {/* Status & Visibility */}
-      <div className="border border-gray-200 rounded-xl p-6 bg-white">
+      <div className="border border-gray-200 rounded-lg p-4 bg-white">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Settings size={20} className="text-orange-500" />
           General Settings
@@ -28,7 +28,7 @@ export default function StepAdvanced({
             <select
               value={formData.status || "active"}
               onChange={(e) => updateFormData({ status: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -41,7 +41,7 @@ export default function StepAdvanced({
             <select
               value={formData.visibility || "public"}
               onChange={(e) => updateFormData({ visibility: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             >
               <option value="public">Public</option>
               <option value="private">Private</option>
@@ -54,7 +54,7 @@ export default function StepAdvanced({
               type="number"
               value={formData.sortOrder || 0}
               onChange={(e) => updateFormData({ sortOrder: Number(e.target.value) })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             />
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function StepAdvanced({
       </div>
 
       {/* SEO Settings */}
-      <div className="border border-gray-200 rounded-xl p-6 bg-white">
+      <div className="border border-gray-200 rounded-lg p-4 bg-white">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <TrendingUp size={20} className="text-orange-500" />
           SEO Settings
@@ -95,7 +95,7 @@ export default function StepAdvanced({
               type="text"
               value={formData.seo?.metaTitle || ""}
               onChange={(e) => updateNestedField("seo", "metaTitle", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
               placeholder="SEO Title"
             />
           </div>
@@ -105,7 +105,7 @@ export default function StepAdvanced({
               value={formData.seo?.metaDescription || ""}
               onChange={(e) => updateNestedField("seo", "metaDescription", e.target.value)}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
               placeholder="SEO Description"
             />
           </div>
@@ -115,7 +115,7 @@ export default function StepAdvanced({
               type="text"
               value={(formData.seo?.keywords || []).join(", ")}
               onChange={(e) => updateNestedField("seo", "keywords", e.target.value.split(",").map(k => k.trim()).filter(Boolean))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
               placeholder="keyword1, keyword2"
             />
           </div>

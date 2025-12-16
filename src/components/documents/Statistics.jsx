@@ -2,7 +2,7 @@
 
 "use client";
 import { useSelector } from "react-redux";
-import { selectDocumentStats } from "@/Data/dataSlice";
+import { selectDocumentStats } from "@/features/documents/dataSlice";
 
 export default function Statistics() {
   const stats = useSelector(selectDocumentStats);

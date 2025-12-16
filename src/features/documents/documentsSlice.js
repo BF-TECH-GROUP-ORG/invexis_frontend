@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "@/utils/axiosClient";
-// mockData removed — fall back to empty data when API unavailable
+import mockData from "./mockData";
 
 // ==================== ASYNC THUNKS ====================
 

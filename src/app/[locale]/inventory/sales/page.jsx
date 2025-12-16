@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/shared/button";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
+import SalesCards from "./cards";
 
 const jost = Jost({
   weight: "400",
@@ -26,6 +27,7 @@ const SalesPage = () => {
     <>
      <section className="w-full  inline-grid" >
       <div className="space-y-10 w-full" >
+         <SalesCards /> 
          <div className="space-y-5 flex justify-between  ">
           <div>
             <h1 className="text-2xl font-medium ">{t("title")}</h1>

@@ -9,7 +9,7 @@ import {
   selectFilteredData,
   setSort,
   setCurrentDocument,
-} from "@/Data/dataSlice";
+} from "@/features/documents/dataSlice";
 
 export default function DataTable({ onViewDocument, onEditDocument }) {
   const dispatch = useDispatch();
@@ -122,25 +122,23 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
         {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t">
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              doc.status === "Financial"
-                ? "bg-green-100 text-green-700"
-                : doc.status === "Workshop"
+            className={`px-2 py-1 rounded-full text-xs font-medium ${doc.status === "Financial"
+              ? "bg-green-100 text-green-700"
+              : doc.status === "Workshop"
                 ? "bg-yellow-100 text-yellow-700"
                 : "bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             {doc.status}
           </span>
           {doc.priority && (
             <span
-              className={`px-2 py-1 rounded text-xs font-medium ${
-                doc.priority === "high"
-                  ? "bg-red-100 text-red-700"
-                  : doc.priority === "medium"
+              className={`px-2 py-1 rounded text-xs font-medium ${doc.priority === "high"
+                ? "bg-red-100 text-red-700"
+                : doc.priority === "medium"
                   ? "bg-orange-100 text-orange-700"
                   : "bg-gray-100 text-gray-600"
-              }`}
+                }`}
             >
               {doc.priority}
             </span>
@@ -202,13 +200,12 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
       <td className="p-3 font-bold text-gray-900">${doc.amount.toLocaleString()}</td>
       <td className="p-3">
         <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            doc.status === "Financial"
-              ? "bg-green-100 text-green-700"
-              : doc.status === "Workshop"
+          className={`px-3 py-1 rounded-full text-sm font-medium ${doc.status === "Financial"
+            ? "bg-green-100 text-green-700"
+            : doc.status === "Workshop"
               ? "bg-yellow-100 text-yellow-700"
               : "bg-gray-100 text-gray-700"
-          }`}
+            }`}
         >
           {doc.status}
         </span>
@@ -216,13 +213,12 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
       <td className="p-3">
         {doc.priority && (
           <span
-            className={`px-2 py-1 rounded text-xs font-medium ${
-              doc.priority === "high"
-                ? "bg-red-100 text-red-700"
-                : doc.priority === "medium"
+            className={`px-2 py-1 rounded text-xs font-medium ${doc.priority === "high"
+              ? "bg-red-100 text-red-700"
+              : doc.priority === "medium"
                 ? "bg-orange-100 text-orange-700"
                 : "bg-gray-100 text-gray-600"
-            }`}
+              }`}
           >
             {doc.priority}
           </span>
@@ -313,11 +309,10 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
                         ["name", "type", "date", "amount"].includes(col.field) &&
                         dispatch(setSort({ field: col.field }))
                       }
-                      className={`p-3 text-left text-sm font-semibold text-gray-700 ${
-                        ["name", "type", "date", "amount"].includes(col.field)
-                          ? "cursor-pointer hover:bg-gray-100"
-                          : ""
-                      }`}
+                      className={`p-3 text-left text-sm font-semibold text-gray-700 ${["name", "type", "date", "amount"].includes(col.field)
+                        ? "cursor-pointer hover:bg-gray-100"
+                        : ""
+                        }`}
                     >
                       <div className="flex items-center gap-1">
                         {col.label}

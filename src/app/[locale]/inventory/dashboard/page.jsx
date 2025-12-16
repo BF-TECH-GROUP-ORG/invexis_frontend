@@ -1,4 +1,9 @@
+import AnalyticsPage from "../analytics/page";
 const HomePage = () => {
-  return <div>Inventory Dashboard Home Page</div>;
+  return(
+    <>
+    <AnalyticsPage />;
+    </>
+  ) 
 }
 export default HomePage;

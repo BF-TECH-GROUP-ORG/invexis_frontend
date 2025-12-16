@@ -44,7 +44,7 @@ export default function StepBasicInfo({
             type="text"
             value={formData.name || ""}
             onChange={(e) => updateFormData({ name: e.target.value })}
-            className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.name ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition ${errors.name ? "border-red-500" : "border-gray-300"}`}
             placeholder="e.g. Premium Organic Cotton T-Shirt"
           />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -58,7 +58,7 @@ export default function StepBasicInfo({
             type="text"
             value={formData.brand || ""}
             onChange={(e) => updateFormData({ brand: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
             placeholder="e.g. EcoWear"
           />
         </div>
@@ -74,7 +74,7 @@ export default function StepBasicInfo({
             type="text"
             value={formData.manufacturer || ""}
             onChange={(e) => updateFormData({ manufacturer: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
             placeholder="e.g. FairTrade Mills Inc."
           />
         </div>
@@ -86,7 +86,7 @@ export default function StepBasicInfo({
           <select
             value={formData.category || ""}
             onChange={(e) => updateFormData({ category: e.target.value })}
-            className={`w-full px-5 py-4 border rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition ${errors.category ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition ${errors.category ? "border-red-500" : "border-gray-300"}`}
           >
             <option value="">Select Category</option>
             {finalCategories.map((cat) => (
@@ -108,7 +108,7 @@ export default function StepBasicInfo({
           type="text"
           value={(formData.tags || []).join(", ")}
           onChange={(e) => updateFormData({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-          className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
           placeholder="e.g. organic, cotton, sustainable"
         />
       </div>
@@ -123,7 +123,7 @@ export default function StepBasicInfo({
             type="text"
             value={formData.description?.short || ""}
             onChange={(e) => updateFormData({ description: { ...formData.description, short: e.target.value } })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
             placeholder="Brief summary..."
           />
         </div>
@@ -136,7 +136,7 @@ export default function StepBasicInfo({
             value={formData.description?.long || ""}
             onChange={(e) => updateFormData({ description: { ...formData.description, long: e.target.value } })}
             rows={4}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition resize-y"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition resize-y"
             placeholder="Detailed product description..."
           />
         </div>
@@ -149,7 +149,7 @@ export default function StepBasicInfo({
           <select
             value={formData.condition || 'new'}
             onChange={(e) => updateFormData({ condition: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
           >
             <option value="new">New</option>
             <option value="refurbished">Refurbished</option>
@@ -162,7 +162,7 @@ export default function StepBasicInfo({
           <select
             value={formData.availability || 'in_stock'}
             onChange={(e) => updateFormData({ availability: e.target.value })}
-            className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-[#FB923C] focus:ring-4 focus:ring-orange-100 transition"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#FB923C] focus:ring-2 focus:ring-orange-100 transition"
           >
             <option value="in_stock">In Stock</option>
             <option value="out_of_stock">Out of Stock</option>
