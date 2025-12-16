@@ -1,21 +1,8 @@
 "use client";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { getSalesHistory } from "@/services/salesService";
 import { useMemo } from "react";
 
-const SalesCards = () => {
-    const { data: session } = useSession();
-    const companyObj = session?.user?.companies?.[0];
-    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-
-    const { data: sales = [] } = useQuery({
-        queryKey: ["salesHistory", companyId],
-        queryFn: () => getSalesHistory(companyId),
-        enabled: !!companyId,
-        staleTime: 5 * 60 * 1000,
-    });
+const SalesCards = ({ sales = [] }) => {
 
     const stats = useMemo(() => {
         const today = new Date().toDateString();
@@ -25,18 +12,25 @@ const SalesCards = () => {
             new Date(sale.createdAt).toDateString() === today
         );
 
-        const totalDailySales = todaySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+        const totalDailySales = todaySales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0);
 
-        // Assuming profit is not directly available, using 0 for now as placeholder
-        // If profit is available in sale object, it should be: sale.profit
-        const totalDailyProfit = todaySales.reduce((sum, sale) => sum + (sale.profit || 0), 0);
+        // Calculate profit based on items
+        const totalDailyProfit = todaySales.reduce((sum, sale) => {
+            const saleProfit = sale.items ? sale.items.reduce((itemSum, item) => {
+                const cost = parseFloat(item.costPrice) || 0;
+                const price = parseFloat(item.unitPrice) || 0;
+                const qty = item.quantity || 1;
+                return itemSum + ((price - cost) * qty);
+            }, 0) : 0;
+            return sum + saleProfit;
+        }, 0);
 
         const totalReturned = sales.filter(sale =>
             sale.returned === true || sale.returned === "true"
         ).length;
 
         const totalDiscounts = sales.filter(sale =>
-            (sale.discountTotal || 0) > 0
+            (parseFloat(sale.discountTotal) || 0) > 0
         ).length;
 
         return {

@@ -232,6 +232,21 @@ const generateCustomerId = (phone) => {
   return `CUST-${phone.replace(/\D/g, "")}`;
 };
 
+export const createReturn = async (returnData) => {
+  try {
+    const data = await apiClient.post(`${SALES_URL}/return`, returnData);
+
+    // Clear sales cache
+    apiClient.clearCache("/sales");
+
+    console.log("Return created successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to create return:", error.message);
+    throw error;
+  }
+};
+
 export default {
   getAllProducts,
   singleProductFetch,
@@ -240,4 +255,5 @@ export default {
   getSingleSale,
   updateSale,
   deleteSale,
+  createReturn,
 };
