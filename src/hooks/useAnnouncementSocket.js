@@ -6,7 +6,7 @@ import {
     addAnnouncement,
     updateAnnouncement,
     removeAnnouncement
-} from '@/features/announcements/announcementsSlice';
+} from '@/store/features/announcements/announcementsSlice';
 import announcementService from '@/services/announcementService';
 
 export const useAnnouncementSocket = () => {

@@ -24,7 +24,7 @@ import warehousesReducer from "@/features/warehouses/warehousesSlice";
 // import settingsReducer from '../features/settings/settingsSlice';
 import documentsReducer from '../features/documents/documentsSlice';
 import billingReducer from "../features/billing/billingSlice";
-import announcementsReducer from "@/features/announcements/announcementsSlice";
+import announcementsReducer from "@/store/features/announcements/announcementsSlice";
 
 export const store = configureStore({
   reducer: {

@@ -18,7 +18,7 @@ import {
   markAnnouncementRead,
   selectUnreadCount,
   selectAllAnnouncements
-} from "@/features/announcements/announcementsSlice";
+} from "@/store/features/announcements/announcementsSlice";
 import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
