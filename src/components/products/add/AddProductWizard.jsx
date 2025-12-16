@@ -174,6 +174,12 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       case "specs":
         return true;
       case "variations":
+        if (
+          formData.variants?.length > 0 &&
+          formData.variations?.length === 0
+        ) {
+          return false;
+        }
         return true;
       case "seo":
         // Optional
@@ -212,12 +218,6 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       isPrimary: index === 0,
       sortOrder: index + 1,
       file: img.file, // keep file for upload logic
-    }));
-
-    // transform specs object to array
-    const specsArray = Object.entries(formData.specs).map(([key, value]) => ({
-      name: key,
-      value: value,
     }));
 
     return {
@@ -259,8 +259,9 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       videoUrls: formData.videoUrls,
       videoFiles: formData.videoFiles,
 
-      specs: specsArray,
-      variations: formData.variations,
+      specifications: formData.specs,
+      variants: formData.variants || [], // Include variants definitions
+      variations: formData.variations || [], // Include generated variations
 
       seo: formData.seo,
     };
