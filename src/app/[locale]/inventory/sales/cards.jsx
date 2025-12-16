@@ -121,3 +121,4 @@ const SalesCards = ({ sales = [] }) => {
     </div>
   );
 }
+export default SalesCards
