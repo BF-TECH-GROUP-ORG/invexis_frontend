@@ -109,18 +109,23 @@ export default function AnalyticsDashboard({
   const dynamicStats = {
     totalProducts: filteredProducts.length,
     totalStockQuantity: filteredProducts.reduce(
-      (acc, product) => acc + (parseInt(product.stock) || 0),
+      (acc, product) => acc + (Number(product.stock) || 0),
       0
     ),
-    lowStockCount: filteredProducts.filter(
-      (product) =>
-        product.status === "Low Stock" ||
-        (parseInt(product.stock) > 0 && parseInt(product.stock) < 10)
-    ).length,
+    lowStockCount: filteredProducts.filter((product) => {
+      const qty = Number(product.stock);
+      const threshold =
+        product.lowStockThreshold ?? product.stock?.lowStockThreshold ?? 10;
+      return qty > 0 && qty <= threshold;
+    }).length,
     outOfStockCount: filteredProducts.filter(
-      (product) =>
-        product.status === "Out of Stock" || parseInt(product.stock) === 0
+      (product) => Number(product.stock) <= 0
     ).length,
+    totalValue: filteredProducts.reduce((sum, p) => {
+      const price = Number(p.price) || 0;
+      const qty = Number(p.stock) || 0;
+      return sum + price * qty;
+    }, 0),
   };
 
   dynamicStats.lowStockPercentage =
@@ -242,9 +247,36 @@ export default function AnalyticsDashboard({
         </svg>
       ),
       color: "#ef4444",
-      bgColor: "#fee2e2",
       key: "out_of_stock",
       delay: 0.3,
+    },
+    {
+      title: "Total Value",
+      value: dynamicStats.totalValue.toLocaleString("en-US", {
+        style: "currency",
+        currency: "RWF", // Or dynamic currency if available
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }),
+      Icon: () => (
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+      color: "#8b5cf6",
+      bgColor: "#f3f0ff",
+      key: "total_value",
+      delay: 0.4,
     },
   ];
 

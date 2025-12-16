@@ -107,21 +107,51 @@ export default function DashboardPage() {
     };
 
     const formatted = safeProducts.map((product) => {
-      const qty = Number(product.inventory?.quantity || product.quantity || 0);
-      const price = Number(product.pricing?.salePrice || product.price || 0);
-      const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
+      // Correctly extract stock quantity
+      // Priority: stock.total -> stock.available -> inventory.quantity -> stock -> 0
+      const qty = Number(
+        product.stock?.total ??
+          product.stock?.available ??
+          product.inventory?.quantity ??
+          product.stock ??
+          0
+      );
 
+      // Correctly extract price
+      // Priority: pricing.basePrice -> pricingId.basePrice -> price -> 0
+      const price = Number(
+        product.pricing?.basePrice ??
+          product.pricingId?.basePrice ??
+          product.price ??
+          0
+      );
+
+      const lowStockThreshold =
+        product.stock?.lowStockThreshold ??
+        product.inventory?.lowStockThreshold ??
+        10;
+
+      // Determine Status
       let status = "In Stock";
-      if (qty <= 0) status = "Out of Stock";
-      else if (qty <= lowStockThreshold) status = "Low Stock";
+      if (product.status?.active === false) {
+        status = "Inactive";
+      } else if (qty <= 0) {
+        status = "Out of Stock";
+      } else if (qty <= lowStockThreshold) {
+        status = "Low Stock";
+      }
 
       return {
+        ...product, // Pass all original properties
         id: product._id || product.id,
         name: product.name,
         category: product.category?.name || product.category || "Uncategorized",
-        price: `${price.toLocaleString()} FRW`,
-        stock: qty,
-        status: status,
+        price: price, // Normalized number
+        stock: qty, // Normalized number
+        status: status, // Normalized status string
+        // Keep original objects for detail views if needed
+        originalPricing: product.pricing,
+        originalStock: product.stock,
       };
     });
 
