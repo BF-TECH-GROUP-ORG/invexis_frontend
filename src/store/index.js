@@ -23,6 +23,8 @@ import warehousesReducer from "@/features/warehouses/warehousesSlice";
 // import authReducer from '../features/auth/authSlice';
 // import settingsReducer from '../features/settings/settingsSlice';
 import documentsReducer from '../features/documents/documentsSlice';
+import billingReducer from "../features/billing/billingSlice";
+import announcementsReducer from "@/features/announcements/announcementsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -35,6 +37,8 @@ export const store = configureStore({
     alerts: alertsReducer,
     reports: reportsReducer,
     documents: documentsReducer,
+    billing: billingReducer,
+    announcements: announcementsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

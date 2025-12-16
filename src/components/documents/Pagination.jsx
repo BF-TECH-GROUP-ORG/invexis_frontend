@@ -1,6 +1,6 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
-import { setPage, setPerPage, selectFilteredData } from "@/features/documents/dataSlice";
+import { setPage, setPerPage, selectFilteredData } from "@/features/documents/documentsSlice";
 
 export default function Pagination() {
   const dispatch = useDispatch();
