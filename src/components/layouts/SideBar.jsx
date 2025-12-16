@@ -70,7 +70,7 @@ const navItems = [
       { title: "Categories", path: "/inventory/categories", prefetch: true },
       { title: "Reports", path: "/inventory/report", prefetch: true },
       { title: "Stock settings", path: "/inventory/stock", prefetch: true },
-    
+
     ],
   },
 
@@ -165,6 +165,11 @@ const navItems = [
         path: "/inventory/billing/payments",
         prefetch: true,
       },
+      {
+        title: "Transactions",
+        path: "/inventory/billing/transactions",
+        prefetch: true,
+      }
     ],
   },
   {
@@ -187,15 +192,18 @@ const navItems = [
   {
     title: "Documents",
     icon: <FileText size={22} />,
+    path: "/inventory/documents",
     roles: ["manager", "company_admin"],
-    children: [
-      { title: "Invoices", path: "/inventory/invoices/list", prefetch: true },
-      {
-        title: "Payment History",
-        path: "/inventory/invoices/details",
-        prefetch: true,
-      },
-    ],
+    prefetch: true,
+
+    // children: [
+    //   // { title: "Documents", path: "/inventory/documents", prefetch: true },
+    //   // {
+    //   //   title: "Payment History",
+    //   //   path: "/inventory/invoices/details",
+    //   //   prefetch: true,
+    //   // },
+    // ],
   },
   {
     title: "Announcements",
@@ -328,11 +336,10 @@ export default function SideBar({
                 className="flex flex-col items-center gap-1 group"
               >
                 <div
-                  className={`p-3 rounded-xl transition ${
-                    isActive("/inventory/dashboard")
+                  className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
                       ? "bg-orange-500 text-white"
                       : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   <LayoutDashboard size={24} />
                 </div>
@@ -348,11 +355,10 @@ export default function SideBar({
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
-                    className={`p-3 rounded-xl transition ${
-                      isActive("/inventory/analytics")
+                    className={`p-3 rounded-xl transition ${isActive("/inventory/analytics")
                         ? "bg-orange-500 text-white"
                         : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <BarChart3 size={24} />
                   </div>
@@ -369,11 +375,10 @@ export default function SideBar({
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
-                    className={`p-3 rounded-xl transition ${
-                      isActive("/inventory/reports")
+                    className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
                         ? "bg-orange-500 text-white"
                         : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <FileSpreadsheet size={24} />
                   </div>
@@ -389,11 +394,10 @@ export default function SideBar({
                 className="flex flex-col items-center gap-1"
               >
                 <div
-                  className={`p-3 rounded-xl transition ${
-                    moreModalOpen
+                  className={`p-3 rounded-xl transition ${moreModalOpen
                       ? "bg-orange-500 text-white"
                       : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   <MoreVertical size={24} />
                 </div>
@@ -442,11 +446,10 @@ export default function SideBar({
                             <Link
                               href={`/${locale}${item.path}`}
                               onClick={() => setMoreModalOpen(false)}
-                              className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${
-                                isActive(item.path)
+                              className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
                                   ? "bg-orange-500 text-white shadow-lg"
                                   : "text-gray-700 hover:bg-orange-50"
-                              }`}
+                                }`}
                             >
                               {item.icon}
                               <span className="font-medium">{item.title}</span>
@@ -464,11 +467,10 @@ export default function SideBar({
                                       : [...prev, item.title]
                                   )
                                 }
-                                className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${
-                                  parentActive
+                                className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
                                     ? "bg-orange-50 text-orange-700 border border-orange-200"
                                     : "text-gray-700 hover:bg-orange-50"
-                                }`}
+                                  }`}
                               >
                                 <div className="flex items-center gap-4">
                                   {item.icon}
@@ -478,11 +480,10 @@ export default function SideBar({
                                 </div>
                                 <ChevronDown
                                   size={20}
-                                  className={`transition-transform ${
-                                    openMenus.includes(item.title)
+                                  className={`transition-transform ${openMenus.includes(item.title)
                                       ? "rotate-180"
                                       : ""
-                                  }`}
+                                    }`}
                                 />
                               </div>
 
@@ -499,11 +500,10 @@ export default function SideBar({
                                           onClick={() =>
                                             setMoreModalOpen(false)
                                           }
-                                          className={`block px-4 py-3 text-sm rounded-lg transition ${
-                                            isActive(child.path)
+                                          className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
                                               ? "bg-orange-500 text-white"
                                               : "text-gray-600 hover:bg-gray-100"
-                                          }`}
+                                            }`}
                                         >
                                           {child.title}
                                         </Link>
@@ -525,9 +525,8 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed overflow-auto inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${
-          expanded ? "w-64" : "w-16"
-        }`}
+        className={`hidden md:block fixed overflow-auto inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
+          }`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
@@ -567,11 +566,10 @@ export default function SideBar({
                   key={item.title}
                   href={`/${locale}${item.path}`}
                   prefetch={item.prefetch}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${
-                    isActive(item.path)
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
                       ? "bg-orange-500 text-white"
                       : "text-gray-700 hover:bg-orange-50"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                   {expanded && <span>{item.title}</span>}
@@ -607,11 +605,10 @@ export default function SideBar({
                       <Link
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
-                        className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${
-                          isActive(item.path)
+                        className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
                             ? "bg-orange-500 text-white"
                             : "text-gray-700 hover:bg-orange-50"
-                        }`}
+                          }`}
                       >
                         {item.icon}
                         {expanded && <span>{item.title}</span>}
@@ -631,11 +628,10 @@ export default function SideBar({
                                   : [...prev, item.title]
                               )
                             }
-                            className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${
-                              parentActive
+                            className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
                                 ? "border-orange-500 border-l-3 text-orange-500"
                                 : "text-gray-700 hover:bg-orange-50"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-3">
                               {item.icon}
@@ -645,11 +641,10 @@ export default function SideBar({
                             {expanded && (
                               <ChevronDown
                                 size={18}
-                                className={`${
-                                  openMenus.includes(item.title)
+                                className={`${openMenus.includes(item.title)
                                     ? "rotate-180"
                                     : ""
-                                }`}
+                                  }`}
                               />
                             )}
                           </div>
@@ -664,11 +659,10 @@ export default function SideBar({
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
-                                    className={`block px-3 py-2 text-sm rounded-md transition ${
-                                      isActive(child.path)
+                                    className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
                                         ? "bg-orange-500 text-white"
                                         : "text-gray-600 hover:bg-gray-100"
-                                    }`}
+                                      }`}
                                   >
                                     {child.title}
                                   </Link>

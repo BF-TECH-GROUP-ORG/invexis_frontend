@@ -9,8 +9,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useLoading } from "@/contexts/LoadingContext";
+<<<<<<< HEAD
 import { useSocket } from "@/providers/SocketProvider";
 import { subscribeToNotifications } from "@/utils/socket";
+=======
+import { formatDistanceToNow } from 'date-fns';
+
+// Redux
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchAnnouncements,
+  markAnnouncementRead,
+  selectUnreadCount,
+  selectAllAnnouncements
+} from "@/features/announcements/announcementsSlice";
+import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
+>>>>>>> ec8cea989ec1c0404406021c8cdd53b8c4ce3a33
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
@@ -64,15 +78,22 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     }
   };
 
+  const handleNotificationClick = (n) => {
+    if (!n.isRead) {
+      dispatch(markAnnouncementRead(n.id));
+    }
+    // Optional: navigate to details
+    // router.push(`/${locale}/inventory/announcements?id=${n.id}`);
+  };
+
   return (
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
-          isMobile
-            ? "px-4 py-3" // Mobile: full width, smaller padding
-            : "px-6 py-2" // Desktop: adjusted for sidebar
-        }`}
+        className={`sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+          ? "px-4 py-3" // Mobile: full width, smaller padding
+          : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}

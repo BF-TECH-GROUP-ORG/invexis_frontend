@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { createDocument, updateDocument } from "@/features/documents/dataSlice";
+import { createDocument, updateDocument } from "@/features/documents/documentsSlice";
 
 export default function DocumentModal({ mode, document, onClose }) {
   const dispatch = useDispatch();
