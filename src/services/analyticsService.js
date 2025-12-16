@@ -1,82 +1,79 @@
-import axios from 'axios';
-const BASE_API = `${process.env.NEXT_PUBLIC_API_URL_SW}/analytics`
-
-// Add header to skip ngrok warning
-axios.defaults.headers.common['ngrok-skip-browser-warning'] = 'true';
+import apiClient from "@/lib/apiClient";
+const BASE_API = `${process.env.NEXT_PUBLIC_API_URL_SW || process.env.NEXT_PUBLIC_API_URL}/analytics`
 
 const AnalyticsService = {
     // Dashboard & Platform
     getDashboardSummary: async (params) => {
-        const response = await axios.get(`${BASE_API}/dashboard/summary`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/dashboard/summary`, { params });
+        return data;
     },
     getPlatformHealth: async () => {
-        const response = await axios.get(`${BASE_API}/platform/health`);
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/platform/health`);
+        return data;
     },
 
     // Legacy/Raw
     getEventTypes: async () => {
-        const response = await axios.get(`${BASE_API}/events/types`);
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/events/types`);
+        return data;
     },
     getEventStats: async (params) => {
-        const response = await axios.get(`${BASE_API}/stats`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/stats`, { params });
+        return data;
     },
 
     // Enhanced Reports - Sales
     getRevenueReport: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/sales/revenue`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/sales/revenue`, { params });
+        return data;
     },
     getPaymentMethodStats: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/sales/payment-methods`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/sales/payment-methods`, { params });
+        return data;
     },
     getProfitabilityReport: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/sales/profitability`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/sales/profitability`, { params });
+        return data;
     },
 
     // Enhanced Reports - Products
     getTopProducts: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/products/top`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/products/top`, { params });
+        return data;
     },
     getReturnRates: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/products/returns`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/products/returns`, { params });
+        return data;
     },
 
     // Enhanced Reports - Customers
     getNewCustomerStats: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/customers/acquisition`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/customers/acquisition`, { params });
+        return data;
     },
     getActiveUsers: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/customers/active`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/customers/active`, { params });
+        return data;
     },
     getTopCustomers: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/customers/top`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/customers/top`, { params });
+        return data;
     },
 
     // Shop & Employee Reports
     getShopPerformance: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/shops/performance`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/shops/performance`, { params });
+        return data;
     },
     getEmployeePerformance: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/employees/performance`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/employees/performance`, { params });
+        return data;
     },
 
     // Inventory Reports
     getInventoryHealth: async (params) => {
-        const response = await axios.get(`${BASE_API}/reports/inventory/health`, { params });
-        return response.data;
+        const data = await apiClient.get(`${BASE_API}/reports/inventory/health`, { params });
+        return data;
     },
 };
 

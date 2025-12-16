@@ -1,10 +1,6 @@
-import axios from 'axios';
+import apiClient from "@/lib/apiClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
-    ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
 
 /**
  * Get all discounts for a company
@@ -17,11 +13,10 @@ export async function getDiscounts({ companyId, page = 1, limit = 20, status, ty
         if (status) params.status = status;
         if (type) params.type = type;
 
-        const res = await axios.get(`${API_BASE}/inventory/v1/discounts/company/${companyId}`, {
-            params,
-            headers: defaultHeaders
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/discounts/company/${companyId}`, {
+            params
         });
-        return res.data;
+        return data;
     } catch (err) {
         throw err;
     }
@@ -33,8 +28,8 @@ export async function getDiscounts({ companyId, page = 1, limit = 20, status, ty
  */
 export async function getDiscountById(id) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/discounts/${id}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/discounts/${id}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -46,8 +41,8 @@ export async function getDiscountById(id) {
  */
 export async function createDiscount(payload) {
     try {
-        const res = await axios.post(`${API_BASE}/inventory/v1/discounts`, payload, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.post(`${API_BASE}/inventory/v1/discounts`, payload);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -59,8 +54,8 @@ export async function createDiscount(payload) {
  */
 export async function updateDiscount(id, updates) {
     try {
-        const res = await axios.put(`${API_BASE}/inventory/v1/discounts/${id}`, updates, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.put(`${API_BASE}/inventory/v1/discounts/${id}`, updates);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -72,8 +67,8 @@ export async function updateDiscount(id, updates) {
  */
 export async function deleteDiscount(id) {
     try {
-        const res = await axios.delete(`${API_BASE}/inventory/v1/discounts/${id}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.delete(`${API_BASE}/inventory/v1/discounts/${id}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -85,8 +80,8 @@ export async function deleteDiscount(id) {
  */
 export async function toggleDiscountStatus(id) {
     try {
-        const res = await axios.patch(`${API_BASE}/inventory/v1/discounts/${id}/toggle`, {}, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.patch(`${API_BASE}/inventory/v1/discounts/${id}/toggle`, {});
+        return data;
     } catch (err) {
         throw err;
     }
@@ -98,8 +93,8 @@ export async function toggleDiscountStatus(id) {
  */
 export async function applyDiscountToProducts(id, productIds) {
     try {
-        const res = await axios.post(`${API_BASE}/inventory/v1/discounts/${id}/apply`, { productIds }, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.post(`${API_BASE}/inventory/v1/discounts/${id}/apply`, { productIds });
+        return data;
     } catch (err) {
         throw err;
     }

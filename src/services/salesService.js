@@ -1,26 +1,9 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
-import { getSession } from "next-auth/react";
 
-const token = getSession()
-
-<<<<<<< HEAD
-
-const URL = process.env.NEXT_PUBLIC_API_URL
-const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales/`
-const DEBT_URL = `${process.env.NEXT_PUBLIC_API_URL}/debt/`
-
-export const getAllProducts = async (companyId) => {
-  try {
-    const response = await axios.get(`${URL}/inventory/v1/companies/${companyId}/products`, {
-      headers: {
-        'ngrok-skip-browser-warning': 'true',  
-      },
-    });
-=======
 const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
 const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales`;
-const DEBT_URL = `${process.env.NEXT_PUBLIC_DEBT_API_URL}/debt`;
+const DEBT_URL = `/debt`;
 
 export const getAllProducts = async (companyId = null) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
@@ -33,10 +16,8 @@ export const getAllProducts = async (companyId = null) => {
     }
 
     const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy });
->>>>>>> 7cad349aeae0f71ae0cc44e1be7c2bf6538737d0
 
-    const apiData = response.data;
-    console.log('Products fetched:', apiData.data);  
+    console.log('Products fetched:', apiData.data);
 
     // Safely handle success flag
     if (apiData.success === false) {
@@ -49,16 +30,6 @@ export const getAllProducts = async (companyId = null) => {
 
     return rawProducts.map((product) => ({
       id: product._id || product.id,
-<<<<<<< HEAD
-      ProductId: product.sku || product.asin || product._id.slice(-8),
-      ProductName: product.name || 'No Name',
-      Category: product.category?.name,
-      Quantity: product.inventory?.quantity || 0,
-      Price: product.effectivePrice || product.pricing?.salePrice || product.pricing?.basePrice || 0,
-      brand: product.brand || 'No Brand',
-      manufacturer: product.manufacturer,
-      costPrice:product.pricing?.cost,
-=======
       ProductId: product.identifiers?.sku || product.sku || product.asin || product._id.slice(-8),
       ProductName: product.name || "No Name",
       Category:
@@ -72,7 +43,6 @@ export const getAllProducts = async (companyId = null) => {
       brand: product.brand || "No Brand",
       manufacturer: product.manufacturer,
       shopId: product.shopId,
->>>>>>> 7cad349aeae0f71ae0cc44e1be7c2bf6538737d0
     }));
   } catch (error) {
     console.log("Failed to fetch products:", error.message);

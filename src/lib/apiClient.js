@@ -101,7 +101,7 @@ function transformError(error) {
 /**
  * Retry logic with exponential backoff
  */
-async function retryRequest(fn, retries = 3, delay = 1000) {
+async function retryRequest(fn, retries = 1, delay = 100) {
   try {
     return await fn();
   } catch (error) {
@@ -245,7 +245,7 @@ async function get(url, options = {}) {
  * POST request (never cached)
  */
 async function post(url, data, options = {}) {
-  const { retries = 3, ...axiosConfig } = options;
+  const { retries = 2, ...axiosConfig } = options;
   return retryRequest(
     () => apiClient.post(url, data, axiosConfig),
     retries
