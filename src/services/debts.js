@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-const DEBT_API_URL = process.env.NEXT_PUBLIC_DEBT_API_URL;
+const DEBT_API_URL = `/debt`;
 
 /**
  * Get all debts for a company
@@ -42,7 +42,7 @@ export const getDebtById = async (debtId, companyId) => {
 
   try {
     const data = await apiClient.get(
-      `${DEBT_API_URL}company/${companyId}/debts/${debtId}`,
+      `${DEBT_API_URL}/company/${companyId}/debts/${debtId}`,
       {
         cache: cacheStrategy,
       }
@@ -60,10 +60,10 @@ export const getDebtById = async (debtId, companyId) => {
  *
  * CACHING: POST never cached. Clears debts cache after creation.
  */
-export const createDebt = async (debtData, companyId) => {
+export const createDebt = async (debtData) => {
   try {
     const data = await apiClient.post(
-      `${DEBT_API_URL}company/${companyId}/debts`,
+      `${DEBT_API_URL}/create`,
       debtData
     );
 

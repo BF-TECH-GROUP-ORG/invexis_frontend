@@ -1,10 +1,6 @@
-import axios from 'axios';
+import apiClient from "@/lib/apiClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
-    ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
 
 /**
  * Get reports list for a company
@@ -16,11 +12,10 @@ export async function getReports({ companyId, type, page = 1, limit = 20 }) {
         const params = { page, limit };
         if (type) params.type = type;
 
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/company/${companyId}`, {
-            params,
-            headers: defaultHeaders
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/company/${companyId}`, {
+            params
         });
-        return res.data;
+        return data;
     } catch (err) {
         throw err;
     }
@@ -32,8 +27,8 @@ export async function getReports({ companyId, type, page = 1, limit = 20 }) {
  */
 export async function getReportById(id) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/${id}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/${id}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -45,8 +40,8 @@ export async function getReportById(id) {
  */
 export async function generateReport(payload) {
     try {
-        const res = await axios.post(`${API_BASE}/inventory/v1/reports/generate`, payload, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.post(`${API_BASE}/inventory/v1/reports/generate`, payload);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -58,8 +53,8 @@ export async function generateReport(payload) {
  */
 export async function getInventorySummary(companyId) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/summary/${companyId}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/summary/${companyId}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -71,8 +66,8 @@ export async function getInventorySummary(companyId) {
  */
 export async function getABCAnalysis(companyId) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/abc-analysis/${companyId}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/abc-analysis/${companyId}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -88,11 +83,10 @@ export async function getStockMovement({ companyId, startDate, endDate }) {
         if (startDate) params.startDate = startDate;
         if (endDate) params.endDate = endDate;
 
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/stock-movement/${companyId}`, {
-            params,
-            headers: defaultHeaders
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/stock-movement/${companyId}`, {
+            params
         });
-        return res.data;
+        return data;
     } catch (err) {
         throw err;
     }
@@ -104,8 +98,8 @@ export async function getStockMovement({ companyId, startDate, endDate }) {
  */
 export async function getAgingInventory(companyId) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/reports/aging-inventory/${companyId}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/aging-inventory/${companyId}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -117,11 +111,21 @@ export async function getAgingInventory(companyId) {
  */
 export async function exportReport({ reportId, format = 'pdf' }) {
     try {
-        const res = await axios.post(`${API_BASE}/inventory/v1/reports/export`,
+        // For blob response type on export, we access the enhanced axios instance directly if needed
+        // But apiClient wrapper usually expects JSON default. 
+        // apiClient from lib/apiClient.js wraps calls.
+
+        // However, export expecting 'blob' might need special handling.
+        // Let's use apiClient.axios (exposed in apiClient.js) for this specific call to set responseType: 'blob'
+        // wait, apiClient.js: 
+        // export default { ..., axios: apiClient }
+        // The inner apiClient (axios instance) can be used.
+
+        const res = await apiClient.axios.post(`${API_BASE}/inventory/v1/reports/export`,
             { reportId, format },
             {
-                headers: defaultHeaders,
                 responseType: format === 'pdf' ? 'blob' : 'json'
+                // Interceptors will still run and attach auth!
             }
         );
         return res.data;

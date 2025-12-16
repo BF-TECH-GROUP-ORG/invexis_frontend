@@ -1,10 +1,6 @@
-import axios from 'axios';
+import apiClient from "@/lib/apiClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
-    ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
 
 /**
  * Get all alerts for a company
@@ -18,11 +14,10 @@ export async function getAlerts({ companyId, page = 1, limit = 20, type, priorit
         if (priority) params.priority = priority;
         if (status) params.status = status;
 
-        const res = await axios.get(`${API_BASE}/inventory/v1/alerts/company/${companyId}`, {
-            params,
-            headers: defaultHeaders
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/company/${companyId}`, {
+            params
         });
-        return res.data;
+        return data;
     } catch (err) {
         throw err;
     }
@@ -34,8 +29,8 @@ export async function getAlerts({ companyId, page = 1, limit = 20, type, priorit
  */
 export async function getAlertById(id) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/alerts/${id}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/${id}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -47,8 +42,8 @@ export async function getAlertById(id) {
  */
 export async function createAlert(payload) {
     try {
-        const res = await axios.post(`${API_BASE}/inventory/v1/alerts`, payload, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.post(`${API_BASE}/inventory/v1/alerts`, payload);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -60,8 +55,8 @@ export async function createAlert(payload) {
  */
 export async function updateAlert(id, updates) {
     try {
-        const res = await axios.put(`${API_BASE}/inventory/v1/alerts/${id}`, updates, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.put(`${API_BASE}/inventory/v1/alerts/${id}`, updates);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -73,8 +68,8 @@ export async function updateAlert(id, updates) {
  */
 export async function deleteAlert(id) {
     try {
-        const res = await axios.delete(`${API_BASE}/inventory/v1/alerts/${id}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.delete(`${API_BASE}/inventory/v1/alerts/${id}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -86,8 +81,8 @@ export async function deleteAlert(id) {
  */
 export async function resolveAlert(id) {
     try {
-        const res = await axios.patch(`${API_BASE}/inventory/v1/alerts/${id}/resolve`, {}, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/${id}/resolve`, {});
+        return data;
     } catch (err) {
         throw err;
     }
@@ -99,8 +94,8 @@ export async function resolveAlert(id) {
  */
 export async function markAlertAsRead(id) {
     try {
-        const res = await axios.patch(`${API_BASE}/inventory/v1/alerts/${id}/read`, {}, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/${id}/read`, {});
+        return data;
     } catch (err) {
         throw err;
     }
@@ -112,8 +107,8 @@ export async function markAlertAsRead(id) {
  */
 export async function markAllAlertsAsRead(companyId) {
     try {
-        const res = await axios.patch(`${API_BASE}/inventory/v1/alerts/company/${companyId}/read-all`, {}, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/company/${companyId}/read-all`, {});
+        return data;
     } catch (err) {
         throw err;
     }
@@ -125,8 +120,8 @@ export async function markAllAlertsAsRead(companyId) {
  */
 export async function getAlertSettings(companyId) {
     try {
-        const res = await axios.get(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`);
+        return data;
     } catch (err) {
         throw err;
     }
@@ -138,8 +133,8 @@ export async function getAlertSettings(companyId) {
  */
 export async function updateAlertSettings(companyId, settings) {
     try {
-        const res = await axios.put(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`, settings, { headers: defaultHeaders });
-        return res.data;
+        const data = await apiClient.put(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`, settings);
+        return data;
     } catch (err) {
         throw err;
     }

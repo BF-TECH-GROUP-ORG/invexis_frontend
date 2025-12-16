@@ -47,8 +47,7 @@ const INVENTORY_BASE = "/inventory/v1/shop-inventory";
  * -----------------------------------------------------
  */
 export async function getShopInventory(
-  { shopId, page = 1, limit = 20 },
-  token
+  { shopId, page = 1, limit = 20 }
 ) {
   if (!shopId) {
     throw new Error("Shop ID is required");
@@ -58,9 +57,6 @@ export async function getShopInventory(
     `${INVENTORY_BASE}/shop/${shopId}`,
     {
       params: { page, limit },
-      ...(token && {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
     }
   );
 }
@@ -70,19 +66,14 @@ export async function getShopInventory(
  * Update shop inventory item
  * -----------------------------------------------------
  */
-export async function updateShopInventory(id, payload, token) {
+export async function updateShopInventory(id, payload) {
   if (!id) {
     throw new Error("Inventory ID is required");
   }
 
   return apiClient.put(
     `${INVENTORY_BASE}/${id}`,
-    payload,
-    {
-      ...(token && {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    }
+    payload
   );
 }
 
