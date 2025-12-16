@@ -52,12 +52,12 @@ const navItems = [
 
   // MANAGEMENT
   {
-    title: "Staff & Branches",
+    title: "Staff & Shops",
     icon: <Users size={22} />,
     roles: ["company_admin"],
     children: [
       { title: "Staff List", path: "/inventory/workers/list", prefetch: true },
-      { title: "Branches", path: "/inventory/companies", prefetch: true },
+      { title: "Shops", path: "/inventory/companies", prefetch: true },
     ],
   },
   {
@@ -538,9 +538,8 @@ export default function SideBar({
           </button>
 
           <div
-            className={`overflow-auto transition-all ${
-              expanded ? "w-40" : "w-0"
-            }`}
+            className={`overflow-auto transition-all ${expanded ? "w-40" : "w-0"
+              }`}
           >
             <span className="text-xl font-bold text-gray-900">
               INVEX<span className="text-orange-500 font-extrabold">iS</span>
@@ -549,13 +548,12 @@ export default function SideBar({
         </div>
 
         {/* NAVIGATION */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-8">
+        <nav className={`flex-1 overflow-y-auto py-4 space-y-8 ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${
-                expanded ? "" : "opacity-0"
-              }`}
+              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+                }`}
             >
               Overview
             </h3>
@@ -583,9 +581,8 @@ export default function SideBar({
           {/* MANAGEMENT */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${
-                expanded ? "" : "opacity-0"
-              }`}
+              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+                }`}
             >
               Management
             </h3>

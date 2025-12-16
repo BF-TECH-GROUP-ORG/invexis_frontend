@@ -28,22 +28,22 @@ const DebtCards = ({ debts = [] }) => {
   const cardsInfo = [
     {
       title: t("totalDebts"),
-      icon: <Scale size={38} />,
+      icon: <Scale size={45} className="text-purple-500 bg-purple-50 p-2 rounded-xl " />,
       value: formatCurrency(stats.totalAmount),
     },
     {
       title: t("clearedDebts"),
-      icon: <ShieldCheck size={38} />,
+      icon: <ShieldCheck size={45} className="text-green-500 bg-green-50 p-2 rounded-xl" />,
       value: stats.paidCount,
     },
     {
       title: t("upcomingPayments"),
-      icon: <CalendarClock size={38} />,
+      icon: <CalendarClock size={45}  className="text-blue-500 bg-blue-50 p-2 rounded-xl" />,
       value: formatCurrency(stats.totalRemaining),
     },
     {
       title: t("verifiedDebtors"),
-      icon: <BadgeCheck size={38} />,
+      icon: <BadgeCheck size={45} className="text-red-500 bg-red-50 p-2 rounded-xl" />,
       value: stats.totalDebts,
     },
   ];
@@ -51,18 +51,14 @@ const DebtCards = ({ debts = [] }) => {
   return (
     <section className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
       {cardsInfo.map((card, index) => (
-        <div
-          key={index}
-          className="bg-white p-5 justify-between  flex rounded-xl border  space-y-3"
-        >
-          <div className="flex h-full items-center ">
+        <div key={index} className="bg-white p-5 justify-between  flex rounded-xl border  " >
+          <div className="text-left">
+            <p className="text-2xl font-bold">{card.value}</p>
+            <h2 className="text-gray-500  ">{card.title}</h2>
+          </div>
+          <div className="flex h-full ">
             <div className="text-orange-500">{card.icon}</div>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold">{card.value}</p>
-            <h2 className="">{card.title}</h2>
-          </div>
-
         </div>
       ))}
     </section>

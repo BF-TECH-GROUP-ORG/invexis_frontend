@@ -22,7 +22,7 @@ const AddWorker = () => {
   return (
     <div>
       <AddWorkerForm onSubmit={handleOnSubmit} />
-    </div>
+    </div>  
   )
 }
 

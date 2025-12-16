@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import {
@@ -29,8 +30,12 @@ const NewBranchPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    const { data: session } = useSession();
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
     const [formData, setFormData] = useState({
-        companyId: "07f0c16d-95af-4cd6-998b-edfea57d87d7",
+        companyId: "",
         name: "",
         created_by: "",
         capacity: "",
@@ -45,6 +50,13 @@ const NewBranchPage = () => {
         longitude: "",
         timezone: "UTC",
     });
+
+    // Update formData when session is available
+    useEffect(() => {
+        if (companyId) {
+            setFormData(prev => ({ ...prev, companyId }));
+        }
+    }, [companyId]);
 
     const [errors, setErrors] = useState({});
     const [snackbar, setSnackbar] = useState({
@@ -250,7 +262,7 @@ const NewBranchPage = () => {
                             {steps[1].description}
                         </Typography>
 
-                        <Grid  spacing={3}>
+                        <Grid spacing={3}>
                             <Grid item xs={12}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     Address Line 1 <span style={{ color: "#d32f2f" }}>*</span>
@@ -354,7 +366,7 @@ const NewBranchPage = () => {
                             {steps[2].description}
                         </Typography>
 
-                        <Grid  spacing={3}>
+                        <Grid spacing={3}>
                             <Grid item xs={12} md={6}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     Latitude
@@ -400,70 +412,9 @@ const NewBranchPage = () => {
 
     return (
         <div>
-            <div className="flex  items-center justify-center space-x-4">
-
-                {/* top stepper */}
-              <div>
-                  <div className="">
-                    <Box className="flex space-x-24">
-                        {steps.map((step, index) => (
-                            <Box
-                                key={index}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    mb: 3,
-                                    cursor: "pointer",
-                                    opacity: index > activeStep ? 0.5 : 1,
-                                }}
-                                onClick={() => {
-                                    if (index < activeStep || (index === activeStep + 1 && validateStep(activeStep))) {
-                                        setActiveStep(index);
-                                    }
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        width: 40,
-                                        height: 40,
-                                        borderRadius: "50%",
-                                        bgcolor: index === activeStep ? "#FF6D00" : "#fff",
-                                        color: index === activeStep ? "#fff" : "#666",
-                                        border: index === activeStep ? "none" : "2px solid #e0e0e0",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontWeight: "600",
-                                        fontSize: "16px",
-                                        mr: 2,
-                                        flexShrink: 0,
-                                        transition: "all 0.3s ease"
-                                    }}
-                                >
-                                    {index + 1}
-                                </Box>
-                                <Box>
-                                    <Typography
-                                        variant="body2"
-                                        fontWeight={index === activeStep ? "600" : "500"}
-                                        sx={{ color: index === activeStep ? "#000" : "#666" }}
-                                    >
-                                        {step.label}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{ color: "#999" }}
-                                    >
-                                        {step.description}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        ))}
-                    </Box>
-                </div>
-                 
+            <div className="flex flex-col-reverse lg:flex-row gap-8 min-h-[600px] max-w-6xl mx-auto p-6">
                 {/* Main Form Area */}
-                <div>
+                <div className="flex-grow w-full lg:w-3/4">
                     {renderStepContent(activeStep)}
 
                     {/* Navigation Buttons */}
@@ -505,10 +456,57 @@ const NewBranchPage = () => {
                     </Box>
                 </div>
 
-              </div>
-                {/* Vertical Stepper Sidebar */}
-                
-               
+                {/* Divider */}
+                <div className="w-full h-px lg:w-px lg:h-auto bg-gray-200 my-4 lg:my-0 lg:mx-4"></div>
+
+                {/* Right Stepper */}
+                <div className="w-full lg:w-1/4 lg:min-w-[250px]">
+                    <Box className="flex flex-row lg:flex-col space-x-4 lg:space-x-0 lg:space-y-8 sticky top-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                        {steps.map((step, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    cursor: "pointer",
+                                    opacity: index > activeStep ? 0.5 : 1,
+                                    minWidth: { xs: "fit-content", lg: "auto" }
+                                }}
+                                onClick={() => {
+                                    if (index < activeStep || (index === activeStep + 1 && validateStep(activeStep))) {
+                                        setActiveStep(index);
+                                    }
+                                }}
+                            >
+                                <div
+                                    className={`
+                                        w-10 h-10 rounded-full flex items-center justify-center font-semibold text-base mr-3 flex-shrink-0 transition-all duration-300
+                                        ${index === activeStep
+                                            ? "bg-[#FF6D00] text-white ring-2 ring-[#FF6D00] ring-offset-2"
+                                            : "bg-white text-gray-500 border-2 border-gray-200"}
+                                    `}
+                                >
+                                    {index + 1}
+                                </div>
+                                <Box sx={{ display: { xs: "none", sm: "block" } }}>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight={index === activeStep ? "600" : "500"}
+                                        sx={{ color: index === activeStep ? "#000" : "#666" }}
+                                    >
+                                        {step.label}
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{ color: "#999" }}
+                                    >
+                                        {step.description}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        ))}
+                    </Box>
+                </div>
             </div>
 
             {/* Success/Error Snackbar */}

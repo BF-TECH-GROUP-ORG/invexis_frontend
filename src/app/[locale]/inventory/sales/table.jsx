@@ -19,6 +19,8 @@ import { useTranslations } from "next-intl";
 import { getSalesHistory, deleteSale } from "@/services/salesService";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { InputAdornment } from "@mui/material";
+import { HiSearch } from "react-icons/hi";  
 
 // Placeholder for rows, will be managed by state in DataTable
 const rows = [];
@@ -293,6 +295,8 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useSession } from "next-auth/react";
+
 const DataTable = () => {
   const t = useTranslations("sales");
   const navigation = useRouter();
@@ -300,8 +304,17 @@ const DataTable = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [exportAnchor, setExportAnchor] = useState(null);
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
-  const companyId = "a6e0c5ff-8665-449d-9864-612ab1c9b9f2"; // Hardcoded as requested
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  console.log("Sales Table Debug:", {
+    sessionUser: session?.user,
+    companyObj,
+    companyId,
+    typeOfCompanyObj: typeof companyObj
+  });
 
   // Get current month and year for default filtering
   const currentDate = new Date();
@@ -311,6 +324,7 @@ const DataTable = () => {
   const { data: rows = [] } = useQuery({
     queryKey: ["salesHistory", companyId],
     queryFn: () => getSalesHistory(companyId),
+    enabled: !!companyId,
     select: (data) => {
       if (!data || !Array.isArray(data)) return [];
       return data.map((sale) => ({
@@ -534,32 +548,22 @@ const DataTable = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           {/* Month Selector */}
           <TextField
-            size="small"
-            type="month"
-            label="Filter by Month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{
-              minWidth: 180,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                borderColor: "#FF6D00"
-              }
-            }}
-          />
-
-          <TextField
-            size="small"
-            variant="outlined"
-            placeholder="Search…"
-            sx={{ border: "2px orange solid", borderRadius: 2 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-            }}
-          />
+                    placeholder="Search sales..."
+                    variant="outlined"
+                    size="small"
+                    value={search}
+                     onChange={(e) => setSearch(e.target.value)}
+                    sx={{ flex: 1, maxWidth: 300 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <HiSearch size={18} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+  
+                    
 
           <IconButton onClick={handleOpenFilter} variant="contained"  >
             <FilterAltRoundedIcon
@@ -591,39 +595,39 @@ const DataTable = () => {
         <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#1976d2" }}>
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("sale")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("productName")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("category")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("unitPrice")} (FRW)
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("Returned")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("Discount")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("date")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("totalValue")}
               </TableCell>
 
-              <TableCell sx={{ color: "#ff9500", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#000000", fontWeight: "bold" }}>
                 {t("action")}
               </TableCell>
 
@@ -748,6 +752,8 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
     handleClosePriceModal();
   };
 
+  const { data: session } = useSession();
+
   // Handle sell button
   const handleSellSelected = () => {
     const items = Object.values(selectedItems).map(item => ({
@@ -757,8 +763,8 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
     }));
 
     const payload = {
-      soldBy: "691d8f766fb4aca9a9fa619b", // Placeholder
-      shopId: "691d8f766fb4aca9a9fa619b", // Placeholder
+      soldBy: session?.user?._id || "",
+      shopId: session?.user?.shops?.[0] || "",
       items
     };
 
