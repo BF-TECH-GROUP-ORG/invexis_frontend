@@ -59,7 +59,7 @@ export default function ProductStats({ stats }) {
                 <p className="text-sm text-[#6b7280] font-medium mb-1">
                   {card.title}
                 </p>
-                <p className="text-2xl font-bold text-[#081422] mb-2">
+                <p className="text-2xl font-bold font-jetbrains text-[#081422] mb-2">
                   {card.value}
                 </p>
               </div>

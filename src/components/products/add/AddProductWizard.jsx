@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
+import StepShop from "./steps/StepShop";
 import Step1BasicInfo from "./steps/Step1BasicInfo";
 import Step2Media from "./steps/Step2Media";
 import Step3Pricing from "./steps/Step3Pricing";
@@ -15,20 +17,27 @@ import StepVariations from "@/components/inventory/products/ProductFormSteps/Ste
 import Step7SEO from "./steps/Step7SEO";
 import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
+import { Loader2 } from "lucide-react";
 
-const TOTAL_STEPS = 8;
-
-export default function AddProductWizard({ companyId, shopId }) {
+export default function AddProductWizard({ companyId, shopId: propShopId }) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Determine if user is worker or admin
+  const isWorker = session?.user?.role === "worker";
+
+  // Initialize form data
   const [formData, setFormData] = useState({
-    // Step 1: Basic Info
+    // Step Shop (Conditionally set)
     companyId: companyId || "",
-    shopId: shopId || "",
+    shopId: propShopId || "",
+    shopName: "",
+
+    // Step 1: Basic Info
     name: "",
     description: "",
     brand: "",
@@ -87,7 +96,57 @@ export default function AddProductWizard({ companyId, shopId }) {
       slug: "",
     },
   });
+
+  // Effect to handle worker shop assignment
+  useEffect(() => {
+    if (
+      status === "authenticated" &&
+      isWorker &&
+      session?.user?.shops?.length > 0
+    ) {
+      // Worker has shop assigned in profile
+      const workerShopId = session.user.shops[0]; // Assuming first shop
+      // If shopId is an object or string, handle accordingly.
+      // Based on request, it looks like an array of strings (Ids).
+      // If it was populated object, we'd need ._id
+      const actualShopId =
+        typeof workerShopId === "object" ? workerShopId._id : workerShopId;
+
+      setFormData((prev) => ({
+        ...prev,
+        shopId: actualShopId,
+        // shopName: ... (we might not have name here easily without fetching, but that's ok for worker flow as it's hidden)
+      }));
+    }
+  }, [status, isWorker, session]);
+
+  // Define steps dynamically
+  const steps = useMemo(() => {
+    const baseSteps = [
+      { id: "basic", label: "Basic Info", component: Step1BasicInfo },
+      { id: "media", label: "Media", component: Step2Media },
+      { id: "pricing", label: "Pricing", component: Step3Pricing },
+      { id: "inventory", label: "Inventory", component: Step4Inventory },
+      { id: "category", label: "Category", component: Step5Category },
+      { id: "specs", label: "Specifications", component: Step6Specs },
+      { id: "variations", label: "Variations", component: StepVariations },
+      { id: "seo", label: "SEO", component: Step7SEO },
+    ];
+
+    if (!isWorker) {
+      // Admin needs to select shop first
+      return [
+        { id: "shop", label: "Select Shop", component: StepShop },
+        ...baseSteps,
+      ].map((s, idx) => ({ ...s, number: idx + 1 }));
+    }
+
+    return baseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
+  }, [isWorker]);
+
+  const TOTAL_STEPS = steps.length;
   console.log(formData);
+
   const updateFormData = (updates) => {
     setFormData((prev) => ({
       ...prev,
@@ -95,26 +154,30 @@ export default function AddProductWizard({ companyId, shopId }) {
     }));
   };
 
-  const validateStep = (step) => {
-    switch (step) {
-      case 1:
+  const validateStep = (stepNumber) => {
+    const stepObj = steps.find((s) => s.number === stepNumber);
+    if (!stepObj) return true;
+
+    switch (stepObj.id) {
+      case "shop":
+        return !!formData.shopId;
+      case "basic":
         return formData.name && formData.name.length >= 3;
-      case 2:
-        return true; // Images are now optional
-      case 3:
+      case "media":
+        return true;
+      case "pricing":
         return formData.pricing.basePrice > 0;
-      case 4:
+      case "inventory":
         return formData.inventory.quantity >= 0;
-      case 5:
+      case "category":
         return formData.categoryId !== "";
-      case 6:
-        // Specs validation handled in Step6Specs
+      case "specs":
         return true;
-      case 7:
-        // Variations validation (optional or check if variations exist if needed)
+      case "variations":
         return true;
-      case 8:
-        return formData.seo.metaTitle && formData.seo.slug;
+      case "seo":
+        // Optional
+        return true;
       default:
         return true;
     }
@@ -249,8 +312,33 @@ export default function AddProductWizard({ companyId, shopId }) {
           } else if (key === "videoUrls") {
             // Append video URLs
             value.forEach((url) => fd.append("videoUrls", url));
+          } else if (["pricing", "inventory", "seo"].includes(key)) {
+            // Flatten nested objects (pricing, inventory, seo) for FormData
+            if (value && typeof value === "object") {
+              Object.keys(value).forEach((subKey) => {
+                const subValue = value[subKey];
+                if (Array.isArray(subValue)) {
+                  // Handle arrays (e.g. pricing.priceTiers, seo.keywords)
+                  subValue.forEach((item, idx) => {
+                    if (item && typeof item === "object") {
+                      Object.keys(item).forEach((itemKey) => {
+                        fd.append(
+                          `${key}[${subKey}][${idx}][${itemKey}]`,
+                          item[itemKey]
+                        );
+                      });
+                    } else {
+                      fd.append(`${key}[${subKey}][${idx}]`, item);
+                    }
+                  });
+                } else if (subValue !== null && subValue !== undefined) {
+                  fd.append(`${key}[${subKey}]`, subValue);
+                }
+              });
+            }
           } else if (typeof value === "object" && value !== null) {
-            // Stringify complex objects (pricing, specs, inventory, seo, variations, etc.)
+            // Stringify complex objects that the backend might expect as JSON strings (e.g. specs, variations)
+            // If specs/variations also fail, we might need to flatten them too.
             fd.append(key, JSON.stringify(value));
           } else if (value !== undefined && value !== null) {
             // Append primitive values
@@ -259,6 +347,15 @@ export default function AddProductWizard({ companyId, shopId }) {
         });
 
         finalPayload = fd;
+      }
+
+      console.log("🚀 Submitting Product Payload:", rawPayload);
+      if (hasFiles) {
+        // Log FormData entries for debugging since console.log(formData) is empty
+        console.log("📦 FormData Entries:");
+        for (let [key, value] of finalPayload.entries()) {
+          console.log(`${key}:`, value);
+        }
       }
 
       // Call the products API
@@ -338,97 +435,96 @@ export default function AddProductWizard({ companyId, shopId }) {
   };
 
   const renderStep = () => {
+    if (status === "loading") {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        </div>
+      );
+    }
+
     if (showReview) {
       return (
         <ProductReview
           formData={formData}
-          onEdit={(step) => {
+          onEdit={(stepNumber) => {
             setShowReview(false);
-            setCurrentStep(step);
+            setCurrentStep(stepNumber);
           }}
         />
       );
     }
 
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1BasicInfo formData={formData} updateFormData={updateFormData} />
-        );
-      case 2:
-        return (
-          <Step2Media formData={formData} updateFormData={updateFormData} />
-        );
-      case 3:
-        return (
-          <Step3Pricing formData={formData} updateFormData={updateFormData} />
-        );
-      case 4:
-        return (
-          <Step4Inventory formData={formData} updateFormData={updateFormData} />
-        );
-      case 5:
-        return (
-          <Step5Category formData={formData} updateFormData={updateFormData} />
-        );
-      case 6:
-        return (
-          <Step6Specs formData={formData} updateFormData={updateFormData} />
-        );
-      case 7:
-        return (
-          <StepVariations
-            formData={formData}
-            updateFormData={updateFormData}
-            errors={{}}
-          />
-        );
-      case 8:
-        return <Step7SEO formData={formData} updateFormData={updateFormData} />;
-      default:
-        return null;
+    // Find current step component
+    const stepObj = steps.find((s) => s.number === currentStep);
+
+    // Render Step Component with common props
+    if (stepObj) {
+      const StepComponent = stepObj.component;
+      return (
+        <StepComponent
+          formData={formData}
+          updateFormData={updateFormData}
+          errors={{}} // Pass errors if needed
+        />
+      );
     }
+    return null;
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-[1400px] mx-auto p-6">
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleReset}
         productName={formData.name}
       />
 
-      <div className="bg-white rounded-lg shadow-lg">
-        {/* Header */}
-        <div className="border-b border-gray-200 p-6">
-          <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-          <p className="text-gray-600 mt-1">
-            Fill in the product details step by step
-          </p>
+      <div className="grid grid-cols-12 gap-6 items-start">
+        {/* Main Form Content - Left Side */}
+        <div className="col-span-12 lg:col-span-9">
+          <div className="bg-white rounded-4xl border border-gray-200">
+            {/* Header */}
+            <div className="border-b border-gray-200 p-6">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Add New Product
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Fill in the product details step by step
+              </p>
+            </div>
+
+            {/* Step Content */}
+            <div className="p-6 min-h-[500px]">{renderStep()}</div>
+
+            {/* Navigation */}
+            <div className="border-t border-gray-200 p-6">
+              <StepNavigation
+                currentStep={currentStep}
+                totalSteps={TOTAL_STEPS}
+                showReview={showReview}
+                isValid={validateStep(currentStep)}
+                isSubmitting={isSubmitting}
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+                onSubmit={handleSubmit}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Step Indicator */}
-        {!showReview && (
-          <div className="p-6 border-b border-gray-200">
-            <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-          </div>
-        )}
-
-        {/* Step Content */}
-        <div className="p-6 min-h-[500px]">{renderStep()}</div>
-
-        {/* Navigation */}
-        <div className="border-t border-gray-200 p-6">
-          <StepNavigation
-            currentStep={currentStep}
-            totalSteps={TOTAL_STEPS}
-            showReview={showReview}
-            isValid={validateStep(currentStep)}
-            isSubmitting={isSubmitting}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onSubmit={handleSubmit}
-          />
+        {/* Vertical Step Indicator - Right Side */}
+        <div className="col-span-12 lg:col-span-3 sticky top-6">
+          {!showReview && status !== "loading" && (
+            <div className="bg-white rounded-3xl border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Progress</h3>
+              <StepIndicator
+                currentStep={currentStep}
+                steps={steps}
+                orientation="vertical"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

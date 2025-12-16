@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-const SHOP_API_URL = process.env.NEXT_PUBLIC_BRANCHES_API_URL;
+const SHOP_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Get all shops
@@ -11,7 +11,7 @@ export const getAllShops = async () => {
   const cacheStrategy = getCacheStrategy("SHOPS");
 
   try {
-    const data = await apiClient.get(SHOP_API_URL, {
+    const data = await apiClient.get(`${SHOP_API_URL}/shop`, {
       cache: cacheStrategy,
     });
 
@@ -43,7 +43,7 @@ export const getAllShops = async () => {
  */
 export const deleteShop = async (shopId) => {
   try {
-    const data = await apiClient.delete(`${SHOP_API_URL}/${shopId}`);
+    const data = await apiClient.delete(`${SHOP_API_URL}/shop/${shopId}`);
 
     // Clear shops cache
     apiClient.clearCache("/shops");
@@ -63,7 +63,7 @@ export const deleteShop = async (shopId) => {
  */
 export const createShop = async (shopData) => {
   try {
-    const data = await apiClient.post(SHOP_API_URL, shopData);
+    const data = await apiClient.post(`${SHOP_API_URL}/shop`, shopData);
 
     // Clear shops cache
     apiClient.clearCache("/shops");

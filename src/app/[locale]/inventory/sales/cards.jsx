@@ -1,4 +1,7 @@
+// src/components/sales/SalesCards.jsx
 "use client";
+
+import { motion } from "framer-motion";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import { useMemo } from "react";
 
@@ -33,61 +36,88 @@ const SalesCards = ({ sales = [] }) => {
             (parseFloat(sale.discountTotal) || 0) > 0
         ).length;
 
-        return {
-            totalDailySales,
-            totalDailyProfit,
-            totalReturned,
-            totalDiscounts
-        };
-    }, [sales]);
-
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-RW', {
-            style: 'currency',
-            currency: 'RWF',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount);
+    return {
+      totalDailySales: todaySales.reduce((s, v) => s + (v.totalAmount || 0), 0),
+      totalDailyProfit: todaySales.reduce((s, v) => s + (v.profit || 0), 0),
+      totalReturned: sales.filter(s => s.returned).length,
+      totalDiscounts: sales.filter(s => (s.discountTotal || 0) > 0).length,
     };
+  }, [sales]);
 
-    const cardsInfo = [
-        {
-            title: "Total Daily Sales",
-            value: formatCurrency(stats.totalDailySales),
-            icon: <Coins size={45} className="text-purple-500 bg-purple-50 p-2 rounded-xl" />
-        },
-        {
-            title: "Total Daily Profit",
-            value: formatCurrency(stats.totalDailyProfit),
-            icon: <TrendingUp size={45} className="text-green-500 bg-green-50 p-2 rounded-xl" />
-        },
-        {
-            title: "Total Returned Products",
-            value: stats.totalReturned,
-            icon: <Undo2 size={45} className="text-blue-500 bg-blue-50 p-2 rounded-xl" />
-        },
-        {
-            title: "Total Number of Discounts",
-            value: stats.totalDiscounts,
-            icon: <Percent size={45} className="text-red-500 bg-red-50 p-2 rounded-xl" />
-        },
-    ];
+  const formatCurrency = amount =>
+    new Intl.NumberFormat("en-RW", {
+      style: "currency",
+      currency: "RWF",
+      maximumFractionDigits: 0,
+    }).format(amount);
 
-    return (
-        <section className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
-            {cardsInfo.map((card, index) => (
-                <div key={index} className="bg-white p-5 justify-between flex rounded-xl border">
-                    <div className="text-left">
-                        <p className="text-2xl font-bold">{card.value}</p>
-                        <h2 className="text-gray-500">{card.title}</h2>
-                    </div>
-                    <div className="flex h-full">
-                        <div className="text-orange-500">{card.icon}</div>
-                    </div>
-                </div>
-            ))}
-        </section>
-    );
-};
+  const cards = [
+    {
+      title: "Total Daily Sales",
+      value: formatCurrency(stats.totalDailySales),
+      Icon: Coins,
+      color: "#8b5cf6",
+      bgColor: "#f3e8ff",
+      key: "sales",
+    },
+    {
+      title: "Total Daily Profit",
+      value: formatCurrency(stats.totalDailyProfit),
+      Icon: TrendingUp,
+      color: "#10b981",
+      bgColor: "#ecfdf5",
+      key: "profit",
+    },
+    {
+      title: "Returned Products",
+      value: stats.totalReturned,
+      Icon: Undo2,
+      color: "#3b82f6",
+      bgColor: "#eff6ff",
+      key: "returned",
+    },
+    {
+      title: "Discounts Applied",
+      value: stats.totalDiscounts,
+      Icon: Percent,
+      color: "#ef4444",
+      bgColor: "#fee2e2",
+      key: "discounts",
+    },
+  ];
 
-export default SalesCards;  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {cards.map((card, index) => {
+        const Icon = card.Icon;
+        return (
+          <motion.div
+            key={card.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-[#6b7280] font-medium mb-1">
+                  {card.title}
+                </p>
+                <p className="text-2xl font-bold font-jetbrains text-[#081422]">
+                  {card.value}
+                </p>
+              </div>
+
+              <div
+                className="p-3 rounded-xl shrink-0"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <Icon size={24} style={{ color: card.color }} />
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}

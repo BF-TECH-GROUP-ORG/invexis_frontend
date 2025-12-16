@@ -64,15 +64,22 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     }
   };
 
+  const handleNotificationClick = (n) => {
+    if (!n.isRead) {
+      dispatch(markAnnouncementRead(n.id));
+    }
+    // Optional: navigate to details
+    // router.push(`/${locale}/inventory/announcements?id=${n.id}`);
+  };
+
   return (
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
-          isMobile
-            ? "px-4 py-3" // Mobile: full width, smaller padding
-            : "px-6 py-2" // Desktop: adjusted for sidebar
-        }`}
+        className={`sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+          ? "px-4 py-3" // Mobile: full width, smaller padding
+          : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}

@@ -4,11 +4,21 @@ import { useEffect, useState, useMemo } from "react";
 import { PRODUCT_SPECS } from "@/lib/productSpecs";
 import DynamicSpecField from "../shared/DynamicSpecField";
 import { getCategoryWithParent } from "@/services/categoriesService";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
 
 export default function Step6Specs({ formData, updateFormData }) {
   const [loading, setLoading] = useState(false);
   const [hierarchyData, setHierarchyData] = useState(null);
+  const [openSections, setOpenSections] = useState({
+    advanced: false,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   // Fetch hierarchy when categoryId changes
   useEffect(() => {
@@ -178,31 +188,45 @@ export default function Step6Specs({ formData, updateFormData }) {
 
       {/* Advanced Specifications */}
       {specsConfig.advancedSpecs && specsConfig.advancedSpecs.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <svg
-              className="w-5 h-5 mr-2 text-blue-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Advanced Specifications
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {specsConfig.advancedSpecs.map((spec) => (
-              <DynamicSpecField
-                key={spec.key}
-                spec={spec}
-                value={formData.specs[spec.key]}
-                onChange={handleSpecChange}
-              />
-            ))}
-          </div>
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection("advanced")}
+            className="w-full flex items-center justify-between p-6 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <svg
+                className="w-5 h-5 mr-2 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Advanced Specifications
+            </h3>
+            <ChevronDown
+              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                openSections.advanced ? "transform rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {openSections.advanced && (
+            <div className="p-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {specsConfig.advancedSpecs.map((spec) => (
+                <DynamicSpecField
+                  key={spec.key}
+                  spec={spec}
+                  value={formData.specs[spec.key]}
+                  onChange={handleSpecChange}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
