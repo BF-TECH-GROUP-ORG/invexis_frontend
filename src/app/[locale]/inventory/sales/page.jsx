@@ -48,7 +48,7 @@ const SalesPage = () => {
               <p className="space-x-10  font-light"><span>{t("dashboard")}</span><span>.</span><span>{t("products")}</span><span>.</span><span className="text-gray-500">{t("list")}</span></p>
             </div>
             <div>
-              <Link href={`/${locale}/inventory/sales/sellProduct/sale`} ><button className="px-8 py-3 rounded-lg bg-orange-500  text-white cursor-pointer" >{t("stockOut")}</button></Link>
+              <Link href={`/${locale}/inventory/sales/sellProduct/sale`} ><button className="px-8 py-3 rounded-lg bg-[#1F1F1F]  text-white cursor-pointer" >{t("stockOut")}</button></Link>
             </div>
           </div>
           <DataTable salesData={sales} />

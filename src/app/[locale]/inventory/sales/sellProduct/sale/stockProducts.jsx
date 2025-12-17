@@ -132,6 +132,7 @@ const CurrentInventory = () => {
 
   // Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState('company'); // 'company' or 'shop'
 
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
@@ -446,11 +447,14 @@ const CurrentInventory = () => {
               {sellMutation.isPending ? "Processing..." : `SELL SELECTED (${selectedCount})`}
             </MuiButton>
 
-            {/* Transfer Button */}
+            {/* Transfer Button (Company) */}
             <MuiButton
               variant="outlined"
               disabled={selectedCount === 0}
-              onClick={() => setTransferModalOpen(true)}
+              onClick={() => {
+                setTransferMode('company');
+                setTransferModalOpen(true);
+              }}
               sx={{
                 borderColor: "#1976d2",
                 color: "#1976d2",
@@ -469,8 +473,25 @@ const CurrentInventory = () => {
                 }
               }}
             >
-              Transfer
+              Transfer to Company
             </MuiButton>
+
+            {/* Transfer Button (Shop) */}
+              <button
+  disabled={selectedCount === 0}
+  onClick={() => {
+    setTransferMode("shop");
+    setTransferModalOpen(true);
+  }}
+  className={`px-4 py-3 rounded-xl  transition
+    ${selectedCount === 0
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-[#1F1F1F] text-white cursor-pointer hover:bg-[#2a2a2a]"
+    }`}
+>
+  Transfer to Shop
+</button>
+
           </Box>
         </Box>
 
@@ -481,6 +502,8 @@ const CurrentInventory = () => {
           selectedItems={selectedItems}
           companyId={companyId}
           userId={session?.user?._id}
+          mode={transferMode}
+          currentShopId={Object.values(selectedItems)[0]?.shopId || session?.user?.shops?.[0]}
         />
 
         {/* Table */}

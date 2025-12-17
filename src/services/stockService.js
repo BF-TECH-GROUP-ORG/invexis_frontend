@@ -185,20 +185,26 @@ export default {
   getStockHistory,
   getStockChangeById,
   createStockChange,
-  transferProducts,
   getCompanyDetails,
   getAllCompanies,
+  transferToShop,
+  transferToCompany,
 };
 
 /**
- * Transfer products to another shop/company
- * POST /v1/stock/transfer
- * 
- * @param {Object} payload - Transfer details
- * @returns {Promise<Object>} Response data
+ * Intra-Company Bulk Transfer (Shop to Shop)
+ * POST /api/v1/companies/:companyId/shops/:shopId/bulk-transfer
  */
-export async function transferProducts(payload) {
-  return apiClient.post(`${API_BASE}/inventory/v1/stock/transfer`, payload);
+export async function transferToShop(companyId, shopId, payload) {
+  return apiClient.post(`${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`, payload);
+}
+
+/**
+ * Cross-Company Bulk Transfer
+ * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
+ */ 
+export async function transferToCompany(companyId, shopId, payload) {
+  return apiClient.post(`${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`, payload);
 }
 
 /**
