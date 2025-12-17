@@ -48,7 +48,7 @@ export default function DashboardPage() {
         // Fetch other data manually
         const [salesResult, shopsResult] = await Promise.allSettled([
           getSalesHistory(companyId),
-          getAllShops(),
+          getAllShops(companyId),
         ]);
 
         const sales =
