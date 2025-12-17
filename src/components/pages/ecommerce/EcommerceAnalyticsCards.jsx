@@ -28,8 +28,9 @@ export default function EcommerceAnalyticsCards({
             tabIndex={0}
             onClick={() => onFilter(card.key)}
             className={`border-2 rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all cursor-pointer ${
-              active ? "border-[#ff782d] shadow-sm" : "border-[#d1d5db]"
+              active ? "border-[#ff782d]" : "border-[#d1d5db]"
             }`}
+            style={{ boxShadow: 'none' }}
           >
             <div className="flex items-start justify-between">
               <div>

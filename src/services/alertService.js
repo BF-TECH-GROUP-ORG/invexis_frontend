@@ -152,3 +152,4 @@ export default {
     getAlertSettings,
     updateAlertSettings
 };
+    

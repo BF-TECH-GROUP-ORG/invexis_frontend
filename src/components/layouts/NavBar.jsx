@@ -9,8 +9,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useLoading } from "@/contexts/LoadingContext";
-import { useSocket } from "@/providers/SocketProvider";
-import { subscribeToNotifications } from "@/utils/socket";
+// formatDistanceToNow removed (notifications sidebar removed)
+
+// Redux
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchAnnouncements,
+  selectUnreadCount
+} from "@/features/announcements/announcementsSlice";
+import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
@@ -21,9 +28,13 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
 
   const { socket } = useSocket();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
 
-  const [notifications, setNotifications] = useState([]);
+  // Redux State
+  const dispatch = useDispatch();
+  const unreadCount = useSelector(selectUnreadCount);
+
+  // Initialize Socket Global Listener here (since NavBar is always present)
+  useAnnouncementSocket();
 
   useEffect(() => {
     if (socket && user?.id) {
@@ -64,19 +75,16 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
     }
   };
 
-  const handleNotificationClick = (n) => {
-    if (!n.isRead) {
-      dispatch(markAnnouncementRead(n.id));
-    }
-    // Optional: navigate to details
-    // router.push(`/${locale}/inventory/announcements?id=${n.id}`);
+  // When user clicks the bell, navigate to the announcements page
+  const handleBellClick = () => {
+    router.push(`/${locale}/inventory/announcements`);
   };
 
   return (
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+        className={`fixed top-0 left-0 right-0 z-[99999] flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
           ? "px-4 py-3" // Mobile: full width, smaller padding
           : "px-6 py-2" // Desktop: adjusted for sidebar
           }`}
@@ -107,11 +115,11 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
           <div className="relative">
             <Bell
               className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
-              onClick={() => setNotifOpen(true)}
+              onClick={handleBellClick}
             />
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-orange-500 text-white text-xs rounded-full">
-                {notifications.length}
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>
@@ -223,54 +231,7 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
         )}
       </AnimatePresence>
 
-      {/* ================= NOTIFICATION SIDEBAR ================= */}
-      <AnimatePresence>
-        {notifOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/30 z-40"
-              onClick={() => setNotifOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-            <motion.div
-              className="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl z-50 overflow-y-auto"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-                <h2 className="text-xl font-semibold">Notifications</h2>
-                <button
-                  onClick={() => setNotifOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  X
-                </button>
-              </div>
-              <div className="p-4">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border-b last:border-0"
-                  >
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg shrink-0" />
-                    <div className="flex-1">
-                      <h4 className="font-medium">{n.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{n.desc}</p>
-                      <span className="text-xs text-gray-400 mt-2 block">
-                        {n.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Notification sidebar removed — bell now navigates to announcements page */}
     </>
   );
 }
