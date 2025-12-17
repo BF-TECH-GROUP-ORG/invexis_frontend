@@ -1,31 +1,39 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import announcementService from '@/services/announcementService';
 import AnnouncementList from '@/components/announcements/AnnouncementList';
 import AnnouncementDrawer from '@/components/announcements/AnnouncementDrawer';
+import EcommerceAnalyticsCards from '@/components/pages/ecommerce/EcommerceAnalyticsCards';
 import {
     Inbox,
     Tag,
     Users,
     Info,
     CheckSquare,
-    Trash2,
+    Archive,
     Clock
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const TABS = [
-    { id: 'primary', label: 'Primary', icon: Inbox, color: 'text-orange-600', border: 'border-orange-500' },
+    { id: 'primary', label: 'General', icon: Inbox, color: 'text-orange-600', border: 'border-orange-500' },
     { id: 'updates', label: 'Updates', icon: Info, color: 'text-blue-600', border: 'border-blue-500' },
     { id: 'promotions', label: 'Promotions', icon: Tag, color: 'text-green-600', border: 'border-green-500' },
     { id: 'social', label: 'Social', icon: Users, color: 'text-purple-600', border: 'border-purple-500' }
 ];
 
 export default function AnnouncementsPage() {
+    const router = useRouter();
+    const locale = useLocale();
     const [activeTab, setActiveTab] = useState('primary');
     const [announcements, setAnnouncements] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [archivedCount, setArchivedCount] = useState(0);
+    const [snoozedCount, setSnoozedCount] = useState(0);
+    const [readCount, setReadCount] = useState(0);
 
     // Subscribe to service
     useEffect(() => {
@@ -36,13 +44,15 @@ export default function AnnouncementsPage() {
         // 2. Initial Fetch from local state or API
         loadAnnouncements();
 
-        // 3. Listen for real-time events
+        // 3. Listen for real-time events (service now normalizes categories)
         const unsubNew = announcementService.on('new', (item) => {
             // Only add if it matches current tab or is critical
             // Ideally, we add to state and let UI filter, but for simple list:
             // We'll just re-fetch or prepend
             setAnnouncements(prev => [item, ...prev]);
-            toast('New Announcement: ' + item.title, { icon: '🔔' });
+            toast('New Announcement: ' + (item.title || 'Update'), { icon: '🔔' });
+            // new items are unread by default
+            setReadCount(prev => prev);
         });
 
         const unsubUpdate = announcementService.on('update', (updatedItem) => {
@@ -64,8 +74,9 @@ export default function AnnouncementsPage() {
     const loadAnnouncements = async () => {
         setIsLoading(true);
         try {
-            const { data } = await announcementService.getAnnouncements(); // Get all
+            const { data } = await announcementService.getAnnouncements(); // Get all (service returns normalized categories)
             setAnnouncements(data);
+            setReadCount(data.filter(a => a.isRead).length);
         } catch (error) {
             console.error("Failed to load announcements", error);
             toast.error("Failed to load announcements");
@@ -78,19 +89,27 @@ export default function AnnouncementsPage() {
         try {
             if (action === 'mark_read') {
                 await announcementService.markAsRead(id);
-            } else if (action === 'delete') {
-                await announcementService.delete(id);
-                toast.success("Item deleted");
+                // update local read count optimistically
+                const item = announcements.find(a => a.id === id);
+                if (item && !item.isRead) setReadCount(prev => prev + 1);
+                    } else if (action === 'delete') {
+                        await announcementService.delete(id);
+                        toast.success("Item deleted");
             } else if (action === 'snooze') {
                 await announcementService.snooze(id, 3600000); // 1 hour
                 toast.success("Snoozed for 1 hour");
+                setSnoozedCount(prev => prev + 1);
             } else if (action === 'view') {
-                const item = announcements.find(a => a.id === id);
-                if (item) {
-                    if (!item.isRead) {
-                        await announcementService.markAsRead(id);
-                    }
-                    setSelectedAnnouncement(item);
+                // navigate to the announcement detail (slug) page
+                router.push(`/${locale}/inventory/announcements/${id}`);
+            } else if (action === 'archive') {
+                // Archive isn't implemented on the service; simulate by deleting and counting as archived
+                try {
+                    await announcementService.delete(id);
+                    setArchivedCount(prev => prev + 1);
+                    toast.success('Archived');
+                } catch (e) {
+                    toast.error('Archive failed');
                 }
             }
         } catch (error) {
@@ -108,7 +127,7 @@ export default function AnnouncementsPage() {
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans relative">
+        <div className="min-h-screen bg-white flex flex-col font-sans relative pt-14">
             <AnnouncementDrawer
                 isOpen={!!selectedAnnouncement}
                 announcement={selectedAnnouncement}
@@ -116,20 +135,61 @@ export default function AnnouncementsPage() {
             />
 
             {/* Header */}
-            <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-                <h1 className="text-xl font-bold text-gray-800">System Activity</h1>
-                <div className="flex gap-2">
-                    <button
-                        onClick={generateMockEvent}
-                        className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-                    >
-                        ⚡ Test Event
-                    </button>
-                    <button className="px-3 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white rounded-md shadow-sm transition-colors">
-                        Mark all read
-                    </button>
+            <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-14 z-10 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">Notifications Overview</h1>
+                        <p className="text-sm text-gray-500">Quick stats for archived, deleted, read and snoozed items</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={generateMockEvent}
+                            className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                        >
+                            ⚡ Test Event
+                        </button>
+                        <button className="px-3 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white rounded-md shadow-sm transition-colors">
+                            Mark all read
+                        </button>
+                    </div>
                 </div>
 
+                <div className="mt-4">
+                    {/** Use the ecommerce analytics card style for a cleaner look */}
+                    <EcommerceAnalyticsCards
+                        cards={[
+                            {
+                                key: 'archived',
+                                title: 'Archived',
+                                value: archivedCount,
+                                description: '',
+                                icon: Archive,
+                                bgColor: '#fff7ed',
+                                color: '#ff7a18',
+                            },
+                            {
+                                key: 'read',
+                                title: 'Read',
+                                value: readCount,
+                                description: '',
+                                icon: CheckSquare,
+                                bgColor: '#ecfdf5',
+                                color: '#10b981',
+                            },
+                            {
+                                key: 'snoozed',
+                                title: 'Snoozed',
+                                value: snoozedCount,
+                                description: '',
+                                icon: Clock,
+                                bgColor: '#eff6ff',
+                                color: '#2563eb',
+                            },
+                        ]}
+                        onFilter={() => {}}
+                        activeFilters={{}}
+                    />
+                </div>
             </header>
 
             {/* Main Content */}
@@ -180,7 +240,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 {/* List */}
-                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div>
                     <AnnouncementList
                         announcements={filteredAnnouncements}
                         onAction={handleAction}
