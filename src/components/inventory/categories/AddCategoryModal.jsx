@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Plus, Trash2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { createCategory, updateCategory } from "@/features/categories/categoriesSlice";
+import {
+  createCategory,
+  updateCategory,
+} from "@/features/categories/categoriesSlice";
 import { ParentCategories } from "@/services/categoriesService";
 import { toast } from "react-hot-toast";
 import useAuth from "@/hooks/useAuth";
@@ -14,21 +17,24 @@ export default function AddCategoryModal({ onClose, editData = null }) {
   const { items } = useSelector((state) => state.categories);
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [showAttributes, setShowAttributes] = useState(editData?.attributes?.length > 0);
+  const [showAttributes, setShowAttributes] = useState(
+    editData?.attributes?.length > 0
+  );
 
   const [formData, setFormData] = useState({
     name: editData?.name || "",
     companyId: user?.companies[0] || editData?.companyId || "",
-    parentCategory: editData?.parentCategory?._id || editData?.parentCategory || "",
+    parentCategory:
+      editData?.parentCategory?._id || editData?.parentCategory || "",
     description: editData?.description || "",
-    attributes: editData?.attributes || []
+    attributes: editData?.attributes || [],
   });
 
   const [newAttribute, setNewAttribute] = useState({
     name: "",
     type: "text",
     required: false,
-    options: []
+    options: [],
   });
   const [optionInput, setOptionInput] = useState("");
 
@@ -43,22 +49,38 @@ export default function AddCategoryModal({ onClose, editData = null }) {
         if (!currentCompanyId && user) {
           // Try user.company
           if (user.company) {
-            currentCompanyId = typeof user.company === 'string' ? user.company : (user.company._id || user.company.id);
+            currentCompanyId =
+              typeof user.company === "string"
+                ? user.company
+                : user.company._id || user.company.id;
           }
           // Try user.companies array if still not found
-          if (!currentCompanyId && user.companies && Array.isArray(user.companies) && user.companies.length > 0) {
+          if (
+            !currentCompanyId &&
+            user.companies &&
+            Array.isArray(user.companies) &&
+            user.companies.length > 0
+          ) {
             const companyObj = user.companies[0];
-            currentCompanyId = typeof companyObj === 'string' ? companyObj : (companyObj._id || companyObj.id);
+            currentCompanyId =
+              typeof companyObj === "string"
+                ? companyObj
+                : companyObj._id || companyObj.id;
           }
         }
 
-        console.log("Fetching parents for company:", currentCompanyId, "User object:", user);
+        console.log(
+          "Fetching parents for company:",
+          currentCompanyId,
+          "User object:",
+          user
+        );
 
         if (currentCompanyId) {
           const data = await ParentCategories(currentCompanyId);
           // Handle if data is array or { data: array }
-          const parents = Array.isArray(data) ? data : (data.data || []);
-          setParentOptions(parents.filter(cat => cat._id !== editData?._id));
+          const parents = Array.isArray(data) ? data : data.data || [];
+          setParentOptions(parents.filter((cat) => cat._id !== editData?._id));
         } else {
           console.log("No company ID found in user object or editData");
         }
@@ -71,10 +93,13 @@ export default function AddCategoryModal({ onClose, editData = null }) {
   }, [editData?._id, user?.company?._id]);
 
   const addOption = () => {
-    if (optionInput.trim() && !newAttribute.options.includes(optionInput.trim())) {
+    if (
+      optionInput.trim() &&
+      !newAttribute.options.includes(optionInput.trim())
+    ) {
       setNewAttribute({
         ...newAttribute,
-        options: [...newAttribute.options, optionInput.trim()]
+        options: [...newAttribute.options, optionInput.trim()],
       });
       setOptionInput("");
     }
@@ -83,7 +108,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
   const removeOption = (index) => {
     setNewAttribute({
       ...newAttribute,
-      options: newAttribute.options.filter((_, i) => i !== index)
+      options: newAttribute.options.filter((_, i) => i !== index),
     });
   };
 
@@ -91,7 +116,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
     if (newAttribute.name.trim()) {
       setFormData({
         ...formData,
-        attributes: [...formData.attributes, { ...newAttribute }]
+        attributes: [...formData.attributes, { ...newAttribute }],
       });
       setNewAttribute({ name: "", type: "text", required: false, options: [] });
     }
@@ -100,7 +125,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
   const removeAttribute = (index) => {
     setFormData({
       ...formData,
-      attributes: formData.attributes.filter((_, i) => i !== index)
+      attributes: formData.attributes.filter((_, i) => i !== index),
     });
   };
 
@@ -118,11 +143,13 @@ export default function AddCategoryModal({ onClose, editData = null }) {
       const payload = {
         ...formData,
         companyId: formData.companyId || undefined,
-        parentCategory: formData.parentCategory || undefined
+        parentCategory: formData.parentCategory || undefined,
       };
 
       if (editData) {
-        await dispatch(updateCategory({ id: editData._id, updates: payload })).unwrap();
+        await dispatch(
+          updateCategory({ id: editData._id, updates: payload })
+        ).unwrap();
         toast.success("Category updated successfully! ✨");
       } else {
         await dispatch(createCategory(payload)).unwrap();
@@ -157,7 +184,10 @@ export default function AddCategoryModal({ onClose, editData = null }) {
             <h2 className="text-2xl font-bold">
               {editData ? "Edit Category" : "Add New Category"}
             </h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition">
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition"
+            >
               <X size={24} />
             </button>
           </div>
@@ -173,7 +203,9 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                   placeholder="e.g., Men's Casual Shirts"
                 />
@@ -186,7 +218,9 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                 </label>
                 <select
                   value={formData.parentCategory}
-                  onChange={(e) => setFormData({ ...formData, parentCategory: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parentCategory: e.target.value })
+                  }
                   className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 transition"
                 >
                   <option value="">Select Section</option>
@@ -201,10 +235,14 @@ export default function AddCategoryModal({ onClose, editData = null }) {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Description</label>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Description
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
                 className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 transition resize-none"
                 placeholder="Brief description of the category..."
@@ -220,7 +258,9 @@ export default function AddCategoryModal({ onClose, editData = null }) {
               >
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                   <span className="w-1.5 h-5 bg-orange-500 rounded-full"></span>
-                  Product Attributes {formData.attributes.length > 0 && `(${formData.attributes.length})`}
+                  Product Attributes{" "}
+                  {formData.attributes.length > 0 &&
+                    `(${formData.attributes.length})`}
                 </h3>
                 <motion.div
                   animate={{ rotate: showAttributes ? 180 : 0 }}
@@ -245,14 +285,24 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                           type="text"
                           placeholder="Attribute name (e.g., Size)"
                           value={newAttribute.name}
-                          onChange={(e) => setNewAttribute({ ...newAttribute, name: e.target.value })}
+                          onChange={(e) =>
+                            setNewAttribute({
+                              ...newAttribute,
+                              name: e.target.value,
+                            })
+                          }
                           className="w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition"
                         />
 
                         <div className="grid grid-cols-2 gap-3">
                           <select
                             value={newAttribute.type}
-                            onChange={(e) => setNewAttribute({ ...newAttribute, type: e.target.value })}
+                            onChange={(e) =>
+                              setNewAttribute({
+                                ...newAttribute,
+                                type: e.target.value,
+                              })
+                            }
                             className="px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 transition"
                           >
                             <option value="text">Text</option>
@@ -263,10 +313,17 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                             <input
                               type="checkbox"
                               checked={newAttribute.required}
-                              onChange={(e) => setNewAttribute({ ...newAttribute, required: e.target.checked })}
+                              onChange={(e) =>
+                                setNewAttribute({
+                                  ...newAttribute,
+                                  required: e.target.checked,
+                                })
+                              }
                               className="w-4 h-4 text-orange-500 rounded focus:ring-2 focus:ring-orange-500"
                             />
-                            <span className="text-sm font-medium">Required</span>
+                            <span className="text-sm font-medium">
+                              Required
+                            </span>
                           </label>
                         </div>
 
@@ -278,7 +335,10 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                                 placeholder="Add option (e.g., S, M, L)"
                                 value={optionInput}
                                 onChange={(e) => setOptionInput(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addOption())}
+                                onKeyPress={(e) =>
+                                  e.key === "Enter" &&
+                                  (e.preventDefault(), addOption())
+                                }
                                 className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
                               />
                               <button
@@ -292,9 +352,16 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                             {newAttribute.options.length > 0 && (
                               <div className="flex flex-wrap gap-2">
                                 {newAttribute.options.map((opt, idx) => (
-                                  <span key={idx} className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center gap-2">
+                                  <span
+                                    key={idx}
+                                    className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center gap-2"
+                                  >
                                     {opt}
-                                    <button type="button" onClick={() => removeOption(idx)} className="hover:text-orange-900">
+                                    <button
+                                      type="button"
+                                      onClick={() => removeOption(idx)}
+                                      className="hover:text-orange-900"
+                                    >
                                       <X size={14} />
                                     </button>
                                   </span>
@@ -317,14 +384,23 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                       {/* Display Added Attributes */}
                       {formData.attributes.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-sm font-medium text-gray-600 mb-2">Added Attributes:</p>
+                          <p className="text-sm font-medium text-gray-600 mb-2">
+                            Added Attributes:
+                          </p>
                           {formData.attributes.map((attr, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border-2 hover:border-orange-300 transition">
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-3 bg-white rounded-lg border-2 hover:border-orange-300 transition"
+                            >
                               <div className="flex-1">
-                                <p className="font-medium text-sm text-gray-800">{attr.name}</p>
+                                <p className="font-medium text-sm text-gray-800">
+                                  {attr.name}
+                                </p>
                                 <p className="text-xs text-gray-500">
-                                  Type: {attr.type} {attr.required && "• Required"}
-                                  {attr.options?.length > 0 && ` • ${attr.options.join(", ")}`}
+                                  Type: {attr.type}{" "}
+                                  {attr.required && "• Required"}
+                                  {attr.options?.length > 0 &&
+                                    ` • ${attr.options.join(", ")}`}
                                 </p>
                               </div>
                               <button
@@ -358,7 +434,11 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                 disabled={loading}
                 className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 transition font-medium shadow-lg"
               >
-                {loading ? "Saving..." : editData ? "Update Category" : "Create Category"}
+                {loading
+                  ? "Saving..."
+                  : editData
+                  ? "Update Category"
+                  : "Create Category"}
               </button>
             </div>
           </form>

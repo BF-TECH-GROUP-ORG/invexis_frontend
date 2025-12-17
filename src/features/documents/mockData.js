@@ -1,15 +1,15 @@
 
 
 const mockData = [
-  { 
-    id: "1", 
-    name: "Invoice #001", 
-    description: "Workshop materials", 
-    status: "Workshop", 
-    type: "Invoice", 
-    date: "2024-01-24", 
+  // 2024 Data ------------------------------------------------
+  {
+    id: "1",
+    name: "Invoice #001",
+    description: "Workshop materials",
+    status: "Workshop",
+    type: "Invoice",
+    date: "2024-05-24", // May 2024
     amount: 5000,
-    // ✅ NEW FIELDS ADDED BELOW
     tags: ["urgent", "paid"],
     assignee: "John Doe",
     version: "v1.2",
@@ -19,17 +19,41 @@ const mockData = [
     lastModified: "2024-01-24",
     category: "Finance",
     priority: "high",
-    attachments: 2
+    attachments: 2,
+    images: [{ label: "Company Logo", url: "https://via.placeholder.com/150x50?text=Acme+Corp" }],
+    activity: [{ date: "2024-05-24", action: "Invoice generated", user: "System", isInternal: false }]
   },
-  { 
-    id: "2", 
-    name: "Agreement - ACME", 
-    description: "Partnership", 
-    status: "Financial", 
-    type: "Agreement", 
-    date: "2023-12-22", 
+  {
+    id: "6",
+    name: "Contract - Vendor",
+    description: "Supply agreement",
+    status: "Archived",
+    type: "Agreement",
+    date: "2024-02-15", // Feb 2024
+    amount: 25000,
+    tags: ["vendor", "supply"],
+    assignee: "Jane Smith",
+    version: "v1.0",
+    size: "4.3 MB",
+    fileUrl: "/documents/contract-vendor.pdf",
+    uploadedBy: "Procurement",
+    lastModified: "2024-02-15",
+    category: "Procurement",
+    priority: "low",
+    attachments: 2,
+    images: [{ label: "Signature", url: "https://via.placeholder.com/150x50?text=Signed" }],
+    activity: [{ date: "2024-02-15", action: "Signed", user: "Admin", isInternal: false }]
+  },
+
+  // 2023 Data ------------------------------------------------
+  {
+    id: "2",
+    name: "Agreement - ACME",
+    description: "Partnership",
+    status: "Financial",
+    type: "Agreement",
+    date: "2023-12-22", // Dec 2023
     amount: 12000,
-    // ✅ NEW FIELDS ADDED BELOW
     tags: ["contract", "partnership"],
     assignee: "Jane Smith",
     version: "v2.0",
@@ -41,15 +65,14 @@ const mockData = [
     priority: "medium",
     attachments: 1
   },
-  { 
-    id: "3", 
-    name: "Policy - HR", 
-    description: "Employee terms", 
-    status: "Financial", 
-    type: "Policy", 
-    date: "2023-11-16", 
+  {
+    id: "3",
+    name: "Policy - HR",
+    description: "Employee terms",
+    status: "Financial",
+    type: "Policy",
+    date: "2023-05-16", // May 2023
     amount: 8000,
-    // ✅ NEW FIELDS ADDED BELOW
     tags: ["important", "hr"],
     assignee: "Mike Johnson",
     version: "v1.0",
@@ -61,15 +84,14 @@ const mockData = [
     priority: "high",
     attachments: 3
   },
-  { 
-    id: "4", 
-    name: "Annual Report", 
-    description: "Full year results", 
-    status: "Workshop", 
-    type: "Report", 
-    date: "2023-09-10", 
+  {
+    id: "4",
+    name: "Annual Report 2023",
+    description: "Full year results",
+    status: "Workshop",
+    type: "Report",
+    date: "2023-05-10", // May 2023
     amount: 45000,
-    // ✅ NEW FIELDS ADDED BELOW
     tags: ["annual", "report"],
     assignee: "Sarah Wilson",
     version: "v3.1",
@@ -81,15 +103,16 @@ const mockData = [
     priority: "high",
     attachments: 5
   },
-  { 
-    id: "5", 
-    name: "Budget Q2", 
-    description: "Financial planning", 
-    status: "Financial", 
-    type: "Report", 
-    date: "2022-07-11", 
+
+  // 2022 Data ------------------------------------------------
+  {
+    id: "5",
+    name: "Budget Q2 2022",
+    description: "Financial planning",
+    status: "Financial",
+    type: "Report",
+    date: "2022-07-11", // July 2022
     amount: 12000,
-    // ✅ NEW FIELDS ADDED BELOW
     tags: ["quarterly", "budget"],
     assignee: "John Doe",
     version: "v1.5",
@@ -100,26 +123,6 @@ const mockData = [
     category: "Finance",
     priority: "medium",
     attachments: 1
-  },
-  { 
-    id: "6", 
-    name: "Contract - Vendor", 
-    description: "Supply agreement", 
-    status: "Archived", 
-    type: "Agreement", 
-    date: "2024-02-15", 
-    amount: 25000,
-    // ✅ NEW FIELDS ADDED BELOW
-    tags: ["vendor", "supply"],
-    assignee: "Jane Smith",
-    version: "v1.0",
-    size: "4.3 MB",
-    fileUrl: "/documents/contract-vendor.pdf",
-    uploadedBy: "Procurement",
-    lastModified: "2024-02-15",
-    category: "Procurement",
-    priority: "low",
-    attachments: 2
   },
 ];
 

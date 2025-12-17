@@ -168,7 +168,7 @@ export default function AddProductPage() {
             <Link
               href={backUrl}
               prefetch={true}
-              className="group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg font-medium"
+              className="group flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg font-medium"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
               <span className="text-sm">Back to Products</span>
@@ -295,7 +295,7 @@ export default function AddProductPage() {
                       <button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 transition font-semibold shadow-md"
+                        className="flex items-center gap-2 px-8 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-60 transition font-semibold shadow-md"
                       >
                         <Check size={20} />
                         {isSubmitting ? "Saving..." : "Save Product"}
@@ -303,7 +303,7 @@ export default function AddProductPage() {
                     ) : (
                       <button
                         onClick={nextStep}
-                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition font-semibold shadow-md"
+                        className="flex items-center gap-2 px-8 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-semibold shadow-md"
                       >
                         Next
                         <ChevronRight size={20} />
@@ -315,7 +315,7 @@ export default function AddProductPage() {
                     <button
                       onClick={handleSubmit}
                       disabled={isSubmitting}
-                      className="flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 transition font-bold text-lg shadow-lg"
+                      className="flex items-center gap-2 px-10 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-60 transition font-bold text-lg shadow-lg"
                     >
                       <Check size={24} />
                       {isSubmitting ? "Creating..." : "Create Product"}

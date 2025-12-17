@@ -1,58 +1,201 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Bell, Package, CreditCard, Info, AlertTriangle, CheckCircle, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { useLoading } from "@/contexts/LoadingContext";
+import { useSocket } from "@/providers/SocketProvider";
+import { subscribeToNotifications } from "@/utils/socket";
+import { getNotifications, markNotificationsRead } from "@/services/notificationService";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const locale = useLocale();
   const { data: session } = useSession();
   const user = session?.user;
   const router = useRouter();
+  const { setLoading, setLoadingText } = useLoading();
 
+  const { socket } = useSocket();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
 
-  const notifications = [
-    {
-      id: 1,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 2,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 3,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifs = async () => {
+    try {
+      const typeFilter = activeTab === 'all' ? undefined :
+        activeTab === 'sales' ? 'sales_alert' :
+          activeTab === 'inventory' ? 'inventory_alert' :
+            activeTab === 'system' ? 'system_update' : undefined;
+
+      // Map 'system' tab to include multiple types if needed, for now exact match or mapped
+      // If the backend supports exact match on 'type' we send it.
+      // If we want multiple types for one tab, we might need to filter client side or enhance backend.
+      // For this implementation, we assume 1-to-1 or perform client-side filtering if 'type' param isn't enough.
+      // Let's rely on backend filtering for efficiency.
+
+      const res = await getNotifications({
+        unreadOnly: true,
+        limit: 20,
+        type: typeFilter
+      });
+
+      if (res.success && res.data?.notifications) {
+        setNotifications(res.data.notifications);
+        // Note: total count might be just for this filter. 
+        // For the badge, we usually want TOTAL unread regardless of filter.
+        // So we might need a separate call for the badge count if we want it global.
+        // For now, let's just show count of what's loaded or maybe we shouldn't filter the BADGE count by tab.
+      }
+    } catch (err) {
+      console.error("Failed to load notifications", err);
+    }
+  };
+
+  // Fetch initial notifications on mount and when tab changes
+  useEffect(() => {
+    if (session?.user?.id && notifOpen) {
+      fetchNotifs();
+    }
+  }, [session?.user?.id, notifOpen, activeTab]);
+
+  // Initial global badge count (separate from tab filtering)
+  useEffect(() => {
+    async function fetchGlobalCount() {
+      try {
+        const res = await getNotifications({ unreadOnly: true, limit: 1 });
+        if (res.success && res.data?.pagination) {
+          setUnreadCount(res.data.pagination.total);
+        }
+      } catch (e) { }
+    }
+    if (session?.user?.id) fetchGlobalCount();
+  }, [session?.user?.id]);
+
+
+  useEffect(() => {
+    if (socket && user?.id) {
+      subscribeToNotifications(socket, user.id, (data) => {
+        // Assume socket data matches API structure or map it
+        const newNotification = {
+          _id: data._id || data.id || Date.now().toString(),
+          title: data.title || "New Notification",
+          body: data.message || data.body || data.desc || "",
+          type: data.type || "info",
+          priority: data.priority || "normal",
+          createdAt: new Date().toISOString(),
+          readBy: [], // It's new
+          payload: data.payload || {}
+        };
+
+        setNotifications((prev) => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      });
+    }
+  }, [socket, user?.id]);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markNotificationsRead({ all: true });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to mark all read", err);
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+      case 'urgent': return "bg-red-500";
+      case 'medium': return "bg-orange-500";
+      case 'low': return "bg-blue-500";
+      default: return "bg-blue-400";
+    }
+  };
+
+  const getIconByType = (type) => {
+    switch (type) {
+      case 'inventory_alert': return <Package className="w-5 h-5 text-amber-600" />;
+      case 'sales_alert': return <CreditCard className="w-5 h-5 text-green-600" />;
+      case 'payment_success': return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'system_update': return <Info className="w-5 h-5 text-blue-600" />;
+      default: return <Bell className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+
+  const handleNotificationClick = (n) => {
+    // 1. Mark as read
+    if (!n.readBy?.includes(user?.id)) {
+      markNotificationsRead({ notificationIds: [n._id] }).catch(console.error);
+      // Optimistic update
+      setNotifications(prev => prev.filter(item => item._id !== n._id));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+
+    // 2. Navigate based on type
+    const basePath = `/${locale}/inventory`;
+    switch (n.type) {
+      case 'inventory_alert':
+        if (n.payload?.productId) {
+          router.push(`${basePath}/products/details/${n.payload.productId}`);
+        } else {
+          router.push(`${basePath}/alerts`);
+        }
+        break;
+      case 'sales_alert':
+        router.push(`${basePath}/sales`);
+        break;
+      case 'payment_success':
+        router.push(`${basePath}/billing`);
+        break;
+      case 'system_update':
+      default:
+        // Maybe open a modal or just show details
+        break;
+    }
+  };
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push(`/${locale}/auth/login`);
+    try {
+      // Immediately show loader and set text
+      setLoadingText("Logging out...");
+      setLoading(true);
+
+      // Close profile sidebar
+      setProfileOpen(false);
+
+      // Sign out without redirecting (we'll handle navigation manually)
+      await signOut({ redirect: false });
+
+      // Navigate to login page - loader will stay visible during navigation
+      await router.push(`/${locale}/auth/login`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      // Ensure loader is disabled after navigation attempt
+      setLoading(false);
+    }
   };
+
+
 
   return (
     <>
       {/* ================= TOP NAV ================= */}
       <header
-        className={`sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${
-          isMobile
-            ? "px-4 py-3" // Mobile: full width, smaller padding
-            : "px-6 py-2" // Desktop: adjusted for sidebar
-        }`}
+        className={`sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
+          ? "px-4 py-3" // Mobile: full width, smaller padding
+          : "px-6 py-2" // Desktop: adjusted for sidebar
+          }`}
         style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
       >
         {/* LEFT - LOGO */}
@@ -82,9 +225,9 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
               className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
               onClick={() => setNotifOpen(true)}
             />
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-orange-500 text-white text-xs rounded-full">
-                {notifications.length}
+                {unreadCount}
               </span>
             )}
           </div>
@@ -214,31 +357,68 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25 }}
             >
-              <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+              <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
                 <h2 className="text-xl font-semibold">Notifications</h2>
-                <button
-                  onClick={() => setNotifOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  X
-                </button>
-              </div>
-              <div className="p-4">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border-b last:border-0"
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="text-xs text-orange-600 hover:text-orange-700 font-medium"
                   >
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex-shrink-0" />
-                    <div className="flex-1">
-                      <h4 className="font-medium">{n.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{n.desc}</p>
-                      <span className="text-xs text-gray-400 mt-2 block">
-                        {n.time}
-                      </span>
-                    </div>
-                  </div>
+                    Mark all read
+                  </button>
+                  <button
+                    onClick={() => setNotifOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    X
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="px-4 pt-2 border-b flex gap-4 overflow-x-auto no-scrollbar">
+                {['all', 'sales', 'inventory', 'system'].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-2 text-sm font-medium capitalize transition-colors border-b-2 ${activeTab === tab
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                  >
+                    {tab}
+                  </button>
                 ))}
+              </div>
+
+              <div className="p-4 flex flex-col gap-3">
+                {notifications.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No new notifications</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      className="relative flex gap-4 p-4 hover:bg-gray-50 rounded-xl transition cursor-pointer border border-gray-100 shadow-sm overflow-hidden"
+                      onClick={() => handleNotificationClick(n)}
+                    >
+                      {/* Priority Color Strip */}
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${getPriorityColor(n.priority)}`} />
+
+                      <div className="flex items-start gap-3 w-full pl-2">
+                        <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
+                          {getIconByType(n.type)}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{n.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{n.body}</p>
+                          <span className="text-xs text-gray-400 mt-2 block">
+                            {n.createdAt ? new Date(n.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Just now'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </motion.div>
           </>

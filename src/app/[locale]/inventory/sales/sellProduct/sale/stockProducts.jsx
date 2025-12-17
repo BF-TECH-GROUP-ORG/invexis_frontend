@@ -5,10 +5,6 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import SettingsIcon from "@mui/icons-material/Settings";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@/components/shared/button";
 import { useState, useMemo } from "react";
@@ -134,9 +130,10 @@ const CurrentInventory = () => {
   const [customerErrors, setCustomerErrors] = useState({});
 
   const { data: products = [], isLoading: loading } = useQuery({
-    queryKey: ["allProducts"],
-    queryFn: getAllProducts,
+    queryKey: ["allProducts", companyId],
+    queryFn: () => getAllProducts(companyId),
     staleTime: 5 * 60 * 1000,
+    enabled: !!companyId,
   });
 
   // Sell mutation
@@ -208,11 +205,13 @@ const CurrentInventory = () => {
           name: product.ProductName,
           qty: 1,
           minPrice: product.Price,
-          price: product.Price
+          price: product.Price,
+          shopId: product.shopId
         }
       });
     }
   };
+
 
   // Handle quantity change
   const handleQuantityChange = (productId, newQty) => {
@@ -297,15 +296,17 @@ const CurrentInventory = () => {
       productName: item.name,
       quantity: item.qty,
       unitPrice: item.price,
+      unitPrice: item.price,
       totalPrice: item.price * item.qty,
-      discount: 0
+      discount: 0,
+      shopId: item.shopId
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     const payload = {
       companyId: companyId,
-      shopId: session?.user?.shops?.[0] || "",
+      shopId: items[0]?.shopId || session?.user?.shops?.[0] || "",
       soldBy: session?.user?._id || "",
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),

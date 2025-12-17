@@ -1,68 +1,94 @@
+// src/components/debts/DebtCards.jsx
 "use client";
+
+import { motion } from "framer-motion";
 import { Scale, ShieldCheck, CalendarClock, BadgeCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-const DebtCards = ({ debts = [] }) => {
+export default function DebtCards({ debts = [] }) {
   const t = useTranslations("debtsPage");
 
-  // Calculate statistics from debts data
   const stats = {
+    totalAmount: debts.reduce((s, d) => s + (d.totalAmount || 0), 0),
+    totalRemaining: debts.reduce((s, d) => s + (d.balance || 0), 0),
+    paidCount: debts.filter(d => d.status === "PAID").length,
     totalDebts: debts.length,
-    totalAmount: debts.reduce((sum, debt) => sum + (debt.totalAmount || 0), 0),
-    totalPaid: debts.reduce((sum, debt) => sum + (debt.amountPaidNow || 0), 0),
-    totalRemaining: debts.reduce((sum, debt) => sum + (debt.balance || 0), 0),
-    unpaidCount: debts.filter(debt => debt.status === "UNPAID").length,
-    partiallyPaidCount: debts.filter(debt => debt.status === "PARTIALLY_PAID").length,
-    paidCount: debts.filter(debt => debt.status === "PAID").length,
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-RW', {
-      style: 'currency',
-      currency: 'RWF',
-      minimumFractionDigits: 0,
+  const formatCurrency = amount =>
+    new Intl.NumberFormat("en-RW", {
+      style: "currency",
+      currency: "RWF",
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
-  const cardsInfo = [
+  const cards = [
     {
       title: t("totalDebts"),
-      icon: <Scale size={45} className="text-purple-500 bg-purple-50 p-2 rounded-xl " />,
       value: formatCurrency(stats.totalAmount),
+      Icon: Scale,
+      color: "#8b5cf6",
+      bgColor: "#f3e8ff",
+      key: "total",
     },
     {
       title: t("clearedDebts"),
-      icon: <ShieldCheck size={45} className="text-green-500 bg-green-50 p-2 rounded-xl" />,
       value: stats.paidCount,
+      Icon: ShieldCheck,
+      color: "#10b981",
+      bgColor: "#ecfdf5",
+      key: "paid",
     },
     {
       title: t("upcomingPayments"),
-      icon: <CalendarClock size={45}  className="text-blue-500 bg-blue-50 p-2 rounded-xl" />,
       value: formatCurrency(stats.totalRemaining),
+      Icon: CalendarClock,
+      color: "#3b82f6",
+      bgColor: "#eff6ff",
+      key: "remaining",
     },
     {
       title: t("verifiedDebtors"),
-      icon: <BadgeCheck size={45} className="text-red-500 bg-red-50 p-2 rounded-xl" />,
       value: stats.totalDebts,
+      Icon: BadgeCheck,
+      color: "#ef4444",
+      bgColor: "#fee2e2",
+      key: "verified",
     },
   ];
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
-      {cardsInfo.map((card, index) => (
-        <div key={index} className="bg-white p-5 justify-between  flex rounded-xl border  " >
-          <div className="text-left">
-            <p className="text-2xl font-bold">{card.value}</p>
-            <h2 className="text-gray-500  ">{card.title}</h2>
-          </div>
-          <div className="flex h-full ">
-            <div className="text-orange-500">{card.icon}</div>
-          </div>
-        </div>
-      ))}
-    </section>
-  );
-};
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {cards.map((card, index) => {
+        const Icon = card.Icon;
+        return (
+          <motion.div
+            key={card.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-[#6b7280] font-medium mb-1">
+                  {card.title}
+                </p>
+                <p className="text-2xl font-bold font-jetbrains text-[#081422]">
+                  {card.value}
+                </p>
+              </div>
 
-export default DebtCards;
+              <div
+                className="p-3 rounded-xl shrink-0"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <Icon size={24} style={{ color: card.color }} />
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
