@@ -477,33 +477,21 @@ const CurrentInventory = () => {
             </MuiButton>
 
             {/* Transfer Button (Shop) */}
-            <MuiButton
-              variant="outlined"
-              disabled={selectedCount === 0}
-              onClick={() => {
-                setTransferMode('shop');
-                setTransferModalOpen(true);
-              }}
-              sx={{
-                borderColor: "#2e7d32",
-                color: "#2e7d32",
-                px: 3,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "bold",
-                borderRadius: 2,
-                "&:hover": {
-                  bgcolor: "#e8f5e9",
-                  borderColor: "#1b5e20",
-                },
-                "&:disabled": {
-                  borderColor: "#ccc",
-                  color: "#999"
-                }
-              }}
-            >
-              Transfer to Shop
-            </MuiButton>
+              <button
+  disabled={selectedCount === 0}
+  onClick={() => {
+    setTransferMode("shop");
+    setTransferModalOpen(true);
+  }}
+  className={`px-4 py-3 rounded-xl  transition
+    ${selectedCount === 0
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-[#1F1F1F] text-white cursor-pointer hover:bg-[#2a2a2a]"
+    }`}
+>
+  Transfer to Shop
+</button>
+
           </Box>
         </Box>
 

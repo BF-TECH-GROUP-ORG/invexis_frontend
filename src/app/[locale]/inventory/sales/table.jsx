@@ -714,6 +714,7 @@ const DataTable = ({ salesData }) => {
     }
 
     // Advanced filter
+    
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
