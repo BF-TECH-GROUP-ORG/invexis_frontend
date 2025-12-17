@@ -27,7 +27,7 @@ const InventoryHeader = ({ onRefresh, lastUpdated }) => {
           <span>Last 30 Days</span>
         </div>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
           <Download className="w-4 h-4" />
           <span>Export Report</span>
         </button>
