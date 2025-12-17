@@ -185,4 +185,39 @@ export default {
   getStockHistory,
   getStockChangeById,
   createStockChange,
+  transferProducts,
+  getCompanyDetails,
+  getAllCompanies,
 };
+
+/**
+ * Transfer products to another shop/company
+ * POST /v1/stock/transfer
+ * 
+ * @param {Object} payload - Transfer details
+ * @returns {Promise<Object>} Response data
+ */
+export async function transferProducts(payload) {
+  return apiClient.post(`${API_BASE}/inventory/v1/stock/transfer`, payload);
+}
+
+/**
+ * Get company details by ID
+ * GET /company/companies/:id
+ * 
+ * @param {string} id - Company ID
+ * @returns {Promise<Object>} Company details
+ */
+export async function getCompanyDetails(id) {
+  return apiClient.get(`${API_BASE}/company/companies/${id}`);
+}
+
+/**
+ * Get all companies
+ * GET /company/companies
+ * 
+ * @returns {Promise<Object>} List of companies
+ */
+export async function getAllCompanies() {
+  return apiClient.get(`${API_BASE}/company/companies`);
+}

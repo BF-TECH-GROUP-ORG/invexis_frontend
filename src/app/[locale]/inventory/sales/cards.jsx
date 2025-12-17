@@ -3,30 +3,38 @@
 
 import { motion } from "framer-motion";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { getSalesHistory } from "@/services/salesService";
 import { useMemo } from "react";
 
-export default function SalesCards() {
-  const { data: session } = useSession();
-  const companyObj = session?.user?.companies?.[0];
-  const companyId =
-    typeof companyObj === "string"
-      ? companyObj
-      : companyObj?.id || companyObj?._id;
+const SalesCards = ({ sales = [] }) => {
 
-  const { data: sales = [] } = useQuery({
-    queryKey: ["salesHistory", companyId],
-    queryFn: () => getSalesHistory(companyId),
-    enabled: !!companyId,
-  });
+    const stats = useMemo(() => {
+        const today = new Date().toDateString();
 
-  const stats = useMemo(() => {
-    const today = new Date().toDateString();
-    const todaySales = sales.filter(
-      sale => new Date(sale.createdAt).toDateString() === today
-    );
+        // Filter sales for today
+        const todaySales = sales.filter(sale =>
+            new Date(sale.createdAt).toDateString() === today
+        );
+
+        const totalDailySales = todaySales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0);
+
+        // Calculate profit based on items
+        const totalDailyProfit = todaySales.reduce((sum, sale) => {
+            const saleProfit = sale.items ? sale.items.reduce((itemSum, item) => {
+                const cost = parseFloat(item.costPrice) || 0;
+                const price = parseFloat(item.unitPrice) || 0;
+                const qty = item.quantity || 1;
+                return itemSum + ((price - cost) * qty);
+            }, 0) : 0;
+            return sum + saleProfit;
+        }, 0);
+
+        const totalReturned = sales.filter(sale =>
+            sale.returned === true || sale.returned === "true"
+        ).length;
+
+        const totalDiscounts = sales.filter(sale =>
+            (parseFloat(sale.discountTotal) || 0) > 0
+        ).length;
 
     return {
       totalDailySales: todaySales.reduce((s, v) => s + (v.totalAmount || 0), 0),
@@ -113,3 +121,4 @@ export default function SalesCards() {
     </div>
   );
 }
+export default SalesCards

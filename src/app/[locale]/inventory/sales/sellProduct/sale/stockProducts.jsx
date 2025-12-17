@@ -13,6 +13,7 @@ import { SellProduct } from "@/services/salesService";
 import { useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import TransferModal from "./TransferModal";
 
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
@@ -128,6 +129,9 @@ const CurrentInventory = () => {
   const [customerEmail, setCustomerEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customerErrors, setCustomerErrors] = useState({});
+
+  // Transfer Modal State
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
@@ -441,8 +445,43 @@ const CurrentInventory = () => {
             >
               {sellMutation.isPending ? "Processing..." : `SELL SELECTED (${selectedCount})`}
             </MuiButton>
+
+            {/* Transfer Button */}
+            <MuiButton
+              variant="outlined"
+              disabled={selectedCount === 0}
+              onClick={() => setTransferModalOpen(true)}
+              sx={{
+                borderColor: "#1976d2",
+                color: "#1976d2",
+                px: 3,
+                py: 1.5,
+                fontSize: "1rem",
+                fontWeight: "bold",
+                borderRadius: 2,
+                "&:hover": {
+                  bgcolor: "#e3f2fd",
+                  borderColor: "#1565c0",
+                },
+                "&:disabled": {
+                  borderColor: "#ccc",
+                  color: "#999"
+                }
+              }}
+            >
+              Transfer
+            </MuiButton>
           </Box>
         </Box>
+
+        {/* Transfer Modal */}
+        <TransferModal
+          open={transferModalOpen}
+          onClose={() => setTransferModalOpen(false)}
+          selectedItems={selectedItems}
+          companyId={companyId}
+          userId={session?.user?._id}
+        />
 
         {/* Table */}
         <TableContainer sx={{ maxHeight: "calc(100vh - 350px)" }}>
