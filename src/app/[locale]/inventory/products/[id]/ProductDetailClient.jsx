@@ -9,7 +9,16 @@ import {
 } from "@/features/products/productsSlice";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { ArrowLeft, Edit, Trash2, Download, QrCode, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Download,
+  QrCode,
+  X,
+  Copy,
+  Check,
+} from "lucide-react";
 
 function Field({ label, value }) {
   let display;
@@ -39,6 +48,7 @@ function DetailInner({ id }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [copiedRaw, setCopiedRaw] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchProductById(id));
@@ -138,6 +148,17 @@ function DetailInner({ id }) {
       .replace(/\s+/g, "_")}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyRaw = () => {
+    const dataStr = JSON.stringify(product || {}, null, 2);
+    navigator.clipboard.writeText(dataStr).then(() => {
+      setCopiedRaw(true);
+      toast.success("Raw data copied to clipboard");
+      setTimeout(() => setCopiedRaw(false), 2000);
+    });
   };
 
   if (loading || !product) {
@@ -752,13 +773,33 @@ function DetailInner({ id }) {
               )}
 
               {activeTab === "raw" && (
-                <div>
-                  <h3 className="text-sm text-gray-600 mb-2">
-                    Raw Product JSON
-                  </h3>
-                  <pre className="mt-2 text-xs bg-gray-50 p-3 rounded overflow-auto">
-                    {JSON.stringify(product, null, 2)}
-                  </pre>
+                <div className="bg-white border rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
+                    <h3 className="text-sm font-semibold text-gray-700">
+                      Raw Product JSON
+                    </h3>
+                    <button
+                      onClick={handleCopyRaw}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      {copiedRaw ? (
+                        <>
+                          <Check size={14} className="text-green-600" />
+                          <span className="text-green-600">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copy JSON</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="p-0 overflow-auto max-h-[600px] bg-[#1e1e1e]">
+                    <pre className="text-xs font-mono text-gray-300 p-4 leading-relaxed">
+                      {JSON.stringify(product, null, 2)}
+                    </pre>
+                  </div>
                 </div>
               )}
             </div>

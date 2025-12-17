@@ -7,12 +7,14 @@ const SHOP_API_URL = process.env.NEXT_PUBLIC_API_URL;
  * Get all shops
  * CACHING: Shops cached for 1 hour (long revalidate)
  */
-export const getAllShops = async () => {
+export const getAllShops = async (companyId) => {
   const cacheStrategy = getCacheStrategy("SHOPS");
+  const params = companyId ? { companyId } : {};
 
   try {
     const data = await apiClient.get(`${SHOP_API_URL}/shop`, {
       cache: cacheStrategy,
+      params,
     });
 
     console.log("Shops fetched:", data);

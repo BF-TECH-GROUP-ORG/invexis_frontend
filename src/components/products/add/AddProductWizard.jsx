@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { useRouter, useParams } from "next/navigation";
+import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
+import { useSnackbar } from "@/contexts/SnackbarContext";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
 import StepShop from "./steps/StepShop";
@@ -21,6 +22,9 @@ import { Loader2 } from "lucide-react";
 
 export default function AddProductWizard({ companyId, shopId: propShopId }) {
   const router = useRouter();
+  const params = useParams();
+  const locale = params?.locale || "en";
+  const { showSnackbar } = useSnackbar();
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [showReview, setShowReview] = useState(false);
@@ -175,7 +179,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
         return true;
       case "variations":
         if (
-          formData.variants?.length > 0 &&
+          formData.variants?.length < 0 &&
           formData.variations?.length === 0
         ) {
           return false;
@@ -191,7 +195,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
 
   const handleNext = () => {
     if (!validateStep(currentStep)) {
-      toast.error("Please fill in all required fields");
+      showSnackbar("Please fill in all required fields", "error");
       return;
     }
 
@@ -217,53 +221,117 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       alt: `${formData.name} - View ${index + 1}`,
       isPrimary: index === 0,
       sortOrder: index + 1,
-      file: img.file, // keep file for upload logic
+      file: img.file,
+      _id: img._id, // Persist ID if exists
     }));
+
+    const primaryImage =
+      formattedImages.find((img) => img.isPrimary) ||
+      formattedImages[0] ||
+      null;
 
     return {
       companyId: formData.companyId,
       shopId: formData.shopId,
-      categoryId: formData.categoryId,
 
+      // Core Info
       name: formData.name,
       description: formData.description,
       brand: formData.brand,
       manufacturer: formData.manufacturer,
-      supplierName: formData.supplierName || formData.manufacturer, // fallback
+      supplierName: formData.supplierName || formData.manufacturer,
       tags: formData.tags,
-      condition: formData.condition,
-      availability: formData.availability,
-      visibility: formData.visibility,
-      isFeatured: formData.isFeatured,
-      status: formData.status,
-      sortOrder: 0, // default
+      slug:
+        formData.seo?.slug ||
+        formData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
 
+      // Categorization
+      category: {
+        id: formData.categoryId,
+        name: formData.categoryName,
+        // Backend usually handles population of slug/level/parent
+      },
+      categoryId: formData.categoryId, // Keep for backward compatibility if needed
+
+      // Status & Visibility
+      status: {
+        active: formData.status === "active",
+        visible: formData.visibility === "public",
+        featured: formData.isFeatured,
+        availability: formData.availability,
+        condition: formData.condition,
+      },
+      sortOrder: 0,
+
+      // Pricing
       pricing: {
         basePrice: formData.pricing.basePrice,
         salePrice: formData.pricing.salePrice,
-        listPrice: formData.pricing.listPrice || formData.pricing.basePrice, // default if missing
+        listPrice: formData.pricing.listPrice || formData.pricing.basePrice,
         cost: formData.pricing.costPrice,
         currency: formData.pricing.currency,
         priceTiers: formData.pricing.priceTiers || [],
+        profitRank: "normal", // Default
       },
 
-      inventory: {
-        trackQuantity: formData.inventory.trackQuantity !== false,
-        quantity: formData.inventory.quantity,
+      // Stock & Inventory
+      stock: {
+        total: formData.inventory.quantity,
+        available: formData.inventory.quantity,
+        reserved: 0,
+        inStock: formData.inventory.quantity > 0,
+        isLowStock:
+          formData.inventory.quantity <= formData.inventory.minStockLevel,
         lowStockThreshold: formData.inventory.minStockLevel,
+        trackQuantity: formData.inventory.trackQuantity !== false,
         allowBackorder: formData.inventory.allowBackorder || false,
-        // keep internal fields if needed or drop them
+        details: [], // Populated by backend usually
       },
 
-      images: formattedImages,
-      videoUrls: formData.videoUrls,
-      videoFiles: formData.videoFiles,
+      // Identifiers
+      identifiers: {
+        sku: formData.inventory.sku,
+        barcode: formData.inventory.barcode,
+        // Backend handles others like qrCode, asin, upc if not provided
+      },
+
+      // Media
+      media: {
+        images: formattedImages,
+        videos: formData.videoUrls
+          .map((url) => ({ type: "url", url }))
+          .concat(
+            formData.videoFiles.map((v) => ({ type: "file", file: v.file }))
+          ),
+        primaryImage: primaryImage,
+      },
+      // Keep root media arrays for FormData handling helper if needed,
+      // but backend should prioritize 'media' object if structured that way.
+      // However, for FormData logic below, we might need to adjust.
+      // Let's keep the existing logic for keys but map them to the new structure.
 
       specifications: formData.specs,
-      variants: formData.variants || [], // Include variants definitions
-      variations: formData.variations || [], // Include generated variations
+      specsCategory: formData.parentCategoryName || null,
+
+      variants: formData.variants || [],
+      variations: formData.variations || [],
 
       seo: formData.seo,
+
+      sales: {
+        totalSold: 0,
+        revenue: 0,
+      },
+
+      // Codes placeholder
+      codes: {
+        // Backend generates these
+      },
+
+      // Metadata placeholder
+      metadata: {
+        // Backend generates these
+      },
     };
   };
 
@@ -279,9 +347,13 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       let isMultipart = false;
 
       // Check if we have files to upload (images or videos)
+      // Check if we have files to upload (images or videos)
+      // Note: We need to check the deeply nested structure now
       const hasFiles =
-        (rawPayload.images && rawPayload.images.some((img) => img.file)) ||
-        (rawPayload.videoFiles && rawPayload.videoFiles.length > 0);
+        (rawPayload.media.images &&
+          rawPayload.media.images.some((img) => img.file)) ||
+        (rawPayload.media.videos &&
+          rawPayload.media.videos.some((v) => v.file));
 
       if (hasFiles) {
         if (process.env.NODE_ENV === "development") {
@@ -291,59 +363,87 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
         const fd = new FormData();
 
         // Append all fields to FormData
-        Object.keys(rawPayload).forEach((key) => {
-          const value = rawPayload[key];
+        // Append all fields to FormData using a recursive helper or manual mapping
+        // Since the structure is now more complex, we need a smarter appender
+        const appendToFormData = (data, rootKey) => {
+          if (data instanceof File) {
+            fd.append(rootKey, data);
+          } else if (Array.isArray(data)) {
+            data.forEach((item, index) => {
+              // Special handling for file arrays if needed, but generic recursion works
+              appendToFormData(item, `${rootKey}[${index}]`);
+            });
+          } else if (typeof data === "object" && data !== null) {
+            // Check if it's a file wrapper from our preparing
+            if (data.file && data.file instanceof File) {
+              // It's an image/video object with a file
+              // We might need to send the file separately or as part of the structure?
+              // Usually FormData wants files in specific keys like "images" or "videos"
+              // Adjust based on Backend Multer setup.
+              // Assuming backend accepts 'images' and 'videos' as file arrays and others as text fields.
+              // BUT, if we change structure, we must ensure backend parses `media[images][0][url]` etc.
 
-          if (key === "images") {
-            // Append image files
-            value.forEach((img) => {
-              if (img.file) {
-                fd.append("images", img.file);
-              } else if (img.url) {
-                // If we want to keep existing URLs (for editing), handle backend expectation
-                // Usually backend expects separate field for existing URLs if mixing
-                fd.append("existingImageUrls", img.url);
+              // STRATEGY:
+              // 1. Append files to specific keys ('images', 'videos') for Multer
+              // 2. Keep the object structure in the JSON part, but maybe nullify the 'file' property to avoid circular/hugeJSON
+
+              if (rootKey.includes("images")) {
+                fd.append("images", data.file);
+              } else if (rootKey.includes("videos")) {
+                fd.append("videos", data.file);
               }
-            });
-          } else if (key === "videoFiles") {
-            // Append video files
-            value.forEach((v) => {
-              if (v.file) fd.append("videos", v.file);
-            });
-          } else if (key === "videoUrls") {
-            // Append video URLs
-            value.forEach((url) => fd.append("videoUrls", url));
-          } else if (["pricing", "inventory", "seo"].includes(key)) {
-            // Flatten nested objects (pricing, inventory, seo) for FormData
-            if (value && typeof value === "object") {
-              Object.keys(value).forEach((subKey) => {
-                const subValue = value[subKey];
-                if (Array.isArray(subValue)) {
-                  // Handle arrays (e.g. pricing.priceTiers, seo.keywords)
-                  subValue.forEach((item, idx) => {
-                    if (item && typeof item === "object") {
-                      Object.keys(item).forEach((itemKey) => {
-                        fd.append(
-                          `${key}[${subKey}][${idx}][${itemKey}]`,
-                          item[itemKey]
-                        );
-                      });
-                    } else {
-                      fd.append(`${key}[${subKey}][${idx}]`, item);
-                    }
-                  });
-                } else if (subValue !== null && subValue !== undefined) {
-                  fd.append(`${key}[${subKey}]`, subValue);
+
+              // We also append the metadata. recursion will handle properties of data
+              Object.keys(data).forEach((key) => {
+                if (key !== "file") {
+                  appendToFormData(data[key], `${rootKey}[${key}]`);
                 }
               });
+            } else {
+              Object.keys(data).forEach((key) => {
+                appendToFormData(data[key], `${rootKey}[${key}]`);
+              });
             }
-          } else if (typeof value === "object" && value !== null) {
-            // Stringify complex objects that the backend might expect as JSON strings (e.g. specs, variations)
-            // If specs/variations also fail, we might need to flatten them too.
-            fd.append(key, JSON.stringify(value));
-          } else if (value !== undefined && value !== null) {
-            // Append primitive values
-            fd.append(key, value);
+          } else if (data !== undefined && data !== null) {
+            fd.append(rootKey, data);
+          }
+        };
+
+        // We can use the generic appender, but we need to match backend expectation for Files.
+        // If Backend expects "images" field for files:
+        if (rawPayload.media && rawPayload.media.images) {
+          rawPayload.media.images.forEach((img) => {
+            if (img.file) fd.append("images", img.file);
+          });
+        }
+        if (rawPayload.media && rawPayload.media.videos) {
+          rawPayload.media.videos.forEach((v) => {
+            if (v.file) fd.append("videos", v.file);
+          });
+        }
+
+        // For the rest of the body (text fields), we can stringify the big objects or flat append
+        // Given the complex structure, JSON stringification of the body might be safer
+        // IF the backend parses a 'data' field or similar.
+        // But traditionally fields are flattened.
+        // Let's Flatten excluding files.
+
+        Object.keys(rawPayload).forEach((key) => {
+          if (key === "media") {
+            // Stringify media metadata (excluding file objects to save space/errors)
+            const mediaClean = {
+              ...rawPayload.media,
+              images: rawPayload.media.images.map(({ file, ...rest }) => rest),
+              videos: rawPayload.media.videos.map(({ file, ...rest }) => rest),
+            };
+            fd.append("media", JSON.stringify(mediaClean));
+          } else if (
+            typeof rawPayload[key] === "object" &&
+            rawPayload[key] !== null
+          ) {
+            fd.append(key, JSON.stringify(rawPayload[key]));
+          } else {
+            fd.append(key, rawPayload[key]);
           }
         });
 
@@ -370,12 +470,13 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
 
       // toast.success("Product created successfully!"); // Handled by modal now
       setShowSuccessModal(true);
+      showSnackbar("Product created successfully!", "success");
 
       // Optional: Reset form or redirect after modal close
-      // router.push(`/${router.locale || "en"}/inventory/products`);
+      // router.push(`/${locale}/inventory/products`);
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error(error.message || "Failed to create product");
+      showSnackbar(error.message || "Failed to create product", "error");
     } finally {
       setIsSubmitting(false);
     }
