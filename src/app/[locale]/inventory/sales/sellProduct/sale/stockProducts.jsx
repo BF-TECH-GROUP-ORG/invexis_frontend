@@ -132,6 +132,7 @@ const CurrentInventory = () => {
 
   // Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState('company'); // 'company' or 'shop'
 
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
@@ -446,11 +447,14 @@ const CurrentInventory = () => {
               {sellMutation.isPending ? "Processing..." : `SELL SELECTED (${selectedCount})`}
             </MuiButton>
 
-            {/* Transfer Button */}
+            {/* Transfer Button (Company) */}
             <MuiButton
               variant="outlined"
               disabled={selectedCount === 0}
-              onClick={() => setTransferModalOpen(true)}
+              onClick={() => {
+                setTransferMode('company');
+                setTransferModalOpen(true);
+              }}
               sx={{
                 borderColor: "#1976d2",
                 color: "#1976d2",
@@ -469,7 +473,36 @@ const CurrentInventory = () => {
                 }
               }}
             >
-              Transfer
+              Transfer to Company
+            </MuiButton>
+
+            {/* Transfer Button (Shop) */}
+            <MuiButton
+              variant="outlined"
+              disabled={selectedCount === 0}
+              onClick={() => {
+                setTransferMode('shop');
+                setTransferModalOpen(true);
+              }}
+              sx={{
+                borderColor: "#2e7d32",
+                color: "#2e7d32",
+                px: 3,
+                py: 1.5,
+                fontSize: "1rem",
+                fontWeight: "bold",
+                borderRadius: 2,
+                "&:hover": {
+                  bgcolor: "#e8f5e9",
+                  borderColor: "#1b5e20",
+                },
+                "&:disabled": {
+                  borderColor: "#ccc",
+                  color: "#999"
+                }
+              }}
+            >
+              Transfer to Shop
             </MuiButton>
           </Box>
         </Box>
@@ -481,6 +514,8 @@ const CurrentInventory = () => {
           selectedItems={selectedItems}
           companyId={companyId}
           userId={session?.user?._id}
+          mode={transferMode}
+          currentShopId={Object.values(selectedItems)[0]?.shopId || session?.user?.shops?.[0]}
         />
 
         {/* Table */}
