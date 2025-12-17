@@ -15,15 +15,8 @@ export default function EditWorkerPage({ params }) {
 
     useEffect(() => {
         const fetchWorker = async () => {
-            if (!session?.accessToken) {
-                console.warn("No access token available. Waiting for session...");
-                return;
-            }
-
-            console.log("Fetching worker with ID:", id);
-
             try {
-                const data = await getWorkerById(id, session?.accessToken);
+                const data = await getWorkerById(id);
                 console.log("Worker data received:", data);
 
                 // Ensure data matches form structure if necessary

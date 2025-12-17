@@ -133,6 +133,11 @@
   src: url("/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype");
 }
 
+@font-face {
+  font-family: 'JetBrainsMono';
+  src: url('/fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -151,6 +156,10 @@
 
   .font-display {
     font-family: "Display", sans-serif;
+  }
+  
+  .font-jetbrains {
+    font-family: 'JetBrainsMono', monospace;
   }
 
   .no-scrollbar::-webkit-scrollbar {

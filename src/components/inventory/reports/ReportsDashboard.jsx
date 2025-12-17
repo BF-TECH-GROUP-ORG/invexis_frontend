@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Calendar, Download, Filter, TrendingUp, DollarSign, Package, AlertTriangle } from "lucide-react";
-import { 
-  fetchInventorySummary, 
-  fetchABCAnalysis, 
+import {
+  fetchInventorySummary,
+  fetchABCAnalysis,
   fetchAgingInventory,
-  fetchStockMovement 
+  fetchStockMovement
 } from "@/features/reports/reportsSlice";
 import ReportCard from "./ReportCard";
 import InventoryChart from "./InventoryChart";
@@ -83,7 +83,7 @@ export default function ReportsDashboard() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-white min-h-screen">
       {/* Header Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center">

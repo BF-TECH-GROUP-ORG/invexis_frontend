@@ -51,12 +51,12 @@ export default function SimpleProductForm({
                 {/* Slide 1 Indicator */}
                 <button
                     onClick={() => setActiveSlide(0)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeSlide === 0
+                    className={`flex items-center gap-3 px-2 py-2 rounded-xl transition-all ${activeSlide === 0
                             ? "bg-orange-500 text-white shadow-md"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                 >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 0 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 0 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
                         }`}>
                         1
                     </div>
@@ -69,12 +69,12 @@ export default function SimpleProductForm({
                 {/* Slide 2 Indicator */}
                 <button
                     onClick={() => setActiveSlide(1)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeSlide === 1
+                    className={`flex items-center gap-3 px-2 py-2 rounded-xl transition-all ${activeSlide === 1
                             ? "bg-orange-500 text-white shadow-md"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                 >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 1 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 1 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
                         }`}>
                         2
                     </div>
