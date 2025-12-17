@@ -75,6 +75,22 @@ class AnnouncementService {
         this.isConnected = false;
     }
 
+    // Map incoming announcement type to a category for consistency
+    _mapCategory(item) {
+        if (!item) return item;
+        const t = (item.type || '').toLowerCase();
+        const updatesTypes = ['confirmation', 'receipt', 'billing', 'statement', 'update', 'system'];
+        const socialTypes = ['agreement', 'user_agreement', 'consent', 'workflow', 'workflow_action', 'task', 'assignment', 'mention', 'comment', 'agreement_signed', 'user'];
+        const promotionsTypes = ['promotion', 'discount', 'offer', 'sale', 'coupon', 'promo'];
+
+        if (updatesTypes.includes(t)) return { ...item, category: 'updates' };
+        if (socialTypes.includes(t)) return { ...item, category: 'social' };
+        if (promotionsTypes.includes(t)) return { ...item, category: 'promotions' };
+        // default to primary/general
+        if (!item.category) return { ...item, category: 'primary' };
+        return item;
+    }
+
     // Initialize connection (WebSocket or Mock)
     connect(token) {
         if (this.isConnected) return;
@@ -133,7 +149,8 @@ class AnnouncementService {
     // Basic API Methods
     async getAnnouncements(filters = {}) {
         await delay();
-        let data = [...mockAnnouncements];
+        // Return a normalized copy so callers get consistent categories
+        let data = mockAnnouncements.map(a => this._mapCategory({ ...a }));
 
         // Simple filter application
         if (filters.category) {
@@ -146,12 +163,19 @@ class AnnouncementService {
         return { data };
     }
 
+    async getAnnouncement(id) {
+        await delay(100);
+        const found = mockAnnouncements.find(a => a.id === id);
+        if (!found) return { data: null };
+        return { data: this._mapCategory({ ...found }) };
+    }
+
     async markAsRead(id) {
         await delay(100);
         const item = mockAnnouncements.find(a => a.id === id);
         if (item) {
             item.isRead = true;
-            this._notifyListeners('update', item); // Notify local state
+            this._notifyListeners('update', this._mapCategory({ ...item })); // Notify local state
         }
         return true;
     }
@@ -221,9 +245,11 @@ class AnnouncementService {
                     break;
             }
 
-            console.log('⚡ [AnnouncementService] Emitting mock event:', newEvent.title);
-            mockAnnouncements.unshift(newEvent); // Add to local store
-            this._notifyListeners('new', newEvent);
+            // Normalize category before storing/emitting
+            const normalized = this._mapCategory(newEvent);
+            console.log('⚡ [AnnouncementService] Emitting mock event:', normalized.title);
+            mockAnnouncements.unshift(normalized); // Add to local store
+            this._notifyListeners('new', normalized);
 
         }, 5000);
     }
@@ -243,8 +269,9 @@ class AnnouncementService {
             timestamp: new Date().toISOString(),
             isRead: false
         };
-        mockAnnouncements.unshift(newEvent);
-        this._notifyListeners('new', newEvent);
+        const normalized = this._mapCategory(newEvent);
+        mockAnnouncements.unshift(normalized);
+        this._notifyListeners('new', normalized);
     }
 }
 

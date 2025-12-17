@@ -205,17 +205,21 @@ const navItems = [
     //   // },
     // ],
   },
+
   {
     title: "Announcements",
-    icon: <AlertCircle size={22} />,
-    children: [
-      { title: "List", path: "/inventory/announcements/list", prefetch: true },
-      {
-        title: "Create / Details",
-        path: "/inventory/announcements/details",
-        prefetch: true,
-      },
-    ],
+    icon: <AlertCircle size={22} />,  
+    path: "/inventory/announcements",
+    roles: ["manager", "company_admin"],
+    prefetch: true,
+    // children: [
+    //   { title: "List", path: "/inventory/announcements/list", prefetch: true },
+    //   {
+    //     title: "Create / Details",
+    //     path: "/inventory/announcements/details",
+    //     prefetch: true,
+    //   },
+    // ],
   },
   // company_admin-only logs link
   {
