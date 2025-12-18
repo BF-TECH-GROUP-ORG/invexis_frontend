@@ -10,6 +10,8 @@ import {
   ShoppingCart,
   TrendingUp,
   Download,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { fetchInventorySummary } from "@/features/reports/reportsSlice";
 import { fetchAlerts } from "@/features/alerts/alertsSlice";
@@ -42,6 +44,17 @@ export default function DashboardOverview() {
   const productsState = useSelector((state) => state.products || {});
   const products = Array.isArray(productsState.items) ? productsState.items : [];
   const [isExporting, setIsExporting] = useState(false);
+  const [isCompactValue, setIsCompactValue] = useState(true);
+
+  const formatValue = (val, isCompact) => {
+    const num = Number(val) || 0;
+    if (!isCompact) return num.toLocaleString();
+
+    if (num >= 1e9) return (num / 1e9).toFixed(1) + "B";
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + "M";
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + "K";
+    return num.toString();
+  };
 
   useEffect(() => {
     dispatch(fetchInventorySummary());
@@ -146,9 +159,10 @@ export default function DashboardOverview() {
     },
     {
       title: "Total Value",
-      value: `$${(inventorySummary?.totalValue || 0).toLocaleString()}`,
+      value: inventorySummary?.totalValue || 0,
       icon: <DollarSign size={32} className="text-[#F97316]" />,
       link: "report",
+      isMoney: true,
     },
     {
       title: "Low Stock Alerts",
@@ -216,19 +230,47 @@ export default function DashboardOverview() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
       >
-        {quickStats.map((stat) => (
-          <Link key={stat.title} href={stat.link}>
-            <div className="border border-gray-200 hover:border-[#EA580C] rounded-xl bg-white p-8 transition-all cursor-pointer flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-[#333]">{stat.title}</p>
-                <p className="text-4xl font-bold text-[#1F1F1F] mt-3">{stat.value}</p>
+        {quickStats.map((stat) => {
+          const displayVal = stat.isMoney
+            ? `$${formatValue(stat.value, isCompactValue)}`
+            : typeof stat.value === "number"
+            ? stat.value.toLocaleString()
+            : stat.value;
+
+          return (
+            <div key={stat.title} className="border border-gray-200 hover:border-[#EA580C] rounded-xl bg-white p-8 transition-all flex items-center justify-between group relative overflow-hidden">
+              <Link href={stat.link} className="absolute inset-0 z-0" />
+              <div className="relative z-10 flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#333] mb-3">{stat.title}</p>
+                <div className="flex items-center gap-2">
+                  <p
+                    className={`font-bold text-[#1F1F1F] transition-all ${
+                      displayVal.toString().length > 12 ? "text-2xl" : "text-4xl"
+                    }`}
+                  >
+                    {displayVal}
+                  </p>
+                  {stat.isMoney && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsCompactValue(!isCompactValue);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#EA580C] transition-all z-20"
+                      title={isCompactValue ? "Show full value" : "Show compact value"}
+                    >
+                      {isCompactValue ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="text-[#F97316]">
+              <div className="text-[#F97316] relative z-10 shrink-0">
                 {stat.icon}
               </div>
             </div>
-          </Link>
-        ))}
+          );
+        })}
       </motion.div>
 
       {/* Recent Products (Left) + Recent Activity (Right) */}

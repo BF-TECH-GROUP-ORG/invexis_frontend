@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -14,7 +14,19 @@ import {
   DollarSign,
   Activity,
   AlertTriangle,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
+
+const formatValue = (value, isCompact) => {
+  const num = Number(value) || 0;
+  if (!isCompact) return num.toLocaleString();
+
+  if (num >= 1e9) return (num / 1e9).toFixed(1) + "B";
+  if (num >= 1e6) return (num / 1e6).toFixed(1) + "M";
+  if (num >= 1e3) return (num / 1e3).toFixed(1) + "K";
+  return num.toString();
+};
 
 const KPICard = ({
   title,
@@ -25,6 +37,9 @@ const KPICard = ({
   data,
   type = "bar",
   color,
+  isCurrency = false,
+  isCompact = true,
+  onToggleCompact,
 }) => {
   const isPositive = trend >= 0;
 
@@ -32,52 +47,81 @@ const KPICard = ({
   // Request: "For Cards that start use different colors on the icon and their backgrounds"
   // So we keep differentiation but use the new style: Icon 100%, Bg low opacity same color.
 
-  let iconClass = "";
-  let bgClass = "";
-  let chartColor = "";
+  const themes = {
+    blue: {
+      icon: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-600/10 dark:bg-blue-400/10",
+      chart: "#2563eb",
+      border: "hover:border-blue-300 dark:hover:border-blue-800",
+    },
+    orange: {
+      icon: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-600/10 dark:bg-orange-400/10",
+      chart: "#ea580c",
+      border: "hover:border-orange-300 dark:hover:border-orange-800",
+    },
+    emerald: {
+      icon: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-600/10 dark:bg-emerald-400/10",
+      chart: "#10b981",
+      border: "hover:border-emerald-300 dark:hover:border-emerald-800",
+    },
+    rose: {
+      icon: "text-rose-600 dark:text-rose-400",
+      bg: "bg-rose-600/10 dark:bg-rose-400/10",
+      chart: "#f43f5e",
+      border: "hover:border-rose-300 dark:hover:border-rose-800",
+    },
+    indigo: {
+      icon: "text-indigo-600 dark:text-indigo-400",
+      bg: "bg-indigo-600/10 dark:bg-indigo-400/10",
+      chart: "#6366f1",
+      border: "hover:border-indigo-300 dark:hover:border-indigo-800",
+    },
+  };
 
-  switch (color) {
-    case "emerald":
-      iconClass = "text-emerald-600";
-      bgClass = "bg-emerald-600/10";
-      chartColor = "#10b981";
-      break;
-    case "blue": // Mapping Blue to the requested Dark color #081422 for variety or keeping blue?
-      // User said "Use my primary color ... Orange ... and #081422".
-      // Let's swap Blue for #081422 (Slate/Gray dark)
-      iconClass = "text-[#081422]";
-      bgClass = "bg-[#081422]/10";
-      chartColor = "#081422";
-      break;
-    case "amber": // Mapping Amber to Orange as requested primary
-      iconClass = "text-orange-600";
-      bgClass = "bg-orange-600/10";
-      chartColor = "#ea580c"; // orange-600
-      break;
-    case "indigo": // Let's keep one accent or map to Orange variation
-      iconClass = "text-orange-500";
-      bgClass = "bg-orange-500/10";
-      chartColor = "#f97316";
-      break;
-    default:
-      iconClass = "text-orange-600";
-      bgClass = "bg-orange-600/10";
-      chartColor = "#ea580c";
-  }
+  const theme = themes[color] || themes.orange;
+  const iconClass = theme.icon;
+  const bgClass = theme.bg;
+  const chartColor = theme.chart;
+  const borderClass = theme.border;
+
+  const displayValue = isCurrency
+    ? `$${formatValue(value, isCompact)}`
+    : typeof value === "number"
+    ? value.toLocaleString()
+    : value;
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 hover:border-orange-300 transition-all duration-300 group">
+    <div
+      className={`relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 ${borderClass} transition-all duration-300 group`}
+    >
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+        <div className="flex-1 min-w-0 pr-2">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 truncate">
             {title}
           </p>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {value}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3
+              className={`font-bold text-gray-900 dark:text-white transition-all ${
+                displayValue.length > 12 ? "text-lg" : "text-2xl"
+              }`}
+            >
+              {displayValue}
+            </h3>
+            {isCurrency && (
+              <button
+                onClick={onToggleCompact}
+                className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                title={isCompact ? "Show full value" : "Show compact value"}
+              >
+                {isCompact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+              </button>
+            )}
+          </div>
         </div>
-        <div className={`p-2 rounded-xl ${bgClass} ${iconClass}`}>
-          <Icon className="w-5 h-5 opacity-100" />
+        <div className={`p-2 rounded-xl shrink-0 ${bgClass} ${iconClass}`}>
+          <Icon className="w-5 h-5" />
         </div>
       </div>
 
@@ -153,6 +197,8 @@ const KPICard = ({
 };
 
 const InventoryKPISection = ({ summary }) => {
+  const [isCompact, setIsCompact] = useState(true);
+
   if (!summary) return null;
 
   const generateSparkData = () =>
@@ -164,21 +210,24 @@ const InventoryKPISection = ({ summary }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <KPICard
         title="Total Inventory Value"
-        value={`$${summary.totalValue.toLocaleString()}`}
+        value={summary.totalValue}
         icon={DollarSign}
         trend={5.2}
         data={generateSparkData()}
         type="area"
-        color="blue" // Maps to #081422
+        color="indigo"
+        isCurrency={true}
+        isCompact={isCompact}
+        onToggleCompact={() => setIsCompact(!isCompact)}
       />
       <KPICard
         title="Total Units"
-        value={summary.totalUnits.toLocaleString()}
+        value={summary.totalUnits}
         icon={Package}
         trend={2.4}
         data={generateSparkData()}
         type="bar"
-        color="amber" // Maps to Orange
+        color="orange"
       />
       <KPICard
         title="Low Stock Items"
@@ -187,16 +236,20 @@ const InventoryKPISection = ({ summary }) => {
         trend={-12.5}
         data={generateSparkData()}
         type="area"
-        color="amber" // Maps to Orange
+        color="rose"
       />
       <KPICard
         title="Net Movement"
-        value={`+${summary.netStockMovement}`}
+        value={
+          summary.netStockMovement > 0
+            ? `+${summary.netStockMovement}`
+            : summary.netStockMovement
+        }
         icon={Activity}
         trend={8.1}
         data={generateSparkData()}
         type="bar"
-        color="blue" // Maps to #081422
+        color="emerald"
       />
     </div>
   );
