@@ -30,6 +30,7 @@ export default function ReportsDashboard() {
   });
   const [showExportModal, setShowExportModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [isCompact, setIsCompact] = useState(true);
 
   useEffect(() => {
     dispatch(fetchInventorySummary());
@@ -50,12 +51,13 @@ export default function ReportsDashboard() {
     },
     {
       title: "Total Value",
-      value: `$${(inventorySummary?.totalValue || 0).toLocaleString()}`,
+      value: inventorySummary?.totalValue || 0,
       change: "+8.3%",
       changeType: "increase",
       icon: <DollarSign className="text-green-500" size={28} />,
       bgColor: "bg-green-50",
       color: "text-green-600",
+      isMoney: true,
     },
     {
       title: "Stock Turnover",
@@ -126,7 +128,13 @@ export default function ReportsDashboard() {
       {/* Summary Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {summaryStats.map((stat, index) => (
-          <ReportCard key={stat.title} stat={stat} index={index} />
+          <ReportCard
+            key={stat.title}
+            stat={stat}
+            index={index}
+            isCompact={isCompact}
+            onToggleCompact={() => setIsCompact(!isCompact)}
+          />
         ))}
       </div>
 
