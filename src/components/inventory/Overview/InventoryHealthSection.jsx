@@ -92,8 +92,8 @@ const InventoryHealthSection = () => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            barSize={40} // Thicker bars
+            margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+            barSize={60} // Thicker bars
           >
             <defs>
               <pattern
@@ -108,7 +108,7 @@ const InventoryHealthSection = () => {
                   height="6"
                   transform="translate(0,0)"
                   fill="#111"
-                  opacity="0.05"
+                  opacity="0.1"
                 />
               </pattern>
             </defs>

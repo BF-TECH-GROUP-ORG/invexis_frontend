@@ -2,7 +2,7 @@
 
 import { Edit2 } from "lucide-react";
 
-export default function ProductReview({ formData, onEdit }) {
+export default function ProductReview({ formData, onEdit, steps }) {
   const formatSpecLabel = (key) => {
     return key
       .split("_")
@@ -67,9 +67,9 @@ export default function ProductReview({ formData, onEdit }) {
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">Status</dt>
+            <dt className="text-sm text-gray-600">Visibility</dt>
             <dd className="font-medium text-gray-900 capitalize">
-              {formData.status}
+              {formData.visibility}
             </dd>
           </div>
           {formData.tags.length > 0 && (
@@ -142,21 +142,25 @@ export default function ProductReview({ formData, onEdit }) {
           <div>
             <dt className="text-sm text-gray-600">Base Price</dt>
             <dd className="font-medium text-gray-900">
-              ${formData.pricing.basePrice.toFixed(2)}
+              {formData.pricing.basePrice?.toFixed(2) || "0.00"}{" "}
+              {formData.pricing.currency}
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600">Sale Price</dt>
             <dd className="font-medium text-gray-900">
               {formData.pricing.salePrice
-                ? `$${formData.pricing.salePrice.toFixed(2)}`
+                ? `${formData.pricing.salePrice.toFixed(2)} ${
+                    formData.pricing.currency
+                  }`
                 : "N/A"}
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600">Cost Price</dt>
             <dd className="font-medium text-gray-900">
-              ${formData.pricing.costPrice.toFixed(2)}
+              {formData.pricing.cost?.toFixed(2) || "0.00"}{" "}
+              {formData.pricing.currency}
             </dd>
           </div>
           <div>
@@ -184,25 +188,25 @@ export default function ProductReview({ formData, onEdit }) {
           <div>
             <dt className="text-sm text-gray-600">Current Quantity</dt>
             <dd className="font-medium text-gray-900">
-              {formData.inventory.quantity} units
+              {formData.inventory.stockQty} units
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600">SKU</dt>
             <dd className="font-medium text-gray-900">
-              {formData.inventory.sku || "N/A"}
+              {formData.identifiers.sku || "N/A"}
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">Min Stock Level</dt>
+            <dt className="text-sm text-gray-600">Min Reorder Level</dt>
             <dd className="font-medium text-gray-900">
-              {formData.inventory.minStockLevel}
+              {formData.inventory.minReorderQty}
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">Max Stock Level</dt>
+            <dt className="text-sm text-gray-600">Safety Stock</dt>
             <dd className="font-medium text-gray-900">
-              {formData.inventory.maxStockLevel}
+              {formData.inventory.safetyStock}
             </dd>
           </div>
         </dl>
@@ -224,14 +228,14 @@ export default function ProductReview({ formData, onEdit }) {
           <div>
             <dt className="text-sm text-gray-600">Selected Category</dt>
             <dd className="font-medium text-gray-900">
-              {formData.categoryName}
+              {formData.category.name || "N/A"}
             </dd>
           </div>
-          {formData.parentCategoryName && (
+          {formData.specsCategory && (
             <div>
-              <dt className="text-sm text-gray-600">Parent Category</dt>
+              <dt className="text-sm text-gray-600">Specs Category</dt>
               <dd className="font-medium text-gray-900">
-                {formData.parentCategoryName}
+                {formData.specsCategory}
               </dd>
             </div>
           )}
@@ -239,7 +243,7 @@ export default function ProductReview({ formData, onEdit }) {
       </div>
 
       {/* Specifications */}
-      {Object.keys(formData.specs).length > 0 && (
+      {Object.keys(formData.specifications || {}).length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -254,7 +258,7 @@ export default function ProductReview({ formData, onEdit }) {
             </button>
           </div>
           <dl className="grid grid-cols-2 gap-4">
-            {Object.entries(formData.specs).map(([key, value]) => (
+            {Object.entries(formData.specifications).map(([key, value]) => (
               <div key={key}>
                 <dt className="text-sm text-gray-600">
                   {formatSpecLabel(key)}
@@ -265,6 +269,65 @@ export default function ProductReview({ formData, onEdit }) {
               </div>
             ))}
           </dl>
+        </div>
+      )}
+
+      {/* Variations */}
+      {(formData.variants?.length > 0 || formData.variations?.length > 0) && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Variations</h3>
+            <button
+              onClick={() =>
+                onEdit(steps.find((s) => s.id === "variations")?.number || 7)
+              }
+              className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
+            >
+              <Edit2 className="w-4 h-4 mr-1" />
+              Edit
+            </button>
+          </div>
+          <div className="space-y-4">
+            {formData.variants?.length > 0 && (
+              <div>
+                <dt className="text-sm text-gray-600 mb-2">Attributes</dt>
+                <dd className="flex flex-wrap gap-4">
+                  {formData.variants.map((v, idx) => (
+                    <div key={idx} className="bg-gray-50 p-2 rounded border">
+                      <span className="font-bold text-xs uppercase text-gray-500 block">
+                        {v.name}
+                      </span>
+                      <span className="text-sm">{v.options.join(", ")}</span>
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            )}
+            {formData.variations?.length > 0 && (
+              <div>
+                <dt className="text-sm text-gray-600 mb-2">
+                  Generated Combinations ({formData.variations.length})
+                </dt>
+                <div className="max-h-60 overflow-y-auto border rounded divide-y">
+                  {formData.variations.map((v, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 text-sm flex justify-between items-center bg-white"
+                    >
+                      <span className="font-medium">
+                        {Object.entries(v.options || {})
+                          .map(([key, val]) => `${key}: ${val}`)
+                          .join(", ")}
+                      </span>
+                      <span className="text-gray-500">
+                        Stock: {v.initialStock || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
