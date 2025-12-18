@@ -5,10 +5,6 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import SettingsIcon from "@mui/icons-material/Settings";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@/components/shared/button";
 import { useState, useMemo } from "react";
@@ -17,6 +13,7 @@ import { SellProduct } from "@/services/salesService";
 import { useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import TransferModal from "./TransferModal";
 
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
@@ -133,10 +130,15 @@ const CurrentInventory = () => {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customerErrors, setCustomerErrors] = useState({});
 
+  // Transfer Modal State
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState('company'); // 'company' or 'shop'
+
   const { data: products = [], isLoading: loading } = useQuery({
-    queryKey: ["allProducts"],
-    queryFn: getAllProducts,
+    queryKey: ["allProducts", companyId],
+    queryFn: () => getAllProducts(companyId),
     staleTime: 5 * 60 * 1000,
+    enabled: !!companyId,
   });
 
   // Sell mutation
@@ -208,11 +210,13 @@ const CurrentInventory = () => {
           name: product.ProductName,
           qty: 1,
           minPrice: product.Price,
-          price: product.Price
+          price: product.Price,
+          shopId: product.shopId
         }
       });
     }
   };
+
 
   // Handle quantity change
   const handleQuantityChange = (productId, newQty) => {
@@ -297,15 +301,17 @@ const CurrentInventory = () => {
       productName: item.name,
       quantity: item.qty,
       unitPrice: item.price,
+      unitPrice: item.price,
       totalPrice: item.price * item.qty,
-      discount: 0
+      discount: 0,
+      shopId: item.shopId
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
     const payload = {
       companyId: companyId,
-      shopId: session?.user?.shops?.[0] || "",
+      shopId: items[0]?.shopId || session?.user?.shops?.[0] || "",
       soldBy: session?.user?._id || "",
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
@@ -440,8 +446,65 @@ const CurrentInventory = () => {
             >
               {sellMutation.isPending ? "Processing..." : `SELL SELECTED (${selectedCount})`}
             </MuiButton>
+
+            {/* Transfer Button (Company) */}
+            <MuiButton
+              variant="outlined"
+              disabled={selectedCount === 0}
+              onClick={() => {
+                setTransferMode('company');
+                setTransferModalOpen(true);
+              }}
+              sx={{
+                borderColor: "#1976d2",
+                color: "#1976d2",
+                px: 3,
+                py: 1.5,
+                fontSize: "1rem",
+                fontWeight: "bold",
+                borderRadius: 2,
+                "&:hover": {
+                  bgcolor: "#e3f2fd",
+                  borderColor: "#1565c0",
+                },
+                "&:disabled": {
+                  borderColor: "#ccc",
+                  color: "#999"
+                }
+              }}
+            >
+              Transfer to Company
+            </MuiButton>
+
+            {/* Transfer Button (Shop) */}
+              <button
+  disabled={selectedCount === 0}
+  onClick={() => {
+    setTransferMode("shop");
+    setTransferModalOpen(true);
+  }}
+  className={`px-4 py-3 rounded-xl  transition
+    ${selectedCount === 0
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-[#1F1F1F] text-white cursor-pointer hover:bg-[#2a2a2a]"
+    }`}
+>
+  Transfer to Shop
+</button>
+
           </Box>
         </Box>
+
+        {/* Transfer Modal */}
+        <TransferModal
+          open={transferModalOpen}
+          onClose={() => setTransferModalOpen(false)}
+          selectedItems={selectedItems}
+          companyId={companyId}
+          userId={session?.user?._id}
+          mode={transferMode}
+          currentShopId={Object.values(selectedItems)[0]?.shopId || session?.user?.shops?.[0]}
+        />
 
         {/* Table */}
         <TableContainer sx={{ maxHeight: "calc(100vh - 350px)" }}>

@@ -1,223 +1,198 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Bell } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Bell, ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { useLocale } from "next-intl";
+
+// Component Components
+import NotificationSideBar from "./Notifications_Sidebar";
+import ProfileSidebar from "./ProfileSidebar";
+
+// Providers
+import { useNotification } from "@/providers/NotificationProvider";
 import { useLoading } from "@/contexts/LoadingContext";
-// formatDistanceToNow removed (notifications sidebar removed)
 
 // Redux
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchAnnouncements,
-  selectUnreadCount
-} from "@/features/announcements/announcementsSlice";
+import { useSelector } from "react-redux";
+import { selectUnreadCount } from "@/features/announcements/announcementsSlice";
 import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
+  const router = useRouter();
   const locale = useLocale();
   const { data: session } = useSession();
-  const user = session?.user;
-  const router = useRouter();
+  const { showNotification } = useNotification();
   const { setLoading, setLoadingText } = useLoading();
 
-  const [profileOpen, setProfileOpen] = useState(false);
-
   // Redux State
-  const dispatch = useDispatch();
   const unreadCount = useSelector(selectUnreadCount);
 
-  // Initialize Socket Global Listener here (since NavBar is always present)
+  // Initialize Socket Global Listener
   useAnnouncementSocket();
 
+  // User from session
+  const user = session?.user;
+
+  // Sidebar States
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const searchInputRef = useRef(null);
+
+  // Shortcut logic: Ctrl+K or Cmd+K to focus search
   useEffect(() => {
-    // Initial fetch
-    dispatch(fetchAnnouncements());
-  }, [dispatch]);
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const displayUser = user || {
+    username: "Guest",
+    email: "guest@example.com",
+    profileImage: "/images/user1.jpeg",
+  };
+
+  const displayName = user
+    ? user.username || `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : "Guest";
 
   const handleLogout = async () => {
     try {
-      // Immediately show loader and set text
       setLoadingText("Logging out...");
       setLoading(true);
-
-      // Close profile sidebar
       setProfileOpen(false);
 
-      // Sign out without redirecting (we'll handle navigation manually)
+      // Sign out from NextAuth
       await signOut({ redirect: false });
 
-      // Navigate to login page - loader will stay visible during navigation
       router.push(`/${locale}/auth/login`);
     } catch (error) {
       console.error("Logout failed:", error);
-      // Hide loader on error
+      showNotification({
+        severity: "error",
+        message: "Logout failed. Please try again.",
+      });
+    } finally {
       setLoading(false);
     }
   };
 
-  // When user clicks the bell, navigate to the announcements page
-  const handleBellClick = () => {
-    router.push(`/${locale}/inventory/announcements`);
-  };
-
   return (
     <>
-      {/* ================= TOP NAV ================= */}
+      {/* ======= TOP NAVBAR ======= */}
       <header
-        className={`fixed top-0 left-0 right-0 z-[99999] flex items-center justify-between bg-white border-b border-gray-200 transition-all duration-300 ${isMobile
-          ? "px-4 py-3" // Mobile: full width, smaller padding
-          : "px-6 py-2" // Desktop: adjusted for sidebar
-          }`}
-        style={isMobile ? {} : { marginLeft: expanded ? "16rem" : "5rem" }}
+        className={`fixed top-0 right-0 z-50 flex items-center justify-between px-6 py-2 bg-white/80 backdrop-blur-md border-b border-gray-200 transition-all duration-300 ease-in-out`}
+        style={{
+          left: isMobile ? "0" : expanded ? "16rem" : "5rem",
+          width: isMobile
+            ? "100%"
+            : expanded
+            ? "calc(100% - 16rem)"
+            : "calc(100% - 5rem)",
+        }}
       >
-        {/* LEFT - LOGO */}
-        <div className="flex items-center">
-          <span className="text-lg md:text-xl font-bold text-gray-900">
+        {/* Left Section - Logo (Visible on mobile or if needed) */}
+        <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+          <span className="font-bold text-lg text-gray-950 whitespace-nowrap">
             INVEX<span className="text-orange-500 font-extrabold">iS</span>
           </span>
         </div>
 
-        {/* CENTER - SEARCH BAR */}
-        <div className="flex-1 max-w-xs md:max-w-2xl mx-4 md:mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+        {/* Middle Section - Modern Search Bar */}
+        <div className="flex-1 max-w-2xl mx-8 hidden md:block">
+          <div className="relative group">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search..."
-              className="w-full pl-9 md:pl-12 pr-4 md:pr-6 py-2 md:py-3 bg-gray-100 rounded-full text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all"
+              placeholder="Search anything..."
+              className="w-full pl-12 pr-4 py-2.5 rounded-2xl bg-gray-100/80 border border-transparent focus:bg-white focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 text-sm transition-all outline-none"
+              aria-label="Search"
             />
-          </div>
-        </div>
-
-        {/* RIGHT - NOTIFICATIONS + USER */}
-        <div className="flex items-center gap-2 md:gap-4">
-          {/* Notifications */}
-          <div className="relative">
-            <Bell
-              className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-orange-500 transition"
-              onClick={handleBellClick}
-            />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-orange-500 text-white text-xs rounded-full">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </div>
-
-          {/* User Avatar + Info */}
-          <div
-            className="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 md:px-3 py-2 transition"
-            onClick={() => setProfileOpen(true)}
-          >
-            {!isMobile && (
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.username || "John Doe"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {user?.email || "john.doe@example.com"}
-                </p>
-              </div>
-            )}
-            <div className="relative">
-              <Image
-                src={
-                  user?.profilePicture ||
-                  user?.profileImage ||
-                  "/images/user1.jpeg"
-                }
-                alt={user?.username || "User Avatar"}
-                width={40}
-                height={40}
-                className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover ring-2 ring-orange-300"
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
+                ⌘
+              </kbd>
+              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
+                K
+              </kbd>
             </div>
           </div>
         </div>
+
+        {/* Right Section - Icons and Profile */}
+        <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+          {/* Notifications Trigger */}
+          <button
+            className="relative p-2.5 rounded-xl border border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition-all group overflow-visible"
+            onClick={() => setNotifOpen(true)}
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-orange-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+
+          <div className="h-8 w-[1px] bg-gray-200 hidden md:block" />
+
+          {/* User Profile Trigger */}
+          <button
+            onClick={() => setProfileOpen(true)}
+            className="flex items-center gap-3 p-1.5 pl-1.5 pr-3 rounded-2xl border border-transparent hover:border-gray-200 hover:bg-gray-50/50 transition-all group active:scale-95"
+          >
+            <div className="relative">
+              <Image
+                src={
+                  displayUser.profilePicture ||
+                  displayUser.profileImage ||
+                  "/images/user1.jpeg"
+                }
+                alt={displayName}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full border-2 border-white group-hover:border-orange-200 shadow-sm object-cover"
+              />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div className="hidden lg:flex flex-col items-start translate-y-[1px]">
+              <p className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
+                {displayName}
+              </p>
+              <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-tight opacity-70">
+                {user?.role || "Team Member"}
+              </p>
+            </div>
+            <ChevronDown
+              size={16}
+              className="text-gray-400 group-hover:text-orange-500 transition-all hidden md:block"
+            />
+          </button>
+        </div>
       </header>
 
-      {/* ================= PROFILE SIDEBAR ================= */}
-      <AnimatePresence>
-        {profileOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/30 z-40"
-              onClick={() => setProfileOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-            <motion.div
-              className="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl z-50 overflow-y-auto"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-xl font-semibold">Profile</h2>
-                <button
-                  onClick={() => setProfileOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  X
-                </button>
-              </div>
+      {/* SIDEBARS */}
+      <ProfileSidebar
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-              <div className="p-8 text-center">
-                <Image
-                  src={
-                    user?.profilePicture ||
-                    user?.profileImage ||
-                    "/images/user1.jpeg"
-                  }
-                  alt={user?.username || "Avatar"}
-                  width={120}
-                  height={120}
-                  className="w-30 h-30 rounded-full mx-auto ring-4 ring-orange-400"
-                />
-                <h3 className="mt-4 text-2xl font-bold">{user?.username}</h3>
-                <p className="text-gray-500">{user?.email}</p>
-              </div>
-
-              <nav className="px-6 space-y-1">
-                <Link
-                  href={`/${locale}/inventory/dashboard`}
-                  prefetch={true}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href={`/${locale}/account/profile`}
-                  prefetch={true}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50"
-                >
-                  Profile Settings
-                </Link>
-              </nav>
-
-              <div className="absolute bottom-0 left-0 right-0 p-6 border-t">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Logout
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Notification sidebar removed — bell now navigates to announcements page */}
+      <NotificationSideBar
+        isOpen={notifOpen}
+        onClose={() => setNotifOpen(false)}
+      />
     </>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import {
     LineChart,
     Line,
@@ -23,47 +23,37 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
-// --- Mock Data ---
+const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#64748b', '#8b5cf6', '#ef4444'];
 
-const salesPerformanceData = [
-    { name: 'Mon', current: 4000, previous: 2400 },
-    { name: 'Tue', current: 3000, previous: 1398 },
-    { name: 'Wed', current: 2000, previous: 9800 },
-    { name: 'Thu', current: 2780, previous: 3908 },
-    { name: 'Fri', current: 1890, previous: 4800 },
-    { name: 'Sat', current: 2390, previous: 3800 },
-    { name: 'Sun', current: 3490, previous: 4300 },
-];
+const SalesPerformance = ({
+    timeRange,
+    setTimeRange,
+    selectedDate,
+    setSelectedDate,
+    salesData = [],
+    categoryData = [],
+    topProductsData = [],
+    stockData = [],
+    profitabilityData = [],
+    loading = false
+}) => {
 
-const categoryData = [
-    { name: 'Electronics', value: 45, color: '#6366f1' }, // Indigo 500
-    { name: 'Clothing', value: 20, color: '#ec4899' },    // Pink 500
-    { name: 'Home & Garden', value: 15, color: '#10b981' }, // Emerald 500
-    { name: 'Books', value: 10, color: '#f59e0b' },      // Amber 500
-    { name: 'Others', value: 10, color: '#64748b' },      // Slate 500
-];
+    // Helper to assign colors to categories if missing
+    const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
+    const processedCategoryData = safeCategoryData.map((item, index) => ({
+        ...item,
+        color: item.color || COLORS[index % COLORS.length]
+    }));
 
-const topProductsData = [
-    { name: 'Wireless Earbuds', quantity: 120 },
-    { name: 'Smart Watch Gen 4', quantity: 98 },
-    { name: 'Ergonomic Chair', quantity: 86 },
-    { name: 'Mechanical Keyboard', quantity: 72 },
-    { name: 'USB-C Hub', quantity: 65 },
-];
+    // Ensure other data props are arrays
+    const safeSalesData = Array.isArray(salesData) ? salesData : [];
+    const safeTopProductsData = Array.isArray(topProductsData) ? topProductsData : [];
+    const safeStockData = Array.isArray(stockData) ? stockData : [];
+    const safeProfitabilityData = Array.isArray(profitabilityData) ? profitabilityData : [];
 
-const stockData = [
-    { name: 'Mon', in: 40, out: 24 },
-    { name: 'Tue', in: 30, out: 13 },
-    { name: 'Wed', in: 20, out: 98 },
-    { name: 'Thu', in: 27, out: 39 },
-    { name: 'Fri', in: 18, out: 48 },
-    { name: 'Sat', in: 23, out: 38 },
-    { name: 'Sun', in: 34, out: 43 },
-];
-
-const SalesPerformance = () => {
-    const [timeRange, setTimeRange] = useState('Weekly');
-    const [selectedDate, setSelectedDate] = useState(dayjs());
+    if (loading) {
+        return <div className="p-10 text-center text-gray-500">Loading analytics data...</div>;
+    }
 
     return (
         <div className="space-y-6">
@@ -93,7 +83,7 @@ const SalesPerformance = () => {
                             />
                         </LocalizationProvider>
                         <div className="flex bg-gray-50 rounded-lg p-1">
-                            {['Daily', 'Weekly', 'Monthly'].map((range) => (
+                            {['24h', '7d', '30d', '90d', '1y'].map((range) => (
                                 <button
                                     key={range}
                                     onClick={() => setTimeRange(range)}
@@ -109,8 +99,8 @@ const SalesPerformance = () => {
                     </div>
                 </div>
                 <div className="h-[300px] w-full">
-                    <ResponsiveContainer  width="100%" height="100%">
-                        <AreaChart  data={salesPerformanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={safeSalesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
@@ -121,7 +111,7 @@ const SalesPerformance = () => {
                                     <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3"  stroke="gray" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="gray" />
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
@@ -164,20 +154,55 @@ const SalesPerformance = () => {
                 </div>
             </div>
 
+            {/* --- (A.2) Profitability Chart --- */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-300 ">
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-gray-800">Profitability Analysis</h2>
+                    <p className="text-sm text-gray-500">Revenue vs Cost vs Profit</p>
+                </div>
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={safeProfitabilityData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                dy={10}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#94a3b8', fontSize: 12 }}
+                            />
+                            <Tooltip
+                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                cursor={{ fill: '#f8fafc' }}
+                            />
+                            <Legend />
+                            <Bar dataKey="revenue" name="Revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="cost" name="Cost" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="profit" name="Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* --- (B) Sales by Product Category --- */}
+                {/* --- (B) Sales by Payment Method --- */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-300  flex flex-col">
                     <div className="mb-6">
-                        <h2 className="text-lg font-bold text-gray-800">Sales by Category</h2>
-                        <p className="text-sm text-gray-500">Distribution across departments</p>
+                        <h2 className="text-lg font-bold text-gray-800">Sales by Payment Method</h2>
+                        <p className="text-sm text-gray-500">Distribution across payment types</p>
                     </div>
                     <div className="flex-1 flex items-center justify-center relative">
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={categoryData}
+                                        data={processedCategoryData}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={60}
@@ -187,7 +212,7 @@ const SalesPerformance = () => {
                                         cornerRadius={10}
 
                                     >
-                                        {categoryData.map((entry, index) => (
+                                        {processedCategoryData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
                                         ))}
                                     </Pie>
@@ -201,7 +226,7 @@ const SalesPerformance = () => {
                         </div>
                         {/* Legend */}
                         <div className="ml-4 space-y-2">
-                            {categoryData.map((item) => (
+                            {processedCategoryData.map((item) => (
                                 <div key={item.name} className="flex items-center text-sm">
                                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
                                     <span className="text-gray-600 font-medium">{item.name}</span>
@@ -227,7 +252,7 @@ const SalesPerformance = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
-                                data={topProductsData}
+                                data={safeTopProductsData}
                                 margin={{ top: 0, right: 30, left: 0, bottom: 0 }}
                                 barSize={20}
                             >
@@ -246,7 +271,7 @@ const SalesPerformance = () => {
                                 />
                                 <Bar dataKey="quantity" fill="#3b82f6" radius={[0, 10, 20, 0]} background={{ fill: '#f1f5f9', radius: [0, 4, 4, 0] }}>
                                     {
-                                        topProductsData.map((entry, index) => (
+                                        safeTopProductsData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={index < 3 ? '#f97316' : '#94a3b8'} />
                                         ))
                                     }
@@ -278,7 +303,7 @@ const SalesPerformance = () => {
                 </div>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={stockData} barGap={8}>
+                        <BarChart data={safeStockData} barGap={8}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis
                                 dataKey="name"

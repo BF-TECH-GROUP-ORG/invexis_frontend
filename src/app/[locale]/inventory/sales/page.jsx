@@ -7,6 +7,9 @@ import { Button } from "@/components/shared/button";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import SalesCards from "./cards";
+import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { getSalesHistory } from "@/services/salesService";
 
 const jost = Jost({
   weight: "400",
@@ -14,6 +17,17 @@ const jost = Jost({
 });
 
 const SalesPage = () => {
+  const { data: session } = useSession();
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  const { data: sales = [] } = useQuery({
+    queryKey: ["salesHistory", companyId],
+    queryFn: () => getSalesHistory(companyId),
+    enabled: !!companyId,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const myfilter = [
     { id: 1, name: "Delete", icon: <Trash size={18} /> },
     { id: 2, name: "Export", icon: <DownloadCloud size={18} /> },
@@ -25,21 +39,21 @@ const SalesPage = () => {
 
   return (
     <>
-     <section className="w-full  inline-grid" >
-      <div className="space-y-10 w-full" >
-         <SalesCards /> 
-         <div className="space-y-5 flex justify-between  ">
-          <div>
-            <h1 className="text-2xl font-medium ">{t("title")}</h1>
-           <p className="space-x-10  font-light"><span>{t("dashboard")}</span><span>.</span><span>{t("products")}</span><span>.</span><span className="text-gray-500">{t("list")}</span></p>
+      <section className="w-full  inline-grid" >
+        <div className="space-y-10 w-full" >
+          <SalesCards sales={sales} />
+          <div className="space-y-5 flex justify-between  ">
+            <div>
+              <h1 className="text-2xl font-medium ">{t("title")}</h1>
+              <p className="space-x-10  font-light"><span>{t("dashboard")}</span><span>.</span><span>{t("products")}</span><span>.</span><span className="text-gray-500">{t("list")}</span></p>
+            </div>
+            <div>
+              <Link href={`/${locale}/inventory/sales/sellProduct/sale`} ><button className="px-8 py-3 rounded-lg bg-[#1F1F1F]  text-white cursor-pointer" >{t("stockOut")}</button></Link>
+            </div>
           </div>
-          <div>
-         <Link href={`/${locale}/inventory/sales/sellProduct/sale`} ><button  className="px-8 py-3 rounded-lg bg-orange-500  text-white cursor-pointer" >{t("stockOut")}</button></Link>
-          </div>
-      </div>
-      <DataTable />
-      </div>
-     </section>
+          <DataTable salesData={sales} />
+        </div>
+      </section>
     </>
   );
 };

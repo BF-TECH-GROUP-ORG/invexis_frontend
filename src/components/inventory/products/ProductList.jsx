@@ -4,13 +4,27 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, X, ChevronDown, Check, Search } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  Download,
+  Trash2,
+  X,
+  ChevronDown,
+  Check,
+  Search,
+  RefreshCw,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { useSession } from "next-auth/react";
-import { fetchProducts, deleteProduct } from "@/features/products/productsSlice";
+import apiClient from "@/lib/apiClient";
+import {
+  fetchProducts,
+  deleteProduct,
+} from "@/features/products/productsSlice";
 import { fetchCategories } from "@/features/categories/categoriesSlice";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
 import ProductTable from "./ProductTable";
@@ -21,16 +35,25 @@ export default function ProductList() {
   const pathname = usePathname(); // Only this — no more useRouter()
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
-  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
 
   // Redux state
   const productsState = useSelector((state) => state.products || {});
   const categoriesState = useSelector((state) => state.categories || {});
   const warehousesState = useSelector((state) => state.warehouses || {});
 
-  const products = Array.isArray(productsState.items) ? productsState.items : [];
-  const categories = Array.isArray(categoriesState.items) ? categoriesState.items : [];
-  const warehouses = Array.isArray(warehousesState.items) ? warehousesState.items : [];
+  const products = Array.isArray(productsState.items)
+    ? productsState.items
+    : [];
+  const categories = Array.isArray(categoriesState.items)
+    ? categoriesState.items
+    : [];
+  const warehouses = Array.isArray(warehousesState.items)
+    ? warehousesState.items
+    : [];
 
   const loading = productsState.loading || false;
   const pagination = productsState.pagination || { page: 1, pages: 1 };
@@ -62,7 +85,7 @@ export default function ProductList() {
   const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
 
   const routes = {
-    add: `${basePath}/add`,
+    add: `${basePath}/add-wizard`,
     view: (id) => `${basePath}/${id}`,
     edit: (id) => `${basePath}/${id}/edit`,
   };
@@ -118,11 +141,21 @@ export default function ProductList() {
   const handleBulkDelete = async () => {
     if (!confirm(`Delete ${selectedIds.length} products?`)) return;
     try {
-      await Promise.all(selectedIds.map((id) => dispatch(deleteProduct(id)).unwrap()));
+      await Promise.all(
+        selectedIds.map((id) => dispatch(deleteProduct(id)).unwrap())
+      );
       toast.success("Products deleted");
       setSelectedIds([]);
     } catch {
       toast.error("Some failed");
+    }
+  };
+
+  const handleRefresh = () => {
+    apiClient.clearCache();
+    if (companyId) {
+      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
+      toast.success("Cache cleared & data refreshed");
     }
   };
 
@@ -136,26 +169,57 @@ export default function ProductList() {
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 14, 30);
+    doc.text(
+      `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+      14,
+      30
+    );
 
-    const tableColumn = ["Image", "Product Details", "Category", "Stock & Price", "Status", "Total Value"];
+    const tableColumn = [
+      "Image",
+      "Product Details",
+      "Category",
+      "Stock & Price",
+      "Status",
+      "Total Value",
+    ];
     const tableRows = [];
 
     for (const product of products) {
-      const price = product.pricing?.basePrice || product.price || 0;
-      const stock = product.inventory?.quantity || product.stock || 0;
-      const totalValue = price * stock;
+      const basePrice =
+        product.pricing?.basePrice ||
+        product.pricingId?.basePrice ||
+        product.price ||
+        0;
+      const salePrice =
+        product.pricing?.salePrice || product.pricingId?.salePrice || 0;
+      const effectivePrice =
+        salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+
+      const stock =
+        product.stock?.total ??
+        product.stock?.available ??
+        product.inventory?.quantity ??
+        product.stock ??
+        0;
+      const totalValue = effectivePrice * stock;
       const status = stock > 0 ? "In Stock" : "Out of Stock";
       const discount = product.pricing?.discount || product.discount || 0;
 
       // Format data for the table
       const rowData = [
         "", // Placeholder for image
-        `${product.name}\n${product.description ? String(product.description).substring(0, 30) + '...' : ''}`,
-        product.category?.name || "N/A",
-        `Qty: ${stock}\nPrice: $${price.toLocaleString()}${discount > 0 ? `\nDisc: ${discount}%` : ''}`,
+        `${product.name}\n${
+          product.description
+            ? String(product.description).substring(0, 30) + "..."
+            : ""
+        }`,
+        product.category?.name || product.categoryId?.name || "N/A",
+        `Qty: ${stock}\nPrice: $${effectivePrice.toLocaleString()}${
+          discount > 0 ? `\nDisc: ${discount}%` : ""
+        }`,
         status,
-        `$${totalValue.toLocaleString()}`
+        `$${totalValue.toLocaleString()}`,
       ];
       tableRows.push(rowData);
     }
@@ -164,21 +228,37 @@ export default function ProductList() {
       head: [tableColumn],
       body: tableRows,
       startY: 35,
-      theme: 'grid',
-      headStyles: { fillColor: [249, 115, 22], textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 9, cellPadding: 3, valign: 'middle', overflow: 'linebreak' },
+      theme: "grid",
+      headStyles: {
+        fillColor: [249, 115, 22],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        valign: "middle",
+        overflow: "linebreak",
+      },
       columnStyles: {
         0: { cellWidth: 15 }, // Image column
         1: { cellWidth: 50 }, // Product Details
       },
       didDrawCell: (data) => {
-        if (data.column.index === 0 && data.cell.section === 'body') {
+        if (data.column.index === 0 && data.cell.section === "body") {
           const product = products[data.row.index];
           if (product.image?.url) {
             try {
               // Attempt to add image if URL is accessible
               // Note: This might fail if CORS is not configured on the image server
-              doc.addImage(product.image.url, 'JPEG', data.cell.x + 1, data.cell.y + 1, 13, 13);
+              doc.addImage(
+                product.image.url,
+                "JPEG",
+                data.cell.x + 1,
+                data.cell.y + 1,
+                13,
+                13
+              );
             } catch (e) {
               // Fallback or ignore
             }
@@ -196,17 +276,37 @@ export default function ProductList() {
   const stats = {
     total: products.length,
     inStock: products.filter((p) => {
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
+      const qty =
+        p.stock?.total ??
+        p.stock?.available ??
+        p.inventory?.quantity ??
+        p.stock ??
+        0;
       return qty > 0;
     }).length,
     lowStock: products.filter((p) => {
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
-      return qty > 0 && qty < 20;
+      const qty =
+        p.stock?.total ??
+        p.stock?.available ??
+        p.inventory?.quantity ??
+        p.stock ??
+        0;
+      const threshold = p.stock?.lowStockThreshold ?? 20;
+      return qty > 0 && qty < threshold;
     }).length,
     totalValue: products.reduce((sum, p) => {
-      const price = p.pricing?.basePrice ?? p.price ?? 0;
-      const qty = p.inventory?.quantity ?? p.stock ?? 0;
-      return sum + (price * qty);
+      const basePrice =
+        p.pricing?.basePrice ?? p.pricingId?.basePrice ?? p.price ?? 0;
+      const salePrice = p.pricing?.salePrice ?? p.pricingId?.salePrice ?? 0;
+      const effectivePrice =
+        salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+      const qty =
+        p.stock?.total ??
+        p.stock?.available ??
+        p.inventory?.quantity ??
+        p.stock ??
+        0;
+      return sum + effectivePrice * qty;
     }, 0),
   };
 
@@ -219,7 +319,9 @@ export default function ProductList() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-            <p className="text-sm text-gray-500 mt-1">{stats.total} total products</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {stats.total} total products
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-3 items-center">
@@ -250,10 +352,14 @@ export default function ProductList() {
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${isFilterOpen || filters.category || filters.warehouse || filters.status
-                  ? 'border-orange-500 text-orange-600 bg-orange-50'
-                  : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                  }`}
+                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${
+                  isFilterOpen ||
+                  filters.category ||
+                  filters.warehouse ||
+                  filters.status
+                    ? "border-orange-500 text-orange-600 bg-orange-50"
+                    : "border-gray-300 hover:bg-gray-50 text-gray-700"
+                }`}
               >
                 <Filter size={18} />
                 <span>Filters</span>
@@ -265,10 +371,17 @@ export default function ProductList() {
               {isFilterOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-gray-100 p-4 z-20 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Filter Products</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Filter Products
+                    </h3>
                     <button
                       onClick={() => {
-                        setFilters({ search: filters.search, category: "", warehouse: "", status: "" });
+                        setFilters({
+                          search: filters.search,
+                          category: "",
+                          warehouse: "",
+                          status: "",
+                        });
                         setIsFilterOpen(false);
                       }}
                       className="text-xs text-orange-600 hover:text-orange-700 font-medium"
@@ -279,38 +392,54 @@ export default function ProductList() {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Category
+                      </label>
                       <select
                         value={filters.category}
-                        onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                        onChange={(e) =>
+                          setFilters({ ...filters, category: e.target.value })
+                        }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
                         <option value="">All Categories</option>
                         {categories.map((cat) => (
-                          <option key={cat._id} value={cat._id}>{cat.name}</option>
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Shop</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Shop
+                      </label>
                       <select
                         value={filters.warehouse}
-                        onChange={(e) => setFilters({ ...filters, warehouse: e.target.value })}
+                        onChange={(e) =>
+                          setFilters({ ...filters, warehouse: e.target.value })
+                        }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
                         <option value="">All Shops</option>
                         {warehouses.map((w) => (
-                          <option key={w._id} value={w._id}>{w.name}</option>
+                          <option key={w._id} value={w._id}>
+                            {w.name}
+                          </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Status
+                      </label>
                       <select
                         value={filters.status}
-                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                        onChange={(e) =>
+                          setFilters({ ...filters, status: e.target.value })
+                        }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
                         <option value="">Any Status</option>
@@ -323,6 +452,14 @@ export default function ProductList() {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
+              title="Clear Cache & Refresh"
+            >
+              <RefreshCw size={18} />
+            </button>
 
             <button
               onClick={handleExportPDF}
@@ -342,8 +479,6 @@ export default function ProductList() {
             </Link>
           </div>
         </div>
-
-
 
         {/* Product Table */}
         <ProductTable

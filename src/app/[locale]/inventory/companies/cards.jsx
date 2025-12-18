@@ -1,44 +1,69 @@
+// src/components/company/CompanyCards.jsx
 "use client";
+
+import { motion } from "framer-motion";
 import { Business, LocationOn, People } from "@mui/icons-material";
-// import 
 
-const CompanyCards = ({ stats }) => {
-    const cardsInfo = [
-        {
-            title: "Total Branches",
-            icon: <Business sx={{ fontSize: 45 }} className="text-orange-500 bg-orange-50 p-2 rounded-xl" />,
-            value: stats.totalBranches || 0,
-        },
-        {
-            title: "Active Branches",
-            icon: <LocationOn sx={{ fontSize: 45  }} className="text-green-500 bg-green-50 p-2 rounded-xl" />,
-            value: stats.activeBranches || 0,
-        },
-        {
-            title: "Total Capacity",
-            icon: <People sx={{ fontSize: 45 }} className="text-blue-500 bg-blue-50 p-2 rounded-xl" />,
-            value: stats.totalCapacity || 0,
-        },
-    ];
+export default function CompanyCards({ stats }) {
+  const cards = [
+    {
+      title: "Total Shops",
+      value: stats.totalBranches || 0,
+      Icon: Business,
+      color: "#f97316",
+      bgColor: "#fff7ed",
+      key: "total",
+    },
+    {
+      title: "Active Shops",
+      value: stats.activeBranches || 0,
+      Icon: LocationOn,
+      color: "#10b981",
+      bgColor: "#ecfdf5",
+      key: "active",
+    },
+    {
+      title: "Total Capacity",
+      value: stats.totalCapacity || 0,
+      Icon: People,
+      color: "#3b82f6",
+      bgColor: "#eff6ff",
+      key: "capacity",
+    },
+  ];
 
-    return (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {cardsInfo.map((card, index) => (
-                <div
-                    key={index}
-                    className="bg-white p-5 justify-between flex rounded-xl border"
-                >
-                    <div className="text-left">
-                        <p className="text-2xl font-bold">{card.value}</p>
-                        <h2 className="text-gray-500">{card.title}</h2>
-                    </div>
-                    <div className="flex h-full">
-                        <div >{card.icon}</div>
-                    </div>
-                </div>
-            ))}
-        </section>
-    );
-};
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {cards.map((card, index) => {
+        const Icon = card.Icon;
+        return (
+          <motion.div
+            key={card.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-[#6b7280] font-medium mb-1">
+                  {card.title}
+                </p>
+                <p className="text-2xl font-bold font-jetbrains text-[#081422]">
+                  {card.value}
+                </p>
+              </div>
 
-export default CompanyCards;
+              <div
+                className="p-3 rounded-xl shrink-0"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <Icon sx={{ fontSize: 24, color: card.color }} />
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}

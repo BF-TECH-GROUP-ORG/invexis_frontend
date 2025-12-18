@@ -1,7 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox
 } from "@mui/material";
 import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -16,11 +17,11 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { getSalesHistory, deleteSale } from "@/services/salesService";
+import { deleteSale, getSingleSale, createReturn } from "@/services/salesService";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { InputAdornment } from "@mui/material";
-import { HiSearch } from "react-icons/hi";  
+import { HiSearch } from "react-icons/hi";
 
 // Placeholder for rows, will be managed by state in DataTable
 const rows = [];
@@ -39,9 +40,219 @@ const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => (
   </Dialog>
 );
 
+// ----------------------------------------------------------------------
+// Return Modal Component
+// ----------------------------------------------------------------------
+
+const ReturnModal = ({ open, onClose, saleId }) => {
+  const t = useTranslations("sales");
+  const [selectedItems, setSelectedItems] = useState({});
+  const [returnReason, setReturnReason] = useState("");
+  const [submitError, setSubmitError] = useState("");
+
+  const { data: sale, isLoading } = useQuery({
+    queryKey: ["sale", saleId],
+    queryFn: () => getSingleSale(saleId),
+    enabled: !!saleId && open,
+  });
+
+  const returnMutation = useMutation({
+    mutationFn: createReturn,
+    onSuccess: () => {
+      onClose();
+      // Optional: Show success snackbar
+    },
+    onError: (err) => {
+      setSubmitError(err.message || "Failed to create return");
+    },
+  });
+
+  const handleCheckboxChange = (item) => {
+    if (selectedItems[item.saleItemId]) {
+      const newItems = { ...selectedItems };
+      delete newItems[item.saleItemId];
+      setSelectedItems(newItems);
+    } else {
+      setSelectedItems({
+        ...selectedItems,
+        [item.saleItemId]: {
+          productId: item.productId,
+          quantity: 1,
+          maxQuantity: item.quantity,
+          unitPrice: item.unitPrice,
+          productName: item.productName,
+        },
+      });
+    }
+  };
+
+  const handleQuantityChange = (saleItemId, newQty) => {
+    const qty = parseInt(newQty) || 0;
+    const item = selectedItems[saleItemId];
+    if (!item) return;
+
+    if (qty < 1) return;
+    if (qty > item.maxQuantity) return;
+
+    setSelectedItems({
+      ...selectedItems,
+      [saleItemId]: {
+        ...item,
+        quantity: qty,
+      },
+    });
+  };
+
+  const totalRefundAmount = useMemo(() => {
+    return Object.values(selectedItems).reduce((sum, item) => {
+      return sum + item.quantity * parseFloat(item.unitPrice);
+    }, 0);
+  }, [selectedItems]);
+
+  const handleSubmit = () => {
+    if (Object.keys(selectedItems).length === 0) {
+      setSubmitError("Please select at least one item to return.");
+      return;
+    }
+
+    const items = Object.values(selectedItems).map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      refundAmount: item.quantity * parseFloat(item.unitPrice),
+    }));
+
+    const payload = {
+      saleId: saleId,
+      reason: returnReason,
+      refundAmount: totalRefundAmount,
+      items,
+    };
+
+    returnMutation.mutate(payload);
+  };
+
+  // Reset state when modal closes or opens
+  useEffect(() => {
+    if (open) {
+      setSelectedItems({});
+      setReturnReason("");
+      setSubmitError("");
+    }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Return Products - Sale #{saleId}</DialogTitle>
+      <DialogContent>
+        {isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : sale ? (
+          <Box sx={{ mt: 2 }}>
+            {submitError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {submitError}
+              </Alert>
+            )}
+
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Select Items to Return
+            </Typography>
+            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox">Select</TableCell>
+                    <TableCell>Product ID</TableCell>
+                    <TableCell>Product Name</TableCell>
+                    <TableCell>Sold Qty</TableCell>
+                    <TableCell>Return Qty</TableCell>
+                    <TableCell>Refund Amount</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sale.items.map((item) => {
+                    const isSelected = !!selectedItems[item.saleItemId];
+                    const selectedItem = selectedItems[item.saleItemId];
+
+                    return (
+                      <TableRow key={item.saleItemId} selected={isSelected}>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() => handleCheckboxChange(item)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
+                            {item.productId}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{item.productName}</TableCell>
+                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>
+                          <TextField
+                            type="number"
+                            size="small"
+                            disabled={!isSelected}
+                            value={selectedItem ? selectedItem.quantity : ""}
+                            onChange={(e) => handleQuantityChange(item.saleItemId, e.target.value)}
+                            inputProps={{ min: 1, max: item.quantity }}
+                            sx={{ width: 80 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {isSelected
+                            ? (selectedItem.quantity * parseFloat(item.unitPrice)).toLocaleString()
+                            : "0"}{" "}
+                          FRW
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <TextField
+              label="Reason for Return (Optional)"
+              multiline
+              rows={2}
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+              <Typography variant="h6" sx={{ mr: 2 }}>
+                Total Refund: {totalRefundAmount.toLocaleString()} FRW
+              </Typography>
+            </Box>
+          </Box>
+        ) : (
+          <Alert severity="warning">Sale not found</Alert>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          color="primary"
+          disabled={returnMutation.isPending || isLoading}
+        >
+          {returnMutation.isPending ? "Processing..." : "Confirm Return"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 // Custom Component for the Action Menu (RowActionsMenu)
 // onDeleteRequest should be a curried function: (id) => (open:boolean) => void
-const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest }) => {
+const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onReturnRequest }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const t = useTranslations("sales");
@@ -74,6 +285,14 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest }) => {
     handleClose();
     if (typeof onDeleteRequest === "function") {
       onDeleteRequest(rowId)(true); // open modal for this id
+    }
+  };
+
+  const handleReturn = (event) => {
+    event.stopPropagation();
+    handleClose();
+    if (onReturnRequest) {
+      onReturnRequest(rowId);
     }
   };
 
@@ -122,6 +341,10 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest }) => {
         <MenuItem onClick={handleEdit}>
           <ListItemIcon><EditIcon sx={{ color: "#333" }} /></ListItemIcon>
           <ListItemText primary={`${t('Edit')}`} />
+        </MenuItem>
+        <MenuItem onClick={handleReturn}>
+          <ListItemIcon><Undo2 sx={{ color: "#333" }} size={20} /></ListItemIcon>
+          <ListItemText primary="Return" />
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
           <ListItemIcon><DeleteIcon sx={{ color: "error.main" }} /></ListItemIcon>
@@ -293,11 +516,11 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
 // Main DataTable Component
 // ----------------------------------------------------------------------
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { useSession } from "next-auth/react";
 
-const DataTable = () => {
+const DataTable = ({ salesData }) => {
   const t = useTranslations("sales");
   const navigation = useRouter();
   const [search, setSearch] = useState("");
@@ -321,29 +544,24 @@ const DataTable = () => {
   const currentMonth = currentDate.getMonth() + 1; // 1-12
   const currentYear = currentDate.getFullYear();
 
-  const { data: rows = [] } = useQuery({
-    queryKey: ["salesHistory", companyId],
-    queryFn: () => getSalesHistory(companyId),
-    enabled: !!companyId,
-    select: (data) => {
-      if (!data || !Array.isArray(data)) return [];
-      return data.map((sale) => ({
-        id: sale.saleId,
-        productId: sale.items && sale.items.length > 0 ? sale.items[0].productId : null,
-        ProductName: sale.items && sale.items.length > 0 ? sale.items[0].productName : "Unknown",
-        Category: "N/A",
-        UnitPrice: sale.items && sale.items.length > 0 ? sale.items[0].unitPrice : 0,
-        returned: "false",
-        Discount: sale.discountTotal || "0",
-        Date: new Date(sale.createdAt).toLocaleDateString(),
-        rawDate: sale.createdAt, // Keep raw date for filtering
-        TotalValue: sale.totalAmount,
-        action: "more"
-      }));
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes - cache persists for 10 minutes
-  });
+  const rows = useMemo(() => {
+    if (!salesData || !Array.isArray(salesData)) return [];
+    return salesData.map((sale) => ({
+      id: sale.saleId,
+      productId: sale.items && sale.items.length > 0 ? sale.items[0].productId : null,
+      ProductName: sale.items && sale.items.length > 0 ? sale.items[0].productName : "Unknown",
+      isDebt: sale.isdebt,
+      Category: sale.isTransfer,
+      UnitPrice: sale.items && sale.items.length > 0 ? sale.items[0].unitPrice : 0,
+      SoldQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0,
+      returned: `${sale.isReturned}`,
+      Discount: sale.discountTotal,
+      Date: new Date(sale.createdAt).toLocaleDateString(),
+      rawDate: sale.createdAt, // Keep raw date for filtering
+      TotalValue: sale.totalAmount,
+      action: "more"
+    }));
+  }, [salesData]);
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -371,10 +589,19 @@ const DataTable = () => {
 
   // Delete modal state owned by DataTable
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
+  const [returnModal, setReturnModal] = useState({ open: false, id: null });
 
   // Curried toggler: (id) => (open) => void
   const toggleDeleteModalFor = (id) => (open) => {
     setDeleteModal({ open: Boolean(open), id: open ? id : null });
+  };
+
+  const handleOpenReturnModal = (id) => {
+    setReturnModal({ open: true, id });
+  };
+
+  const handleCloseReturnModal = () => {
+    setReturnModal({ open: false, id: null });
   };
 
   const handleConfirmDelete = async () => {
@@ -416,9 +643,9 @@ const DataTable = () => {
 
   // Export Functions
   const exportCSV = (rows) => {
-    let csv = "Sale ID,Product Name,Category,Unit Price (FRW),Returned,Discount,Date,Total Value (FRW)\n";
+    let csv = "Sale ID,Product Name,Category,Unit Price (FRW),Sold Quantity,Returned,Discount,Date,Total Value (FRW)\n";
     rows.forEach(r => {
-      csv += `${r.id},${r.ProductName},${r.Category},${r.UnitPrice},${r.returned},${r.Discount},${r.Date},${r.TotalValue}\n`;
+      csv += `${r.id},${r.ProductName},${r.Category},${r.UnitPrice},${r.SoldQuantity},${r.returned},${r.Discount},${r.Date},${r.TotalValue}\n`;
     });
     const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
@@ -436,12 +663,13 @@ const DataTable = () => {
     doc.setTextColor(0, 0, 0);
     doc.text("Sales Report", 14, 20);
 
-    const tableColumn = ["Sale ID", "Product", "Category", "Unit Price", "Returned", "Discount", "Date", "Total"];
+    const tableColumn = ["Sale ID", "Product", "Category", "Unit Price", "Sold Qty", "Returned", "Discount", "Date", "Total"];
     const tableRows = rows.map(r => [
       r.id,
       r.ProductName,
       r.Category,
       r.UnitPrice.toLocaleString(),
+      r.SoldQuantity,
       r.returned === "false" ? "No" : "Yes",
       r.Discount,
       r.Date,
@@ -486,6 +714,7 @@ const DataTable = () => {
     }
 
     // Advanced filter
+    
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
@@ -500,7 +729,6 @@ const DataTable = () => {
           if (operator === '==') return rowPrice === numValue;
           return true;
         });
-
       } else if (column === 'Category') {
         currentRows = currentRows.filter((row) => {
           const rowValue = String(row[column]).toLowerCase();
@@ -534,6 +762,12 @@ const DataTable = () => {
         onCancel={handleCancelDelete}
       />
 
+      <ReturnModal
+        open={returnModal.open}
+        onClose={handleCloseReturnModal}
+        saleId={returnModal.id}
+      />
+
       <Toolbar
         sx={{
           display: "flex",
@@ -548,22 +782,22 @@ const DataTable = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           {/* Month Selector */}
           <TextField
-                    placeholder="Search sales..."
-                    variant="outlined"
-                    size="small"
-                    value={search}
-                     onChange={(e) => setSearch(e.target.value)}
-                    sx={{ flex: 1, maxWidth: 300 }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <HiSearch size={18} />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-  
-                    
+            placeholder="Search sales..."
+            variant="outlined"
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ flex: 1, maxWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <HiSearch size={18} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+
 
           <IconButton onClick={handleOpenFilter} variant="contained"  >
             <FilterAltRoundedIcon
@@ -604,11 +838,20 @@ const DataTable = () => {
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {t("category")}
+                is Debt
+              </TableCell>
+
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                is Transfered
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("unitPrice")} (FRW)
+              </TableCell>
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                {/* {t("soldQuantity")} */}sold Quantity
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
@@ -646,8 +889,10 @@ const DataTable = () => {
               >
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.ProductName}</TableCell>
-                <TableCell>{row.Category}</TableCell>
+                <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
+                <TableCell>{row.Category ? "Yes" : "No" }</TableCell>
                 <TableCell>{row.UnitPrice}</TableCell>
+                <TableCell>{row.SoldQuantity}</TableCell>
                 <TableCell>{row.returned == "false" ? <span className='text-green-500'>false</span> : <span className='text-red-500'>true</span>}</TableCell>
                 <TableCell>{row.Discount}</TableCell>
                 <TableCell>{row.Date}</TableCell>
@@ -658,6 +903,7 @@ const DataTable = () => {
                     productId={row.productId}
                     onRedirect={handleRedirectToSlug}
                     onDeleteRequest={toggleDeleteModalFor}
+                    onReturnRequest={handleOpenReturnModal}
                   />
                 </TableCell>
               </TableRow>

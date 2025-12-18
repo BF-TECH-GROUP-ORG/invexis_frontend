@@ -2,13 +2,22 @@ import { NextResponse } from "next/server";
 import { withAuth } from "next-auth/middleware";
 import { getAllowedRolesForPath } from "./lib/rbac";
 
-const PUBLIC_PATHS = [
-  "/auth/login",
-  "/auth/signup",
-  "/auth/reset-password",
-  "/auth/verify-email",
-  "/auth/otp-login",
+// Define public paths using regex patterns for flexible matching
+const PUBLIC_PATH_PATTERNS = [
+  /^\/$/, // Root path "/"
+  /^\/welcome/, // Welcome pages
+  /^\/auth\//, // All auth pages
+  /^\/errors\//, // Error pages
+  /^\/not-found$/, // 404 page
+  /^\/unauthorized$/, // Unauthorized page
 ];
+
+// Helper function to check if a path matches any public pattern
+function isPublicPath(pathWithoutLocale) {
+  return PUBLIC_PATH_PATTERNS.some((pattern) =>
+    pattern.test(pathWithoutLocale)
+  );
+}
 
 export default withAuth(
   function middleware(req) {
@@ -22,9 +31,7 @@ export default withAuth(
       ? pathname.slice(locale.length + 1) || "/"
       : pathname;
 
-    const isPublicPath = PUBLIC_PATHS.some((p) =>
-      pathWithoutLocale.startsWith(p)
-    );
+    const isPublic = isPublicPath(pathWithoutLocale);
     const isAuthPath = pathWithoutLocale.startsWith("/auth/");
 
     // 1. If user is authenticated and tries to access public auth pages (login/signup), redirect to dashboard
@@ -43,7 +50,7 @@ export default withAuth(
 
     // 3. If user is NOT authenticated and path is NOT public, redirect to localized login
     const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
-    if (!token && !isPublicPath && !bypassAuth) {
+    if (!token && !isPublic && !bypassAuth) {
       const loginUrl = new URL(`/${locale}/auth/login`, req.url);
       loginUrl.searchParams.set("callbackUrl", req.url);
       return NextResponse.redirect(loginUrl);

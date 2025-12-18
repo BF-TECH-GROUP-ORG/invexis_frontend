@@ -1,89 +1,158 @@
-import axios from 'axios';
+import apiClient from "@/lib/apiClient";
+import { getCacheStrategy } from "@/lib/cacheConfig";
 
-// Prefer a local proxy base when available (NEXT_PUBLIC_API_URL), otherwise use the explicit inventory API URL.
-// This allows local dev to set `NEXT_PUBLIC_API_URL=/api/inventory/v1` and use Next.js rewrites to avoid CORS.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+/**
+ * -----------------------------------------------------
+ * Inventory API routes
+ * -----------------------------------------------------
+ */
+const INVENTORY_BASE = "/inventory/v1";
 
-// Helpful console hint so you can verify which base is being used at runtime
-if (typeof window !== 'undefined') {
-  console.info('ProductsService: using API base ->', API_BASE);
+/**
+ * -----------------------------------------------------
+ * Get paginated products
+ * SSR-safe: pass token when calling from server
+ * -----------------------------------------------------
+ */
+export async function getProducts({
+  page = 1,
+  limit = 20,
+  category,
+  search,
+  companyId,
+} = {}) {
+  if (!companyId) return [];
+
+  const params = { page, limit };
+  if (category) params.category = category;
+  if (search) params.search = search;
+
+  return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/products`, {
+    params,
+
+    cache: { noStore: true },
+  });
 }
 
-const defaultHeaders = {
-  'ngrok-skip-browser-warning': 'true',
-};
-
-// Configure axios timeout. Use `NEXT_PUBLIC_AXIOS_TIMEOUT` (milliseconds).
-// If not set or set to `0`, axios will have no timeout (browser default behavior).
-const AXIOS_TIMEOUT = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_AXIOS_TIMEOUT
-  ? Number(process.env.NEXT_PUBLIC_AXIOS_TIMEOUT)
-  : 0;
-axios.defaults.timeout = AXIOS_TIMEOUT; // 0 = no timeout
-if (typeof window !== 'undefined') console.info('Axios timeout set to', axios.defaults.timeout, 'ms');
-
-export async function getProducts({ page = 1, limit = 20, category, search, companyId } = {}) {
-  try {
-    const params = { page, limit };
-    if (category) params.category = category;
-    if (search) params.search = search;
-    if (companyId) params.companyId = companyId;
-
-    const res = await axios.get(`${API_BASE}/inventory/v1/companies/${companyId}/products`, { params, headers: defaultHeaders });
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
-}
-
+/**
+ * -----------------------------------------------------
+ * Featured products
+ * -----------------------------------------------------
+ */
 export async function getFeaturedProducts() {
-  const res = await axios.get(`${API_BASE}/inventory/v1/products/featured`, { headers: defaultHeaders });
-  return res.data;
+  const cache = getCacheStrategy("INVENTORY", "METADATA");
+
+  return apiClient.get(`${INVENTORY_BASE}/products/featured`, {
+    cache,
+  });
 }
 
+/**
+ * -----------------------------------------------------
+ * Product by ID
+ * -----------------------------------------------------
+ */
 export async function getProductById(id) {
-  const res = await axios.get(`${API_BASE}/inventory/v1/products/${id}`, { headers: defaultHeaders });
-  return res.data;
+  if (!id) throw new Error("Product ID is required");
+
+  const cache = getCacheStrategy("INVENTORY", "METADATA");
+
+  return apiClient.get(`${INVENTORY_BASE}/products/${id}`, {
+    cache,
+  });
 }
 
-export async function createProductApi(payload) {
-  // When sending FormData, let axios set the Content-Type (with boundary).
-  const config = { headers: { ...defaultHeaders } };
-  // If payload is plain object, ensure JSON content-type
-  if (!(typeof FormData !== 'undefined' && payload instanceof FormData)) {
-    config.headers['Content-Type'] = 'application/json';
-  }
+/**
+ * -----------------------------------------------------
+ * Create product
+ * -----------------------------------------------------
+ */
+export async function createProduct(payload) {
+  const isFormData =
+    typeof FormData !== "undefined" && payload instanceof FormData;
 
-  const res = await axios.post(`${API_BASE}/inventory/v1/products`, payload, config);
-  return res.data;
+  const data = await apiClient.post(
+    `${INVENTORY_BASE}/products`,
+    payload,
+
+    {
+      // Headers will be automatically set by the browser/axios for FormData
+    }
+  );
+
+  apiClient.clearCache("/inventory");
+  return data;
 }
 
-export async function updateProductApi(id, updates) {
-  const res = await axios.put(`${API_BASE}/inventory/v1/products/${id}`, updates, { headers: defaultHeaders });
-  return res.data;
+/**
+ * -----------------------------------------------------
+ * Update product
+ * -----------------------------------------------------
+ */
+export async function updateProduct(id, updates) {
+  if (!id) throw new Error("Product ID is required");
+
+  const data = await apiClient.put(`${INVENTORY_BASE}/products/${id}`, updates);
+
+  apiClient.clearCache("/inventory");
+  return data;
 }
 
-export async function deleteProductApi(id) {
-  const res = await axios.delete(`${API_BASE}/inventory/v1/products/${id}`, { headers: defaultHeaders });
-  return res.data;
+/**
+ * -----------------------------------------------------
+ * Delete product
+ * -----------------------------------------------------
+ */
+export async function deleteProduct(id) {
+  if (!id) throw new Error("Product ID is required");
+
+  const data = await apiClient.delete(`${INVENTORY_BASE}/products/${id}`);
+
+  apiClient.clearCache("/inventory");
+  return data;
 }
 
-export async function updateStockApi(id, stockData) {
-  const res = await axios.patch(`${API_BASE}/inventory/v1/products/${id}/stock`, stockData, { headers: defaultHeaders });
-  return res.data;
+/**
+ * -----------------------------------------------------
+ * Update stock
+ * -----------------------------------------------------
+ */
+export async function updateStock(id, stockData) {
+  if (!id) throw new Error("Product ID is required");
+
+  const data = await apiClient.patch(
+    `${INVENTORY_BASE}/products/${id}/stock`,
+    stockData
+  );
+
+  apiClient.clearCache("/inventory");
+  return data;
 }
 
-export async function searchProductsApi(query) {
-  const res = await axios.get(`${API_BASE}/inventory/v1/products/search`, { params: { q: query }, headers: defaultHeaders });
-  return res.data;
+/**
+ * -----------------------------------------------------
+ * Search products (real-time)
+ * -----------------------------------------------------
+ */
+export async function searchProducts(query) {
+  if (!query) return [];
+
+  return apiClient.get(`${INVENTORY_BASE}/products/search`, {
+    params: { q: query },
+
+    cache: { noStore: true },
+  });
 }
 
-export default {
+const productsService = {
   getProducts,
   getFeaturedProducts,
   getProductById,
-  createProductApi,
-  updateProductApi,
-  deleteProductApi,
-  updateStockApi,
-  searchProductsApi,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  updateStock,
+  searchProducts,
 };
+
+export default productsService;

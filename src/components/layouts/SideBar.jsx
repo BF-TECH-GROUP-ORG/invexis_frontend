@@ -421,7 +421,7 @@ export default function SideBar({
               {/* Modal Content */}
               <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slideUp max-h-[80vh] overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-orange-50 to-white">
+                <div className="flex items-center justify-between px-6 py-4 border-b bg-linear-to-r from-orange-50 to-white">
                   <h2 className="text-lg font-bold text-gray-800">
                     Management
                   </h2>

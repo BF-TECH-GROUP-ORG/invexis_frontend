@@ -526,7 +526,7 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#1976d2" }}>
-                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Branch Name</TableCell>
+                            <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Shop Name</TableCell>
                             <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Location</TableCell>
                             <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Created By</TableCell>
                             <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Capacity</TableCell>

@@ -16,8 +16,8 @@ export default function ErrorPage({
   const router = useRouter();
   const locale = useLocale();
 
-  const handleGoHome = () => {
-    router.push(`/${locale}/inventory/dashboard`);
+  const handleBack = () => {
+    router.back();
   };
 
   const handleRetry = () => {
@@ -97,10 +97,10 @@ export default function ErrorPage({
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
           <button
-            onClick={handleGoHome}
+            onClick={handleBack}
             className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Back to Home
+            Back
           </button>
 
           {showRetry && (
