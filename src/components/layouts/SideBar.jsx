@@ -207,7 +207,7 @@ const navItems = [
   },
 
   {
-    title: "Announcements",
+    title: "Notifications ",
     icon: <AlertCircle size={22} />,  
     path: "/inventory/announcements",
     roles: ["manager", "company_admin"],
