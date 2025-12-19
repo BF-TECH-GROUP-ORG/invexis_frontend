@@ -23,19 +23,13 @@ export default function Step6Specs({ formData, updateFormData }) {
   // Fetch hierarchy when categoryId changes
   useEffect(() => {
     const fetchHierarchy = async () => {
-      if (!formData.categoryId) return;
+      if (!formData.category.id) return;
 
-      // If we already have the parent name from Step 5, we might skip this if we trust it,
-      // but user explicitly asked to use the API for this form step.
       setLoading(true);
       try {
-        const response = await getCategoryWithParent(formData.categoryId);
-        const data = response.data || response; // Handle axios response structure
+        const response = await getCategoryWithParent(formData.category.id);
+        const data = response.data || response;
         setHierarchyData(data);
-
-        // Determine the category to use for specs lookup.
-        // Usually specs are defined at Level 2 (Subcategory) or Level 1 (Root).
-        // Example: "Electronics" (Level 1) or "Laptops" (Level 2).
 
         let targetCategoryName = null;
         if (data.level2Parent) {
@@ -44,12 +38,11 @@ export default function Step6Specs({ formData, updateFormData }) {
           targetCategoryName = data.level1GrandParent.name;
         }
 
-        // Update formData to persist this knowledge
         if (
           targetCategoryName &&
-          targetCategoryName !== formData.parentCategoryName
+          targetCategoryName !== formData.specsCategory
         ) {
-          updateFormData({ parentCategoryName: targetCategoryName });
+          updateFormData({ specsCategory: targetCategoryName });
         }
       } catch (error) {
         console.error("Failed to fetch category hierarchy:", error);
@@ -59,21 +52,21 @@ export default function Step6Specs({ formData, updateFormData }) {
     };
 
     fetchHierarchy();
-  }, [formData.categoryId]);
+  }, [formData.category.id]);
 
   // Find the specs configuration based on parent category name
   const specsConfig = useMemo(() => {
-    if (!formData.parentCategoryName) return null;
+    if (!formData.specsCategory) return null;
 
     return PRODUCT_SPECS.find(
-      (spec) => spec.categoryName === formData.parentCategoryName
+      (spec) => spec.categoryName === formData.specsCategory
     );
-  }, [formData.parentCategoryName]);
+  }, [formData.specsCategory]);
 
   const handleSpecChange = (key, value) => {
     updateFormData({
-      specs: {
-        ...formData.specs,
+      specifications: {
+        ...formData.specifications,
         [key]: value,
       },
     });
@@ -89,7 +82,7 @@ export default function Step6Specs({ formData, updateFormData }) {
   }
 
   // If no category selected or no specs config found
-  if (!formData.categoryId) {
+  if (!formData.category.id) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
         <svg
@@ -136,8 +129,8 @@ export default function Step6Specs({ formData, updateFormData }) {
           No Specifications Required
         </h3>
         <p className="text-gray-600">
-          This category ({formData.parentCategoryName || "Unknown"}) does not
-          have specific specifications to fill
+          This category ({formData.specsCategory || "Unknown"}) does not have
+          specific specifications to fill
         </p>
       </div>
     );
@@ -151,7 +144,7 @@ export default function Step6Specs({ formData, updateFormData }) {
         </h2>
         <p className="text-gray-600">
           Enter detailed specifications for{" "}
-          <span className="font-semibold">{formData.parentCategoryName}</span>
+          <span className="font-semibold">{formData.specsCategory}</span>
         </p>
       </div>
 
@@ -178,7 +171,7 @@ export default function Step6Specs({ formData, updateFormData }) {
               <DynamicSpecField
                 key={spec.key}
                 spec={{ ...spec, required: true }}
-                value={formData.specs[spec.key]}
+                value={formData.specifications[spec.key]}
                 onChange={handleSpecChange}
               />
             ))}
@@ -221,7 +214,7 @@ export default function Step6Specs({ formData, updateFormData }) {
                 <DynamicSpecField
                   key={spec.key}
                   spec={spec}
-                  value={formData.specs[spec.key]}
+                  value={formData.specifications[spec.key]}
                   onChange={handleSpecChange}
                 />
               ))}
@@ -236,8 +229,8 @@ export default function Step6Specs({ formData, updateFormData }) {
           Specifications Summary
         </h4>
         <p className="text-sm text-gray-600">
-          {Object.keys(formData.specs).length} specification
-          {Object.keys(formData.specs).length !== 1 ? "s" : ""} added
+          {Object.keys(formData.specifications).length} specification
+          {Object.keys(formData.specifications).length !== 1 ? "s" : ""} added
         </p>
       </div>
     </div>

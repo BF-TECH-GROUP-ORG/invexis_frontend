@@ -84,7 +84,7 @@ const InventoryMovementSection = ({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={data}
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+            margin={{ top: 20, right: 20, bottom: 30, left: 20 }}
           >
             <defs>
               <pattern

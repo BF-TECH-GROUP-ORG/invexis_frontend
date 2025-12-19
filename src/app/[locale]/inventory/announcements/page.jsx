@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import announcementService from '@/services/announcementService';
@@ -11,18 +12,24 @@ import {
     Inbox,
     Tag,
     Users,
-    Info,
+    RefreshCw,
     CheckSquare,
     Archive,
     Clock
 } from 'lucide-react';
+import { Package, Receipt, AlertTriangle, DollarSign } from 'lucide-react';
+import PaymentsCustomersIcon from '@/components/announcements/PaymentsCustomersIcon';
 import { toast } from 'react-hot-toast';
+
+// using shared PaymentsCustomersIcon component
 
 const TABS = [
     { id: 'primary', label: 'General', icon: Inbox, color: 'text-orange-600', border: 'border-orange-500' },
-    { id: 'updates', label: 'Updates', icon: Info, color: 'text-blue-600', border: 'border-blue-500' },
-    { id: 'promotions', label: 'Promotions', icon: Tag, color: 'text-green-600', border: 'border-green-500' },
-    { id: 'social', label: 'Social', icon: Users, color: 'text-purple-600', border: 'border-purple-500' }
+    { id: 'updates', label: 'Inventory', icon: Package, color: 'text-orange-600', border: 'border-orange-500' },
+    { id: 'promotions', label: 'Sales', icon: Receipt, color: 'text-green-600', border: 'border-green-500' },
+    { id: 'social', label: 'Payments & Customers', icon: PaymentsCustomersIcon, color: 'text-purple-600', border: 'border-purple-500' },
+    { id: 'debts', label: 'Debts', icon: DollarSign, color: 'text-red-600', border: 'border-red-500' },
+    { id: 'other', label: 'Other', icon: AlertTriangle, color: 'text-gray-600', border: 'border-gray-400' }
 ];
 
 export default function AnnouncementsPage() {
@@ -35,24 +42,21 @@ export default function AnnouncementsPage() {
     const [snoozedCount, setSnoozedCount] = useState(0);
     const [readCount, setReadCount] = useState(0);
 
+    const { data: session } = useSession();
+
     // Subscribe to service
     useEffect(() => {
-        // 1. Connect
-        // TODO: Get real token from auth
-        announcementService.connect('mock-token');
+        // 1. Connect using session access token (if available)
+        const token = session?.accessToken ?? null;
+        announcementService.connect(token);
 
         // 2. Initial Fetch from local state or API
         loadAnnouncements();
 
         // 3. Listen for real-time events (service now normalizes categories)
         const unsubNew = announcementService.on('new', (item) => {
-            // Only add if it matches current tab or is critical
-            // Ideally, we add to state and let UI filter, but for simple list:
-            // We'll just re-fetch or prepend
             setAnnouncements(prev => [item, ...prev]);
             toast('New Announcement: ' + (item.title || 'Update'), { icon: '🔔' });
-            // new items are unread by default
-            setReadCount(prev => prev);
         });
 
         const unsubUpdate = announcementService.on('update', (updatedItem) => {
@@ -69,7 +73,7 @@ export default function AnnouncementsPage() {
             unsubDelete();
             announcementService.disconnect();
         };
-    }, []);
+    }, [session]);
 
     const loadAnnouncements = async () => {
         setIsLoading(true);
@@ -215,8 +219,14 @@ export default function AnnouncementsPage() {
                                     }
                 `}
                             >
-                                <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-gray-400'}`} />
-                                {tab.label}
+                                {/* Icon may be a React component (lucide) or our composite PaymentsCustomersIcon */}
+                                {tab.id === 'social' ? (
+                                    // Render only the composite icon here; render the text label once below
+                                    <Icon size={22} className={`${isActive ? tab.color : 'text-gray-400'}`} />
+                                ) : (
+                                    <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-gray-400'}`} />
+                                )}
+                                <span className="ml-1 whitespace-nowrap">{tab.label}</span>
                                 {count > 0 && (
                                     <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-gray-100 text-gray-900' : 'bg-orange-100 text-orange-700'}`}>
                                         {count}

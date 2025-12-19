@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchData, archiveDocument, trashDocument } from '@/features/documents/documentsSlice';
 import FolderNavigation from '@/components/documents/FolderNavigation';
 import PreviewPanel from '@/components/documents/PreviewPanel';
-import { Search } from 'lucide-react';
+import { Search, Menu } from 'lucide-react';
 
 // Explorer Components
 import YearGrid from '@/components/documents/explorer/YearGrid';
@@ -27,6 +27,7 @@ export default function DocumentsPage() {
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -138,6 +139,14 @@ export default function DocumentsPage() {
           {/* Top Bar / Breadcrumb / Simulator */}
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <div className="flex items-center gap-2 text-sm text-gray-600">
+              {/* Mobile: sidebar toggle */}
+              <button
+                onClick={() => setShowSidebar(true)}
+                className="md:hidden p-2 rounded-md hover:bg-gray-100/50"
+                aria-label="Open folders"
+              >
+                <Menu size={18} className="text-gray-700" />
+              </button>
               <span className="font-bold text-gray-900 cursor-pointer hover:text-orange-600" onClick={() => setDrillState({ ...drillState, year: null, month: null })}>
                 {drillState.category}
               </span>
@@ -154,7 +163,7 @@ export default function DocumentsPage() {
                 </>
               )}
             </div>
-            <div className="relative">
+            <div className="relative w-full md:w-auto">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search size={16} className="text-gray-400" />
               </div>
@@ -163,7 +172,7 @@ export default function DocumentsPage() {
                 placeholder="Search documents..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
+                className="w-full md:w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
               />
             </div>
           </div>
@@ -237,15 +246,26 @@ export default function DocumentsPage() {
 
         </div>
 
-        {/* Right Pane: Folder Navigation */}
-        <div className="border-l border-gray-200 bg-white flex-shrink-0 transition-all duration-300">
+        {/* Right Pane: Folder Navigation (desktop) */}
+        <div className="hidden md:block border-l border-gray-200 bg-white flex-shrink-0 transition-all duration-300 w-80">
           <FolderNavigation onSelect={handleCategorySelect} activeCategory={drillState.category} />
         </div>
+
+        {/* Mobile Slide-over Sidebar */}
+        {showSidebar && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowSidebar(false)} />
+            <div className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-lg p-4 overflow-y-auto">
+              <button className="mb-4 text-sm text-gray-500" onClick={() => setShowSidebar(false)}>Close</button>
+              <FolderNavigation onSelect={(cat) => { handleCategorySelect(cat); setShowSidebar(false); }} activeCategory={drillState.category} />
+            </div>
+          </div>
+        )}
 
         {/* Document Viewer Overlay */}
         {selectedDoc && (
           <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex justify-end">
-            <div className="w-[1000px] h-full shadow-2xl bg-white border-l border-gray-200">
+            <div className="w-full md:w-[1000px] h-full shadow-2xl bg-white border-l border-gray-200">
               <PreviewPanel
                 document={selectedDoc}
                 onClose={() => setSelectedDoc(null)}

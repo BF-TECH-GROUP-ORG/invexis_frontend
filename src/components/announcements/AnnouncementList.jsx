@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Receipt, CreditCard, Package, RefreshCw, AlertTriangle, Target, User, Settings, Archive, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Receipt, CreditCard, Package, RefreshCw, AlertTriangle, Target, User, Settings, Archive, Trash2, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import PaymentsCustomersIcon from '@/components/announcements/PaymentsCustomersIcon';
 import { formatDistanceToNow } from 'date-fns';
 import {
     Box,
@@ -23,11 +24,38 @@ const TypeIcon = ({ type }) => {
         case 'sale': return <Receipt className="w-4 h-4 text-green-600 inline-block" />;
         case 'payment': return <CreditCard className="w-4 h-4 text-blue-600 inline-block" />;
         case 'inventory': return <Package className="w-4 h-4 text-orange-600 inline-block" />;
-        case 'update': return <RefreshCw className="w-4 h-4 text-gray-600 inline-block" />;
+        // map `update` to a refresh/update icon for clarity
+        case 'update': return <RefreshCw className="w-4 h-4 text-blue-600 inline-block" />;
         case 'alert': return <AlertTriangle className="w-4 h-4 text-red-600 inline-block" />;
-        case 'promotion': return <Target className="w-4 h-4 text-purple-600 inline-block" />;
+        // map `promotion` to sales icon
+        case 'promotion': return <Receipt className="w-4 h-4 text-purple-600 inline-block" />;
+        // social should show payments + customers icons with subtle backgrounds for clarity
+        case 'social': return <PaymentsCustomersIcon size={18} />;
         case 'user': return <User className="w-4 h-4 text-indigo-600 inline-block" />;
+        // debt and other fallbacks
+        case 'debt': return (
+            <span className="p-2 rounded-full bg-red-50 inline-flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-red-600" />
+            </span>
+        );
+        case 'other': return <AlertTriangle className="w-4 h-4 text-yellow-600 inline-block" />;
         default: return <Settings className="w-4 h-4 text-gray-500 inline-block" />;
+    }
+};
+
+const typeLabel = (type) => {
+    switch (type) {
+        case 'sale': return 'Sales';
+        case 'payment': return 'Payments';
+        case 'inventory': return 'Inventory';
+        case 'update': return 'Inventory';
+        case 'alert': return 'Alerts';
+        case 'promotion': return 'Sales';
+        case 'social': return 'Payments / Customers';
+        case 'user': return 'Customers';
+        case 'debt': return 'Debt';
+        case 'other': return 'Other';
+        default: return String(type || '').replace(/(^|_)([a-z])/g, (_, __, c) => c ? c.toUpperCase() : '').replace(/_/g, ' ') || 'General';
     }
 };
 
@@ -139,7 +167,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
                                     </TableCell>
 
                                     <TableCell sx={{ px: 2 }}>
-                                        <span className="text-sm text-gray-600">{row.type}</span>
+                                        <span className="text-sm text-gray-600">{typeLabel(row.type)}</span>
                                     </TableCell>
 
                                     <TableCell sx={{ px: 2 }}>

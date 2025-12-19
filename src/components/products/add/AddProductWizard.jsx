@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
-import { useSnackbar } from "@/contexts/SnackbarContext";
+import { notificationBus } from "@/lib/notificationBus";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
 import StepShop from "./steps/StepShop";
@@ -20,11 +20,15 @@ import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
 import { Loader2 } from "lucide-react";
 
-export default function AddProductWizard({ companyId, shopId: propShopId }) {
+export default function AddProductWizard({
+  companyId,
+  shopId: propShopId,
+  initialData = null,
+  isEdit = false,
+}) {
   const router = useRouter();
   const params = useParams();
   const locale = params?.locale || "en";
-  const { showSnackbar } = useSnackbar();
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [showReview, setShowReview] = useState(false);
@@ -47,11 +51,8 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
     brand: "",
     manufacturer: "",
     tags: [],
-    condition: "new",
-    availability: "in_stock",
-    visibility: "public",
-    isFeatured: false,
-    status: "active",
+    supplierName: "",
+    sortOrder: 1,
 
     // Step 2: Media
     images: [],
@@ -63,30 +64,38 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       basePrice: 0,
       salePrice: null,
       listPrice: 0,
-      costPrice: 0,
-      currency: "USD",
+      cost: 0,
+      currency: "RWF",
       priceTiers: [],
     },
 
     // Step 4: Inventory
     inventory: {
-      quantity: 0,
-      minStockLevel: 0,
-      maxStockLevel: 0,
       trackQuantity: true,
+      stockQty: 0,
+      lowStockThreshold: 0,
+      minReorderQty: 0,
       allowBackorder: false,
+      safetyStock: 0,
+    },
+    identifiers: {
       sku: "",
       barcode: "",
+      scanId: "",
+      asin: "",
+      upc: "",
     },
-    supplierName: "",
 
     // Step 5: Category
-    categoryId: "",
-    categoryName: "",
-    parentCategoryName: "",
+    category: {
+      id: "",
+      name: "",
+    },
+    categoryId: "", // Helper for lookup
 
     // Step 6: Specs
-    specs: {},
+    specifications: {},
+    specsCategory: null,
 
     // Step 7: Variations
     variants: [],
@@ -99,30 +108,123 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       keywords: [],
       slug: "",
     },
+
+    // Status & Flags
+    condition: "new",
+    availability: "in_stock",
+    status: "active",
+    visibility: "public",
+    isFeatured: false,
+
+    // Deprecated structure wrapper for compatibility if needed, but we should use flat ones
+    // We'll keep a minimal status object for components that still expect it
+    _oldStatus: {
+      active: true,
+      visible: true,
+      availability: "in_stock",
+      condition: "new",
+      featured: false,
+    },
   });
 
-  // Effect to handle worker shop assignment
+  // Effect to handle worker shop assignment or initialData
   useEffect(() => {
-    if (
+    if (initialData) {
+      // Handle Specs conversion (Array back to Object for UI)
+      let initialSpecs = initialData.specifications || {};
+      if (Array.isArray(initialData.specs)) {
+        initialSpecs = initialData.specs.reduce((acc, curr) => {
+          if (curr.name) acc[curr.name] = curr.value;
+          return acc;
+        }, {});
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...initialData,
+        // Map nested fields if they exist in initialData
+        pricing: {
+          ...prev.pricing,
+          ...(initialData.pricing || {}),
+        },
+        inventory: {
+          ...prev.inventory,
+          ...(initialData.inventory || initialData.stock || {}),
+          // Handle field renaming from legacy 'stock' if needed
+          stockQty:
+            initialData.inventory?.stockQty ??
+            initialData.stock?.total ??
+            prev.inventory.stockQty,
+          lowStockThreshold:
+            initialData.inventory?.lowStockThreshold ??
+            initialData.stock?.lowStockThreshold ??
+            prev.inventory.lowStockThreshold,
+        },
+        identifiers: {
+          ...prev.identifiers,
+          ...(initialData.identifiers || {}),
+        },
+        category: initialData.category || {
+          id: initialData.categoryId || "",
+          name: "",
+        },
+        specifications: initialSpecs,
+        status: initialData.status || prev.status,
+        condition:
+          initialData.condition ||
+          initialData.status?.condition ||
+          prev.condition,
+        availability:
+          initialData.availability ||
+          initialData.status?.availability ||
+          prev.availability,
+        visibility:
+          initialData.visibility ||
+          (initialData.status?.visible === false ? "hidden" : "public") ||
+          prev.visibility,
+        isFeatured:
+          initialData.isFeatured ??
+          initialData.status?.featured ??
+          prev.isFeatured,
+        // Handle weirdly stringified tags in legacy data
+        tags: Array.isArray(initialData.tags)
+          ? initialData.tags.flatMap((t) => {
+              if (typeof t === "string" && t.startsWith("[")) {
+                try {
+                  return JSON.parse(t);
+                } catch (e) {
+                  return t;
+                }
+              }
+              return t;
+            })
+          : [],
+        // Invert variations/variants mapping for consistency with backend logic
+        // Backend 'variations' contains attribute definitions -> formData.variants
+        // Backend 'variants' contains generated combinations -> formData.variations
+        variants: initialData.variations || prev.variants || [],
+        variations: initialData.variants || prev.variations || [],
+        media: initialData.media || prev.media,
+        images: initialData.media?.images || initialData.images || [],
+        videoUrls: (initialData.media?.videos || [])
+          .filter((v) => v.type === "url")
+          .map((v) => v.url),
+      }));
+    } else if (
       status === "authenticated" &&
       isWorker &&
       session?.user?.shops?.length > 0
     ) {
-      // Worker has shop assigned in profile
-      const workerShopId = session.user.shops[0]; // Assuming first shop
-      // If shopId is an object or string, handle accordingly.
-      // Based on request, it looks like an array of strings (Ids).
-      // If it was populated object, we'd need ._id
+      const workerShopId = session.user.shops[0];
       const actualShopId =
         typeof workerShopId === "object" ? workerShopId._id : workerShopId;
 
       setFormData((prev) => ({
         ...prev,
         shopId: actualShopId,
-        // shopName: ... (we might not have name here easily without fetching, but that's ok for worker flow as it's hidden)
       }));
     }
-  }, [status, isWorker, session]);
+  }, [status, isWorker, session, initialData]);
 
   // Define steps dynamically
   const steps = useMemo(() => {
@@ -172,9 +274,9 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       case "pricing":
         return formData.pricing.basePrice > 0;
       case "inventory":
-        return formData.inventory.quantity >= 0;
+        return formData.inventory.stockQty >= 0;
       case "category":
-        return formData.categoryId !== "";
+        return formData.category.id !== "";
       case "specs":
         return true;
       case "variations":
@@ -195,7 +297,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
 
   const handleNext = () => {
     if (!validateStep(currentStep)) {
-      showSnackbar("Please fill in all required fields", "error");
+      notificationBus.error("Please fill in all required fields");
       return;
     }
 
@@ -215,124 +317,95 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
   };
 
   const preparePayload = () => {
-    // format images with metadata
-    const formattedImages = formData.images.map((img, index) => ({
-      url: img.url,
-      alt: `${formData.name} - View ${index + 1}`,
-      isPrimary: index === 0,
-      sortOrder: index + 1,
-      file: img.file,
-      _id: img._id, // Persist ID if exists
-    }));
+    // Transform specifications object to array of {name, value}
+    const specsArray = Object.entries(formData.specifications || {}).map(
+      ([name, value]) => ({
+        name,
+        value,
+      })
+    );
 
-    const primaryImage =
-      formattedImages.find((img) => img.isPrimary) ||
-      formattedImages[0] ||
-      null;
+    // Format images and STRIP base64 URLs if they have a binary file (Performance Fix)
+    const formattedImages = formData.images.map((img, index) => {
+      const isBase64 =
+        typeof img.url === "string" && img.url.startsWith("data:");
+      return {
+        // If it's a new upload with a binary file, don't send the base64 URL in JSON
+        // The backend will receive the actual file and generate its own URL
+        url: isBase64 && img.file ? "" : img.url,
+        alt: img.alt || `${formData.name} - Image ${index + 1}`,
+        isPrimary: index === 0,
+        sortOrder: index + 1,
+      };
+    });
 
-    return {
+    const payload = {
       companyId: formData.companyId,
       shopId: formData.shopId,
-
-      // Core Info
       name: formData.name,
       description: formData.description,
       brand: formData.brand,
       manufacturer: formData.manufacturer,
-      supplierName: formData.supplierName || formData.manufacturer,
+      supplierName: formData.supplierName || formData.brand,
       tags: formData.tags,
-      slug:
-        formData.seo?.slug ||
-        formData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      categoryId: formData.category.id,
+      condition: formData.condition,
+      availability: formData.availability,
+      status: formData.status,
+      visibility: formData.visibility,
+      isFeatured: formData.isFeatured,
+      sortOrder: formData.sortOrder,
+      costPrice: formData.pricing.cost,
 
-      // Categorization
-      category: {
-        id: formData.categoryId,
-        name: formData.categoryName,
-        // Backend usually handles population of slug/level/parent
-      },
-      categoryId: formData.categoryId, // Keep for backward compatibility if needed
-
-      // Status & Visibility
-      status: {
-        active: formData.status === "active",
-        visible: formData.visibility === "public",
-        featured: formData.isFeatured,
-        availability: formData.availability,
-        condition: formData.condition,
-      },
-      sortOrder: 0,
-
-      // Pricing
       pricing: {
         basePrice: formData.pricing.basePrice,
         salePrice: formData.pricing.salePrice,
-        listPrice: formData.pricing.listPrice || formData.pricing.basePrice,
-        cost: formData.pricing.costPrice,
+        listPrice: formData.pricing.listPrice,
+        cost: formData.pricing.cost,
         currency: formData.pricing.currency,
         priceTiers: formData.pricing.priceTiers || [],
-        profitRank: "normal", // Default
       },
 
-      // Stock & Inventory
-      stock: {
-        total: formData.inventory.quantity,
-        available: formData.inventory.quantity,
-        reserved: 0,
-        inStock: formData.inventory.quantity > 0,
-        isLowStock:
-          formData.inventory.quantity <= formData.inventory.minStockLevel,
-        lowStockThreshold: formData.inventory.minStockLevel,
-        trackQuantity: formData.inventory.trackQuantity !== false,
-        allowBackorder: formData.inventory.allowBackorder || false,
-        details: [], // Populated by backend usually
+      inventory: {
+        trackQuantity: formData.inventory.trackQuantity,
+        stockQty: formData.inventory.stockQty,
+        lowStockThreshold: formData.inventory.lowStockThreshold,
+        minReorderQty: formData.inventory.minReorderQty,
+        allowBackorder: formData.inventory.allowBackorder,
+        safetyStock: formData.inventory.safetyStock,
       },
 
-      // Identifiers
-      identifiers: {
-        sku: formData.inventory.sku,
-        barcode: formData.inventory.barcode,
-        // Backend handles others like qrCode, asin, upc if not provided
-      },
+      images: formattedImages,
+      videoUrls: formData.videoUrls,
 
-      // Media
-      media: {
-        images: formattedImages,
-        videos: formData.videoUrls
-          .map((url) => ({ type: "url", url }))
-          .concat(
-            formData.videoFiles.map((v) => ({ type: "file", file: v.file }))
-          ),
-        primaryImage: primaryImage,
-      },
-      // Keep root media arrays for FormData handling helper if needed,
-      // but backend should prioritize 'media' object if structured that way.
-      // However, for FormData logic below, we might need to adjust.
-      // Let's keep the existing logic for keys but map them to the new structure.
+      specs: specsArray,
 
-      specifications: formData.specs,
-      specsCategory: formData.parentCategoryName || null,
-
-      variants: formData.variants || [],
-      variations: formData.variations || [],
-
-      seo: formData.seo,
-
-      sales: {
-        totalSold: 0,
-        revenue: 0,
-      },
-
-      // Codes placeholder
-      codes: {
-        // Backend generates these
-      },
-
-      // Metadata placeholder
-      metadata: {
-        // Backend generates these
+      seo: {
+        metaTitle: formData.seo.metaTitle,
+        metaDescription: formData.seo.metaDescription,
+        keywords: formData.seo.keywords,
       },
     };
+
+    // Add optional fields only if they have data (Postman alignment)
+    const hasIdentifiers = Object.values(formData.identifiers || {}).some(
+      (v) => v !== ""
+    );
+    if (hasIdentifiers) {
+      payload.identifiers = formData.identifiers;
+    }
+
+    if (formData.variants && formData.variants.length > 0) {
+      // Backend 'variations' contains attribute definitions (formData.variants)
+      payload.variations = formData.variants;
+    }
+
+    if (formData.variations && formData.variations.length > 0) {
+      // Backend 'variants' contains generated combinations (formData.variations)
+      payload.variants = formData.variations;
+    }
+
+    return payload;
   };
 
   const handleSubmit = async (e) => {
@@ -347,105 +420,31 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       let isMultipart = false;
 
       // Check if we have files to upload (images or videos)
-      // Check if we have files to upload (images or videos)
-      // Note: We need to check the deeply nested structure now
       const hasFiles =
-        (rawPayload.media.images &&
-          rawPayload.media.images.some((img) => img.file)) ||
-        (rawPayload.media.videos &&
-          rawPayload.media.videos.some((v) => v.file));
+        formData.images?.some((img) => img.file) ||
+        formData.videoFiles?.some((v) => v.file);
 
       if (hasFiles) {
         if (process.env.NODE_ENV === "development") {
-          console.log("Constructing Multipart FormData payload...");
+          console.log("Constructing Optimized Multipart FormData payload...");
         }
         isMultipart = true;
         const fd = new FormData();
 
-        // Append all fields to FormData
-        // Append all fields to FormData using a recursive helper or manual mapping
-        // Since the structure is now more complex, we need a smarter appender
-        const appendToFormData = (data, rootKey) => {
-          if (data instanceof File) {
-            fd.append(rootKey, data);
-          } else if (Array.isArray(data)) {
-            data.forEach((item, index) => {
-              // Special handling for file arrays if needed, but generic recursion works
-              appendToFormData(item, `${rootKey}[${index}]`);
-            });
-          } else if (typeof data === "object" && data !== null) {
-            // Check if it's a file wrapper from our preparing
-            if (data.file && data.file instanceof File) {
-              // It's an image/video object with a file
-              // We might need to send the file separately or as part of the structure?
-              // Usually FormData wants files in specific keys like "images" or "videos"
-              // Adjust based on Backend Multer setup.
-              // Assuming backend accepts 'images' and 'videos' as file arrays and others as text fields.
-              // BUT, if we change structure, we must ensure backend parses `media[images][0][url]` etc.
+        // Append the entire optimized metadata as a single JSON field
+        // rawPayload already has base64 URLs stripped where binary files exist
+        fd.append("productData", JSON.stringify(rawPayload));
 
-              // STRATEGY:
-              // 1. Append files to specific keys ('images', 'videos') for Multer
-              // 2. Keep the object structure in the JSON part, but maybe nullify the 'file' property to avoid circular/hugeJSON
+        // Append binary files
+        formData.images.forEach((img) => {
+          if (img.file) fd.append("images", img.file);
+        });
 
-              if (rootKey.includes("images")) {
-                fd.append("images", data.file);
-              } else if (rootKey.includes("videos")) {
-                fd.append("videos", data.file);
-              }
-
-              // We also append the metadata. recursion will handle properties of data
-              Object.keys(data).forEach((key) => {
-                if (key !== "file") {
-                  appendToFormData(data[key], `${rootKey}[${key}]`);
-                }
-              });
-            } else {
-              Object.keys(data).forEach((key) => {
-                appendToFormData(data[key], `${rootKey}[${key}]`);
-              });
-            }
-          } else if (data !== undefined && data !== null) {
-            fd.append(rootKey, data);
-          }
-        };
-
-        // We can use the generic appender, but we need to match backend expectation for Files.
-        // If Backend expects "images" field for files:
-        if (rawPayload.media && rawPayload.media.images) {
-          rawPayload.media.images.forEach((img) => {
-            if (img.file) fd.append("images", img.file);
-          });
-        }
-        if (rawPayload.media && rawPayload.media.videos) {
-          rawPayload.media.videos.forEach((v) => {
+        if (formData.videoFiles) {
+          formData.videoFiles.forEach((v) => {
             if (v.file) fd.append("videos", v.file);
           });
         }
-
-        // For the rest of the body (text fields), we can stringify the big objects or flat append
-        // Given the complex structure, JSON stringification of the body might be safer
-        // IF the backend parses a 'data' field or similar.
-        // But traditionally fields are flattened.
-        // Let's Flatten excluding files.
-
-        Object.keys(rawPayload).forEach((key) => {
-          if (key === "media") {
-            // Stringify media metadata (excluding file objects to save space/errors)
-            const mediaClean = {
-              ...rawPayload.media,
-              images: rawPayload.media.images.map(({ file, ...rest }) => rest),
-              videos: rawPayload.media.videos.map(({ file, ...rest }) => rest),
-            };
-            fd.append("media", JSON.stringify(mediaClean));
-          } else if (
-            typeof rawPayload[key] === "object" &&
-            rawPayload[key] !== null
-          ) {
-            fd.append(key, JSON.stringify(rawPayload[key]));
-          } else {
-            fd.append(key, rawPayload[key]);
-          }
-        });
 
         finalPayload = fd;
       }
@@ -460,23 +459,30 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       }
 
       // Call the products API
-      const { createProduct } = await import("@/services/productsService");
+      const { createProduct, updateProduct } = await import(
+        "@/services/productsService"
+      );
 
-      // If multipart, we might need to rely on axios/client to set Content-Type automatically.
-      // However, our apiClient/axios instance might force application/json.
-      // We'll pass the payload. If productsService uses apiClient, we hope apiClient respects FormData.
-
-      const response = await createProduct(finalPayload);
+      let response;
+      if (isEdit && initialData?._id) {
+        response = await updateProduct(initialData._id, finalPayload);
+      } else {
+        response = await createProduct(finalPayload);
+      }
 
       // toast.success("Product created successfully!"); // Handled by modal now
       setShowSuccessModal(true);
-      showSnackbar("Product created successfully!", "success");
+      notificationBus.success(
+        isEdit
+          ? "Product updated successfully!"
+          : "Product created successfully!"
+      );
 
       // Optional: Reset form or redirect after modal close
       // router.push(`/${locale}/inventory/products`);
     } catch (error) {
       console.error("Error creating product:", error);
-      showSnackbar(error.message || "Failed to create product", "error");
+      notificationBus.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
@@ -549,6 +555,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       return (
         <ProductReview
           formData={formData}
+          steps={steps}
           onEdit={(stepNumber) => {
             setShowReview(false);
             setCurrentStep(stepNumber);
@@ -589,10 +596,12 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
             {/* Header */}
             <div className="border-b border-gray-200 p-6">
               <h1 className="text-2xl font-bold text-gray-900">
-                Add New Product
+                {isEdit ? "Edit Product" : "Add New Product"}
               </h1>
               <p className="text-gray-600 mt-1">
-                Fill in the product details step by step
+                {isEdit
+                  ? "Update the product details below"
+                  : "Fill in the product details step by step"}
               </p>
             </div>
 

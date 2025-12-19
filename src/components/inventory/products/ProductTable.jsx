@@ -126,6 +126,9 @@ export default function ProductTable({
                 Product Name
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Image
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 SKU
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
@@ -136,9 +139,6 @@ export default function ProductTable({
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 Supplier
-              </TableCell>
-              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Unit Price
               </TableCell>
               <TableCell
                 align="center"
@@ -204,7 +204,7 @@ export default function ProductTable({
                   ? Math.round(((basePrice - salePrice) / basePrice) * 100)
                   : 0;
 
-              // Calculate total value (price * stock)
+              // Calculate total value (effectivePrice * stock)
               const totalValue = effectivePrice * stock;
 
               return (
@@ -226,8 +226,21 @@ export default function ProductTable({
                   </TableCell>
 
                   <TableCell>
+                    <Box minWidth={0}>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="text.primary"
+                        noWrap
+                      >
+                        {name}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+
+                  <TableCell>
                     <Box display="flex" alignItems="center" gap={2}>
-                      <div className="relative w-10 h-10 flex-shrink-0">
+                      <div className="relative w-14 h-14 flex-shrink-0">
                         {product.media?.images?.[0]?.url ||
                         product.images?.[0]?.url ? (
                           <Avatar
@@ -237,32 +250,22 @@ export default function ProductTable({
                             }
                             alt={name}
                             variant="rounded"
-                            sx={{ width: 40, height: 40 }}
+                            sx={{ width: 56, height: 56 }}
                           />
                         ) : (
                           <Avatar
                             variant="rounded"
                             sx={{
-                              width: 40,
-                              height: 40,
+                              width: 56,
+                              height: 56,
                               bgcolor: "orange.50",
                               color: "orange.500",
                             }}
                           >
-                            <Package size={20} />
+                            <Package size={24} />
                           </Avatar>
                         )}
                       </div>
-                      <Box minWidth={0}>
-                        <Typography
-                          variant="body2"
-                          fontWeight={600}
-                          color="text.primary"
-                          noWrap
-                        >
-                          {name}
-                        </Typography>
-                      </Box>
                     </Box>
                   </TableCell>
 
@@ -294,24 +297,6 @@ export default function ProductTable({
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
                       {product.supplierName || product.manufacturer || "N/A"}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      color="text.primary"
-                    >
-                      {effectivePrice.toLocaleString("en-US", {
-                        style: "currency",
-                        currency:
-                          product.pricing?.currency ||
-                          product.pricingId?.currency ||
-                          "RWF",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}
                     </Typography>
                   </TableCell>
 

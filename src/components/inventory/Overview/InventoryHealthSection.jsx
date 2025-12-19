@@ -93,7 +93,7 @@ const InventoryHealthSection = () => {
           <BarChart
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            barSize={40} // Thicker bars
+            barSize={50} // Thicker bars
           >
             <defs>
               <pattern
@@ -107,8 +107,8 @@ const InventoryHealthSection = () => {
                   width="3"
                   height="6"
                   transform="translate(0,0)"
-                  fill="#111"
-                  opacity="0.05"
+                  fill="#3b82f6"
+                  opacity="0.15"
                 />
               </pattern>
             </defs>
@@ -137,11 +137,13 @@ const InventoryHealthSection = () => {
             />
             <Legend content={<ModernLegend />} />
 
-            <Bar dataKey="inStock" stackId="a" fill="#081422" name="In Stock">
-              {/* Optional: Add minimal radius to bottom for first item only? Recharts handles first/last radius in stack tricky. 
-                                 We'll just radius the specific parts or let it stack flat. 
-                                 Usually flat internal, round external. */}
-            </Bar>
+            <Bar
+              dataKey="inStock"
+              stackId="a"
+              fill="#3b82f6"
+              name="In Stock"
+              radius={[0, 0, 0, 0]}
+            />
             {/* Texture overlay for In Stock */}
             <Bar
               dataKey="inStock"
@@ -156,6 +158,7 @@ const InventoryHealthSection = () => {
                 zIndex: 10,
               }}
               barSize={40}
+              radius={[0, 0, 0, 0]}
             />
 
             <Bar
@@ -163,13 +166,14 @@ const InventoryHealthSection = () => {
               stackId="a"
               fill="#ea580c"
               name="Low Stock"
+              radius={[0, 0, 0, 0]}
             />
             <Bar
               dataKey="outOfStock"
               stackId="a"
               fill="#ef4444"
               name="Out of Stock"
-              radius={[16, 16, 0, 0]}
+              radius={[30, 30, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>

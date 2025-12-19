@@ -121,7 +121,7 @@ const InventoryInsightsSection = ({ financialData }) => {
       </div>
 
       {/* Profit & Cost Trend Panel */}
-      <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -151,7 +151,7 @@ const InventoryInsightsSection = ({ financialData }) => {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={financialData}
-              margin={{ top: 10, right: 10, bottom: 0, left: 0 }}
+              margin={{ top: 10, right: 10, bottom: 30, left: 0 }}
             >
               <defs>
                 <pattern
