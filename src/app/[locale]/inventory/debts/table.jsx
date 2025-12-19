@@ -32,8 +32,10 @@ import autoTable from "jspdf-autotable";
 
 import { useState, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { recordRepayment, markDebtAsPaid, cancelDebt } from "@/services/debts";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { recordRepayment, markDebtAsPaid, cancelDebt, getDebtHistory } from "@/services/debts";
+import { getAllShops } from "@/services/shopService";
+import { useSession } from "next-auth/react";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
@@ -61,6 +63,7 @@ const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, t }) => (
 // REPAYMENT DIALOG (Beautiful Popup WITH API INTEGRATION)
 // =======================================
 const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
+  const { data: session } = useSession();
   const [paymentMode, setPaymentMode] = useState("amount"); // "amount" or "phone"
   const [amount, setAmount] = useState("");
   const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
@@ -74,19 +77,14 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
         shopId: debt.shopId,
         debtId: debt._id,
         customer: {
-          id: debt.customer.id,
           name: debt.customer.name,
           phone: debt.customer.phone
         },
-        paymentId: crypto.randomUUID(), // Generate unique payment ID for idempotency
         amountPaid: parseInt(amount),
         paymentMethod: paymentMethod,
         paymentReference: `${paymentMethod}-${Date.now()}`,
         paidAt: new Date().toISOString(),
-        createdBy: {
-          id: "temp-user-id", // TODO: Get from user context
-          name: "POS User" // TODO: Get from user context
-        }
+        createdBy: session?.user?._id || "temp-user-id"
       };
 
       // Call the mutation with the payload
@@ -212,13 +210,27 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
 // ACTION MENU + REPAY DIALOG
 // =======================================
 const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt }) => {
+  const { data: session } = useSession();
   const [anchorEl, setAnchorEl] = useState(null);
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("debtsPage");
+  const queryClient = useQueryClient();
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [repayOpen, setRepayOpen] = useState(false);
   const [markPaidDialogOpen, setMarkPaidDialogOpen] = useState(false);
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  // Prefetch debt history on hover
+  const handlePrefetch = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["debtHistory", debt._id],
+      queryFn: () => getDebtHistory(companyId, debt._id),
+      staleTime: 60000,
+    });
+  };
 
   return (
     <>
@@ -227,7 +239,10 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-        <MenuItem onClick={() => { setAnchorEl(null); router.push(`/${locale}/inventory/debts/${debt._id}`); }}>
+        <MenuItem
+          onMouseEnter={handlePrefetch}
+          onClick={() => { setAnchorEl(null); router.push(`/${locale}/inventory/debts/${debt._id}`); }}
+        >
           <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
           <ListItemText>{t("actionView") || "View Details"}</ListItemText>
         </MenuItem>
@@ -275,7 +290,11 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
           <Button
             onClick={() => {
               setCancelDialogOpen(false);
-              onCancelDebt(debt._id);
+              onCancelDebt(debt._id, {
+                companyId: debt.companyId,
+                reason: "customer_requested",
+                performedBy: session?.user?._id || "temp-user-id"
+              });
             }}
             variant="contained"
             color="error"
@@ -313,7 +332,12 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
           <Button
             onClick={() => {
               setMarkPaidDialogOpen(false);
-              onMarkAsPaid(debt._id);
+              onMarkAsPaid(debt._id, {
+                companyId: debt.companyId,
+                paymentMethod: "CASH",
+                paymentReference: `MARK-PAID-${Date.now()}`,
+                createdBy: session?.user?._id || "temp-user-id"
+              });
             }}
             variant="contained"
             color="success"
@@ -339,9 +363,28 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
 // MAIN TABLE COMPONENT
 // =======================================
 const DebtsTable = ({ debts = [] }) => {
+  const { data: session } = useSession();
   const tTable = useTranslations("Debtstable");
   const tPage = useTranslations("debtsPage");
   const queryClient = useQueryClient();
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  // Fetch shops to resolve names
+  const { data: shops = [] } = useQuery({
+    queryKey: ["shops", companyId],
+    queryFn: () => getAllShops(companyId),
+    enabled: !!companyId
+  });
+
+  const shopMap = useMemo(() => {
+    const map = {};
+    shops.forEach(shop => {
+      map[shop._id || shop.id] = shop.name;
+    });
+    return map;
+  }, [shops]);
 
   const [search, setSearch] = useState("");
   const [filterAnchor, setFilterAnchor] = useState(null);
@@ -360,18 +403,43 @@ const DebtsTable = ({ debts = [] }) => {
     pendingPayload: null
   });
 
-  // Repayment mutation
+  // Repayment mutation with Optimistic Updates
   const repaymentMutation = useMutation({
     mutationFn: recordRepayment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["debts"]);
-      setSnackbar({
-        open: true,
-        message: "Payment recorded successfully!",
-        severity: "success"
+    onMutate: async (newRepayment) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
+
+      // Snapshot the previous value
+      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["debts", companyId], (old) => {
+        if (!old) return old;
+        const items = Array.isArray(old) ? old : (old.items || []);
+        const updatedItems = items.map((debt) => {
+          if (debt._id === newRepayment.debtId) {
+            const newBalance = debt.balance - newRepayment.amountPaid;
+            return {
+              ...debt,
+              balance: newBalance,
+              amountPaidNow: (debt.amountPaidNow || 0) + newRepayment.amountPaid,
+              status: newBalance <= 0 ? "PAID" : "PARTIALLY_PAID",
+            };
+          }
+          return debt;
+        });
+        return Array.isArray(old) ? updatedItems : { ...old, items: updatedItems };
       });
+
+      return { previousDebts };
     },
-    onError: (error, variables) => {
+    onError: (error, variables, context) => {
+      // Rollback to the previous value if mutation fails
+      if (context?.previousDebts) {
+        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+      }
+
       console.error("Repayment error:", error);
       const errorMessage = error.response?.data?.message ||
         error.message ||
@@ -382,6 +450,17 @@ const DebtsTable = ({ debts = [] }) => {
         message: errorMessage,
         error: error,
         pendingPayload: variables
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure sync with server
+      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+    },
+    onSuccess: () => {
+      setSnackbar({
+        open: true,
+        message: "Payment recorded successfully!",
+        severity: "success"
       });
     },
   });
@@ -397,18 +476,35 @@ const DebtsTable = ({ debts = [] }) => {
     }
   };
 
-  // Mark as Paid mutation
+  // Mark as Paid mutation with Optimistic Updates
   const markAsPaidMutation = useMutation({
-    mutationFn: markDebtAsPaid,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["debts"]);
-      setSnackbar({
-        open: true,
-        message: "Debt marked as paid successfully!",
-        severity: "success"
+    mutationFn: ({ debtId, payload }) => markDebtAsPaid(debtId, payload),
+    onMutate: async ({ debtId }) => {
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
+      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+
+      queryClient.setQueryData(["debts", companyId], (old) => {
+        if (!old) return old;
+        const items = Array.isArray(old) ? old : (old.items || []);
+        const updatedItems = items.map((debt) => {
+          if (debt._id === debtId) {
+            return {
+              ...debt,
+              balance: 0,
+              status: "PAID",
+            };
+          }
+          return debt;
+        });
+        return Array.isArray(old) ? updatedItems : { ...old, items: updatedItems };
       });
+
+      return { previousDebts };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      if (context?.previousDebts) {
+        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+      }
       console.error("Mark as paid error:", error);
       const errorMessage = error.response?.data?.message ||
         error.message ||
@@ -421,24 +517,50 @@ const DebtsTable = ({ debts = [] }) => {
         pendingPayload: null
       });
     },
-  });
-
-  const handleMarkAsPaid = async (debtId) => {
-    await markAsPaidMutation.mutateAsync(debtId);
-  };
-
-  // Cancel Debt mutation
-  const cancelDebtMutation = useMutation({
-    mutationFn: cancelDebt,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(["debts"]);
       setSnackbar({
         open: true,
-        message: "Debt cancelled successfully!",
+        message: "Debt marked as paid successfully!",
         severity: "success"
       });
     },
-    onError: (error) => {
+  });
+
+  const handleMarkAsPaid = async (debtId, payload) => {
+    await markAsPaidMutation.mutateAsync({ debtId, payload });
+  };
+
+  // Cancel Debt mutation with Optimistic Updates
+  const cancelDebtMutation = useMutation({
+    mutationFn: ({ debtId, payload }) => cancelDebt(debtId, payload),
+    onMutate: async ({ debtId }) => {
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
+      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+
+      queryClient.setQueryData(["debts", companyId], (old) => {
+        if (!old) return old;
+        const items = Array.isArray(old) ? old : (old.items || []);
+        const updatedItems = items.map((debt) => {
+          if (debt._id === debtId) {
+            return {
+              ...debt,
+              status: "CANCELLED",
+            };
+          }
+          return debt;
+        });
+        return Array.isArray(old) ? updatedItems : { ...old, items: updatedItems };
+      });
+
+      return { previousDebts };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousDebts) {
+        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+      }
       console.error("Cancel debt error:", error);
       const errorMessage = error.response?.data?.message ||
         error.message ||
@@ -451,10 +573,20 @@ const DebtsTable = ({ debts = [] }) => {
         pendingPayload: null
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+    },
+    onSuccess: () => {
+      setSnackbar({
+        open: true,
+        message: "Debt cancelled successfully!",
+        severity: "success"
+      });
+    },
   });
 
-  const handleCancelDebt = async (debtId) => {
-    await cancelDebtMutation.mutateAsync(debtId);
+  const handleCancelDebt = async (debtId, payload) => {
+    await cancelDebtMutation.mutateAsync({ debtId, payload });
   };
 
   const handleOpenFilter = (e) => setFilterAnchor(e.currentTarget);
@@ -582,6 +714,7 @@ const DebtsTable = ({ debts = [] }) => {
               <TableCell>{tTable("no") || "No"}</TableCell>
               <TableCell>{tTable("debtorName") || "Debtor Name"}</TableCell>
               <TableCell>{tTable("contact") || "Contact"}</TableCell>
+              <TableCell>Shop</TableCell>
               <TableCell align="right">{tTable("totalDebt") || "Total Debt"}</TableCell>
               <TableCell align="right">{tTable("amountPaid") || "Paid"}</TableCell>
               <TableCell align="right">{tTable("remainingDebt") || "Remaining"}</TableCell>
@@ -596,6 +729,7 @@ const DebtsTable = ({ debts = [] }) => {
                 <TableCell>{debt._id?.slice(-6)}</TableCell>
                 <TableCell>{debt.customer?.name}</TableCell>
                 <TableCell>{debt.customer?.phone}</TableCell>
+                <TableCell>{shopMap[debt.shopId] || debt.shopId || "N/A"}</TableCell>
                 <TableCell align="right">{debt.totalAmount?.toLocaleString()} FRW</TableCell>
                 <TableCell align="right">{debt.amountPaidNow?.toLocaleString()} FRW</TableCell>
                 <TableCell align="right" sx={{ color: debt.balance > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
@@ -603,11 +737,19 @@ const DebtsTable = ({ debts = [] }) => {
                 </TableCell>
                 <TableCell>{debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}</TableCell>
                 <TableCell>
-                  {debt.status === "PAID" ? (
-                    <Typography color="success" fontWeight="bold">✓ Cleared</Typography>
-                  ) : (
-                    <Typography color="error" fontWeight="bold">Pending</Typography>
-                  )}
+                  <span
+                  className={`px-2 py-1 rounded text-sm font-bold ${
+                  debt.status === 'PAID'
+                  ? 'bg-green-200 text-green-700 rounded-xl '
+                  : debt.status === 'CANCELLED'
+                  ? 'bg-red-200 text-red-700 rounded-xl'
+                  : debt.status === 'PARTIALLY_PAID rounded-xl'
+                   ? 'bg-yellow-200 text-yellow-700 rounded-xl' 
+                   : 'bg-red-200 text-red-700 rounded-xl'
+                   }`}
+                  >
+  {debt.status.replace('_', ' ')}
+</span>
                 </TableCell>
                 <TableCell>
                   <DebtActionsMenu

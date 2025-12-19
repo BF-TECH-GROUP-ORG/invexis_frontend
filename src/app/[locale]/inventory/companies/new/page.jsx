@@ -13,8 +13,14 @@ import {
     Grid,
     CircularProgress,
     Snackbar,
-    Alert
+    Alert,
+    MenuItem,
+    Select,
+    InputLabel,
+    FormControl,
+    FormHelperText
 } from "@mui/material";
+import { MapPin } from "lucide-react";
 import { createBranch } from "@/services/branches";
 
 const steps = [
@@ -37,25 +43,28 @@ const NewBranchPage = () => {
     const [formData, setFormData] = useState({
         companyId: "",
         name: "",
-        created_by: "",
         capacity: "",
         status: "open",
         address_line1: "",
-        address_line2: "",
         city: "",
-        region: "",
         country: "",
         postal_code: "",
         latitude: "",
         longitude: "",
-        timezone: "UTC",
+        timezone: "",
     });
 
-    // Update formData when session is available
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationError, setLocationError] = useState("");
+
+    // Update formData when session is available and set timezone
     useEffect(() => {
         if (companyId) {
             setFormData(prev => ({ ...prev, companyId }));
         }
+        // Auto-detect timezone
+        const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setFormData(prev => ({ ...prev, timezone: detectedTimezone }));
     }, [companyId]);
 
     const [errors, setErrors] = useState({});
@@ -82,7 +91,6 @@ const NewBranchPage = () => {
 
         if (step === 0) {
             if (!formData.name) newErrors.name = "Branch Name is required";
-            if (!formData.created_by) newErrors.created_by = "Created By is required";
             if (!formData.capacity) newErrors.capacity = "Capacity is required";
         } else if (step === 1) {
             if (!formData.address_line1) newErrors.address_line1 = "Address Line 1 is required";
@@ -92,6 +100,7 @@ const NewBranchPage = () => {
             } else if (formData.country.length !== 2) {
                 newErrors.country = "Country must be a 2-letter code (e.g., US, GB, CA)";
             }
+            if (!formData.postal_code) newErrors.postal_code = "Postal Code is required";
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -112,6 +121,63 @@ const NewBranchPage = () => {
         setActiveStep((prev) => prev - 1);
     };
 
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            setLocationError("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setLocationLoading(true);
+        setLocationError("");
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                
+                setFormData(prev => ({
+                    ...prev,
+                    latitude: latitude.toString(),
+                    longitude: longitude.toString()
+                }));
+
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+                    );
+                    
+                    if (!response.ok) throw new Error('Failed to fetch address');
+                    
+                    const data = await response.json();
+                    const address = data.address || {};
+                    
+                    setFormData(prev => ({
+                        ...prev,
+                        address_line1: [address.road, address.house_number].filter(Boolean).join(' ') || '',
+                        city: address.city || address.town || address.village || '',
+                        country: address.country_code?.toUpperCase() || '',
+                        postal_code: address.postcode || ''
+                    }));
+                    
+                } catch (error) {
+                    console.error("Error getting address:", error);
+                    setLocationError("Could not fetch address details");
+                } finally {
+                    setLocationLoading(false);
+                }
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                setLocationError("Unable to retrieve your location");
+                setLocationLoading(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    };
+
     const handleSubmit = async () => {
         if (!validateStep(activeStep)) return;
 
@@ -119,13 +185,18 @@ const NewBranchPage = () => {
         setError("");
 
         try {
+            // Extract user ID from session - try multiple possible fields
+            const userId = session?.user?.id || session?.user?._id || session?.user?.userId || null;
+            
+            console.log("Session data:", session);
+            console.log("User object:", session?.user);
+            console.log("Extracted userId:", userId);
+            
             const payload = {
                 companyId: formData.companyId,
                 name: formData.name,
                 address_line1: formData.address_line1,
-                address_line2: formData.address_line2,
                 city: formData.city,
-                region: formData.region,
                 country: formData.country.toUpperCase(),
                 postal_code: formData.postal_code,
                 latitude: formData.latitude ? parseFloat(formData.latitude) : null,
@@ -133,10 +204,13 @@ const NewBranchPage = () => {
                 capacity: Number(formData.capacity),
                 timezone: formData.timezone,
                 status: formData.status,
-                created_by: formData.created_by,
+                created_by: userId,
             };
+            
+            console.log("Payload being sent:", payload);
 
-            await createBranch(payload);
+            const result = await createBranch(payload);
+            console.log("Branch creation result:", result);
 
             setSnackbar({
                 open: true,
@@ -172,7 +246,7 @@ const NewBranchPage = () => {
                             {steps[0].description}
                         </Typography>
 
-                        <Grid>
+                        <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     Branch Name <span style={{ color: "#d32f2f" }}>*</span>
@@ -180,7 +254,7 @@ const NewBranchPage = () => {
                                 <TextField
                                     fullWidth
                                     name="name"
-                                    placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                                    placeholder="e.g. Downtown Branch"
                                     value={formData.name}
                                     onChange={handleChange}
                                     error={!!errors.name}
@@ -191,29 +265,13 @@ const NewBranchPage = () => {
 
                             <Grid item xs={12} md={6}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Created By <span style={{ color: "#d32f2f" }}>*</span>
-                                </Typography>
-                                <TextField
-                                    fullWidth
-                                    name="created_by"
-                                    placeholder="PROD-001"
-                                    value={formData.created_by}
-                                    onChange={handleChange}
-                                    error={!!errors.created_by}
-                                    helperText={errors.created_by}
-                                    variant="outlined"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Capacity <span style={{ color: "#999" }}>(Optional)</span>
+                                    Capacity <span style={{ color: "#d32f2f" }}>*</span>
                                 </Typography>
                                 <TextField
                                     fullWidth
                                     name="capacity"
                                     type="number"
-                                    placeholder="123456789012"
+                                    placeholder="e.g. 1000"
                                     value={formData.capacity}
                                     onChange={handleChange}
                                     error={!!errors.capacity}
@@ -222,31 +280,34 @@ const NewBranchPage = () => {
                                 />
                             </Grid>
 
-                            <Grid item xs={12}>
+                            <Grid item xs={12} md={6}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Timezone <span style={{ color: "#d32f2f" }}>*</span>
+                                    Status <span style={{ color: "#d32f2f" }}>*</span>
                                 </Typography>
-                                <TextField
-                                    fullWidth
-                                    name="timezone"
-                                    placeholder="Brief summary for list views..."
-                                    value={formData.timezone}
-                                    onChange={handleChange}
-                                    variant="outlined"
-                                />
+                                <FormControl fullWidth variant="outlined">
+                                    <Select
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="open">Open</MenuItem>
+                                        <MenuItem value="closed">Closed</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </Grid>
 
                             <Grid item xs={12}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Status <span style={{ color: "#999" }}>(Optional)</span>
+                                    Timezone (Auto-detected)
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    name="status"
-                                    value={formData.status}
+                                    name="timezone"
+                                    value={formData.timezone}
                                     onChange={handleChange}
-                                    placeholder="Detailed information..."
                                     variant="outlined"
+                                    disabled
+                                    helperText="Automatically detected from your device"
                                 />
                             </Grid>
                         </Grid>
@@ -255,14 +316,30 @@ const NewBranchPage = () => {
             case 1:
                 return (
                     <Box>
-                        <Typography variant="h5" fontWeight="600" gutterBottom>
-                            Location Details
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                            {steps[1].description}
-                        </Typography>
+                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                            <Box>
+                                <Typography variant="h5" fontWeight="600" gutterBottom>
+                                    Location Details
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {steps[1].description}
+                                </Typography>
+                            </Box>
+                            <Button
+                                startIcon={<MapPin size={16} />}
+                                onClick={handleGetLocation}
+                                disabled={locationLoading}
+                                variant="outlined"
+                                size="small"
+                            >
+                                {locationLoading ? "Detecting..." : "Use My Location"}
+                            </Button>
+                        </Box>
+                        {locationError && (
+                            <Alert severity="error" sx={{ mb: 2 }}>{locationError}</Alert>
+                        )}
 
-                        <Grid spacing={3}>
+                        <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     Address Line 1 <span style={{ color: "#d32f2f" }}>*</span>
@@ -279,21 +356,7 @@ const NewBranchPage = () => {
                                 />
                             </Grid>
 
-                            <Grid item xs={12}>
-                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Address Line 2
-                                </Typography>
-                                <TextField
-                                    fullWidth
-                                    name="address_line2"
-                                    placeholder="e.g., Apt 4B"
-                                    value={formData.address_line2}
-                                    onChange={handleChange}
-                                    variant="outlined"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={4}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     City <span style={{ color: "#d32f2f" }}>*</span>
                                 </Typography>
@@ -309,21 +372,7 @@ const NewBranchPage = () => {
                                 />
                             </Grid>
 
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Region
-                                </Typography>
-                                <TextField
-                                    fullWidth
-                                    name="region"
-                                    placeholder="e.g., NY"
-                                    value={formData.region}
-                                    onChange={handleChange}
-                                    variant="outlined"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={4}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
                                     Country Code <span style={{ color: "#d32f2f" }}>*</span>
                                 </Typography>
@@ -340,9 +389,9 @@ const NewBranchPage = () => {
                                 />
                             </Grid>
 
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={4}>
                                 <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
-                                    Postal Code
+                                    Postal Code <span style={{ color: "#d32f2f" }}>*</span>
                                 </Typography>
                                 <TextField
                                     fullWidth
@@ -350,6 +399,8 @@ const NewBranchPage = () => {
                                     placeholder="e.g., 10001"
                                     value={formData.postal_code}
                                     onChange={handleChange}
+                                    error={!!errors.postal_code}
+                                    helperText={errors.postal_code}
                                     variant="outlined"
                                 />
                             </Grid>

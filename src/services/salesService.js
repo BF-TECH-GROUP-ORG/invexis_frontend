@@ -75,22 +75,23 @@ export const singleProductFetch = async (productId) => {
  */
 export const SellProduct = async (saleData, isDebt = false) => {
   try {
-    const endpoint = isDebt ? `${DEBT_URL}/create` : `${SALES_URL}`;
-
     console.log("--- SellProduct Service Called ---");
-    console.log("Transaction Type:", isDebt ? "DEBT" : "REGULAR SALE");
-    console.log("Target URL:", endpoint);
+    console.log("Transaction Type:", isDebt ? "DEBT + SALE" : "REGULAR SALE");
 
-    let payload = saleData;
+    // 1. Always record the sale first
+    // We use the relative URL to ensure it uses the baseURL from axios instance
+    console.log("Recording sale...");
+    const saleResponse = await apiClient.post("/sales", saleData);
 
-    // Transform payload for debt API if needed
+    // 2. If it's a debt, also record the debt
     if (isDebt) {
-      payload = {
+      const debtPayload = {
         companyId: saleData.companyId,
         shopId: saleData.shopId,
-        customerId:
-          saleData.customerId || generateCustomerId(saleData.customerPhone),
-        salesStaffId: saleData.soldBy,
+        customer: {
+          name: saleData.customerName,
+          phone: saleData.customerPhone,
+        },
         items: saleData.items.map((item) => ({
           itemId: item.productId,
           itemName: item.productName,
@@ -99,32 +100,31 @@ export const SellProduct = async (saleData, isDebt = false) => {
           totalPrice: item.totalPrice,
         })),
         totalAmount: saleData.totalAmount,
-        amountPaidNow: 0,
+        amountPaidNow: saleData.amountPaidNow || 0,
         dueDate: calculateDueDate(),
-        shareLevel: "PARTIAL",
-        consentRef: `CONSENT-${Date.now()}`,
-        metadata: {
-          customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone,
-          customerEmail: saleData.customerEmail,
-          paymentMethod: saleData.paymentMethod,
-        },
+        createdBy: saleData.soldBy,
+        isDebt: true,
       };
+
+      console.log("Recording debt...");
+      console.log("Debt Payload:", JSON.stringify(debtPayload, null, 2));
+      try {
+        await apiClient.post("/debt/create", debtPayload);
+      } catch (debtError) {
+        console.error("Debt recording failed, but sale was recorded:", debtError.message);
+        // We don't throw here because the sale was already successful
+      }
     }
 
-    console.log("Payload:", JSON.stringify(payload, null, 2));
-
-    const data = await apiClient.post(endpoint, payload);
-
-    // Clear sales and inventory caches
+    // Clear relevant caches
     apiClient.clearCache("/sales");
     apiClient.clearCache("/inventory");
     if (isDebt) {
       apiClient.clearCache("/debts");
     }
 
-    console.log("Transaction successful. Response:", data);
-    return data;
+    console.log("Transaction processed successfully.");
+    return saleResponse;
   } catch (error) {
     console.error("--- SellProduct Service Error ---");
     console.error("Error Message:", error.message);
@@ -224,7 +224,8 @@ export const deleteSale = async (saleId) => {
 const calculateDueDate = () => {
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 30);
-  return dueDate.toISOString().split("T")[0];
+  dueDate.setHours(0, 0, 0, 0);
+  return dueDate.toISOString();
 };
 
 // Helper: Generate customer ID from phone

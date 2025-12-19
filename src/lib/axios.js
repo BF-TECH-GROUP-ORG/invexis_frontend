@@ -11,7 +11,7 @@ import { notificationBus } from "@/lib/notificationBus";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
   timeout: 15000, // prevent hanging requests
-  withCredentials: true,
+  withCredentials: false, // Set to false to avoid CORS issues with Bearer tokens
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
@@ -61,7 +61,6 @@ function normalizeError(error) {
  */
 api.interceptors.request.use(
   async (config) => {
-    // Ensure headers object exists
     config.headers = config.headers || {};
 
     // AbortController support (for deduplication / cancellation)
@@ -70,15 +69,25 @@ api.interceptors.request.use(
       config.signal = controller.signal;
     }
 
-    // SSR-safe: if Authorization already exists, do not override
+    // SSR-safe check
     if (config.headers.Authorization) {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[Axios] Using existing Auth header for ${config.url}`);
+      }
       return config;
     }
 
     // Client-side NextAuth token attachment
     if (typeof window !== "undefined") {
       try {
-        const session = await getSession();
+        // Simple singleton/memoization to avoid race conditions with multiple concurrent requests
+        if (!window._next_auth_session_promise) {
+          window._next_auth_session_promise = getSession();
+          // Clear it after 500ms to allow fresh checks later
+          setTimeout(() => { window._next_auth_session_promise = null; }, 500);
+        }
+
+        const session = await window._next_auth_session_promise;
         const token = session?.accessToken;
 
         if (token) {
@@ -92,14 +101,17 @@ api.interceptors.request.use(
             );
           }
         } else {
-          console.warn(`[Axios] No token found in session for ${config.url}`);
+          if (process.env.NODE_ENV === "development") {
+            console.warn(`[Axios ⚠] Token Injection Failed - No accessToken in session for ${config.url}`);
+          }
         }
       } catch (e) {
-        console.error("[Axios] Error fetching session:", e);
+        console.error("[Axios ❌] Session fetch error:", e);
       }
     }
 
     if (process.env.NODE_ENV === "development") {
+      const authHeader = config.headers.Authorization || "";
       console.log(
         "[API →]",
         config.method?.toUpperCase(),
