@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+import apiClient from '@/lib/apiClient';
 
 // Configuration
 const USE_MOCK_SOCKET = process.env.NEXT_PUBLIC_USE_ANNOUNCEMENT_MOCK === 'true' ? true : false; // toggle via env
@@ -18,6 +19,7 @@ let mockAnnouncements = [
         context: 'Customer: John Doe · $230 · MoMo',
         timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), // 2 mins ago
         isRead: false,
+        isArchived: false,
         entityId: 'INV-2341',
         actions: ['view_invoice', 'view_sale']
     },
@@ -29,6 +31,7 @@ let mockAnnouncements = [
         context: 'Product: iPhone Charger · 5 left',
         timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
         isRead: false,
+        isArchived: false,
         entityId: 'prod_005',
         actions: ['view_product', 'restock']
     },
@@ -40,6 +43,7 @@ let mockAnnouncements = [
         context: 'Invoice #INV-2309 · Bank Transfer',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // Yesterday
         isRead: true,
+        isArchived: false,
         entityId: 'INV-2309',
         actions: ['view_invoice']
     },
@@ -51,6 +55,7 @@ let mockAnnouncements = [
         context: 'Samsung Galaxy S24 price adjusted by Manager',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
         isRead: false,
+        isArchived: false,
         entityId: 'prod_002',
         actions: ['view_log']
     },
@@ -62,6 +67,7 @@ let mockAnnouncements = [
         context: '15% off all Electronics active now',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
         isRead: true,
+        isArchived: false,
         entityId: 'promo_sum_24',
         actions: ['view_campaign']
     }
@@ -75,8 +81,22 @@ let mockAnnouncements = [
         context: 'Customer Jane Doe has an outstanding debt of $1,250 for Invoice #INV-2201 (due 2024-11-01)',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 1 week ago
         isRead: false,
+        isArchived: false,
         entityId: 'INV-2201',
         actions: ['view_invoice', 'contact_customer']
+    },
+    // Mock Archived Item
+    {
+        id: 'ann_archived_1',
+        type: 'system',
+        category: 'primary',
+        title: 'Old System Alert (Archived)',
+        context: 'This happened a long time ago',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+        isRead: true,
+        isArchived: true,
+        entityId: 'sys_old',
+        actions: []
     }
 ];
 
@@ -101,9 +121,13 @@ class AnnouncementService {
     _mapCategory(item) {
         if (!item) return item;
         const t = (item.type || '').toLowerCase();
-        const updatesTypes = ['confirmation', 'receipt', 'billing', 'statement', 'update', 'system'];
-        const socialTypes = ['agreement', 'user_agreement', 'consent', 'workflow', 'workflow_action', 'task', 'assignment', 'mention', 'comment', 'agreement_signed', 'user'];
+        // Inventory/Updates category
+        const updatesTypes = ['confirmation', 'receipt', 'billing', 'statement', 'update', 'system', 'inventory', 'stock', 'restock'];
+        // Payments & Customers category  
+        const socialTypes = ['agreement', 'user_agreement', 'consent', 'workflow', 'workflow_action', 'task', 'assignment', 'mention', 'comment', 'agreement_signed', 'user', 'payment', 'customer'];
+        // Sales category
         const promotionsTypes = ['promotion', 'discount', 'offer', 'sale', 'coupon', 'promo'];
+        // Debts category
         const debtTypes = ['debt', 'owed', 'arrears', 'debt_check', 'debt_notice'];
 
         if (updatesTypes.includes(t)) return { ...item, category: 'updates' };
@@ -185,81 +209,68 @@ class AnnouncementService {
         if (USE_MOCK_SOCKET) {
             await delay();
             let data = mockAnnouncements.map(a => this._mapCategory({ ...a }));
-            if (filters.category) data = data.filter(a => a.category === filters.category);
+
+            // Filter by archive status
+            const showArchived = filters.archived === true || filters.archived === 'true';
+            data = data.filter(a => !!a.isArchived === showArchived);
+
+            if (filters.category && !showArchived) {
+                // Only filter by category if NOT viewing archive (Archive shows all categories)
+                data = data.filter(a => a.category === filters.category);
+            }
+
             data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             return { data };
         }
 
-        // Build query string
-        const params = new URLSearchParams();
-        if (filters.page) params.set('page', String(filters.page));
-        if (filters.limit) params.set('limit', String(filters.limit));
-        if (filters.unreadOnly) params.set('unreadOnly', String(filters.unreadOnly));
-        if (filters.category) params.set('category', String(filters.category));
-        if (filters.role) params.set('role', String(filters.role));
-        if (filters.companyId) params.set('companyId', String(filters.companyId));
+        // Build query parameters
+        const params = {};
+        if (filters.page) params.page = String(filters.page);
+        if (filters.limit) params.limit = String(filters.limit);
+        if (filters.unreadOnly) params.unreadOnly = String(filters.unreadOnly);
+        if (filters.category) params.category = String(filters.category);
+        if (filters.role) params.role = String(filters.role);
+        if (filters.companyId) params.companyId = String(filters.companyId);
+        if (filters.archived !== undefined) params.archived = String(filters.archived);
 
-        const url = `${this.apiBase}?${params.toString()}`;
-        console.log(url)
-        const res = await fetch(url, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) }
-        });
-        const rawText = await res.text();
-
-        // Graceful fallback: if backend returns 401 (invalid token) or an HTML/error page
-        // (ngrok error pages) fall back to the mockAnnouncements so the UI remains usable.
-        const bodyLower = (rawText || '').toLowerCase();
-        const looksLikeHtml = bodyLower.includes('<!doctype') || bodyLower.includes('<html') || bodyLower.includes('ngrok');
-        const looksLikeInvalidToken = res.status === 401 || bodyLower.includes('invalid') && bodyLower.includes('token') || bodyLower.includes('invalid_or_expired_token');
-        if (!res.ok) {
-            if (looksLikeHtml || looksLikeInvalidToken) {
-                console.warn('[AnnouncementService] Backend returned auth/error/html response; falling back to mock announcements. URL:', url, 'status:', res.status);
-                // Clear token to avoid repeated invalid auth attempts
-                this.token = null;
-                await delay();
-                let data = mockAnnouncements.map(a => this._mapCategory({ ...a }));
-                if (filters.category) data = data.filter(a => a.category === filters.category);
-                data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                return { data };
-            }
-            // include response body for easier debugging for other error types
-            throw new Error(`Failed to fetch announcements: ${res.status} ${rawText}`);
-        }
-
-        let json;
         try {
-            json = rawText ? JSON.parse(rawText) : {};
-        } catch (parseErr) {
-            // If the body looks like an HTML page or ngrok message, fallback to mocks
-            if (looksLikeHtml || looksLikeInvalidToken) {
-                console.warn('[AnnouncementService] Received non-JSON response; falling back to mock announcements. URL:', url, 'status:', res.status);
-                this.token = null;
-                await delay();
-                let data = mockAnnouncements.map(a => this._mapCategory({ ...a }));
-                if (filters.category) data = data.filter(a => a.category === filters.category);
-                data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                return { data };
+            // Use apiClient.get with retry and error handling
+            const json = await apiClient.get(this.apiBase, { params, retries: 2 });
+
+            // Expecting { success: true, data: { notifications: [...], pagination: {} } }
+            const notifications = json?.data?.notifications || [];
+
+            // Normalize categories
+            const data = notifications.map(n => this._mapCategory({
+                id: n._id || n.id,
+                type: n.type,
+                category: n.category,
+                title: n.title || n.message?.title || n.body,
+                context: n.body || JSON.stringify(n.payload || n.data || {}),
+                timestamp: n.createdAt || n.timestamp,
+                isRead: Array.isArray(n.readBy) ? n.readBy.length > 0 : !!n.isRead,
+                isArchived: !!n.isArchived,
+                payload: n.payload || n.data || {},
+            }));
+
+            data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            return { data };
+        } catch (error) {
+            // If backend fails, fall back to mock data
+            console.warn('[AnnouncementService] Backend request failed, falling back to mock announcements:', error.message);
+            await delay();
+            let data = mockAnnouncements.map(a => this._mapCategory({ ...a }));
+
+            const showArchived = filters.archived === true || filters.archived === 'true';
+            data = data.filter(a => !!a.isArchived === showArchived);
+
+            if (filters.category && !showArchived) {
+                data = data.filter(a => a.category === filters.category);
             }
-            // Log the unexpected body so developers can inspect HTML or error pages
-            console.error('[AnnouncementService] Received non-JSON response from', url, 'status:', res.status, 'body:', rawText);
-            throw new Error(`Failed to parse announcements JSON: ${parseErr.message} - response body: ${rawText}`);
+
+            data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            return { data };
         }
-        // Expecting { success: true, data: { notifications: [...], pagination: {} } }
-        const notifications = json?.data?.notifications || [];
-        // Normalize categories
-        const data = notifications.map(n => this._mapCategory({
-            id: n._id || n.id,
-            type: n.type,
-            category: n.category,
-            title: n.title || n.message?.title || n.body,
-            context: n.body || JSON.stringify(n.payload || n.data || {}),
-            timestamp: n.createdAt || n.timestamp,
-            isRead: Array.isArray(n.readBy) ? n.readBy.length > 0 : !!n.isRead,
-            payload: n.payload || n.data || {},
-        }));
-        data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        return { data };
     }
 
     async getAnnouncement(id) {
@@ -270,26 +281,27 @@ class AnnouncementService {
             return { data: this._mapCategory({ ...found }) };
         }
 
-        const url = `${this.apiBase}/${id}`;
-        const res = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) } });
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`Failed to load announcement ${id}: ${res.status} ${text}`);
+        try {
+            const url = `${this.apiBase}/${id}`;
+            const json = await apiClient.get(url, { retries: 2 });
+            const n = json?.data || json;
+            if (!n) return { data: null };
+
+            const mapped = this._mapCategory({
+                id: n._id || n.id,
+                type: n.type,
+                category: n.category,
+                title: n.title || n.message?.title || n.body,
+                context: n.body || JSON.stringify(n.payload || n.data || {}),
+                timestamp: n.createdAt || n.timestamp,
+                isRead: Array.isArray(n.readBy) ? n.readBy.length > 0 : !!n.isRead,
+                payload: n.payload || n.data || {},
+            });
+            return { data: mapped };
+        } catch (error) {
+            console.error(`[AnnouncementService] Failed to load announcement ${id}:`, error.message);
+            throw error;
         }
-        const json = await res.json();
-        const n = json?.data || json;
-        if (!n) return { data: null };
-        const mapped = this._mapCategory({
-            id: n._id || n.id,
-            type: n.type,
-            category: n.category,
-            title: n.title || n.message?.title || n.body,
-            context: n.body || JSON.stringify(n.payload || n.data || {}),
-            timestamp: n.createdAt || n.timestamp,
-            isRead: Array.isArray(n.readBy) ? n.readBy.length > 0 : !!n.isRead,
-            payload: n.payload || n.data || {},
-        });
-        return { data: mapped };
     }
 
     async markAsRead(id) {
@@ -298,29 +310,26 @@ class AnnouncementService {
             const item = mockAnnouncements.find(a => a.id === id);
             if (item) {
                 item.isRead = true;
-                this._notifyListeners('update', this._mapCategory({ ...item })); // Notify local state
+                this._notifyListeners('update', this._mapCategory({ ...item }));
             }
             return true;
         }
 
-        // API: POST /mark-read with { notificationIds: [...] }
-        const url = `${this.apiBase}/mark-read`;
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) },
-            body: JSON.stringify({ notificationIds: [id] })
-        });
-        if (!res.ok) {
-            const t = await res.text();
-            throw new Error(`Failed to mark as read: ${res.status} ${t}`);
-        }
-        const json = await res.json();
-        // Optionally notify listeners by fetching the updated item
         try {
-            const { data } = await this.getAnnouncement(id);
-            if (data) this._notifyListeners('update', data);
-        } catch (e) { /* ignore */ }
-        return json;
+            // API: POST /mark-read with { notificationIds: [...] }
+            const url = `${this.apiBase}/mark-read`;
+            const json = await apiClient.post(url, { notificationIds: [id] }, { retries: 2 });
+
+            // Optionally notify listeners by fetching the updated item
+            try {
+                const { data } = await this.getAnnouncement(id);
+                if (data) this._notifyListeners('update', data);
+            } catch (e) { /* ignore */ }
+            return json;
+        } catch (error) {
+            console.error('[AnnouncementService] Failed to mark as read:', error.message);
+            throw error;
+        }
     }
 
     async delete(id) {
@@ -331,14 +340,15 @@ class AnnouncementService {
             return true;
         }
 
-        const url = `${this.apiBase}/${id}`;
-        const res = await fetch(url, { method: 'DELETE', headers: { ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) } });
-        if (!res.ok) {
-            const t = await res.text();
-            throw new Error(`Failed to delete announcement ${id}: ${res.status} ${t}`);
+        try {
+            const url = `${this.apiBase}/${id}`;
+            await apiClient.delete(url, { retries: 1 });
+            this._notifyListeners('delete', id);
+            return true;
+        } catch (error) {
+            console.error(`[AnnouncementService] Failed to delete announcement ${id}:`, error.message);
+            throw error;
         }
-        this._notifyListeners('delete', id);
-        return true;
     }
 
     async snooze(id, durationMs) {
@@ -352,23 +362,54 @@ class AnnouncementService {
             return true;
         }
 
-        // Try to call API endpoint: PATCH /:id/snooze
-        const url = `${this.apiBase}/${id}/snooze`;
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) },
-            body: JSON.stringify({ durationMs })
-        });
-        if (!res.ok) {
+        try {
+            // Try to call API endpoint: PATCH /:id/snooze
+            const url = `${this.apiBase}/${id}/snooze`;
+            const json = await apiClient.patch(url, { durationMs }, { retries: 2 });
+            this._notifyListeners('update', json?.data || {});
+            return json;
+        } catch (error) {
             // If backend doesn't support snooze, fall back to remove/mark locally
+            console.warn('[AnnouncementService] Snooze not supported, falling back to delete');
             try {
                 await this.delete(id);
             } catch (e) { /* ignore */ }
             return false;
         }
-        const json = await res.json();
-        this._notifyListeners('update', json?.data || {});
-        return json;
+    }
+
+    async archive(id) {
+        if (USE_MOCK_SOCKET) {
+            await delay(100);
+            const item = mockAnnouncements.find(a => a.id === id);
+            if (item) {
+                item.isArchived = true;
+                // Emit update so clients can decide to filter it out or move it
+                this._notifyListeners('update', this._mapCategory({ ...item }));
+            }
+            return true;
+        }
+
+        try {
+            // API: POST /:id/archive
+            const url = `${this.apiBase}/${id}/archive`;
+            const json = await apiClient.post(url, {}, { retries: 2 });
+            const data = json?.data || json;
+            this._notifyListeners('update', this._mapCategory(data));
+            return true;
+        } catch (error) {
+            // Fallback: if specific endpoint fails, try patching
+            try {
+                const patchUrl = `${this.apiBase}/${id}`;
+                const json = await apiClient.patch(patchUrl, { isArchived: true }, { retries: 2 });
+                const data = json?.data || json;
+                this._notifyListeners('update', this._mapCategory(data));
+                return true;
+            } catch (patchError) {
+                console.error(`[AnnouncementService] Failed to archive announcement ${id}:`, patchError.message);
+                throw patchError;
+            }
+        }
     }
 
     // INTERNAL: Notify subscribed listeners
@@ -409,7 +450,7 @@ class AnnouncementService {
                     newEvent = { ...newEvent, category: 'primary', type: 'payment', title: 'Payment Confirmed', context: `Received payment via MoMo` };
                     break;
                 case 'debt':
-                    newEvent = { ...newEvent, category: 'debts', type: 'debt', title: 'Debt Alert', context: `Customer ${['John','Jane','Acme'][Math.floor(Math.random()*3)]} has overdue balance $${Math.floor(Math.random()*2000)} for recent invoices` };
+                    newEvent = { ...newEvent, category: 'debts', type: 'debt', title: 'Debt Alert', context: `Customer ${['John', 'Jane', 'Acme'][Math.floor(Math.random() * 3)]} has overdue balance $${Math.floor(Math.random() * 2000)} for recent invoices` };
                     break;
                 case 'system':
                     newEvent = { ...newEvent, category: 'updates', type: 'update', title: 'System Backup', context: 'Daily backup completed successfully' };
@@ -451,27 +492,32 @@ class AnnouncementService {
         }
 
         // Create a notification via API for testing (requires auth)
-        const url = `${this.apiBase}`;
-        const payload = {
-            type: 'test_alert',
-            recipient: 'all',
-            message: { title: 'Test Alert', body: 'This is a server-generated test notification' },
-            data: { test: true }
-        };
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) },
-            body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-            const t = await res.text();
-            throw new Error(`Failed to trigger test event: ${res.status} ${t}`);
+        try {
+            const url = `${this.apiBase}`;
+            const payload = {
+                type: 'test_alert',
+                recipient: 'all',
+                message: { title: 'Test Alert', body: 'This is a server-generated test notification' },
+                data: { test: true }
+            };
+            const json = await apiClient.post(url, payload, { retries: 1 });
+            const created = json?.data || json;
+            const mapped = this._mapCategory({
+                id: created._id || created.id,
+                type: created.type,
+                category: created.category,
+                title: created.title || created.message?.title,
+                context: created.body || created.message?.body,
+                timestamp: created.createdAt || new Date().toISOString(),
+                isRead: false,
+                payload: created.payload || created.data
+            });
+            this._notifyListeners('new', mapped);
+            return mapped;
+        } catch (error) {
+            console.error('[AnnouncementService] Failed to trigger test event:', error.message);
+            throw error;
         }
-        const json = await res.json();
-        const created = json?.data || json;
-        const mapped = this._mapCategory({ id: created._id || created.id, type: created.type, category: created.category, title: created.title || created.message?.title, context: created.body || created.message?.body, timestamp: created.createdAt || new Date().toISOString(), isRead: false, payload: created.payload || created.data });
-        this._notifyListeners('new', mapped);
-        return mapped;
     }
 }
 

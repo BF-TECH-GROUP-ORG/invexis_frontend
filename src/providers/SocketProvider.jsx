@@ -20,7 +20,7 @@ export const SocketProvider = ({ children }) => {
             // Initialize socket connection
             // Assuming the gateway URL is in an environment variable or hardcoded for now
             // The user didn't specify the env var name, so I'll use a common one or default to localhost if missing
-            const gatewayUrl = process.env.NEXT_PUBLIC_API_URL_SW;
+            const gatewayUrl = process.env.NEXT_PUBLIC_API_URL_SW
 
             const socketInstance = createSocketConnection(gatewayUrl, session.accessToken);
 
