@@ -60,6 +60,28 @@ export const deleteShop = async (shopId) => {
 };
 
 /**
+ * Get a single shop by ID
+ * CACHING: Shop cached for 1 hour
+ */
+export const getShopById = async (shopId) => {
+  const cacheStrategy = getCacheStrategy("SHOPS");
+
+  try {
+    const data = await apiClient.get(`${SHOP_API_URL}/shop/${shopId}`, {
+      cache: cacheStrategy,
+    });
+
+    console.log("Shop fetched:", data);
+    return data;
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Failed to fetch shop:", error.message);
+    }
+    return null;
+  }
+};
+
+/**
  * Create a shop
  * CACHING: POST never cached. Clears shops cache.
  */
@@ -81,6 +103,7 @@ export const createShop = async (shopData) => {
 
 export default {
   getAllShops,
+  getShopById,
   createShop,
   deleteShop,
 };

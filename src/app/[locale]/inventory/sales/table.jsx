@@ -550,11 +550,13 @@ const DataTable = ({ salesData }) => {
       id: sale.saleId,
       productId: sale.items && sale.items.length > 0 ? sale.items[0].productId : null,
       ProductName: sale.items && sale.items.length > 0 ? sale.items[0].productName : "Unknown",
-      isDebt: sale.isdebt,
+      isDebt: sale.isDebt,
       Category: sale.isTransfer,
       UnitPrice: sale.items && sale.items.length > 0 ? sale.items[0].unitPrice : 0,
       SoldQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0,
+      originalQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.originalQuantity || 0), 0) : 0,
       returned: `${sale.isReturned}`,
+      returnedValue: sale.items.reduce((sum, item) => sum + (item.returnedQuantity || 0), 0),
       Discount: sale.discountTotal,
       Date: new Date(sale.createdAt).toLocaleDateString(),
       rawDate: sale.createdAt, // Keep raw date for filtering
@@ -714,7 +716,7 @@ const DataTable = ({ salesData }) => {
     }
 
     // Advanced filter
-    
+
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
@@ -846,16 +848,25 @@ const DataTable = ({ salesData }) => {
                 is Transfered
               </TableCell>
 
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                {t("Returned")}
+              </TableCell>
+
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("unitPrice")} (FRW)
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {/* {t("soldQuantity")} */}sold Quantity
+                originalQuantity
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {t("Returned")}
+                sold Quantity
+              </TableCell>
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                returnedQuantity
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
@@ -890,10 +901,12 @@ const DataTable = ({ salesData }) => {
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.ProductName}</TableCell>
                 <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
-                <TableCell>{row.Category ? "Yes" : "No" }</TableCell>
+                <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
+                <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
                 <TableCell>{row.UnitPrice}</TableCell>
+                <TableCell>{row.originalQuantity}</TableCell>
                 <TableCell>{row.SoldQuantity}</TableCell>
-                <TableCell>{row.returned == "false" ? <span className='text-green-500'>false</span> : <span className='text-red-500'>true</span>}</TableCell>
+                <TableCell>{row.returnedValue}</TableCell>
                 <TableCell>{row.Discount}</TableCell>
                 <TableCell>{row.Date}</TableCell>
                 <TableCell>{row.TotalValue}</TableCell>
