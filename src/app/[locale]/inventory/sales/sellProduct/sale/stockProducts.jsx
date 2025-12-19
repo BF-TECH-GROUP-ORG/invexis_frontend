@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, CircularProgress, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button as MuiButton } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, CircularProgress, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button as MuiButton, Avatar } from "@mui/material";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@/components/shared/button";
+import { Package } from "lucide-react";
 import { useState, useMemo } from "react";
 import { getAllProducts } from "@/services/salesService";
 import { SellProduct } from "@/services/salesService";
@@ -128,10 +129,12 @@ const CurrentInventory = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [amountPaidNow, setAmountPaidNow] = useState(0);
   const [customerErrors, setCustomerErrors] = useState({});
 
   // Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState('company'); // 'company' or 'shop'
 
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
@@ -300,7 +303,6 @@ const CurrentInventory = () => {
       productName: item.name,
       quantity: item.qty,
       unitPrice: item.price,
-      unitPrice: item.price,
       totalPrice: item.price * item.qty,
       discount: 0,
       shopId: item.shopId
@@ -319,7 +321,9 @@ const CurrentInventory = () => {
       paymentMethod,
       paymentId: Date.now().toString(),
       totalAmount,
-      discountAmount: 0
+      amountPaidNow: isDebt ? parseFloat(amountPaidNow) || 0 : totalAmount,
+      discountAmount: 0,
+      isDebt: !!isDebt
     };
 
     sellMutation.mutate({ payload, isDebt });
@@ -330,12 +334,14 @@ const CurrentInventory = () => {
     setCustomerPhone("");
     setCustomerEmail("");
     setPaymentMethod("cash");
+    setAmountPaidNow(0);
     setCustomerErrors({});
   };
 
   // Close customer modal
   const handleCloseCustomerModal = () => {
     setCustomerModal(false);
+    setAmountPaidNow(0);
     setCustomerErrors({});
   };
 
@@ -446,11 +452,14 @@ const CurrentInventory = () => {
               {sellMutation.isPending ? "Processing..." : `SELL SELECTED (${selectedCount})`}
             </MuiButton>
 
-            {/* Transfer Button */}
+            {/* Transfer Button (Company) */}
             <MuiButton
               variant="outlined"
               disabled={selectedCount === 0}
-              onClick={() => setTransferModalOpen(true)}
+              onClick={() => {
+                setTransferMode('company');
+                setTransferModalOpen(true);
+              }}
               sx={{
                 borderColor: "#1976d2",
                 color: "#1976d2",
@@ -469,8 +478,25 @@ const CurrentInventory = () => {
                 }
               }}
             >
-              Transfer
+              Transfer to Company
             </MuiButton>
+
+            {/* Transfer Button (Shop) */}
+            <button
+              disabled={selectedCount === 0}
+              onClick={() => {
+                setTransferMode("shop");
+                setTransferModalOpen(true);
+              }}
+              className={`px-4 py-3 rounded-xl  transition
+    ${selectedCount === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-[#1F1F1F] text-white cursor-pointer hover:bg-[#2a2a2a]"
+                }`}
+            >
+              Transfer to Shop
+            </button>
+
           </Box>
         </Box>
 
@@ -481,22 +507,33 @@ const CurrentInventory = () => {
           selectedItems={selectedItems}
           companyId={companyId}
           userId={session?.user?._id}
+          mode={transferMode}
+          currentShopId={Object.values(selectedItems)[0]?.shopId || session?.user?.shops?.[0]}
         />
 
         {/* Table */}
-        <TableContainer sx={{ maxHeight: "calc(100vh - 350px)" }}>
-          <Table stickyHeader>
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          sx={{
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            overflow: "hidden",
+            maxHeight: "calc(100vh - 350px)"
+          }}
+        >
+          <Table stickyHeader size="medium">
             <TableHead>
-              <TableRow>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Select</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Product ID</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Product Name</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Category</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Stock</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Min Price (FRW)</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Selling Price (FRW)</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Quantity</TableCell>
-                <TableCell sx={{ color: "black", fontWeight: "bold" }}>Actions</TableCell>
+              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+                <TableCell padding="checkbox" sx={{ fontWeight: 600, color: "#4b5563" }}>Select</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Product</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>SKU</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Category</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Stock</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Min Price (FRW)</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Selling Price (FRW)</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>Quantity</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, color: "#4b5563" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
 
@@ -522,17 +559,18 @@ const CurrentInventory = () => {
                   return (
                     <TableRow
                       key={product.id}
+                      hover
                       onClick={() => handleCheckboxChange(product)}
                       sx={{
-                        bgcolor: isSelected ? "#FFF3E0" : "white",
-                        "&:hover": { bgcolor: isSelected ? "#FFE0B2" : "#f5f5f5" },
+                        backgroundColor: isSelected ? "#FFF3E0" : "white",
+                        "&:hover": { backgroundColor: isSelected ? "#FFE0B2" : "#f4f6f8" },
                         transition: "all 0.2s ease",
                         cursor: product.Quantity === 0 ? "not-allowed" : "pointer",
                         opacity: product.Quantity === 0 ? 0.5 : 1
                       }}
                     >
                       {/* Checkbox */}
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -541,36 +579,80 @@ const CurrentInventory = () => {
                         />
                       </TableCell>
 
-                      {/* Product ID */}
-                      <TableCell><strong>{product.ProductId}</strong></TableCell>
+                      {/* Product */}
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={2}>
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              bgcolor: "orange.50",
+                              color: "orange.500",
+                            }}
+                          >
+                            <Package size={20} />
+                          </Avatar>
+                          <Box minWidth={0}>
+                            <Typography
+                              variant="body2"
+                              fontWeight={isSelected ? 600 : 500}
+                              color="text.primary"
+                              noWrap
+                            >
+                              {product.ProductName}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
 
-                      {/* Product Name */}
-                      <TableCell sx={{ fontWeight: isSelected ? "600" : "400" }}>
-                        {product.ProductName}
+                      {/* SKU */}
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {product.ProductId}
+                        </Typography>
                       </TableCell>
 
                       {/* Category */}
                       <TableCell>
-                        <Chip label={product.Category} size="small" color="primary" variant="outlined" />
+                        <Chip
+                          label={product.Category}
+                          size="small"
+                          sx={{
+                            backgroundColor: "#E0F2FE",
+                            color: "#0369A1",
+                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                          }}
+                        />
                       </TableCell>
 
                       {/* Stock */}
                       <TableCell>
                         <Chip
                           label={product.Quantity}
-                          color={product.Quantity < 10 ? "error" : product.Quantity < 30 ? "warning" : "success"}
                           size="small"
+                          sx={{
+                            backgroundColor: product.Quantity < 10 ? "#FFEBEE" : product.Quantity < 30 ? "#FFF3E0" : "#E8F5E9",
+                            color: product.Quantity < 10 ? "#C62828" : product.Quantity < 30 ? "#E65100" : "#2E7D32",
+                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                          }}
                         />
                       </TableCell>
 
                       {/* Min Price */}
-                      <TableCell sx={{ color: "#666" }}>
-                        {product.Price.toLocaleString()}
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {product.Price.toLocaleString()}
+                        </Typography>
                       </TableCell>
 
                       {/* Selling Price */}
-                      <TableCell sx={{ fontWeight: "bold", color: "#FF6D00" }}>
-                        {isSelected ? item.price.toLocaleString() : "-"}
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600} color="#FF6D00">
+                          {isSelected ? item.price.toLocaleString() : "-"}
+                        </Typography>
                       </TableCell>
 
                       {/* Quantity Controls */}
@@ -581,15 +663,14 @@ const CurrentInventory = () => {
                             disabled={!isSelected}
                             onClick={() => handleQuantityChange(product.id, (item?.qty || 1) - 1)}
                             sx={{
-                              bgcolor: isSelected ? "#FF6D00" : "#ccc",
-                              color: "white",
-                              width: 28,
-                              height: 28,
-                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#ccc" },
-                              "&:disabled": { bgcolor: "#eee", color: "#999" }
+                              bgcolor: isSelected ? "#FF6D00" : "#eee",
+                              color: isSelected ? "white" : "#999",
+                              width: 24,
+                              height: 24,
+                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
                             }}
                           >
-                            -
+                            <span style={{ fontSize: '18px', lineHeight: 0 }}>-</span>
                           </IconButton>
                           <TextField
                             size="small"
@@ -598,8 +679,17 @@ const CurrentInventory = () => {
                             onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                             disabled={!isSelected}
                             sx={{
-                              width: 60,
-                              "& input": { textAlign: "center", fontWeight: "bold" }
+                              width: 50,
+                              "& .MuiOutlinedInput-root": {
+                                height: 32,
+                                borderRadius: "8px",
+                              },
+                              "& input": {
+                                textAlign: "center",
+                                fontWeight: "bold",
+                                fontSize: "0.875rem",
+                                padding: "4px 0"
+                              }
                             }}
                             inputProps={{ min: 1 }}
                           />
@@ -608,21 +698,20 @@ const CurrentInventory = () => {
                             disabled={!isSelected}
                             onClick={() => handleQuantityChange(product.id, (item?.qty || 1) + 1)}
                             sx={{
-                              bgcolor: isSelected ? "#FF6D00" : "#ccc",
-                              color: "white",
-                              width: 28,
-                              height: 28,
-                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#ccc" },
-                              "&:disabled": { bgcolor: "#eee", color: "#999" }
+                              bgcolor: isSelected ? "#FF6D00" : "#eee",
+                              color: isSelected ? "white" : "#999",
+                              width: 24,
+                              height: 24,
+                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
                             }}
                           >
-                            +
+                            <span style={{ fontSize: '18px', lineHeight: 0 }}>+</span>
                           </IconButton>
                         </Box>
                       </TableCell>
 
                       {/* Set Price Button */}
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell align="center" onClick={(e) => e.stopPropagation()}>
                         <MuiButton
                           variant="outlined"
                           size="small"
@@ -631,7 +720,9 @@ const CurrentInventory = () => {
                           sx={{
                             borderColor: "#FF6D00",
                             color: "#FF6D00",
-                            fontWeight: "bold",
+                            fontWeight: 600,
+                            borderRadius: "8px",
+                            textTransform: "none",
                             "&:hover": {
                               borderColor: "#E65100",
                               bgcolor: "#FFF3E0"
@@ -821,6 +912,21 @@ const CurrentInventory = () => {
               <MenuItem value="bank_transfer">🏦 Bank Transfer</MenuItem>
             </Select>
           </FormControl>
+
+          {/* Amount Paid Now (Only for Debt) */}
+          {isDebt && (
+            <TextField
+              fullWidth
+              label="Amount Paid Now (FRW)"
+              type="number"
+              value={amountPaidNow}
+              onChange={(e) => setAmountPaidNow(e.target.value)}
+              placeholder="0"
+              InputProps={{ inputProps: { min: 0, max: Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) } }}
+              sx={{ mb: 2 }}
+              helperText={`Enter the initial payment amount. Remaining balance will be recorded as debt.`}
+            />
+          )}
 
           <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>
             * Required fields

@@ -12,6 +12,8 @@ import GlobalLoader from "@/components/shared/GlobalLoader";
 import { useLoading } from "@/contexts/LoadingContext";
 import useRouteLoading from "@/hooks/useRouteLoading";
 
+const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
+
 export default function LayoutWrapper({ children }) {
   // Use NextAuth session for auth
   const { user, status } = useAuth();
@@ -58,17 +60,22 @@ export default function LayoutWrapper({ children }) {
   // Show loader during navigation or global loading
   const showLoader = globalLoading || isNavigating;
 
-  // If the current route is an error page or not-found, render standalone (no sidebar/navbar)
-  // Also exclude auth pages from dashboard layout
-  const isErrorPage =
-    pathname?.includes("/errors/") || pathname?.endsWith("/not-found");
-  const isAuthPage = pathname?.includes("/auth/");
+  // If the current route is an error page, not-found, or unauthorized, render standalone
+  const isErrorOrStandalonePage =
+    pathname?.includes("/errors/") ||
+    pathname?.includes("/not-found") ||
+    pathname?.includes("/unauthorized");
 
-  if (isErrorPage) {
+  if (isErrorOrStandalonePage) {
     return (
       <>
         <GlobalLoader visible={showLoader} text="Loading..." />
-        {!showLoader && children}
+        {!showLoader && (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            {children}
+            {/* <DevBypassToggle /> */}
+          </div>
+        )}
       </>
     );
   }
@@ -87,17 +94,6 @@ export default function LayoutWrapper({ children }) {
     pattern.test(pathname || "")
   );
 
-  // If the current route is the unauthorized page we render it full-screen and hide
-  // the app chrome (sidebar/topnav). This keeps the unauthorized page isolated.
-  if (pathname?.includes("/unauthorized")) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        {children}
-        <DevBypassToggle />
-      </div>
-    );
-  }
-
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
   const isLoggedIn = BYPASS || Boolean(user);
 
@@ -109,7 +105,7 @@ export default function LayoutWrapper({ children }) {
         {!showLoader && (
           <div className="min-h-screen bg-gray-50">
             {children}
-            <DevBypassToggle />
+            {isDev && <DevBypassToggle />}
           </div>
         )}
       </>
@@ -124,7 +120,7 @@ export default function LayoutWrapper({ children }) {
         {!showLoader && (
           <div className="min-h-screen bg-gray-50">
             {children}
-            <DevBypassToggle />
+            {isDev && <DevBypassToggle />}
           </div>
         )}
       </>
@@ -144,7 +140,7 @@ export default function LayoutWrapper({ children }) {
               </div>
             </div>
           </ProtectedRoute>
-          <DevBypassToggle />
+          {isDev && <DevBypassToggle />}
         </DashboardLayout>
       )}
     </>

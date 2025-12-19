@@ -18,7 +18,7 @@ export default function Step5Category({ formData, updateFormData }) {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await getCategories({ companyId: [formData.companyId] });
+      const response = await getCategories({ companyId: formData.companyId });
       setCategories(response.data || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -37,23 +37,30 @@ export default function Step5Category({ formData, updateFormData }) {
   };
 
   const handleCategorySelect = (category) => {
-    // Find parent category name (Level 2) for specs lookup
-    // const parentCategory = parentCategories.find(
-    //   (p) => p._id === category.parentCategory
-    // );
+    // Explicit safety check: ensure category is level 3
+    if (category.level !== 3) {
+      notificationBus.error(
+        "Invalid category selection: category must be level 3"
+      );
+      return;
+    }
 
     const parentCategory = category.parentCategory || null;
 
-
     updateFormData({
+      category: {
+        id: category._id,
+        name: category.name,
+      },
       categoryId: category._id,
-      categoryName: category.name,
-      parentCategoryName: parentCategory?.name || "",
+      specsCategory: parentCategory?.name || "",
     });
   };
 
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter(
+    (cat) =>
+      cat.level === 3 &&
+      cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -71,10 +78,11 @@ export default function Step5Category({ formData, updateFormData }) {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Select Product Category
+          Select Product Category (Level 3)
         </h2>
         <p className="text-gray-600">
-          Choose the category that best describes your product
+          Choose a specific level 3 category for your product. Only level 3
+          categories are supported.
         </p>
       </div>
 
@@ -91,26 +99,26 @@ export default function Step5Category({ formData, updateFormData }) {
       </div>
 
       {/* Selected Category Display */}
-      {formData.categoryId && (
+      {formData.category.id && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Selected Category:</p>
               <p className="font-semibold text-gray-900">
-                {formData.categoryName}
+                {formData.category.name}
               </p>
-              {formData.parentCategoryName && (
+              {formData.specsCategory && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Parent: {formData.parentCategoryName}
+                  Parent: {formData.specsCategory}
                 </p>
               )}
             </div>
             <button
               onClick={() =>
                 updateFormData({
+                  category: { id: "", name: "" },
                   categoryId: "",
-                  categoryName: "",
-                  parentCategoryName: "",
+                  specsCategory: "",
                 })
               }
               className="text-red-500 hover:text-red-700 text-sm"
@@ -133,7 +141,7 @@ export default function Step5Category({ formData, updateFormData }) {
               key={category._id}
               onClick={() => handleCategorySelect(category)}
               className={`p-4 border-2 rounded-lg text-left transition-all ${
-                formData.categoryId === category._id
+                formData.category.id === category._id
                   ? "border-orange-500 bg-orange-50"
                   : "border-gray-200 hover:border-orange-300 hover:bg-orange-50"
               }`}
@@ -149,7 +157,7 @@ export default function Step5Category({ formData, updateFormData }) {
         )}
       </div>
 
-      {!formData.categoryId && (
+      {!formData.category.id && (
         <p className="text-red-500 text-sm">
           Please select a category to continue
         </p>

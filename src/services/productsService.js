@@ -1,4 +1,3 @@
-
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
@@ -15,29 +14,24 @@ const INVENTORY_BASE = "/inventory/v1";
  * SSR-safe: pass token when calling from server
  * -----------------------------------------------------
  */
-export async function getProducts(
-  {
-    page = 1,
-    limit = 20,
-    category,
-    search,
-    companyId,
-  } = {}
-) {
+export async function getProducts({
+  page = 1,
+  limit = 20,
+  category,
+  search,
+  companyId,
+} = {}) {
   if (!companyId) return [];
 
   const params = { page, limit };
   if (category) params.category = category;
   if (search) params.search = search;
 
-  return apiClient.get(
-    `${INVENTORY_BASE}/companies/${companyId}/products`,
-    {
-      params,
+  return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/products`, {
+    params,
 
-      cache: { noStore: true },
-    }
-  );
+    cache: { noStore: true },
+  });
 }
 
 /**
@@ -82,9 +76,7 @@ export async function createProduct(payload) {
     payload,
 
     {
-      ...(isFormData && {
-        headers: { "Content-Type": "multipart/form-data" },
-      }),
+      // Headers will be automatically set by the browser/axios for FormData
     }
   );
 
@@ -100,10 +92,7 @@ export async function createProduct(payload) {
 export async function updateProduct(id, updates) {
   if (!id) throw new Error("Product ID is required");
 
-  const data = await apiClient.put(
-    `${INVENTORY_BASE}/products/${id}`,
-    updates,
-  );
+  const data = await apiClient.put(`${INVENTORY_BASE}/products/${id}`, updates);
 
   apiClient.clearCache("/inventory");
   return data;
@@ -117,9 +106,7 @@ export async function updateProduct(id, updates) {
 export async function deleteProduct(id) {
   if (!id) throw new Error("Product ID is required");
 
-  const data = await apiClient.delete(
-    `${INVENTORY_BASE}/products/${id}`
-  );
+  const data = await apiClient.delete(`${INVENTORY_BASE}/products/${id}`);
 
   apiClient.clearCache("/inventory");
   return data;
@@ -157,7 +144,7 @@ export async function searchProducts(query) {
   });
 }
 
-export default {
+const productsService = {
   getProducts,
   getFeaturedProducts,
   getProductById,
@@ -167,3 +154,5 @@ export default {
   updateStock,
   searchProducts,
 };
+
+export default productsService;

@@ -23,12 +23,17 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 flex-1 min-h-screen ${isMobile
+<<<<<<< HEAD
+        className={`transition-all duration-300 flex-1 pt-20 ${isMobile
+=======
+        className={`transition-all duration-300 flex-1 pt-20 ${
+          isMobile
+>>>>>>> ee6354253011d07f786750d0dd276328671c50a5
             ? "ml-0 pb-24" // No left margin on mobile, add bottom padding for bottom nav
             : expanded
-              ? "ml-64"
-              : "ml-20"
-          }`}
+            ? "ml-64"
+            : "ml-20"
+        }`}
       >
         {children}
       </main>

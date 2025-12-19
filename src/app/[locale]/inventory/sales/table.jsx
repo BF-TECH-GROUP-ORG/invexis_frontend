@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress,Checkbox
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox
 } from "@mui/material";
 import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -550,10 +550,13 @@ const DataTable = ({ salesData }) => {
       id: sale.saleId,
       productId: sale.items && sale.items.length > 0 ? sale.items[0].productId : null,
       ProductName: sale.items && sale.items.length > 0 ? sale.items[0].productName : "Unknown",
-      Category: 'Under development',
+      isDebt: sale.isDebt,
+      Category: sale.isTransfer,
       UnitPrice: sale.items && sale.items.length > 0 ? sale.items[0].unitPrice : 0,
       SoldQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0,
-      returned:`${sale.isReturned}`,
+      originalQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.originalQuantity || 0), 0) : 0,
+      returned: `${sale.isReturned}`,
+      returnedValue: sale.items.reduce((sum, item) => sum + (item.returnedQuantity || 0), 0),
       Discount: sale.discountTotal,
       Date: new Date(sale.createdAt).toLocaleDateString(),
       rawDate: sale.createdAt, // Keep raw date for filtering
@@ -713,6 +716,7 @@ const DataTable = ({ salesData }) => {
     }
 
     // Advanced filter
+
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
@@ -836,7 +840,17 @@ const DataTable = ({ salesData }) => {
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {t("category")}
+                is Debt
+              </TableCell>
+
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                is Transfered
+              </TableCell>
+
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                {t("Returned")}
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
@@ -844,11 +858,15 @@ const DataTable = ({ salesData }) => {
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {/* {t("soldQuantity")} */}sold Quantity
+                originalQuantity
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {t("Returned")}
+                sold Quantity
+              </TableCell>
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                returnedQuantity
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
@@ -882,10 +900,13 @@ const DataTable = ({ salesData }) => {
               >
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.ProductName}</TableCell>
-                <TableCell>{row.Category}</TableCell>
+                <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
+                <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
+                <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
                 <TableCell>{row.UnitPrice}</TableCell>
+                <TableCell>{row.originalQuantity}</TableCell>
                 <TableCell>{row.SoldQuantity}</TableCell>
-                <TableCell>{row.returned == "false" ? <span className='text-green-500'>false</span> : <span className='text-red-500'>true</span>}</TableCell>
+                <TableCell>{row.returnedValue}</TableCell>
                 <TableCell>{row.Discount}</TableCell>
                 <TableCell>{row.Date}</TableCell>
                 <TableCell>{row.TotalValue}</TableCell>

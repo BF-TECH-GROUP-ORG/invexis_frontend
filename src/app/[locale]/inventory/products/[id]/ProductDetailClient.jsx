@@ -9,7 +9,18 @@ import {
 } from "@/features/products/productsSlice";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { ArrowLeft, Edit, Trash2, Download, QrCode, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Download,
+  QrCode,
+  X,
+  Copy,
+  Check,
+} from "lucide-react";
+
+const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
 
 function Field({ label, value }) {
   let display;
@@ -39,6 +50,7 @@ function DetailInner({ id }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [copiedRaw, setCopiedRaw] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchProductById(id));
@@ -138,6 +150,17 @@ function DetailInner({ id }) {
       .replace(/\s+/g, "_")}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyRaw = () => {
+    const dataStr = JSON.stringify(product || {}, null, 2);
+    navigator.clipboard.writeText(dataStr).then(() => {
+      setCopiedRaw(true);
+      toast.success("Raw data copied to clipboard");
+      setTimeout(() => setCopiedRaw(false), 2000);
+    });
   };
 
   if (loading || !product) {
@@ -199,7 +222,8 @@ function DetailInner({ id }) {
                     (
                       typeof product.status === "object"
                         ? product.status.active
-                        : product.status !== "inactive"
+                        : product.status === "active" ||
+                          product.status === "Active"
                     )
                       ? "bg-green-50 text-green-700 border-green-200"
                       : "bg-red-50 text-red-700 border-red-200"
@@ -210,7 +234,8 @@ function DetailInner({ id }) {
                       (
                         typeof product.status === "object"
                           ? product.status.active
-                          : product.status !== "inactive"
+                          : product.status === "active" ||
+                            product.status === "Active"
                       )
                         ? "bg-green-500"
                         : "bg-red-500"
@@ -226,13 +251,17 @@ function DetailInner({ id }) {
                 </span>
 
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                  {product.visibility || "public"}
+                  {product.visibility || product.status?.visible || "public"}
                 </span>
 
+                {product.isFeatured && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                    ★ Featured
+                  </span>
+                )}
+
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#081422] border border-gray-200">
-                  {product.category?.name ||
-                    product.categoryId?.name ||
-                    "Uncategorized"}
+                  {product.category?.name || "Uncategorized"}
                 </span>
               </div>
             </div>
@@ -268,9 +297,10 @@ function DetailInner({ id }) {
               { id: "pricing", label: "Pricing" },
               { id: "inventory", label: "Inventory" },
               { id: "media", label: "Media" },
+              { id: "variations", label: "Variations" },
               { id: "codes", label: "Codes" },
               { id: "specs", label: "Specs" },
-              { id: "raw", label: "Raw Data" },
+              ...(isDev ? [{ id: "raw", label: "Raw Data" }] : []),
             ].map((t) => (
               <button
                 key={t.id}
@@ -376,29 +406,20 @@ function DetailInner({ id }) {
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Selling Price</p>
                       <p className="text-xl font-bold text-green-600">
-                        {fmt(
-                          product.pricing?.basePrice ??
-                            product.pricingId?.basePrice ??
-                            product.price
-                        )}
+                        {fmt(product.pricing?.basePrice)}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Cost Price</p>
                       <p className="text-xl font-semibold">
-                        {fmt(
-                          product.pricing?.cost ??
-                            product.pricingId?.cost ??
-                            product.costPrice
-                        )}
+                        {fmt(product.pricing?.cost)}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500">Stock</p>
                       <p className="text-xl font-semibold">
-                        {product.stock?.total ??
-                          product.stock?.available ??
-                          product.inventory?.quantity ??
+                        {product.inventory?.stockQty ??
+                          product.stock?.total ??
                           0}
                       </p>
                     </div>
@@ -406,13 +427,9 @@ function DetailInner({ id }) {
                       <p className="text-xs text-gray-500">Total Value</p>
                       <p className="text-xl font-bold text-orange-600">
                         {fmt(
-                          (product.pricing?.basePrice ??
-                            product.pricingId?.basePrice ??
-                            product.price ??
-                            0) *
-                            (product.stock?.total ??
-                              product.stock?.available ??
-                              product.inventory?.quantity ??
+                          (product.pricing?.basePrice || 0) *
+                            (product.inventory?.stockQty ??
+                              product.stock?.total ??
                               0)
                         )}
                       </p>
@@ -426,27 +443,29 @@ function DetailInner({ id }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field
                         label="Category"
-                        value={
-                          product.category?.name ||
-                          product.categoryId?.name ||
-                          product.category ||
-                          "N/A"
-                        }
+                        value={product.category?.name || "N/A"}
                       />
-                      <Field
-                        label="Shop"
-                        value={
-                          product.shop?.name ||
-                          product.shopId?.name ||
-                          (typeof product.shopId === "string"
-                            ? product.shopId
-                            : "N/A")
-                        }
-                      />
+                      <Field label="Shop ID" value={product.shopId || "N/A"} />
                       <Field label="Brand" value={product.brand || "N/A"} />
                       <Field
                         label="Manufacturer"
                         value={product.manufacturer || "N/A"}
+                      />
+                      <Field
+                        label="SKU"
+                        value={product.identifiers?.sku || "N/A"}
+                      />
+                      <Field
+                        label="ASIN"
+                        value={product.identifiers?.asin || "N/A"}
+                      />
+                      <Field
+                        label="UPC"
+                        value={product.identifiers?.upc || "N/A"}
+                      />
+                      <Field
+                        label="Scan ID"
+                        value={product.identifiers?.scanId || "N/A"}
                       />
                       <Field
                         label="Date Entered"
@@ -456,18 +475,26 @@ function DetailInner({ id }) {
                             : "N/A"
                         }
                       />
-                      {product.expiryDate && (
-                        <Field
-                          label="Expiry Date"
-                          value={new Date(
-                            product.expiryDate
-                          ).toLocaleDateString()}
-                        />
-                      )}
-                      {!product.expiryDate && (
-                        <Field label="Expiry Date" value="Not Applicable" />
-                      )}
+                      <Field
+                        label="Tags"
+                        value={
+                          product.tags && product.tags.length > 0
+                            ? product.tags.join(", ")
+                            : "None"
+                        }
+                      />
                     </div>
+                    {product.expiryDate && (
+                      <Field
+                        label="Expiry Date"
+                        value={new Date(
+                          product.expiryDate
+                        ).toLocaleDateString()}
+                      />
+                    )}
+                    {!product.expiryDate && (
+                      <Field label="Expiry Date" value="Not Applicable" />
+                    )}
                   </div>
 
                   <div className="bg-white border rounded-lg p-4">
@@ -491,32 +518,18 @@ function DetailInner({ id }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field
                       label="Selling Price"
-                      value={fmt(
-                        product.pricing?.basePrice ??
-                          product.pricingId?.basePrice ??
-                          product.price
-                      )}
+                      value={fmt(product.pricing?.basePrice)}
                     />
                     <Field
                       label="Cost Price"
-                      value={fmt(
-                        product.pricing?.cost ??
-                          product.pricingId?.cost ??
-                          product.costPrice
-                      )}
+                      value={fmt(product.pricing?.cost)}
                     />
                     <Field
                       label="Margin"
                       value={
-                        product.pricing?.marginAmount ||
-                        product.pricingId?.marginAmount
-                          ? `${fmt(
-                              product.pricing?.marginAmount ||
-                                product.pricingId?.marginAmount
-                            )} (${(
-                              product.pricing?.marginPercent ||
-                              product.pricingId?.marginPercent ||
-                              0
+                        product.pricing?.marginAmount
+                          ? `${fmt(product.pricing.marginAmount)} (${(
+                              product.pricing.marginPercent || 0
                             ).toFixed(1)}%)`
                           : "N/A"
                       }
@@ -524,15 +537,15 @@ function DetailInner({ id }) {
                     <Field
                       label="Profit Rank"
                       value={(
-                        product.pricing?.profitRank ||
-                        product.pricingId?.profitRank ||
-                        "N/A"
+                        product.pricing?.profitRank || "N/A"
                       ).toUpperCase()}
                     />
                     <Field
-                      label="Discount"
+                      label="Sale Price"
                       value={
-                        product.discount ?? product.pricing?.discount ?? "0"
+                        product.pricing?.salePrice
+                          ? fmt(product.pricing.salePrice)
+                          : "None"
                       }
                     />
                     <Field label="Currency" value={currency} />
@@ -544,57 +557,49 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field
-                      label="Stock"
+                      label="Total Stock"
                       value={
-                        product.stock?.total ??
+                        product.inventory?.stockQty ?? product.stock?.total ?? 0
+                      }
+                    />
+                    <Field
+                      label="Available"
+                      value={
+                        product.inventory?.stockQty ??
                         product.stock?.available ??
-                        product.inventory?.quantity ??
                         0
                       }
                     />
                     <Field
-                      label="Min Stock (Low Threshold)"
+                      label="Low Stock Threshold"
                       value={
-                        product.stock?.minStockLevel ??
-                        product.inventory?.minStockLevel ??
-                        product.stock?.lowStockThreshold ??
                         product.inventory?.lowStockThreshold ??
+                        product.stock?.lowStockThreshold ??
                         "N/A"
                       }
                     />
                     <Field
-                      label="Max Stock"
-                      value={
-                        product.stock?.maxStockLevel ??
-                        product.inventory?.maxStockLevel ??
-                        "N/A"
-                      }
+                      label="Min Reorder Qty"
+                      value={product.inventory?.minReorderQty ?? "N/A"}
                     />
                     <Field
-                      label="Suggested Reorder Qty"
-                      value={
-                        product.stock?.details?.[0]?.suggestedReorderQty ??
-                        product.stock?.suggestedReorderQty ??
-                        "N/A"
-                      }
-                    />
-                    <Field
-                      label="Stockout Risk"
-                      value={
-                        product.stock?.details?.[0]?.stockoutRiskDays ||
-                        product.stock?.stockoutRiskDays
-                          ? `${
-                              product.stock?.details?.[0]?.stockoutRiskDays ||
-                              product.stock?.stockoutRiskDays
-                            } Days`
-                          : "N/A"
-                      }
+                      label="Safety Stock"
+                      value={product.inventory?.safetyStock ?? "N/A"}
                     />
                     <Field
                       label="Allow Backorder"
                       value={
-                        product.inventory?.allowBackorder ||
+                        product.inventory?.allowBackorder ??
                         product.stock?.allowBackorder
+                          ? "Yes"
+                          : "No"
+                      }
+                    />
+                    <Field
+                      label="Track Quantity"
+                      value={
+                        product.inventory?.trackQuantity ??
+                        product.stock?.trackQuantity
                           ? "Yes"
                           : "No"
                       }
@@ -650,6 +655,78 @@ function DetailInner({ id }) {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeTab === "variations" && (
+                <div className="space-y-4">
+                  <div className="bg-white border rounded-lg overflow-hidden">
+                    {/* Backend 'variants' now contains the combinations based on our swap */}
+                    {(product.variants && product.variants.length > 0) ||
+                    (product.variations && product.variations.length > 0) ? (
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
+                          <tr>
+                            <th className="px-6 py-3">Variant</th>
+                            <th className="px-6 py-3">SKU</th>
+                            <th className="px-6 py-3">Price</th>
+                            <th className="px-6 py-3">Stock</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {/* combinations are in 'variants' based on payload alignment */}
+                          {(product.variants || product.variations || []).map(
+                            (variant, idx) => (
+                              <tr
+                                key={variant._id || idx}
+                                className="hover:bg-gray-50"
+                              >
+                                <td className="px-6 py-3 font-medium text-gray-900">
+                                  {Object.entries(
+                                    variant.attributes || variant.options || {}
+                                  )
+                                    .map(([k, v]) => `${k}: ${v}`)
+                                    .join(", ") || "Default"}
+                                </td>
+                                <td className="px-6 py-3 text-gray-600">
+                                  {variant.sku || "N/A"}
+                                </td>
+                                <td className="px-6 py-3 font-semibold text-green-600">
+                                  {fmt(variant.price || variant.basePrice)}
+                                </td>
+                                <td className="px-6 py-3">
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs ${
+                                      (variant.stockQty ||
+                                        variant.initialStock ||
+                                        0) > 0
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-red-100 text-red-800"
+                                    }`}
+                                  >
+                                    {variant.stockQty ||
+                                      variant.initialStock ||
+                                      0}{" "}
+                                    in stock
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className="p-12 text-center text-gray-500">
+                        <QrCode size={48} className="mx-auto mb-4 opacity-20" />
+                        <p className="text-lg font-medium">
+                          No variations defined
+                        </p>
+                        <p className="text-sm">
+                          This is a simple product with no variants.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -716,8 +793,9 @@ function DetailInner({ id }) {
               {activeTab === "specs" && (
                 <div className="space-y-4">
                   <div className="bg-white border rounded-lg overflow-hidden">
-                    {product.specifications &&
-                    Object.keys(product.specifications).length > 0 ? (
+                    {(product.specs && product.specs.length > 0) ||
+                    (product.specifications &&
+                      Object.keys(product.specifications).length > 0) ? (
                       <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
                           <tr>
@@ -726,20 +804,35 @@ function DetailInner({ id }) {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {Object.entries(product.specifications).map(
-                            ([key, val]) => (
-                              <tr key={key} className="hover:bg-gray-50">
-                                <td className="px-6 py-3 font-medium text-gray-900 capitalize">
-                                  {key.replace(/_/g, " ")}
-                                </td>
-                                <td className="px-6 py-3 text-gray-600">
-                                  {typeof val === "object"
-                                    ? JSON.stringify(val)
-                                    : val}
-                                </td>
-                              </tr>
-                            )
-                          )}
+                          {/* Prefer new specs array format */}
+                          {product.specs && product.specs.length > 0
+                            ? product.specs.map((s, idx) => (
+                                <tr key={idx} className="hover:bg-gray-50">
+                                  <td className="px-6 py-3 font-medium text-gray-900 capitalize">
+                                    {s.name?.replace(/_/g, " ")}
+                                  </td>
+                                  <td className="px-6 py-3 text-gray-600">
+                                    {typeof s.value === "object"
+                                      ? JSON.stringify(s.value)
+                                      : s.value}
+                                  </td>
+                                </tr>
+                              ))
+                            : /* Fallback to legacy specifications object */
+                              Object.entries(product.specifications || {}).map(
+                                ([key, val]) => (
+                                  <tr key={key} className="hover:bg-gray-50">
+                                    <td className="px-6 py-3 font-medium text-gray-900 capitalize">
+                                      {key.replace(/_/g, " ")}
+                                    </td>
+                                    <td className="px-6 py-3 text-gray-600">
+                                      {typeof val === "object"
+                                        ? JSON.stringify(val)
+                                        : val}
+                                    </td>
+                                  </tr>
+                                )
+                              )}
                         </tbody>
                       </table>
                     ) : (
@@ -752,13 +845,33 @@ function DetailInner({ id }) {
               )}
 
               {activeTab === "raw" && (
-                <div>
-                  <h3 className="text-sm text-gray-600 mb-2">
-                    Raw Product JSON
-                  </h3>
-                  <pre className="mt-2 text-xs bg-gray-50 p-3 rounded overflow-auto">
-                    {JSON.stringify(product, null, 2)}
-                  </pre>
+                <div className="bg-white border rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
+                    <h3 className="text-sm font-semibold text-gray-700">
+                      Raw Product JSON
+                    </h3>
+                    <button
+                      onClick={handleCopyRaw}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      {copiedRaw ? (
+                        <>
+                          <Check size={14} className="text-green-600" />
+                          <span className="text-green-600">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copy JSON</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="p-0 overflow-auto max-h-[600px] bg-[#1e1e1e]">
+                    <pre className="text-xs font-mono text-gray-300 p-4 leading-relaxed">
+                      {JSON.stringify(product, null, 2)}
+                    </pre>
+                  </div>
                 </div>
               )}
             </div>

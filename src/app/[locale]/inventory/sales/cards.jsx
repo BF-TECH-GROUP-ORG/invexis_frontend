@@ -1,72 +1,86 @@
-// src/components/sales/SalesCards.jsx
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useSpring, useTransform } from "framer-motion";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+
+const Counter = ({ value, currency = false }) => {
+  const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
+  const display = useTransform(spring, (current) => {
+    if (currency) {
+      return new Intl.NumberFormat("en-RW", {
+        style: "currency",
+        currency: "RWF",
+        maximumFractionDigits: 0,
+      }).format(current);
+    }
+    return Math.round(current).toLocaleString();
+  });
+
+  useEffect(() => {
+    spring.set(value);
+  }, [spring, value]);
+
+  return <motion.span>{display}</motion.span>;
+};
 
 const SalesCards = ({ sales = [] }) => {
 
-    const stats = useMemo(() => {
-        const today = new Date().toDateString();
+  const stats = useMemo(() => {
+    const today = new Date().toDateString();
 
-        // Filter sales for today
-        const todaySales = sales.filter(sale =>
-            new Date(sale.createdAt).toDateString() === today
-        );
+    // Filter sales for today
+    const todaySales = sales.filter(sale =>
+      new Date(sale.createdAt).toDateString() === today
+    );
 
-        const totalDailySales = todaySales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0);
+    const totalDailySales = todaySales.reduce((sum, sale) => sum + (parseFloat(sale.totalAmount) || 0), 0);
 
-        // Calculate profit based on items
-        const totalDailyProfit = todaySales.reduce((sum, sale) => {
-            const saleProfit = sale.items ? sale.items.reduce((itemSum, item) => {
-                const cost = parseFloat(item.costPrice) || 0;
-                const price = parseFloat(item.unitPrice) || 0;
-                const qty = item.quantity || 1;
-                return itemSum + ((price - cost) * qty);
-            }, 0) : 0;
-            return sum + saleProfit;
-        }, 0);
+    // Calculate profit based on items
+    const totalDailyProfit = todaySales.reduce((sum, sale) => {
+      const saleProfit = sale.items ? sale.items.reduce((itemSum, item) => {
+        const cost = parseFloat(item.costPrice) || 0;
+        const price = parseFloat(item.unitPrice) || 0;
+        const qty = item.quantity || 1;
+        return itemSum + ((price - cost) * qty);
+      }, 0) : 0;
+      return sum + saleProfit;
+    }, 0);
 
-        const totalReturned = sales.filter(sale =>
-            sale.returned === true || sale.returned === "true"
-        ).length;
+    const totalReturned = sales.filter(sale =>
+      sale.isReturned === true || sale.isReturned === "true" || sale.returned === true || sale.returned === "true"
+    ).length;
 
-        const totalDiscounts = sales.filter(sale =>
-            (parseFloat(sale.discountTotal) || 0) > 0
-        ).length;
+    const totalDiscounts = sales.filter(sale =>
+      (parseFloat(sale.discountTotal) || 0) > 0
+    ).length;
 
     return {
-      totalDailySales: todaySales.reduce((s, v) => s + (v.totalAmount || 0), 0),
-      totalDailyProfit: todaySales.reduce((s, v) => s + (v.profit || 0), 0),
-      totalReturned: sales.filter(s => s.returned).length,
-      totalDiscounts: sales.filter(s => (s.discountTotal || 0) > 0).length,
+      totalDailySales,
+      totalDailyProfit,
+      totalReturned,
+      totalDiscounts,
     };
   }, [sales]);
-
-  const formatCurrency = amount =>
-    new Intl.NumberFormat("en-RW", {
-      style: "currency",
-      currency: "RWF",
-      maximumFractionDigits: 0,
-    }).format(amount);
 
   const cards = [
     {
       title: "Total Daily Sales",
-      value: formatCurrency(stats.totalDailySales),
+      value: stats.totalDailySales,
       Icon: Coins,
       color: "#8b5cf6",
       bgColor: "#f3e8ff",
       key: "sales",
+      isCurrency: true,
     },
     {
       title: "Total Daily Profit",
-      value: formatCurrency(stats.totalDailyProfit),
+      value: stats.totalDailyProfit,
       Icon: TrendingUp,
       color: "#10b981",
       bgColor: "#ecfdf5",
       key: "profit",
+      isCurrency: true,
     },
     {
       title: "Returned Products",
@@ -75,6 +89,7 @@ const SalesCards = ({ sales = [] }) => {
       color: "#3b82f6",
       bgColor: "#eff6ff",
       key: "returned",
+      isCurrency: false,
     },
     {
       title: "Discounts Applied",
@@ -83,6 +98,7 @@ const SalesCards = ({ sales = [] }) => {
       color: "#ef4444",
       bgColor: "#fee2e2",
       key: "discounts",
+      isCurrency: false,
     },
   ];
 
@@ -104,7 +120,7 @@ const SalesCards = ({ sales = [] }) => {
                   {card.title}
                 </p>
                 <p className="text-2xl font-bold font-jetbrains text-[#081422]">
-                  {card.value}
+                  <Counter value={card.value} currency={card.isCurrency} />
                 </p>
               </div>
 

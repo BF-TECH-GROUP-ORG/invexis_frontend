@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import store from "@/store";
 import { SocketProvider } from "./SocketProvider";
+import NotificationProvider from "./NotificationProvider";
 
 const ClientProviders = ({ children }) => {
   const [queryClient] = useState(() => new QueryClient());
@@ -15,7 +16,7 @@ const ClientProviders = ({ children }) => {
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
           <SocketProvider>
-            {children}
+            <NotificationProvider>{children}</NotificationProvider>
           </SocketProvider>
         </SessionProvider>
       </QueryClientProvider>

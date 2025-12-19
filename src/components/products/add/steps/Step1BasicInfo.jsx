@@ -59,7 +59,7 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
       </div>
 
       {/* Brand, Manufacturer & Supplier */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Brand
@@ -94,6 +94,20 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
             onChange={(e) => handleInputChange("supplierName", e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             placeholder="Supplier name"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Sort Order
+          </label>
+          <input
+            type="number"
+            value={formData.sortOrder}
+            onChange={(e) =>
+              handleInputChange("sortOrder", parseInt(e.target.value) || 0)
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="1"
           />
         </div>
       </div>

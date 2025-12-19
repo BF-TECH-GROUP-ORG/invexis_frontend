@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { useRouter, useParams } from "next/navigation";
+import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
+import { notificationBus } from "@/lib/notificationBus";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
 import StepShop from "./steps/StepShop";
@@ -19,8 +20,15 @@ import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
 import { Loader2 } from "lucide-react";
 
-export default function AddProductWizard({ companyId, shopId: propShopId }) {
+export default function AddProductWizard({
+  companyId,
+  shopId: propShopId,
+  initialData = null,
+  isEdit = false,
+}) {
   const router = useRouter();
+  const params = useParams();
+  const locale = params?.locale || "en";
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [showReview, setShowReview] = useState(false);
@@ -43,11 +51,8 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
     brand: "",
     manufacturer: "",
     tags: [],
-    condition: "new",
-    availability: "in_stock",
-    visibility: "public",
-    isFeatured: false,
-    status: "active",
+    supplierName: "",
+    sortOrder: 1,
 
     // Step 2: Media
     images: [],
@@ -59,30 +64,38 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       basePrice: 0,
       salePrice: null,
       listPrice: 0,
-      costPrice: 0,
-      currency: "USD",
+      cost: 0,
+      currency: "RWF",
       priceTiers: [],
     },
 
     // Step 4: Inventory
     inventory: {
-      quantity: 0,
-      minStockLevel: 0,
-      maxStockLevel: 0,
       trackQuantity: true,
+      stockQty: 0,
+      lowStockThreshold: 0,
+      minReorderQty: 0,
       allowBackorder: false,
+      safetyStock: 0,
+    },
+    identifiers: {
       sku: "",
       barcode: "",
+      scanId: "",
+      asin: "",
+      upc: "",
     },
-    supplierName: "",
 
     // Step 5: Category
-    categoryId: "",
-    categoryName: "",
-    parentCategoryName: "",
+    category: {
+      id: "",
+      name: "",
+    },
+    categoryId: "", // Helper for lookup
 
     // Step 6: Specs
-    specs: {},
+    specifications: {},
+    specsCategory: null,
 
     // Step 7: Variations
     variants: [],
@@ -95,30 +108,123 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       keywords: [],
       slug: "",
     },
+
+    // Status & Flags
+    condition: "new",
+    availability: "in_stock",
+    status: "active",
+    visibility: "public",
+    isFeatured: false,
+
+    // Deprecated structure wrapper for compatibility if needed, but we should use flat ones
+    // We'll keep a minimal status object for components that still expect it
+    _oldStatus: {
+      active: true,
+      visible: true,
+      availability: "in_stock",
+      condition: "new",
+      featured: false,
+    },
   });
 
-  // Effect to handle worker shop assignment
+  // Effect to handle worker shop assignment or initialData
   useEffect(() => {
-    if (
+    if (initialData) {
+      // Handle Specs conversion (Array back to Object for UI)
+      let initialSpecs = initialData.specifications || {};
+      if (Array.isArray(initialData.specs)) {
+        initialSpecs = initialData.specs.reduce((acc, curr) => {
+          if (curr.name) acc[curr.name] = curr.value;
+          return acc;
+        }, {});
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...initialData,
+        // Map nested fields if they exist in initialData
+        pricing: {
+          ...prev.pricing,
+          ...(initialData.pricing || {}),
+        },
+        inventory: {
+          ...prev.inventory,
+          ...(initialData.inventory || initialData.stock || {}),
+          // Handle field renaming from legacy 'stock' if needed
+          stockQty:
+            initialData.inventory?.stockQty ??
+            initialData.stock?.total ??
+            prev.inventory.stockQty,
+          lowStockThreshold:
+            initialData.inventory?.lowStockThreshold ??
+            initialData.stock?.lowStockThreshold ??
+            prev.inventory.lowStockThreshold,
+        },
+        identifiers: {
+          ...prev.identifiers,
+          ...(initialData.identifiers || {}),
+        },
+        category: initialData.category || {
+          id: initialData.categoryId || "",
+          name: "",
+        },
+        specifications: initialSpecs,
+        status: initialData.status || prev.status,
+        condition:
+          initialData.condition ||
+          initialData.status?.condition ||
+          prev.condition,
+        availability:
+          initialData.availability ||
+          initialData.status?.availability ||
+          prev.availability,
+        visibility:
+          initialData.visibility ||
+          (initialData.status?.visible === false ? "hidden" : "public") ||
+          prev.visibility,
+        isFeatured:
+          initialData.isFeatured ??
+          initialData.status?.featured ??
+          prev.isFeatured,
+        // Handle weirdly stringified tags in legacy data
+        tags: Array.isArray(initialData.tags)
+          ? initialData.tags.flatMap((t) => {
+              if (typeof t === "string" && t.startsWith("[")) {
+                try {
+                  return JSON.parse(t);
+                } catch (e) {
+                  return t;
+                }
+              }
+              return t;
+            })
+          : [],
+        // Invert variations/variants mapping for consistency with backend logic
+        // Backend 'variations' contains attribute definitions -> formData.variants
+        // Backend 'variants' contains generated combinations -> formData.variations
+        variants: initialData.variations || prev.variants || [],
+        variations: initialData.variants || prev.variations || [],
+        media: initialData.media || prev.media,
+        images: initialData.media?.images || initialData.images || [],
+        videoUrls: (initialData.media?.videos || [])
+          .filter((v) => v.type === "url")
+          .map((v) => v.url),
+      }));
+    } else if (
       status === "authenticated" &&
       isWorker &&
       session?.user?.shops?.length > 0
     ) {
-      // Worker has shop assigned in profile
-      const workerShopId = session.user.shops[0]; // Assuming first shop
-      // If shopId is an object or string, handle accordingly.
-      // Based on request, it looks like an array of strings (Ids).
-      // If it was populated object, we'd need ._id
+      const workerShopId = session.user.shops[0];
       const actualShopId =
         typeof workerShopId === "object" ? workerShopId._id : workerShopId;
 
       setFormData((prev) => ({
         ...prev,
         shopId: actualShopId,
-        // shopName: ... (we might not have name here easily without fetching, but that's ok for worker flow as it's hidden)
       }));
     }
-  }, [status, isWorker, session]);
+  }, [status, isWorker, session, initialData]);
 
   // Define steps dynamically
   const steps = useMemo(() => {
@@ -168,14 +274,14 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       case "pricing":
         return formData.pricing.basePrice > 0;
       case "inventory":
-        return formData.inventory.quantity >= 0;
+        return formData.inventory.stockQty >= 0;
       case "category":
-        return formData.categoryId !== "";
+        return formData.category.id !== "";
       case "specs":
         return true;
       case "variations":
         if (
-          formData.variants?.length > 0 &&
+          formData.variants?.length < 0 &&
           formData.variations?.length === 0
         ) {
           return false;
@@ -191,7 +297,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
 
   const handleNext = () => {
     if (!validateStep(currentStep)) {
-      toast.error("Please fill in all required fields");
+      notificationBus.error("Please fill in all required fields");
       return;
     }
 
@@ -211,60 +317,95 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
   };
 
   const preparePayload = () => {
-    // format images with metadata
-    const formattedImages = formData.images.map((img, index) => ({
-      url: img.url,
-      alt: `${formData.name} - View ${index + 1}`,
-      isPrimary: index === 0,
-      sortOrder: index + 1,
-      file: img.file, // keep file for upload logic
-    }));
+    // Transform specifications object to array of {name, value}
+    const specsArray = Object.entries(formData.specifications || {}).map(
+      ([name, value]) => ({
+        name,
+        value,
+      })
+    );
 
-    return {
+    // Format images and STRIP base64 URLs if they have a binary file (Performance Fix)
+    const formattedImages = formData.images.map((img, index) => {
+      const isBase64 =
+        typeof img.url === "string" && img.url.startsWith("data:");
+      return {
+        // If it's a new upload with a binary file, don't send the base64 URL in JSON
+        // The backend will receive the actual file and generate its own URL
+        url: isBase64 && img.file ? "" : img.url,
+        alt: img.alt || `${formData.name} - Image ${index + 1}`,
+        isPrimary: index === 0,
+        sortOrder: index + 1,
+      };
+    });
+
+    const payload = {
       companyId: formData.companyId,
       shopId: formData.shopId,
-      categoryId: formData.categoryId,
-
       name: formData.name,
       description: formData.description,
       brand: formData.brand,
       manufacturer: formData.manufacturer,
-      supplierName: formData.supplierName || formData.manufacturer, // fallback
+      supplierName: formData.supplierName || formData.brand,
       tags: formData.tags,
+      categoryId: formData.category.id,
       condition: formData.condition,
       availability: formData.availability,
+      status: formData.status,
       visibility: formData.visibility,
       isFeatured: formData.isFeatured,
-      status: formData.status,
-      sortOrder: 0, // default
+      sortOrder: formData.sortOrder,
+      costPrice: formData.pricing.cost,
 
       pricing: {
         basePrice: formData.pricing.basePrice,
         salePrice: formData.pricing.salePrice,
-        listPrice: formData.pricing.listPrice || formData.pricing.basePrice, // default if missing
-        cost: formData.pricing.costPrice,
+        listPrice: formData.pricing.listPrice,
+        cost: formData.pricing.cost,
         currency: formData.pricing.currency,
         priceTiers: formData.pricing.priceTiers || [],
       },
 
       inventory: {
-        trackQuantity: formData.inventory.trackQuantity !== false,
-        quantity: formData.inventory.quantity,
-        lowStockThreshold: formData.inventory.minStockLevel,
-        allowBackorder: formData.inventory.allowBackorder || false,
-        // keep internal fields if needed or drop them
+        trackQuantity: formData.inventory.trackQuantity,
+        stockQty: formData.inventory.stockQty,
+        lowStockThreshold: formData.inventory.lowStockThreshold,
+        minReorderQty: formData.inventory.minReorderQty,
+        allowBackorder: formData.inventory.allowBackorder,
+        safetyStock: formData.inventory.safetyStock,
       },
 
       images: formattedImages,
       videoUrls: formData.videoUrls,
-      videoFiles: formData.videoFiles,
 
-      specifications: formData.specs,
-      variants: formData.variants || [], // Include variants definitions
-      variations: formData.variations || [], // Include generated variations
+      specs: specsArray,
 
-      seo: formData.seo,
+      seo: {
+        metaTitle: formData.seo.metaTitle,
+        metaDescription: formData.seo.metaDescription,
+        keywords: formData.seo.keywords,
+      },
     };
+
+    // Add optional fields only if they have data (Postman alignment)
+    const hasIdentifiers = Object.values(formData.identifiers || {}).some(
+      (v) => v !== ""
+    );
+    if (hasIdentifiers) {
+      payload.identifiers = formData.identifiers;
+    }
+
+    if (formData.variants && formData.variants.length > 0) {
+      // Backend 'variations' contains attribute definitions (formData.variants)
+      payload.variations = formData.variants;
+    }
+
+    if (formData.variations && formData.variations.length > 0) {
+      // Backend 'variants' contains generated combinations (formData.variations)
+      payload.variants = formData.variations;
+    }
+
+    return payload;
   };
 
   const handleSubmit = async (e) => {
@@ -280,72 +421,30 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
 
       // Check if we have files to upload (images or videos)
       const hasFiles =
-        (rawPayload.images && rawPayload.images.some((img) => img.file)) ||
-        (rawPayload.videoFiles && rawPayload.videoFiles.length > 0);
+        formData.images?.some((img) => img.file) ||
+        formData.videoFiles?.some((v) => v.file);
 
       if (hasFiles) {
         if (process.env.NODE_ENV === "development") {
-          console.log("Constructing Multipart FormData payload...");
+          console.log("Constructing Optimized Multipart FormData payload...");
         }
         isMultipart = true;
         const fd = new FormData();
 
-        // Append all fields to FormData
-        Object.keys(rawPayload).forEach((key) => {
-          const value = rawPayload[key];
+        // Append the entire optimized metadata as a single JSON field
+        // rawPayload already has base64 URLs stripped where binary files exist
+        fd.append("productData", JSON.stringify(rawPayload));
 
-          if (key === "images") {
-            // Append image files
-            value.forEach((img) => {
-              if (img.file) {
-                fd.append("images", img.file);
-              } else if (img.url) {
-                // If we want to keep existing URLs (for editing), handle backend expectation
-                // Usually backend expects separate field for existing URLs if mixing
-                fd.append("existingImageUrls", img.url);
-              }
-            });
-          } else if (key === "videoFiles") {
-            // Append video files
-            value.forEach((v) => {
-              if (v.file) fd.append("videos", v.file);
-            });
-          } else if (key === "videoUrls") {
-            // Append video URLs
-            value.forEach((url) => fd.append("videoUrls", url));
-          } else if (["pricing", "inventory", "seo"].includes(key)) {
-            // Flatten nested objects (pricing, inventory, seo) for FormData
-            if (value && typeof value === "object") {
-              Object.keys(value).forEach((subKey) => {
-                const subValue = value[subKey];
-                if (Array.isArray(subValue)) {
-                  // Handle arrays (e.g. pricing.priceTiers, seo.keywords)
-                  subValue.forEach((item, idx) => {
-                    if (item && typeof item === "object") {
-                      Object.keys(item).forEach((itemKey) => {
-                        fd.append(
-                          `${key}[${subKey}][${idx}][${itemKey}]`,
-                          item[itemKey]
-                        );
-                      });
-                    } else {
-                      fd.append(`${key}[${subKey}][${idx}]`, item);
-                    }
-                  });
-                } else if (subValue !== null && subValue !== undefined) {
-                  fd.append(`${key}[${subKey}]`, subValue);
-                }
-              });
-            }
-          } else if (typeof value === "object" && value !== null) {
-            // Stringify complex objects that the backend might expect as JSON strings (e.g. specs, variations)
-            // If specs/variations also fail, we might need to flatten them too.
-            fd.append(key, JSON.stringify(value));
-          } else if (value !== undefined && value !== null) {
-            // Append primitive values
-            fd.append(key, value);
-          }
+        // Append binary files
+        formData.images.forEach((img) => {
+          if (img.file) fd.append("images", img.file);
         });
+
+        if (formData.videoFiles) {
+          formData.videoFiles.forEach((v) => {
+            if (v.file) fd.append("videos", v.file);
+          });
+        }
 
         finalPayload = fd;
       }
@@ -360,22 +459,30 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       }
 
       // Call the products API
-      const { createProduct } = await import("@/services/productsService");
+      const { createProduct, updateProduct } = await import(
+        "@/services/productsService"
+      );
 
-      // If multipart, we might need to rely on axios/client to set Content-Type automatically.
-      // However, our apiClient/axios instance might force application/json.
-      // We'll pass the payload. If productsService uses apiClient, we hope apiClient respects FormData.
-
-      const response = await createProduct(finalPayload);
+      let response;
+      if (isEdit && initialData?._id) {
+        response = await updateProduct(initialData._id, finalPayload);
+      } else {
+        response = await createProduct(finalPayload);
+      }
 
       // toast.success("Product created successfully!"); // Handled by modal now
       setShowSuccessModal(true);
+      notificationBus.success(
+        isEdit
+          ? "Product updated successfully!"
+          : "Product created successfully!"
+      );
 
       // Optional: Reset form or redirect after modal close
-      // router.push(`/${router.locale || "en"}/inventory/products`);
+      // router.push(`/${locale}/inventory/products`);
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error(error.message || "Failed to create product");
+      notificationBus.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
@@ -448,6 +555,7 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
       return (
         <ProductReview
           formData={formData}
+          steps={steps}
           onEdit={(stepNumber) => {
             setShowReview(false);
             setCurrentStep(stepNumber);
@@ -488,10 +596,12 @@ export default function AddProductWizard({ companyId, shopId: propShopId }) {
             {/* Header */}
             <div className="border-b border-gray-200 p-6">
               <h1 className="text-2xl font-bold text-gray-900">
-                Add New Product
+                {isEdit ? "Edit Product" : "Add New Product"}
               </h1>
               <p className="text-gray-600 mt-1">
-                Fill in the product details step by step
+                {isEdit
+                  ? "Update the product details below"
+                  : "Fill in the product details step by step"}
               </p>
             </div>
 

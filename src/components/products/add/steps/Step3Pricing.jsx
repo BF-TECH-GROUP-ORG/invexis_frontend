@@ -21,10 +21,10 @@ export default function Step3Pricing({ formData, updateFormData }) {
     const oldCurrency = formData.pricing.currency;
     if (oldCurrency === newCurrency) return;
 
-    const { basePrice, salePrice, costPrice } = formData.pricing;
+    const { basePrice, salePrice, listPrice, cost } = formData.pricing;
 
     // If no prices set, just switch currency immediately
-    if (!basePrice && !salePrice && !costPrice) {
+    if (!basePrice && !salePrice && !listPrice && !cost) {
       updateFormData({
         pricing: { ...formData.pricing, currency: newCurrency },
       });
@@ -47,9 +47,10 @@ export default function Step3Pricing({ formData, updateFormData }) {
             salePrice: salePrice
               ? parseFloat((salePrice * rate).toFixed(2))
               : salePrice,
-            costPrice: costPrice
-              ? parseFloat((costPrice * rate).toFixed(2))
-              : costPrice,
+            listPrice: listPrice
+              ? parseFloat((listPrice * rate).toFixed(2))
+              : listPrice,
+            cost: cost ? parseFloat((cost * rate).toFixed(2)) : cost,
           },
         });
         toast.success(`Prices converted to ${newCurrency}`);
@@ -73,12 +74,12 @@ export default function Step3Pricing({ formData, updateFormData }) {
   };
 
   const profitMargin = useMemo(() => {
-    const { basePrice, costPrice } = formData.pricing;
-    if (basePrice > 0 && costPrice >= 0) {
-      return (((basePrice - costPrice) / basePrice) * 100).toFixed(2);
+    const { basePrice, cost } = formData.pricing;
+    if (basePrice > 0 && cost >= 0) {
+      return (((basePrice - cost) / basePrice) * 100).toFixed(2);
     }
     return "0.00";
-  }, [formData.pricing.basePrice, formData.pricing.costPrice]);
+  }, [formData.pricing.basePrice, formData.pricing.cost]);
 
   const discountPercentage = useMemo(() => {
     const { basePrice, salePrice } = formData.pricing;
@@ -108,7 +109,7 @@ export default function Step3Pricing({ formData, updateFormData }) {
       </div>
 
       {/* Prices Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Base Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -137,7 +138,66 @@ export default function Step3Pricing({ formData, updateFormData }) {
           </div>
         </div>
 
-        {/* List Price (MSRP) */}
+        {/* Cost Price */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Cost Price
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+              {formData.pricing.currency === "RWF"
+                ? "FRw"
+                : formData.pricing.currency === "EUR"
+                ? "€"
+                : formData.pricing.currency === "GBP"
+                ? "£"
+                : "$"}
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.pricing.cost || ""}
+              onChange={(e) => handlePricingChange("cost", e.target.value)}
+              disabled={isConverting}
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        {/* Sale Price */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Sale Price (Optional)
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+              {formData.pricing.currency === "RWF"
+                ? "FRw"
+                : formData.pricing.currency === "EUR"
+                ? "€"
+                : formData.pricing.currency === "GBP"
+                ? "£"
+                : "$"}
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.pricing.salePrice || ""}
+              onChange={(e) => handlePricingChange("salePrice", e.target.value)}
+              disabled={isConverting}
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              placeholder="0.00"
+            />
+          </div>
+          {discountPercentage && (
+            <p className="text-green-600 text-sm mt-1">
+              {discountPercentage}% discount
+            </p>
+          )}
+        </div>
+
+        {/* List Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             List Price
@@ -163,66 +223,6 @@ export default function Step3Pricing({ formData, updateFormData }) {
             />
           </div>
         </div>
-
-        {/* Cost Price */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cost Price
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-              {formData.pricing.currency === "RWF"
-                ? "FRw"
-                : formData.pricing.currency === "EUR"
-                ? "€"
-                : formData.pricing.currency === "GBP"
-                ? "£"
-                : "$"}
-            </span>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.pricing.costPrice || ""}
-              onChange={(e) => handlePricingChange("costPrice", e.target.value)}
-              disabled={isConverting}
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Sale Price (kept outside the grid as it's not part of the 3-column layout) */}
-      {/* If you intend to remove Sale Price, delete this block */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Sale Price (Optional)
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-            {formData.pricing.currency === "RWF"
-              ? "FRw"
-              : formData.pricing.currency === "EUR"
-              ? "€"
-              : formData.pricing.currency === "GBP"
-              ? "£"
-              : "$"}
-          </span>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.pricing.salePrice || ""}
-            onChange={(e) => handlePricingChange("salePrice", e.target.value)}
-            disabled={isConverting}
-            className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
-            placeholder="0.00"
-          />
-        </div>
-        {discountPercentage && (
-          <p className="text-green-600 text-sm mt-1">
-            {discountPercentage}% discount
-          </p>
-        )}
       </div>
 
       {/* Currency Selection (Full Width since Tax Rate Removed) */}
@@ -247,7 +247,7 @@ export default function Step3Pricing({ formData, updateFormData }) {
       </div>
 
       {/* Profit Margin Card */}
-      {formData.pricing.basePrice > 0 && formData.pricing.costPrice >= 0 && (
+      {formData.pricing.basePrice > 0 && formData.pricing.cost >= 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <span className="text-gray-700 font-medium">Profit Margin</span>
@@ -264,9 +264,7 @@ export default function Step3Pricing({ formData, updateFormData }) {
               : formData.pricing.currency === "GBP"
               ? "£"
               : "$"}
-            {(formData.pricing.basePrice - formData.pricing.costPrice).toFixed(
-              2
-            )}
+            {(formData.pricing.basePrice - formData.pricing.cost).toFixed(2)}
           </p>
         </div>
       )}

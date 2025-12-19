@@ -1,5 +1,6 @@
 import axios from "axios";
 import { signOut, getSession } from "next-auth/react";
+import { notificationBus } from "@/lib/notificationBus";
 
 /**
  * -----------------------------------------------------
@@ -92,8 +93,12 @@ api.interceptors.request.use(
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           if (process.env.NODE_ENV === "development") {
-            const maskedToken = token.length > 10 ? `${token.substring(0, 10)}...` : "short-token";
-            console.log(`[Axios →] Token Injection Success for ${config.url}`);
+            console.log(
+              `[Axios] Attached Token for ${config.url}: ${token.substring(
+                0,
+                10
+              )}...`
+            );
           }
         } else {
           if (process.env.NODE_ENV === "development") {
@@ -108,11 +113,11 @@ api.interceptors.request.use(
     if (process.env.NODE_ENV === "development") {
       const authHeader = config.headers.Authorization || "";
       console.log(
-        `[${config.method?.toUpperCase()}] ${config.url}`,
-        {
-          auth: authHeader ? `${authHeader.substring(0, 15)}...` : "MISSING",
-          headers: config.headers
-        }
+        "[API →]",
+        config.method?.toUpperCase(),
+        config.url,
+        "Headers:",
+        config.headers
       );
     }
 
@@ -132,11 +137,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === "development") {
-      console.log(
-        "[API ←]",
-        response.config?.url,
-        response.status
-      );
+      console.log("[API ←]", response.config?.url, response.status);
     }
     return response;
   },
@@ -145,7 +146,9 @@ api.interceptors.response.use(
 
     // Network or CORS error
     if (!response) {
-      return Promise.reject(normalizeError(error));
+      const normalized = normalizeError(error);
+      notificationBus.error(normalized.message);
+      return Promise.reject(normalized);
     }
 
     // Hard stop: never retry refresh endpoint
@@ -153,7 +156,9 @@ api.interceptors.response.use(
       if (typeof window !== "undefined") {
         signOut({ callbackUrl: "/auth/login" });
       }
-      return Promise.reject(normalizeError(error));
+      const normalized = normalizeError(error);
+      notificationBus.error("Session expired. Please log in again.");
+      return Promise.reject(normalized);
     }
 
     // Retry once on 401
@@ -185,6 +190,12 @@ api.interceptors.response.use(
           signOut({ callbackUrl: "/auth/login" });
         }
       }
+    }
+
+    // For all other errors, show notification unless it's a 401 that might be retried
+    if (response.status !== 401) {
+      const normalized = normalizeError(error);
+      notificationBus.error(normalized.message);
     }
 
     return Promise.reject(normalizeError(error));
