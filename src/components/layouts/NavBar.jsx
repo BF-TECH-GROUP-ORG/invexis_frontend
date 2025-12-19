@@ -14,11 +14,6 @@ import ProfileSidebar from "./ProfileSidebar";
 // Providers
 import { useNotification } from "@/providers/NotificationProvider";
 import { useLoading } from "@/contexts/LoadingContext";
-<<<<<<< HEAD
-import { useSocket } from "@/providers/SocketProvider";
-// formatDistanceToNow removed (notifications sidebar removed)
-=======
->>>>>>> ee6354253011d07f786750d0dd276328671c50a5
 
 // Redux
 import { useSelector } from "react-redux";
@@ -32,13 +27,6 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
   const { showNotification } = useNotification();
   const { setLoading, setLoadingText } = useLoading();
 
-<<<<<<< HEAD
-  const { socket } = useSocket();
-
-  const [profileOpen, setProfileOpen] = useState(false);
-
-=======
->>>>>>> ee6354253011d07f786750d0dd276328671c50a5
   // Redux State
   const unreadCount = useSelector(selectUnreadCount);
 
