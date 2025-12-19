@@ -1,7 +1,26 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const getApiBase = () => {
+  // Prioritize the standard HTTP API URL
+  let url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_SW || "http://localhost:5000";
+
+  // Safety: If for some reason we got a WebSocket URL (wss:// or ws://), convert it to HTTP for fetch
+  if (url.startsWith("wss://")) {
+    return url.replace("wss://", "https://");
+  }
+  if (url.startsWith("ws://")) {
+    return url.replace("ws://", "http://");
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
+// Log the API Base on startup for debugging
+if (process.env.NODE_ENV === "development") {
+  console.log(`[NextAuth] Using API_BASE for Auth: ${API_BASE}`);
+}
 
 async function refreshAccessToken(token) {
   try {
@@ -62,9 +81,8 @@ const handler = NextAuth({
             return {
               id: userPayload._id ?? userPayload.id ?? userPayload.username,
               name:
-                `${userPayload.firstName ?? ""} ${
-                  userPayload.lastName ?? ""
-                }`.trim() ||
+                `${userPayload.firstName ?? ""} ${userPayload.lastName ?? ""
+                  }`.trim() ||
                 userPayload.username ||
                 userPayload.email,
               email: userPayload.email,
@@ -78,20 +96,32 @@ const handler = NextAuth({
           }
         }
         try {
-          const res = await fetch(`${API_BASE}/auth/login`, {
+          const loginUrl = `${API_BASE}/auth/login`;
+          if (process.env.NODE_ENV === "development") {
+            console.log(`[NextAuth] Authorizing: ${loginUrl}`, { identifier: credentials.identifier });
+          }
+
+          const res = await fetch(loginUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               identifier: credentials.identifier,
               password: credentials.password,
             }),
-            credentials: "include",
           });
 
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
 
-          if (!res.ok || !data || !data.ok) {
-            throw new Error(data.message || "Invalid credentials");
+          if (process.env.NODE_ENV === "development") {
+            console.log(`[NextAuth] Backend Response Status: ${res.status}`);
+          }
+
+          if (!res.ok || (data.ok === false) || (!data.user && !data.accessToken)) {
+            const errorMessage = data.message || data.error || "Invalid credentials or backend error";
+            if (process.env.NODE_ENV === "development") {
+              console.error(`[NextAuth] Auth failed:`, errorMessage);
+            }
+            throw new Error(errorMessage);
           }
 
           const { accessToken, user } = data;
@@ -105,11 +135,12 @@ const handler = NextAuth({
               user.email,
             email: user.email,
             role: user.role,
-            accessToken,
+            accessToken: accessToken || data.token,
             user,
             cookies: setCookie,
           };
         } catch (e) {
+          console.error("[NextAuth] Authorize Error:", e.message);
           throw new Error(e.message || "Login failed");
         }
       },
