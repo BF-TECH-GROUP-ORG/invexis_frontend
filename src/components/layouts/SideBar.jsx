@@ -89,11 +89,8 @@ const navItems = [
     roles: ["sales_manager", "company_admin"],
     children: [
       { title: "Debts List", path: "/inventory/debts", prefetch: true },
-      {
-        title: "Debts Details",
-        path: "/inventory/Debts/details",
-        prefetch: true,
-      },
+      { title: "Debts Details",path: "/inventory/Debts/details",prefetch: true,},
+      { title: "Debts Analytics",path: "/inventory/debts/analytics",prefetch: true,},
     ],
   },
   {

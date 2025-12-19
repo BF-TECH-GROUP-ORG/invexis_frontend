@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useLoading } from "@/contexts/LoadingContext";
+import { useSocket } from "@/providers/SocketProvider";
 // formatDistanceToNow removed (notifications sidebar removed)
 
 // Redux
@@ -27,6 +28,7 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
   const { setLoading, setLoadingText } = useLoading();
 
   const { socket } = useSocket();
+
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Redux State

@@ -42,7 +42,7 @@ export const getDebtById = async (debtId, companyId) => {
 
   try {
     const data = await apiClient.get(
-      `${DEBT_API_URL}/company/${companyId}/debts/${debtId}`,
+      `${DEBT_API_URL}/${companyId}/debt/${debtId}`,
       {
         cache: cacheStrategy,
       }
@@ -51,6 +51,28 @@ export const getDebtById = async (debtId, companyId) => {
     return data;
   } catch (error) {
     console.error("Error fetching debt:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get debt history (repayments + payment summary)
+ *
+ * CACHING: Individual debt history cached for 60 seconds
+ */
+export const getDebtHistory = async (companyId, debtId) => {
+  const cacheStrategy = getCacheStrategy("DEBTS", "DETAIL");
+
+  try {
+    const data = await apiClient.get(`${DEBT_API_URL}/${companyId}/debt/${debtId}/history`,
+      {
+        cache: cacheStrategy,
+      }
+    );
+    console.log("Debt history fetched:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching debt history:", error);
     throw error;
   }
 };
@@ -152,19 +174,8 @@ export const recordRepayment = async (repaymentData) => {
  *
  * CACHING: POST never cached. Clears debts cache.
  */
-export const markDebtAsPaid = async (debtId, companyId, userId, userName) => {
+export const markDebtAsPaid = async (debtId, payload) => {
   try {
-    const payload = {
-      companyId: companyId,
-      paymentId: crypto.randomUUID(),
-      paymentMethod: "CASH",
-      paymentReference: `MARK-PAID-${Date.now()}`,
-      createdBy: {
-        id: userId || "temp-user-id",
-        name: userName || "POS User",
-      },
-    };
-
     const data = await apiClient.post(
       `${DEBT_API_URL}/${debtId}/mark-paid`,
       payload
@@ -186,27 +197,9 @@ export const markDebtAsPaid = async (debtId, companyId, userId, userName) => {
  *
  * CACHING: POST never cached. Clears debts cache.
  */
-export const cancelDebt = async (
-  debtId,
-  companyId,
-  userId,
-  userName,
-  reason = "customer_requested_refund_or_writeoff"
-) => {
+export const cancelDebt = async (debtId, payload) => {
   try {
-    const payload = {
-      companyId: companyId,
-      reason: reason,
-      performedBy: {
-        id: userId || "temp-user-id",
-        name: userName || "POS User",
-      },
-    };
-
-    const data = await apiClient.post(
-      `${DEBT_API_URL}/${debtId}/cancel`,
-      payload
-    );
+    const data = await apiClient.post(`${DEBT_API_URL}/${debtId}/cancel`,payload);
 
     // Clear debts cache
     apiClient.clearCache("/debts");
@@ -222,6 +215,7 @@ export const cancelDebt = async (
 export default {
   getDebts,
   getDebtById,
+  getDebtHistory,
   createDebt,
   updateDebt,
   deleteDebt,
