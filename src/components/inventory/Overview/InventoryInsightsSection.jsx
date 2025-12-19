@@ -74,10 +74,11 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const InventoryInsightsSection = ({ financialData }) => {
-  const heatmapData = Array.from({ length: 28 }).map(() =>
-    Math.floor(Math.random() * 100)
-  );
+const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
+  const chartHeatmap =
+    heatmapData.length > 0
+      ? heatmapData
+      : Array.from({ length: 28 }).map(() => 0);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const times = ["Morning", "Noon", "Evening", "Night"];
 
@@ -99,7 +100,7 @@ const InventoryInsightsSection = ({ financialData }) => {
             ))}
           </div>
           <div className="flex-1 grid grid-cols-7 gap-2">
-            {heatmapData.map((val, i) => {
+            {chartHeatmap.map((val, i) => {
               const dayIndex = i % 7;
               const timeIndex = Math.floor(i / 7);
               return (
