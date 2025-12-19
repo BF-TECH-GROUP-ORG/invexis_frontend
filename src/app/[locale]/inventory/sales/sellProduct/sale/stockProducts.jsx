@@ -213,6 +213,7 @@ const CurrentInventory = () => {
           qty: 1,
           minPrice: product.Price,
           price: product.Price,
+          cost: product.Cost || 0,
           shopId: product.shopId
         }
       });
@@ -304,6 +305,7 @@ const CurrentInventory = () => {
       quantity: item.qty,
       unitPrice: item.price,
       totalPrice: item.price * item.qty,
+      costPrice: item.cost || 0,
       discount: 0,
       shopId: item.shopId
     }));

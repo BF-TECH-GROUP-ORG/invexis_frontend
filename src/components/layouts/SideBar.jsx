@@ -22,6 +22,7 @@ import {
   ChevronDown,
   MoreVertical,
   X,
+  Bell,
 } from "lucide-react";
 import { title } from "process";
 import { useSession } from "next-auth/react";
@@ -33,6 +34,12 @@ const navItems = [
     title: "Dashboard",
     icon: <LayoutDashboard size={22} />,
     path: "/inventory/dashboard",
+    prefetch: true,
+  },
+  {
+    title: "Notifications",
+    icon: <Bell size={22} />,
+    path: "/inventory/notifications",
     prefetch: true,
   },
   {

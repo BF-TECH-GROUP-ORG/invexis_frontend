@@ -62,6 +62,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'summary', params],
         queryFn: () => AnalyticsService.getDashboardSummary(params),
         staleTime: 60 * 1000, // 1 minute
+        retry: false,
     });
 
     // 2. Sales Revenue
@@ -69,6 +70,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'sales', params],
         queryFn: () => AnalyticsService.getRevenueReport(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 3. Profitability
@@ -76,6 +78,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'profitability', params],
         queryFn: () => AnalyticsService.getProfitabilityReport(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 4. Top Products
@@ -83,6 +86,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'products', params],
         queryFn: () => AnalyticsService.getTopProducts(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 5. Inventory Health
@@ -90,6 +94,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'inventory', params],
         queryFn: () => AnalyticsService.getInventoryHealth(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 6. Payment Methods (Categories)
@@ -97,6 +102,7 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'paymentMethods', params],
         queryFn: () => AnalyticsService.getPaymentMethodStats(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 7. Customer Stats
@@ -104,18 +110,21 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'acquisition', params],
         queryFn: () => AnalyticsService.getNewCustomerStats(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     const { data: activeUsersRes, isLoading: activeUsersLoading } = useQuery({
         queryKey: ['analytics', 'activeUsers', params],
         queryFn: () => AnalyticsService.getActiveUsers(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     const { data: topCustomersRes, isLoading: topCustomersLoading } = useQuery({
         queryKey: ['analytics', 'topCustomers', params],
         queryFn: () => AnalyticsService.getTopCustomers(params),
         staleTime: 5 * 60 * 1000,
+        retry: false,
     });
 
     // 8. Shop & Employee Performance
@@ -123,12 +132,14 @@ const AnalyticsPage = () => {
         queryKey: ['analytics', 'shops', params],
         queryFn: () => AnalyticsService.getShopPerformance(params),
         staleTime: 10 * 60 * 1000, // 10 minutes
+        retry: false,
     });
 
     const { data: employeeRes, isLoading: employeeLoading } = useQuery({
         queryKey: ['analytics', 'employees', params],
         queryFn: () => AnalyticsService.getEmployeePerformance(params),
         staleTime: 10 * 60 * 1000, // 10 minutes
+        retry: false,
     });
 
     const loading = summaryLoading || salesLoading || profitabilityLoading || productsLoading || inventoryLoading || categoriesLoading || acquisitionLoading || activeUsersLoading || topCustomersLoading || shopLoading || employeeLoading;
@@ -137,18 +148,27 @@ const AnalyticsPage = () => {
 
     // Summary Data
     const summary = summaryRes?.data || summaryRes || {};
+    console.log('📊 Summary Response:', summaryRes);
+    console.log('📊 Summary Data:', summary);
 
     // Sales Performance
-    const rawSales = salesRes?.data || [];
+    const rawSales = salesRes?.data || salesRes || [];
+    console.log('💰 Sales Response:', salesRes);
+    console.log('💰 Raw Sales:', rawSales);
+
     const salesPerformance = rawSales.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
         current: parseFloat(item.revenue) || 0,
         previous: 0
     }));
+    console.log('💰 Sales Performance (transformed):', salesPerformance);
 
     // Profitability
     // API: [{"date":"...","revenue":"98.00","cost":"9.00","profit":"89.00","grossMarginPercent":"..."}]
-    const rawProfitability = profitabilityRes?.data || [];
+    const rawProfitability = profitabilityRes?.data || profitabilityRes || [];
+    console.log('📈 Profitability Response:', profitabilityRes);
+    console.log('📈 Raw Profitability:', rawProfitability);
+
     const profitabilityData = rawProfitability.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
         revenue: parseFloat(item.revenue) || 0,
@@ -156,42 +176,52 @@ const AnalyticsPage = () => {
         profit: parseFloat(item.profit) || 0,
         margin: parseFloat(item.grossMarginPercent) || 0
     }));
+    console.log('📈 Profitability Data (transformed):', profitabilityData);
 
     // Top Products
-    const rawProducts = productsRes?.data || [];
+    const rawProducts = productsRes?.data || productsRes || [];
+    console.log('🏆 Products Response:', productsRes);
+    console.log('🏆 Raw Products:', rawProducts);
+
     const topProducts = rawProducts.map(item => ({
         name: item.productName || 'Unknown',
         quantity: parseInt(item.totalQuantity) || 0
     }));
+    console.log('🏆 Top Products (transformed):', topProducts);
 
     // Payment Methods
-    const rawCategories = categoriesRes?.data || [];
+    const rawCategories = categoriesRes?.data || categoriesRes || [];
+    console.log('💳 Categories Response:', categoriesRes);
+    console.log('💳 Raw Categories:', rawCategories);
+
     const categories = rawCategories.map(item => ({
         name: item.method || 'Unknown',
         value: parseInt(item.count) || 0
     }));
+    console.log('💳 Categories (transformed):', categories);
 
     // Shop Performance
-    const rawShops = shopRes?.data || [];
+    const rawShops = shopRes?.data || shopRes || [];
     const shopPerformance = rawShops.map(item => ({
         name: `Shop ${item.shopId?.slice(0, 4)}...`,
         value: parseFloat(item.totalRevenue) || 0
     }));
 
     // Employee Performance
-    const rawEmployees = employeeRes?.data || [];
+    const rawEmployees = employeeRes?.data || employeeRes || [];
     const employeePerformance = rawEmployees.map(item => ({
         name: `Emp ${item.employeeId?.slice(0, 4)}...`,
         value: parseFloat(item.totalSales) || 0
     }));
 
     // Inventory Health
-    const inventoryHealth = inventoryRes?.data || [];
+    const inventoryHealth = inventoryRes?.data || inventoryRes || [];
+    console.log('📦 Inventory Health:', inventoryHealth);
 
     // Customer Stats
-    const customerAcquisition = acquisitionRes?.data || [];
-    const activeUsers = activeUsersRes?.data || [];
-    const topCustomers = topCustomersRes?.data || [];
+    const customerAcquisition = acquisitionRes?.data || acquisitionRes || [];
+    const activeUsers = activeUsersRes?.data || activeUsersRes || [];
+    const topCustomers = topCustomersRes?.data || topCustomersRes || [];
 
 
     const headerCards = [

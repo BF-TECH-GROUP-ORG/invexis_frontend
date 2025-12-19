@@ -40,6 +40,7 @@ export const getAllProducts = async (companyId = null) => {
         product.pricing?.salePrice ||
         product.pricing?.basePrice ||
         0,
+      Cost: product.pricing?.cost || 0,
       brand: product.brand || "No Brand",
       manufacturer: product.manufacturer,
       shopId: product.shopId,
@@ -82,6 +83,7 @@ export const SellProduct = async (saleData, isDebt = false) => {
     // We use the relative URL to ensure it uses the baseURL from axios instance
     console.log("Recording sale...");
     const saleResponse = await apiClient.post("/sales", saleData);
+    console.log("Sale recorded:", saleResponse);  
 
     // 2. If it's a debt, also record the debt
     if (isDebt) {
