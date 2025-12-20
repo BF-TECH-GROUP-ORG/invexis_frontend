@@ -15,6 +15,7 @@ import { useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import TransferModal from "./TransferModal";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
@@ -99,6 +100,60 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
   );
 };
 
+const SuccessModal = ({ open, onClose }) => (
+  <Dialog
+    open={open}
+    onClose={onClose}
+    PaperProps={{
+      sx: {
+        borderRadius: 4,
+        p: 2,
+        minWidth: 400,
+        textAlign: "center"
+      }
+    }}
+  >
+    <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, py: 4 }}>
+      <Box sx={{
+        width: 80,
+        height: 80,
+        borderRadius: "50%",
+        bgcolor: "#ecfdf5",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        mb: 1
+      }}>
+        <CheckCircle size={48} className="text-emerald-500" />
+      </Box>
+      <Typography variant="h5" fontWeight="bold" color="#081422">
+        Sale Completed!
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300 }}>
+        The transaction has been successfully recorded in the system.
+      </Typography>
+    </DialogContent>
+    <DialogActions sx={{ justifyContent: "center", pb: 4 }}>
+      <MuiButton
+        variant="contained"
+        onClick={onClose}
+        sx={{
+          bgcolor: "#081422",
+          color: "white",
+          px: 6,
+          py: 1.5,
+          borderRadius: 3,
+          textTransform: "none",
+          fontWeight: 600,
+          "&:hover": { bgcolor: "#2a2a2a" }
+        }}
+      >
+        Done
+      </MuiButton>
+    </DialogActions>
+  </Dialog>
+);
+
 // Main Component with Multi-Product Sales
 const CurrentInventory = () => {
   const router = useRouter();
@@ -135,6 +190,7 @@ const CurrentInventory = () => {
   // Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [transferMode, setTransferMode] = useState('company'); // 'company' or 'shop'
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
@@ -149,7 +205,7 @@ const CurrentInventory = () => {
     onSuccess: () => {
       setSelectedItems({});
       queryClient.invalidateQueries(["allProducts"]);
-      alert("Sale completed successfully!");
+      setSuccessModalOpen(true);
     },
     onError: (error) => {
       console.error("Sale failed:", error);
@@ -223,7 +279,19 @@ const CurrentInventory = () => {
 
   // Handle quantity change
   const handleQuantityChange = (productId, newQty) => {
-    const qty = Math.max(1, parseInt(newQty) || 1);
+    const product = products.find(p => p.id === productId);
+    const maxStock = product?.Quantity || 0;
+
+    let qty = parseInt(newQty) || 0;
+
+    // Validate against stock
+    if (qty > maxStock) {
+      qty = maxStock;
+      // Optional: You could show a toast/snackbar here
+    }
+
+    qty = Math.max(1, qty); // Ensure at least 1
+
     setSelectedItems({
       ...selectedItems,
       [productId]: {
@@ -966,6 +1034,11 @@ const CurrentInventory = () => {
           </MuiButton>
         </DialogActions>
       </Dialog>
+
+      <SuccessModal
+        open={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+      />
     </section>
   );
 };
