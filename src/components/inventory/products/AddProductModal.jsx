@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { X, ChevronRight, ChevronLeft, Plus, Sparkles, Layers } from "lucide-react";
+import {
+  X,
+  ChevronRight,
+  ChevronLeft,
+  Plus,
+  Sparkles,
+  Layers,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useSession } from "next-auth/react";
-import { createProduct, updateProduct } from "@/features/products/productsSlice";
+import {
+  createProduct,
+  updateProduct,
+} from "@/features/products/productsSlice";
 import ProgressSteps from "./ProductFormComponents/ProgressSteps";
 import StepBasicInfo from "./ProductFormSteps/StepBasicInfo";
 import StepMoreInfo from "./ProductFormSteps/StepMoreInfo";
@@ -23,7 +33,10 @@ export default function AddProductModal({ onClose, editData = null }) {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
-  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
   const [isSimpleMode, setIsSimpleMode] = useState(true);
 
   const {
@@ -45,7 +58,7 @@ export default function AddProductModal({ onClose, editData = null }) {
     addTag,
     removeTag,
     tagInput,
-    setTagInput
+    setTagInput,
   } = useProductForm(editData, onClose);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,14 +66,14 @@ export default function AddProductModal({ onClose, editData = null }) {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, TOTAL_STEPS));
+      setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
     } else {
       toast.error("Please fix the errors before continuing");
     }
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleSubmit = async () => {
@@ -73,7 +86,8 @@ export default function AddProductModal({ onClose, editData = null }) {
       setIsSubmitting(true);
 
       const basePrice =
-        formData.pricing?.basePrice !== "" && formData.pricing?.basePrice !== undefined
+        formData.pricing?.basePrice !== "" &&
+        formData.pricing?.basePrice !== undefined
           ? Number(formData.pricing.basePrice)
           : 0;
 
@@ -83,13 +97,18 @@ export default function AddProductModal({ onClose, editData = null }) {
           : 0;
 
       const salePrice =
-        formData.pricing?.salePrice !== "" ? Number(formData.pricing.salePrice) : undefined;
+        formData.pricing?.salePrice !== ""
+          ? Number(formData.pricing.salePrice)
+          : undefined;
 
       const listPrice =
-        formData.pricing?.listPrice !== "" ? Number(formData.pricing.listPrice) : undefined;
+        formData.pricing?.listPrice !== ""
+          ? Number(formData.pricing.listPrice)
+          : undefined;
 
       const normalizedStock =
-        formData.inventory?.quantity !== "" && formData.inventory?.quantity !== undefined
+        formData.inventory?.quantity !== "" &&
+        formData.inventory?.quantity !== undefined
           ? Number(formData.inventory.quantity)
           : 0;
 
@@ -100,7 +119,7 @@ export default function AddProductModal({ onClose, editData = null }) {
         name: (formData.name || "").trim(),
         description: {
           short: formData.description?.short || "",
-          long: formData.description?.long || ""
+          long: formData.description?.long || "",
         },
         brand: formData.brand || "",
         manufacturer: formData.manufacturer || "",
@@ -118,8 +137,10 @@ export default function AddProductModal({ onClose, editData = null }) {
         inventory: {
           trackQuantity: formData.inventory?.trackQuantity ?? true,
           quantity: normalizedStock,
-          lowStockThreshold: Number(formData.inventory?.lowStockThreshold || 10),
-          allowBackorder: !!formData.inventory?.allowBackorder
+          lowStockThreshold: Number(
+            formData.inventory?.lowStockThreshold || 10
+          ),
+          allowBackorder: !!formData.inventory?.allowBackorder,
         },
 
         condition: formData.condition || "new",
@@ -129,11 +150,11 @@ export default function AddProductModal({ onClose, editData = null }) {
 
         images: Array.isArray(formData.images)
           ? formData.images.map((img, index) => ({
-            url: img.url,
-            alt: img.alt || "product image",
-            isPrimary: !!img.isPrimary,
-            sortOrder: index + 1
-          }))
+              url: img.url,
+              alt: img.alt || "product image",
+              isPrimary: !!img.isPrimary,
+              sortOrder: index + 1,
+            }))
           : [],
 
         videoUrls: formData.videoUrls?.filter(Boolean) || [],
@@ -149,8 +170,49 @@ export default function AddProductModal({ onClose, editData = null }) {
         variations: formData.variations || [],
       };
 
+      // Normalize and validate category: ensure we send categoryId and it is level 3
+      let selectedCategory = null;
+      if (typeof formData.category === "string" && formData.category) {
+        selectedCategory =
+          categories.find(
+            (c) => c._id === formData.category || c.id === formData.category
+          ) || null;
+      } else if (
+        formData.category &&
+        (formData.category._id || formData.category.id)
+      ) {
+        selectedCategory =
+          categories.find(
+            (c) => c._id === (formData.category._id || formData.category.id)
+          ) || formData.category;
+      }
+
+      if (!selectedCategory) {
+        toast.error("Please select a valid category (level-3)");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (selectedCategory.level !== 3) {
+        toast.error(
+          "Category must be a level-3 category. Please pick a more specific category."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const categoryIdToSend =
+        selectedCategory._id || selectedCategory.id || selectedCategory;
+      payload.categoryId = categoryIdToSend;
+      payload.category = {
+        id: categoryIdToSend,
+        name: selectedCategory.name || "",
+      };
+
       if (editData) {
-        await dispatch(updateProduct({ id: editData._id || editData.id, data: payload })).unwrap();
+        await dispatch(
+          updateProduct({ id: editData._id || editData.id, data: payload })
+        ).unwrap();
         toast.success("Product updated successfully");
       } else {
         await dispatch(createProduct(payload)).unwrap();
@@ -170,8 +232,12 @@ export default function AddProductModal({ onClose, editData = null }) {
     const simpleErrors = {};
     if (!formData.name) simpleErrors.name = "Name is required";
     if (!formData.category) simpleErrors.category = "Category is required";
-    if (!formData.pricing?.basePrice) simpleErrors.price = "Base Price is required";
-    if (formData.inventory?.quantity === "" || formData.inventory?.quantity === undefined)
+    if (!formData.pricing?.basePrice)
+      simpleErrors.price = "Base Price is required";
+    if (
+      formData.inventory?.quantity === "" ||
+      formData.inventory?.quantity === undefined
+    )
       simpleErrors.stock = "Stock is required";
 
     if (Object.keys(simpleErrors).length > 0) {
@@ -234,18 +300,29 @@ export default function AddProductModal({ onClose, editData = null }) {
                 )}
               </button>
 
-              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition">
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-full transition"
+              >
                 <X size={24} />
               </button>
             </div>
           </div>
 
-          {!isSimpleMode && <ProgressSteps currentStep={currentStep} totalSteps={TOTAL_STEPS} />}
+          {!isSimpleMode && (
+            <ProgressSteps currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          )}
 
           {/* Content */}
-          <div className={`p-6 flex-1 ${isSimpleMode ? "overflow-hidden flex flex-col" : "overflow-y-auto"}`}>
+          <div
+            className={`p-6 flex-1 ${
+              isSimpleMode ? "overflow-hidden flex flex-col" : "overflow-y-auto"
+            }`}
+          >
             {isLoadingDropdowns ? (
-              <div className="text-center py-8 text-gray-500">Loading categories...</div>
+              <div className="text-center py-8 text-gray-500">
+                Loading categories...
+              </div>
             ) : (
               <>
                 {isSimpleMode ? (
@@ -276,10 +353,19 @@ export default function AddProductModal({ onClose, editData = null }) {
                       />
                     )}
 
-                    {currentStep === 2 && <StepMoreInfo formData={formData} updateFormData={updateFormData} />}
+                    {currentStep === 2 && (
+                      <StepMoreInfo
+                        formData={formData}
+                        updateFormData={updateFormData}
+                      />
+                    )}
 
                     {currentStep === 3 && (
-                      <StepInventory formData={formData} updateFormData={updateFormData} errors={errors} />
+                      <StepInventory
+                        formData={formData}
+                        updateFormData={updateFormData}
+                        errors={errors}
+                      />
                     )}
 
                     {currentStep === 4 && (
@@ -293,7 +379,11 @@ export default function AddProductModal({ onClose, editData = null }) {
                     )}
 
                     {currentStep === 5 && (
-                      <StepVariations formData={formData} updateFormData={updateFormData} errors={errors} />
+                      <StepVariations
+                        formData={formData}
+                        updateFormData={updateFormData}
+                        errors={errors}
+                      />
                     )}
 
                     {currentStep === 6 && (

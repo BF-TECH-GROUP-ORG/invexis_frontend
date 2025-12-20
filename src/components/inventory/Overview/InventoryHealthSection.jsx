@@ -64,16 +64,11 @@ const ModernLegend = (props) => {
   );
 };
 
-const InventoryHealthSection = () => {
-  const data = [
-    { month: "Jan", inStock: 4000, lowStock: 240, outOfStock: 80 },
-    { month: "Feb", inStock: 3000, lowStock: 1398, outOfStock: 200 },
-    { month: "Mar", inStock: 2000, lowStock: 3800, outOfStock: 500 },
-    { month: "Apr", inStock: 2780, lowStock: 1908, outOfStock: 280 },
-    { month: "May", inStock: 1890, lowStock: 1800, outOfStock: 181 },
-    { month: "Jun", inStock: 2390, lowStock: 1800, outOfStock: 250 },
-    { month: "Jul", inStock: 3490, lowStock: 430, outOfStock: 110 },
-  ];
+const InventoryHealthSection = ({ data = [] }) => {
+  const chartData =
+    data && data.length > 0
+      ? data
+      : [{ month: "Now", inStock: 0, lowStock: 0, outOfStock: 0 }];
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
@@ -91,7 +86,7 @@ const InventoryHealthSection = () => {
       <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             barSize={50} // Thicker bars
           >
