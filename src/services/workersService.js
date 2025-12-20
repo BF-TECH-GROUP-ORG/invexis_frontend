@@ -16,6 +16,8 @@ export const createWorker = async (workerData) => {
     try {
         const response = await apiClient.post(`${AUTH_URL}/auth/register`, workerData);
         console.log("Worker created successfully:", response);
+        console.log('payload is'+workerData)
+        console.log('response is'+response)
         return response;
     } catch (error) {
         console.error('Failed to create worker:', error.message);
