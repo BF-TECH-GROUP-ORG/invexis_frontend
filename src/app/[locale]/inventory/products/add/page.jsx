@@ -5,7 +5,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { ChevronRight, ChevronLeft, Check, ArrowLeft, Sparkles, Layers } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  ArrowLeft,
+  Sparkles,
+  Layers,
+} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useSession } from "next-auth/react";
 
@@ -34,11 +41,18 @@ export default function AddProductPage() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
-  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
   const [isSimpleMode, setIsSimpleMode] = useState(true);
 
-  const { items: categories = [] } = useSelector((state) => state.categories || { items: [] });
-  const { items: warehouses = [] } = useSelector((state) => state.warehouses || { items: [] });
+  const { items: categories = [] } = useSelector(
+    (state) => state.categories || { items: [] }
+  );
+  const { items: warehouses = [] } = useSelector(
+    (state) => state.warehouses || { items: [] }
+  );
 
   const {
     formData,
@@ -72,8 +86,13 @@ export default function AddProductPage() {
       const simpleErrors = {};
       if (!formData.name) simpleErrors.name = "Name is required";
       if (!formData.category) simpleErrors.category = "Category is required";
-      if (!formData.pricing?.basePrice) simpleErrors.price = "Base Price is required";
-      if (formData.inventory?.quantity === undefined || formData.inventory?.quantity === "") simpleErrors.stock = "Stock is required";
+      if (!formData.pricing?.basePrice)
+        simpleErrors.price = "Base Price is required";
+      if (
+        formData.inventory?.quantity === undefined ||
+        formData.inventory?.quantity === ""
+      )
+        simpleErrors.stock = "Stock is required";
 
       if (Object.keys(simpleErrors).length > 0) {
         toast.error("Please fill in all required fields");
@@ -89,11 +108,30 @@ export default function AddProductPage() {
     try {
       setIsSubmitting(true);
 
-      const basePrice = formData.pricing?.basePrice !== undefined && formData.pricing?.basePrice !== "" ? Number(formData.pricing.basePrice) : 0;
-      const costPrice = formData.pricing?.cost !== undefined && formData.pricing?.cost !== "" ? Number(formData.pricing.cost) : 0;
-      const salePrice = formData.pricing?.salePrice !== undefined && formData.pricing?.salePrice !== "" ? Number(formData.pricing.salePrice) : undefined;
-      const listPrice = formData.pricing?.listPrice !== undefined && formData.pricing?.listPrice !== "" ? Number(formData.pricing.listPrice) : undefined;
-      const normalizedStock = formData.inventory?.quantity !== undefined && formData.inventory?.quantity !== "" ? Number(formData.inventory.quantity) : 0;
+      const basePrice =
+        formData.pricing?.basePrice !== undefined &&
+        formData.pricing?.basePrice !== ""
+          ? Number(formData.pricing.basePrice)
+          : 0;
+      const costPrice =
+        formData.pricing?.cost !== undefined && formData.pricing?.cost !== ""
+          ? Number(formData.pricing.cost)
+          : 0;
+      const salePrice =
+        formData.pricing?.salePrice !== undefined &&
+        formData.pricing?.salePrice !== ""
+          ? Number(formData.pricing.salePrice)
+          : undefined;
+      const listPrice =
+        formData.pricing?.listPrice !== undefined &&
+        formData.pricing?.listPrice !== ""
+          ? Number(formData.pricing.listPrice)
+          : undefined;
+      const normalizedStock =
+        formData.inventory?.quantity !== undefined &&
+        formData.inventory?.quantity !== ""
+          ? Number(formData.inventory.quantity)
+          : 0;
 
       const fullProductData = {
         companyId: companyId,
@@ -101,11 +139,12 @@ export default function AddProductPage() {
         name: (formData.name || "").trim(),
         description: {
           short: formData.description?.short || "",
-          long: formData.description?.long || ""
+          long: formData.description?.long || "",
         },
         brand: formData.brand || "",
         manufacturer: formData.manufacturer || "",
         tags: Array.isArray(formData.tags) ? formData.tags : [],
+        // category may be an id (string) from the simple form, or an object from advanced flows
         category: formData.category || undefined,
         pricing: {
           basePrice: basePrice,
@@ -115,21 +154,32 @@ export default function AddProductPage() {
           currency: formData.pricing?.currency || "USD",
         },
         inventory: {
-          trackQuantity: formData.inventory?.trackQuantity !== undefined ? !!formData.inventory.trackQuantity : true,
+          trackQuantity:
+            formData.inventory?.trackQuantity !== undefined
+              ? !!formData.inventory.trackQuantity
+              : true,
           quantity: normalizedStock,
-          lowStockThreshold: Number(formData.inventory?.lowStockThreshold || 10),
-          allowBackorder: !!formData.inventory?.allowBackorder
+          lowStockThreshold: Number(
+            formData.inventory?.lowStockThreshold || 10
+          ),
+          allowBackorder: !!formData.inventory?.allowBackorder,
         },
         condition: formData.condition || "new",
         availability: formData.availability || "in_stock",
-        attributes: Array.isArray(formData.attributes) ? formData.attributes : [],
-        images: Array.isArray(formData.images) ? formData.images.map((img, index) => ({
-          url: img.url,
-          alt: img.alt || "product image",
-          isPrimary: !!img.isPrimary,
-          sortOrder: index + 1
-        })) : [],
-        videoUrls: Array.isArray(formData.videoUrls) ? formData.videoUrls.filter(Boolean) : [],
+        attributes: Array.isArray(formData.attributes)
+          ? formData.attributes
+          : [],
+        images: Array.isArray(formData.images)
+          ? formData.images.map((img, index) => ({
+              url: img.url,
+              alt: img.alt || "product image",
+              isPrimary: !!img.isPrimary,
+              sortOrder: index + 1,
+            }))
+          : [],
+        videoUrls: Array.isArray(formData.videoUrls)
+          ? formData.videoUrls.filter(Boolean)
+          : [],
         status: formData.status || "active",
         visibility: formData.visibility || "public",
         featured: !!formData.featured,
@@ -140,9 +190,56 @@ export default function AddProductPage() {
         variations: formData.variations || [],
       };
 
+      // Ensure we send categoryId (backend requires a level-3 category id)
+      // Normalize category whether the form stores an id string or an object
+      let selectedCategoryObj = null;
+      if (typeof formData.category === "string" && formData.category) {
+        selectedCategoryObj =
+          categories.find(
+            (c) => c._id === formData.category || c.id === formData.category
+          ) || null;
+      } else if (
+        formData.category &&
+        (formData.category._id || formData.category.id)
+      ) {
+        // formData.category might already be an object
+        selectedCategoryObj =
+          categories.find(
+            (c) => c._id === (formData.category._id || formData.category.id)
+          ) || formData.category;
+      }
+
+      if (!selectedCategoryObj) {
+        toast.error("Please select a valid category (level-3)");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (selectedCategoryObj.level !== 3) {
+        toast.error(
+          "Category must be a level-3 category. Please pick a more specific category."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const categoryIdToSend =
+        selectedCategoryObj._id ||
+        selectedCategoryObj.id ||
+        selectedCategoryObj;
+      fullProductData.categoryId = categoryIdToSend;
+      fullProductData.category = {
+        id: categoryIdToSend,
+        name: selectedCategoryObj.name || "",
+      };
+
       if (!fullProductData.sku) {
-        const brandPart = (fullProductData.brand || 'GEN').slice(0, 3).toUpperCase();
-        const namePart = (fullProductData.name || 'PROD').slice(0, 3).toUpperCase();
+        const brandPart = (fullProductData.brand || "GEN")
+          .slice(0, 3)
+          .toUpperCase();
+        const namePart = (fullProductData.name || "PROD")
+          .slice(0, 3)
+          .toUpperCase();
         const random = Math.floor(Math.random() * 10000);
         fullProductData.sku = `${brandPart}-${namePart}-${random}`;
       }
@@ -170,7 +267,10 @@ export default function AddProductPage() {
               prefetch={true}
               className="group flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg font-medium"
             >
-              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft
+                size={18}
+                className="group-hover:-translate-x-1 transition-transform"
+              />
               <span className="text-sm">Back to Products</span>
             </Link>
 
@@ -193,7 +293,9 @@ export default function AddProductPage() {
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Add New Product
+            </h1>
             <p className="text-xs text-gray-600 mt-1">
               {isSimpleMode
                 ? "Quickly add a product with essential details. Switch to Advanced Mode for more options."
@@ -242,13 +344,29 @@ export default function AddProductPage() {
                     ) : (
                       <AnimatePresence mode="wait">
                         {currentStep === 1 && (
-                          <StepBasicInfo formData={formData} updateFormData={updateFormData} errors={errors} categories={categories} />
+                          <StepBasicInfo
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            errors={errors}
+                            categories={categories}
+                          />
                         )}
                         {currentStep === 2 && (
-                          <StepMoreInfo formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
+                          <StepMoreInfo
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            updateNestedField={updateNestedField}
+                            errors={errors}
+                          />
                         )}
                         {currentStep === 3 && (
-                          <StepInventory formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} warehouses={warehouses} />
+                          <StepInventory
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            updateNestedField={updateNestedField}
+                            errors={errors}
+                            warehouses={warehouses}
+                          />
                         )}
                         {currentStep === 4 && (
                           <StepMedia
@@ -264,10 +382,19 @@ export default function AddProductPage() {
                           />
                         )}
                         {currentStep === 5 && (
-                          <StepVariations formData={formData} updateFormData={updateFormData} errors={errors} />
+                          <StepVariations
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            errors={errors}
+                          />
                         )}
                         {currentStep === 6 && (
-                          <StepAdvanced formData={formData} updateFormData={updateFormData} updateNestedField={updateNestedField} errors={errors} />
+                          <StepAdvanced
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            updateNestedField={updateNestedField}
+                            errors={errors}
+                          />
                         )}
                       </AnimatePresence>
                     )}
@@ -282,10 +409,11 @@ export default function AddProductPage() {
                     <button
                       onClick={prevStep}
                       disabled={currentStep === 1}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${currentStep === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-500 hover:text-orange-600"
-                        }`}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                        currentStep === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-500 hover:text-orange-600"
+                      }`}
                     >
                       <ChevronLeft size={20} />
                       Previous
@@ -329,13 +457,19 @@ export default function AddProductPage() {
             {!isSimpleMode && (
               <div className="w-64 flex-shrink-0">
                 <div className="sticky top-0 bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-fit">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-6">Progress</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-6">
+                    Progress
+                  </h3>
                   <div className="relative">
                     {/* Progress Line */}
                     <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
                     <div
                       className="absolute left-6 top-0 w-0.5 bg-orange-500 transition-all duration-500"
-                      style={{ height: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+                      style={{
+                        height: `${
+                          ((currentStep - 1) / (steps.length - 1)) * 100
+                        }%`,
+                      }}
                     />
 
                     {/* Steps */}
@@ -343,20 +477,33 @@ export default function AddProductPage() {
                       {steps.map((step) => (
                         <div key={step.id} className="flex items-start gap-4">
                           <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all shrink-0 ${step.id < currentStep
-                              ? "bg-orange-500 text-white shadow-md"
-                              : step.id === currentStep
+                            className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all shrink-0 ${
+                              step.id < currentStep
+                                ? "bg-orange-500 text-white shadow-md"
+                                : step.id === currentStep
                                 ? "bg-orange-500 text-white ring-4 ring-orange-100 shadow-lg"
                                 : "border-2 border-gray-300 text-gray-400 bg-white"
-                              }`}
+                            }`}
                           >
-                            {step.id < currentStep ? <Check size={20} /> : step.id}
+                            {step.id < currentStep ? (
+                              <Check size={20} />
+                            ) : (
+                              step.id
+                            )}
                           </div>
                           <div className="pt-2">
-                            <p className={`font-semibold text-sm ${step.id <= currentStep ? "text-gray-900" : "text-gray-400"}`}>
+                            <p
+                              className={`font-semibold text-sm ${
+                                step.id <= currentStep
+                                  ? "text-gray-900"
+                                  : "text-gray-400"
+                              }`}
+                            >
                               {step.title}
                             </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Step {step.id}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Step {step.id}
+                            </p>
                           </div>
                         </div>
                       ))}

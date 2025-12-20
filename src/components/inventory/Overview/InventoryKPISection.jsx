@@ -86,11 +86,19 @@ const KPICard = ({
   const chartColor = theme.chart;
   const borderClass = theme.border;
 
-  const displayValue = isCurrency
-    ? `$${formatValue(value, isCompact)}`
-    : typeof value === "number"
-    ? value.toLocaleString()
-    : value;
+  const displayValue = (() => {
+    if (isCurrency) {
+      const num = Number(value) || 0;
+      if (isCompact) return `$${formatValue(num, true)}`;
+      return `$${num.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+
+    if (typeof value === "number") return value.toLocaleString();
+    return value;
+  })();
 
   return (
     <div
@@ -144,12 +152,12 @@ const KPICard = ({
           <span className="text-gray-400 text-xs">vs last month</span>
         </div>
 
-        <div className="h-12 w-24 opacity-60 group-hover:opacity-100 transition-opacity">
+        <div className="h-12 w-24 min-w-0 min-h-0 opacity-60 group-hover:opacity-100 transition-opacity">
           <ResponsiveContainer width="100%" height="100%">
             {type === "bar" ? (
               <BarChart data={data}>
                 <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                  {data.map((entry, index) => (
+                  {(data || []).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={chartColor}
@@ -196,24 +204,45 @@ const KPICard = ({
   );
 };
 
-const InventoryKPISection = ({ summary }) => {
+const computeTrendPercent = (arr = []) => {
+  if (!Array.isArray(arr) || arr.length < 2) return 0;
+  const first = Number(arr[0]?.value ?? 0);
+  const last = Number(arr[arr.length - 1]?.value ?? 0);
+  if (first === 0) return last === 0 ? 0 : 100;
+  return Math.round(((last - first) / Math.abs(first)) * 100);
+};
+
+const InventoryKPISection = ({ summary = {}, sparklines = {} }) => {
   const [isCompact, setIsCompact] = useState(true);
+
+  // prefer computed values when available
+  const totalValue =
+    summary.summaryComputed?.totalValue ?? summary.totalValue ?? 0;
+  const totalUnits =
+    summary.summaryComputed?.totalUnits ??
+    summary.totalUnits ??
+    summary.totalProducts ??
+    0;
+  const lowStock =
+    summary.summaryComputed?.lowStockCount ?? summary.lowStockCount ?? 0;
+  const netMovement =
+    summary.summaryComputed?.netStockMovement ?? summary.netStockMovement ?? 0;
 
   if (!summary) return null;
 
-  const generateSparkData = () =>
-    Array.from({ length: 10 }).map((_, i) => ({
-      value: Math.floor(Math.random() * 100) + 20,
-    }));
+  const getSpark = (key) =>
+    sparklines?.[key]?.length > 0
+      ? sparklines[key]
+      : Array.from({ length: 10 }).map(() => ({ value: 0 }));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <KPICard
         title="Total Inventory Value"
-        value={summary.totalValue}
+        value={totalValue}
         icon={DollarSign}
-        trend={5.2}
-        data={generateSparkData()}
+        trend={computeTrendPercent(getSpark("value"))}
+        data={getSpark("value")}
         type="area"
         color="indigo"
         isCurrency={true}
@@ -222,32 +251,28 @@ const InventoryKPISection = ({ summary }) => {
       />
       <KPICard
         title="Total Units"
-        value={summary.totalUnits}
+        value={totalUnits}
         icon={Package}
-        trend={2.4}
-        data={generateSparkData()}
+        trend={computeTrendPercent(getSpark("units"))}
+        data={getSpark("units")}
         type="bar"
         color="orange"
       />
       <KPICard
         title="Low Stock Items"
-        value={summary.lowStockCount}
+        value={lowStock}
         icon={AlertTriangle}
-        trend={-12.5}
-        data={generateSparkData()}
+        trend={computeTrendPercent(getSpark("risk"))}
+        data={getSpark("risk")}
         type="area"
         color="rose"
       />
       <KPICard
         title="Net Movement"
-        value={
-          summary.netStockMovement > 0
-            ? `+${summary.netStockMovement}`
-            : summary.netStockMovement
-        }
+        value={netMovement > 0 ? `+${netMovement}` : netMovement}
         icon={Activity}
-        trend={8.1}
-        data={generateSparkData()}
+        trend={computeTrendPercent(getSpark("movement"))}
+        data={getSpark("movement")}
         type="bar"
         color="emerald"
       />
