@@ -278,6 +278,7 @@ const CurrentInventory = () => {
   // Validate customer info
   const validateCustomerInfo = () => {
     const errors = {};
+    const totalSaleAmount = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
 
     if (!customerName.trim()) {
       errors.customerName = "Customer name is required";
@@ -287,6 +288,10 @@ const CurrentInventory = () => {
       errors.customerPhone = "Phone number is required";
     } else if (!/^[0-9+\-\s]{10,20}$/.test(customerPhone.trim())) {
       errors.customerPhone = "Invalid phone format";
+    }
+
+    if (isDebt && parseFloat(amountPaidNow) > totalSaleAmount) {
+      errors.amountPaidNow = "Amount paid cannot exceed the total selling price";
     }
 
     setCustomerErrors(errors);
@@ -922,11 +927,17 @@ const CurrentInventory = () => {
               label="Amount Paid Now (FRW)"
               type="number"
               value={amountPaidNow}
-              onChange={(e) => setAmountPaidNow(e.target.value)}
+              onChange={(e) => {
+                setAmountPaidNow(e.target.value);
+                if (customerErrors.amountPaidNow) {
+                  setCustomerErrors((prev) => ({ ...prev, amountPaidNow: "" }));
+                }
+              }}
               placeholder="0"
               InputProps={{ inputProps: { min: 0, max: Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) } }}
               sx={{ mb: 2 }}
-              helperText={`Enter the initial payment amount. Remaining balance will be recorded as debt.`}
+              error={!!customerErrors.amountPaidNow}
+              helperText={customerErrors.amountPaidNow || `Enter the initial payment amount. Remaining balance will be recorded as debt.`}
             />
           )}
 
