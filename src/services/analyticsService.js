@@ -59,7 +59,7 @@ const AnalyticsService = {
             console.log(`[AnalyticsService] Requesting: ${fullPath}`, params);
         }
 
-        const response = await apiClient.get(fullPath, { params });
+        const response = await apiClient.get(fullPath, { params, retries: 0 });
 
         // Normalize response: backend returns { success: true, data: [...] }
         return response?.data?.data || response?.data || response;

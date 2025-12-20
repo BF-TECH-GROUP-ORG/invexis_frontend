@@ -27,26 +27,27 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const InventoryValueTrendSection = ({ data }) => {
+const InventoryValueTrendSection = ({ data = [] }) => {
   const chartData =
-    data ||
-    Array.from({ length: 12 }).map((_, i) => ({
-      month: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ][i],
-      value: 500000 + Math.random() * 200000,
-    }));
+    data.length > 0
+      ? data
+      : Array.from({ length: 12 }).map((_, i) => ({
+          month: [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ][i],
+          value: 500000 + Math.random() * 200000,
+        }));
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
