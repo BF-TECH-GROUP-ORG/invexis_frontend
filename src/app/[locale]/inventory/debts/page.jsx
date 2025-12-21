@@ -5,6 +5,8 @@ import DataTable from "./table";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getDebts } from "@/services/debts";
+import { getWorkersByCompanyId } from "@/services/workersService";
+import { getBranches } from "@/services/branches.js";
 import {
   Box,
   CircularProgress,
@@ -18,7 +20,7 @@ import {
   Grid
 } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { useSession } from "next-auth/react";
 
@@ -27,13 +29,71 @@ const DebtsPage = () => {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const { data: session } = useSession();
 
-  const companyObj = session?.user?.companies?.[0];
+  const user = session?.user;
+  const companyObj = user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+  const userRole = user?.role;
+  const assignedDepartments = user?.assignedDepartments || [];
+  const isWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
+
+  const [selectedWorkerId, setSelectedWorkerId] = useState("");
+  const [selectedShopId, setSelectedShopId] = useState("");
+
+  // Set default worker ID for all roles (Admin/Manager start with their own debts)
+  useEffect(() => {
+    if (user?._id || user?.id) {
+      setSelectedWorkerId(user?._id || user?.id);
+    }
+  }, [user?._id, user?.id]);
+
+  // Fetch workers for the filter (only for admins/managers)
+  const { data: workers = [] } = useQuery({
+    queryKey: ["workers", companyId],
+    queryFn: () => getWorkersByCompanyId(companyId),
+    enabled: !!companyId && !isWorker,
+  });
+
+  // Fetch shops for the filter (only for admins/managers)
+  const { data: shopsData = null } = useQuery({
+    queryKey: ["shops", companyId],
+    queryFn: () => getBranches(companyId),
+    enabled: !!companyId && !isWorker,
+  });
+
+  const shops = shopsData?.data || [];
+
+  // Filter workers based on selected shop
+  const filteredWorkers = useMemo(() => {
+    if (!selectedShopId) return workers;
+    return workers.filter(worker => {
+      const workerShops = worker.shops || [];
+      return workerShops.some(shop => {
+        const shopId = typeof shop === 'string' ? shop : (shop.id || shop._id);
+        return shopId === selectedShopId;
+      });
+    });
+  }, [workers, selectedShopId]);
+
+  // Reset worker selection if they don't belong to the selected shop
+  useEffect(() => {
+    if (selectedShopId && selectedWorkerId) {
+      const currentUserId = user?._id || user?.id;
+      if (selectedWorkerId === currentUserId) return;
+
+      const isWorkerInShop = filteredWorkers.some(w => (w._id || w.id) === selectedWorkerId);
+      if (!isWorkerInShop) {
+        setSelectedWorkerId("");
+      }
+    }
+  }, [selectedShopId, filteredWorkers, selectedWorkerId, user]);
 
   // Fetch debts data from backend
   const { data: debtsData = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["debts", companyId],
-    queryFn: () => getDebts(companyId),
+    queryKey: ["debts", companyId, selectedWorkerId, selectedShopId],
+    queryFn: () => getDebts(companyId, {
+      soldBy: selectedWorkerId,
+      shopId: selectedShopId
+    }),
     enabled: !!companyId,
     select: (response) => {
       // API returns paginated data: { items: [...], total: N, page: N, limit: N }
@@ -79,7 +139,16 @@ const DebtsPage = () => {
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-gray-700">{t('subtitle')}</p>
       </div>
-      <DataTable debts={debtsData} />
+      <DataTable
+        debts={debtsData}
+        workers={filteredWorkers}
+        selectedWorkerId={selectedWorkerId}
+        setSelectedWorkerId={setSelectedWorkerId}
+        shops={shops}
+        selectedShopId={selectedShopId}
+        setSelectedShopId={setSelectedShopId}
+        isWorker={isWorker}
+      />
 
       {/* Error Dialog */}
       <Dialog

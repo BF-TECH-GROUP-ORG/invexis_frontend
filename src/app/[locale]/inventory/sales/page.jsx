@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import DataTable from "./table";
 import Link from "next/link";
 import { Button } from "@/components/shared/button";
@@ -8,8 +8,9 @@ import { useTranslations } from "next-intl";
 import SalesCards from "./cards";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { getSalesHistory, getSalesByWorker } from "@/services/salesService";
+import { getSalesHistory } from "@/services/salesService";
 import { getWorkersByCompanyId } from "@/services/workersService";
+import { getBranches } from "@/services/branches.js";
 
 const SalesPage = () => {
   const { data: session } = useSession();
@@ -21,13 +22,14 @@ const SalesPage = () => {
   const isWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
 
   const [selectedWorkerId, setSelectedWorkerId] = useState("");
+  const [selectedShopId, setSelectedShopId] = useState("");
 
-  // Set default worker ID if the user is a worker
+  // Set default worker ID for all roles (Admin/Manager start with their own sales)
   useEffect(() => {
-    if (isWorker && (user?._id || user?.id)) {
+    if (user?._id || user?.id) {
       setSelectedWorkerId(user?._id || user?.id);
     }
-  }, [isWorker, user?._id, user?.id]);
+  }, [user?._id, user?.id]);
 
   // Fetch workers for the filter (only for admins/managers)
   const { data: workers = [] } = useQuery({
@@ -36,14 +38,48 @@ const SalesPage = () => {
     enabled: !!companyId && !isWorker,
   });
 
-  const { data: sales = [], isLoading: isSalesLoading } = useQuery({
-    queryKey: ["salesHistory", companyId, selectedWorkerId],
-    queryFn: () => {
-      if (selectedWorkerId) {
-        return getSalesByWorker(selectedWorkerId, companyId);
+  // Filter workers based on selected shop
+  const filteredWorkers = useMemo(() => {
+    if (!selectedShopId) return workers;
+    return workers.filter(worker => {
+      const workerShops = worker.shops || [];
+      // Handle both array of IDs and array of objects
+      return workerShops.some(shop => {
+        const shopId = typeof shop === 'string' ? shop : (shop.id || shop._id);
+        return shopId === selectedShopId;
+      });
+    });
+  }, [workers, selectedShopId]);
+
+  // Reset worker selection if they don't belong to the selected shop
+  // But keep it if it's the current user (default view)
+  useEffect(() => {
+    if (selectedShopId && selectedWorkerId) {
+      const currentUserId = user?._id || user?.id;
+      if (selectedWorkerId === currentUserId) return;
+
+      const isWorkerInShop = filteredWorkers.some(w => (w._id || w.id) === selectedWorkerId);
+      if (!isWorkerInShop) {
+        setSelectedWorkerId("");
       }
-      return getSalesHistory(companyId);
-    },
+    }
+  }, [selectedShopId, filteredWorkers, selectedWorkerId, user]);
+
+  // Fetch shops for the filter (only for admins/managers)
+  const { data: shopsData = null } = useQuery({
+    queryKey: ["shops", companyId],
+    queryFn: () => getBranches(companyId),
+    enabled: !!companyId && !isWorker,
+  });
+
+  const shops = shopsData?.data || [];
+
+  const { data: sales = [], isLoading: isSalesLoading } = useQuery({
+    queryKey: ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+    queryFn: () => getSalesHistory(companyId, {
+      soldBy: selectedWorkerId,
+      shopId: selectedShopId
+    }),
     enabled: !!companyId,
     staleTime: 5 * 60 * 1000,
   });
@@ -77,9 +113,12 @@ const SalesPage = () => {
           </div>
           <DataTable
             salesData={sales}
-            workers={workers}
+            workers={filteredWorkers}
             selectedWorkerId={selectedWorkerId}
             setSelectedWorkerId={setSelectedWorkerId}
+            shops={shops}
+            selectedShopId={selectedShopId}
+            setSelectedShopId={setSelectedShopId}
             isWorker={isWorker}
             isLoading={isSalesLoading}
           />

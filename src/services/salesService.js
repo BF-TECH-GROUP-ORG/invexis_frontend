@@ -139,20 +139,31 @@ export const SellProduct = async (saleData, isDebt = false) => {
  *
  * CACHING: Historical sales cached for 2 minutes (frequently changing)
  */
-export const getSalesHistory = async (companyId) => {
-  if (typeof companyId === "object") {
-    console.error("Invalid companyId passed to getSalesHistory:", companyId);
-    throw new Error("Invalid companyId: Object passed instead of string");
+export const getSalesHistory = async (companyId, filters = {}) => {
+  if (!companyId) {
+    console.error("companyId is required for getSalesHistory");
+    return [];
   }
 
   const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
+  const { shopId, soldBy } = filters;
 
   try {
-    const data = await apiClient.get(`${SALES_URL}?companyId=${companyId}`, {
+    let queryParams = `companyId=${companyId}`;
+    if (shopId) queryParams += `&shopId=${shopId}`;
+    if (soldBy) queryParams += `&soldBy=${soldBy}`;
+
+    const data = await apiClient.get(`${SALES_URL}?${queryParams}`, {
       cache: cacheStrategy,
     });
     console.log("Sales history fetched:", data);
-    return data;
+
+    // Handle cases where the API wraps the array in an object
+    if (data && !Array.isArray(data)) {
+      return data.sales || data.data || data.history || [];
+    }
+
+    return data || [];
   } catch (error) {
     console.log("Failed to fetch sales history:", error.message);
     return [];
