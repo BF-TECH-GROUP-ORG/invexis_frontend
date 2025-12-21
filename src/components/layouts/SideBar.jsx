@@ -96,8 +96,8 @@ const navItems = [
     roles: ["sales_manager", "company_admin"],
     children: [
       { title: "Debts List", path: "/inventory/debts", prefetch: true },
-      { title: "Debts Details",path: "/inventory/Debts/details",prefetch: true,},
-      { title: "Debts Analytics",path: "/inventory/debts/analytics",prefetch: true,},
+      { title: "Debts Details", path: "/inventory/Debts/details", prefetch: true, },
+      { title: "Debts Analytics", path: "/inventory/debts/analytics", prefetch: true, },
     ],
   },
   {
@@ -211,8 +211,8 @@ const navItems = [
   },
 
   {
-    title: "Notifications ",
-    icon: <AlertCircle size={22} />,  
+    title: "Notifications",
+    icon: <AlertCircle size={22} />,
     path: "/inventory/announcements",
     roles: ["manager", "company_admin"],
     prefetch: true,
@@ -302,14 +302,64 @@ export default function SideBar({
   }, []);
 
   const { data: session } = useSession();
-  const userRole = session?.user?.role ?? null;
+  const user = session?.user;
+  const userRole = user?.role;
+  const assignedDepartments = user?.assignedDepartments || [];
 
   const visibleFor = (item) => {
     if (!item) return false;
-    if (!item.roles || item.roles.length === 0) return true;
-    // company_admin gets full visibility across the app
-    if (userRole === "company_admin") return true;
-    return item.roles.includes(userRole);
+
+    // Admin: role is company_admin OR no assigned departments
+    if (userRole === "company_admin" || assignedDepartments.length === 0) {
+      return true;
+    }
+
+    const itemTitle = item.title.trim();
+    const itemPath = item.path || "";
+    const isManager = assignedDepartments.includes("management");
+    const isWorker = assignedDepartments.includes("sales");
+
+    // Features for Worker (Sales)
+    const workerFeatures = [
+      "Dashboard",
+      "Inventory",
+      "Sales",
+      "Debts",
+      "Notifications",
+      "Overview",
+      "Products",
+      "Categories",
+      "Debts List",
+      "Debts Details",
+      "Debts Analytics",
+    ];
+
+    // Paths that workers are NOT allowed to see even if the parent is allowed
+    const workerBlockedPaths = [
+      "/inventory/report",
+      "/inventory/stock",
+    ];
+
+    if (isWorker) {
+      if (workerBlockedPaths.some(p => itemPath.startsWith(p))) return false;
+      return workerFeatures.includes(itemTitle);
+    }
+
+    // Features for Manager (Management)
+    if (isManager) {
+      const managerFeatures = [
+        ...workerFeatures,
+        "Staff & Shops",
+        "Billing & Payments",
+        "E-commerce",
+        "Analytics",
+        "Reports",
+        "Documents",
+      ];
+      return managerFeatures.includes(itemTitle);
+    }
+
+    return false;
   };
 
   /* Mobile detection */
@@ -345,8 +395,8 @@ export default function SideBar({
               >
                 <div
                   className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <LayoutDashboard size={24} />
@@ -357,15 +407,15 @@ export default function SideBar({
               </Link>
 
               {/* Analytics */}
-              {visibleFor(navItems[1]) && (
+              {visibleFor(navItems[2]) && (
                 <Link
                   href={`/${locale}/inventory/analytics`}
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
                     className={`p-3 rounded-xl transition ${isActive("/inventory/analytics")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <BarChart3 size={24} />
@@ -377,15 +427,15 @@ export default function SideBar({
               )}
 
               {/* Reports */}
-              {visibleFor(navItems[2]) && (
+              {visibleFor(navItems[3]) && (
                 <Link
                   href={`/${locale}/inventory/reports`}
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
                     className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <FileSpreadsheet size={24} />
@@ -403,8 +453,8 @@ export default function SideBar({
               >
                 <div
                   className={`p-3 rounded-xl transition ${moreModalOpen
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <MoreVertical size={24} />
@@ -440,7 +490,7 @@ export default function SideBar({
                 {/* Menu Items */}
                 <div className="overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-6 space-y-2">
                   {navItems
-                    .slice(3)
+                    .slice(1)
                     .filter(visibleFor)
                     .map((item) => {
                       const parentActive = item.children?.some((c) =>
@@ -455,8 +505,8 @@ export default function SideBar({
                               href={`/${locale}${item.path}`}
                               onClick={() => setMoreModalOpen(false)}
                               className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
-                                  ? "bg-orange-500 text-white shadow-lg"
-                                  : "text-gray-700 hover:bg-orange-50"
+                                ? "bg-orange-500 text-white shadow-lg"
+                                : "text-gray-700 hover:bg-orange-50"
                                 }`}
                             >
                               {item.icon}
@@ -476,8 +526,8 @@ export default function SideBar({
                                   )
                                 }
                                 className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
-                                    ? "bg-orange-50 text-orange-700 border border-orange-200"
-                                    : "text-gray-700 hover:bg-orange-50"
+                                  ? "bg-orange-50 text-orange-700 border border-orange-200"
+                                  : "text-gray-700 hover:bg-orange-50"
                                   }`}
                               >
                                 <div className="flex items-center gap-4">
@@ -489,8 +539,8 @@ export default function SideBar({
                                 <ChevronDown
                                   size={20}
                                   className={`transition-transform ${openMenus.includes(item.title)
-                                      ? "rotate-180"
-                                      : ""
+                                    ? "rotate-180"
+                                    : ""
                                     }`}
                                 />
                               </div>
@@ -509,8 +559,8 @@ export default function SideBar({
                                             setMoreModalOpen(false)
                                           }
                                           className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
-                                              ? "bg-orange-500 text-white"
-                                              : "text-gray-600 hover:bg-gray-100"
+                                            ? "bg-orange-500 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
                                             }`}
                                         >
                                           {child.title}
@@ -567,7 +617,7 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(0, 3)
+              .slice(0, 2)
               .filter(visibleFor)
               .map((item) => (
                 <Link
@@ -575,8 +625,8 @@ export default function SideBar({
                   href={`/${locale}${item.path}`}
                   prefetch={item.prefetch}
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-700 hover:bg-orange-50"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-50"
                     }`}
                 >
                   {item.icon}
@@ -595,7 +645,7 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(3)
+              .slice(2)
               .filter(visibleFor)
               .map((item) => {
                 const parentActive = item.children?.some((c) =>
@@ -614,8 +664,8 @@ export default function SideBar({
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
                         className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                            ? "bg-orange-500 text-white"
-                            : "text-gray-700 hover:bg-orange-50"
+                          ? "bg-orange-500 text-white"
+                          : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
                         {item.icon}
@@ -637,8 +687,8 @@ export default function SideBar({
                               )
                             }
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                                ? "border-orange-500 border-l-3 text-orange-500"
-                                : "text-gray-700 hover:bg-orange-50"
+                              ? "border-orange-500 border-l-3 text-orange-500"
+                              : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
                             <div className="flex items-center gap-3">
@@ -650,8 +700,8 @@ export default function SideBar({
                               <ChevronDown
                                 size={18}
                                 className={`${openMenus.includes(item.title)
-                                    ? "rotate-180"
-                                    : ""
+                                  ? "rotate-180"
+                                  : ""
                                   }`}
                               />
                             )}
@@ -662,14 +712,14 @@ export default function SideBar({
                             item.children &&
                             openMenus.includes(item.title) && (
                               <div className="ml-10 mt-2 border-l-2 border-orange-200 pl-4 space-y-1">
-                                {item.children.map((child) => (
+                                {item.children.filter(visibleFor).map((child) => (
                                   <Link
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
                                     className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
-                                        ? "bg-orange-500 text-white"
-                                        : "text-gray-600 hover:bg-gray-100"
+                                      ? "bg-orange-500 text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
                                       }`}
                                   >
                                     {child.title}

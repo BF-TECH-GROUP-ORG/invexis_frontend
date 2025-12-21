@@ -5,7 +5,7 @@ import WorkersListPage from "@/components/pages/WorkersListPage";
 
 export default function WorkersProtectedWrapper() {
   return (
-    <ProtectedRoute allowedRoles={["company_admin"]}>
+    <ProtectedRoute allowedRoles={["company_admin"]} allowedDepartments={["management"]}>
       <div>
         <WorkersListPage />
       </div>

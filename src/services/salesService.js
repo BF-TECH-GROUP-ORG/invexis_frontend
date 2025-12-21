@@ -83,7 +83,7 @@ export const SellProduct = async (saleData, isDebt = false) => {
     // We use the relative URL to ensure it uses the baseURL from axios instance
     console.log("Recording sale...");
     const saleResponse = await apiClient.post("/sales", saleData);
-    console.log("Sale recorded:", saleResponse);  
+    console.log("Sale recorded:", saleResponse);
 
     // 2. If it's a debt, also record the debt
     if (isDebt) {
@@ -155,6 +155,33 @@ export const getSalesHistory = async (companyId) => {
     return data;
   } catch (error) {
     console.log("Failed to fetch sales history:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Get sales history for a specific worker
+ * 
+ * @param {string} soldBy - Worker ID or username
+ * @param {string} companyId - Company ID
+ */
+export const getSalesByWorker = async (soldBy, companyId) => {
+  const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
+
+  try {
+    const data = await apiClient.get(`/sales/sold-by?soldBy=${soldBy}&companyId=${companyId}`, {
+      cache: cacheStrategy,
+    });
+    console.log(`Sales history for worker ${soldBy} fetched:`, data);
+
+    // Handle cases where the API wraps the array in an object
+    if (data && !Array.isArray(data)) {
+      return data.sales || data.data || data.history || [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.log(`Failed to fetch sales history for worker ${soldBy}:`, error.message);
     return [];
   }
 };
@@ -255,6 +282,7 @@ export default {
   singleProductFetch,
   SellProduct,
   getSalesHistory,
+  getSalesByWorker,
   getSingleSale,
   updateSale,
   deleteSale,
