@@ -29,8 +29,11 @@ const SalesCards = ({ sales = [] }) => {
   const stats = useMemo(() => {
     const today = new Date().toDateString();
 
+    // Ensure sales is an array
+    const salesArray = Array.isArray(sales) ? sales : [];
+
     // Filter sales for today
-    const todaySales = sales.filter(sale =>
+    const todaySales = salesArray.filter(sale =>
       new Date(sale.createdAt).toDateString() === today
     );
 

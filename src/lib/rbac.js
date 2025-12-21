@@ -3,36 +3,51 @@
 
 export const ROLE_PERMISSIONS = [
   // Company-level / admin features
-  { prefix: "/inventory/companies", roles: ["company_admin"] },
-  { prefix: "/inventory/workers", roles: ["company_admin"] },
-  { prefix: "/inventory/logs", roles: ["company_admin"] },
-  { prefix: "/inventory/audit", roles: ["company_admin"] },
+  { prefix: "/inventory/companies", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/workers", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/logs", roles: ["company_admin"], departments: [] },
+  { prefix: "/inventory/audit", roles: ["company_admin"], departments: [] },
 
   // Manager features
-  { prefix: "/inventory/products", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/categories", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/warehouses", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/alerts", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/reports", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/analytics", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/overview", roles: ["manager", "company_admin"] },
-  { prefix: "/inventory/Overview", roles: ["manager", "company_admin"] },
+  { prefix: "/inventory/products", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/categories", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/warehouses", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/alerts", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/reports", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/report", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/analytics", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/overview", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/Overview", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/stock", roles: ["company_admin"], departments: ["management", "sales"] },
 
-  // Sales manager features
-  { prefix: "/inventory/sales", roles: ["sales_manager", "company_admin"] },
-  { prefix: "/inventory/ecommerce", roles: ["sales_manager", "company_admin"] },
-  { prefix: "/inventory/billing", roles: ["sales_manager", "company_admin"] },
-  { prefix: "/inventory/debts", roles: ["sales_manager", "company_admin"] },
+  // Sales and other features
+  { prefix: "/inventory/sales", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/ecommerce", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/billing", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/debts", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/documents", roles: ["company_admin"], departments: ["management"] },
+  { prefix: "/inventory/announcements", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/notifications", roles: ["company_admin"], departments: ["management", "sales"] },
+  { prefix: "/inventory/dashboard", roles: ["company_admin"], departments: ["management", "sales"] },
 ];
 
 export function getAllowedRolesForPath(path) {
   // return null if no restriction applies
   const matches = ROLE_PERMISSIONS.filter((r) => path.startsWith(r.prefix));
   if (!matches || matches.length === 0) return null;
-  // merge roles
+
   const roles = new Set();
-  matches.forEach((m) => m.roles.forEach((r) => roles.add(r)));
-  return Array.from(roles);
+  const departments = new Set();
+
+  matches.forEach((m) => {
+    if (m.roles) m.roles.forEach((r) => roles.add(r));
+    if (m.departments) m.departments.forEach((d) => departments.add(d));
+  });
+
+  return {
+    roles: Array.from(roles),
+    departments: Array.from(departments),
+  };
 }
 
 export const ROLES = ["company_admin", "manager", "sales_manager"];

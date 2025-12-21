@@ -520,7 +520,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { useSession } from "next-auth/react";
 
-const DataTable = ({ salesData }) => {
+const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorkerId, isWorker, isLoading: isSalesLoading }) => {
   const t = useTranslations("sales");
   const navigation = useRouter();
   const [search, setSearch] = useState("");
@@ -546,23 +546,28 @@ const DataTable = ({ salesData }) => {
 
   const rows = useMemo(() => {
     if (!salesData || !Array.isArray(salesData)) return [];
-    return salesData.map((sale) => ({
-      id: sale.saleId,
-      productId: sale.items && sale.items.length > 0 ? sale.items[0].productId : null,
-      ProductName: sale.items && sale.items.length > 0 ? sale.items[0].productName : "Unknown",
-      isDebt: sale.isDebt,
-      Category: sale.isTransfer,
-      UnitPrice: sale.items && sale.items.length > 0 ? sale.items[0].unitPrice : 0,
-      SoldQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0,
-      originalQuantity: sale.items ? sale.items.reduce((sum, item) => sum + (item.originalQuantity || 0), 0) : 0,
-      returned: `${sale.isReturned}`,
-      returnedValue: sale.items.reduce((sum, item) => sum + (item.returnedQuantity || 0), 0),
-      Discount: sale.discountTotal,
-      Date: new Date(sale.createdAt).toLocaleDateString(),
-      rawDate: sale.createdAt, // Keep raw date for filtering
-      TotalValue: sale.totalAmount,
-      action: "more"
-    }));
+    return salesData.map((sale) => {
+      const items = sale.items || [];
+      const firstItem = items[0] || {};
+
+      return {
+        id: sale.saleId,
+        productId: firstItem.productId || null,
+        ProductName: firstItem.productName || "Unknown",
+        isDebt: sale.isDebt,
+        Category: sale.isTransfer,
+        UnitPrice: firstItem.unitPrice || 0,
+        SoldQuantity: items.reduce((sum, item) => sum + (item.quantity || 0), 0),
+        originalQuantity: items.reduce((sum, item) => sum + (item.originalQuantity || 0), 0),
+        returned: `${sale.isReturned}`,
+        returnedValue: items.reduce((sum, item) => sum + (item.returnedQuantity || 0), 0),
+        Discount: sale.discountTotal || 0,
+        Date: sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : "N/A",
+        rawDate: sale.createdAt,
+        TotalValue: sale.totalAmount || 0,
+        action: "more"
+      };
+    });
   }, [salesData]);
 
   // Delete mutation
@@ -782,6 +787,26 @@ const DataTable = ({ salesData }) => {
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          {/* Worker Filter (Only for Admins/Managers) */}
+          {!isWorker && (
+            <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
+              <Select
+                labelId="worker-filter-label"
+                value={selectedWorkerId}
+                label="Filter by Worker"
+                onChange={(e) => setSelectedWorkerId(e.target.value)}
+              >
+                <MenuItem value="">All Workers</MenuItem>
+                {workers.map((worker) => (
+                  <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
+                    {worker.firstName} {worker.lastName} ({worker.username})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
           {/* Month Selector */}
           <TextField
             placeholder="Search sales..."
