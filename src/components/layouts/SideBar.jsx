@@ -96,8 +96,8 @@ const navItems = [
     roles: ["sales_manager", "company_admin"],
     children: [
       { title: "Debts List", path: "/inventory/debts", prefetch: true },
-      { title: "Debts Details",path: "/inventory/Debts/details",prefetch: true,},
-      { title: "Debts Analytics",path: "/inventory/debts/analytics",prefetch: true,},
+      { title: "Debts Details", path: "/inventory/Debts/details", prefetch: true, },
+      { title: "Debts Analytics", path: "/inventory/debts/analytics", prefetch: true, },
     ],
   },
   {
@@ -207,22 +207,6 @@ const navItems = [
     //   //   path: "/inventory/invoices/details",
     //   //   prefetch: true,
     //   // },
-    // ],
-  },
-
-  {
-    title: "Notifications ",
-    icon: <AlertCircle size={22} />,  
-    path: "/inventory/announcements",
-    roles: ["manager", "company_admin"],
-    prefetch: true,
-    // children: [
-    //   { title: "List", path: "/inventory/announcements/list", prefetch: true },
-    //   {
-    //     title: "Create / Details",
-    //     path: "/inventory/announcements/details",
-    //     prefetch: true,
-    //   },
     // ],
   },
   // company_admin-only logs link
@@ -345,8 +329,8 @@ export default function SideBar({
               >
                 <div
                   className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <LayoutDashboard size={24} />
@@ -364,8 +348,8 @@ export default function SideBar({
                 >
                   <div
                     className={`p-3 rounded-xl transition ${isActive("/inventory/analytics")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <BarChart3 size={24} />
@@ -384,8 +368,8 @@ export default function SideBar({
                 >
                   <div
                     className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <FileSpreadsheet size={24} />
@@ -403,8 +387,8 @@ export default function SideBar({
               >
                 <div
                   className={`p-3 rounded-xl transition ${moreModalOpen
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <MoreVertical size={24} />
@@ -455,8 +439,8 @@ export default function SideBar({
                               href={`/${locale}${item.path}`}
                               onClick={() => setMoreModalOpen(false)}
                               className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
-                                  ? "bg-orange-500 text-white shadow-lg"
-                                  : "text-gray-700 hover:bg-orange-50"
+                                ? "bg-orange-500 text-white shadow-lg"
+                                : "text-gray-700 hover:bg-orange-50"
                                 }`}
                             >
                               {item.icon}
@@ -476,8 +460,8 @@ export default function SideBar({
                                   )
                                 }
                                 className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
-                                    ? "bg-orange-50 text-orange-700 border border-orange-200"
-                                    : "text-gray-700 hover:bg-orange-50"
+                                  ? "bg-orange-50 text-orange-700 border border-orange-200"
+                                  : "text-gray-700 hover:bg-orange-50"
                                   }`}
                               >
                                 <div className="flex items-center gap-4">
@@ -489,8 +473,8 @@ export default function SideBar({
                                 <ChevronDown
                                   size={20}
                                   className={`transition-transform ${openMenus.includes(item.title)
-                                      ? "rotate-180"
-                                      : ""
+                                    ? "rotate-180"
+                                    : ""
                                     }`}
                                 />
                               </div>
@@ -509,8 +493,8 @@ export default function SideBar({
                                             setMoreModalOpen(false)
                                           }
                                           className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
-                                              ? "bg-orange-500 text-white"
-                                              : "text-gray-600 hover:bg-gray-100"
+                                            ? "bg-orange-500 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
                                             }`}
                                         >
                                           {child.title}
@@ -575,8 +559,8 @@ export default function SideBar({
                   href={`/${locale}${item.path}`}
                   prefetch={item.prefetch}
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-700 hover:bg-orange-50"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-50"
                     }`}
                 >
                   {item.icon}
@@ -614,8 +598,8 @@ export default function SideBar({
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
                         className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                            ? "bg-orange-500 text-white"
-                            : "text-gray-700 hover:bg-orange-50"
+                          ? "bg-orange-500 text-white"
+                          : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
                         {item.icon}
@@ -637,8 +621,8 @@ export default function SideBar({
                               )
                             }
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                                ? "border-orange-500 border-l-3 text-orange-500"
-                                : "text-gray-700 hover:bg-orange-50"
+                              ? "border-orange-500 border-l-3 text-orange-500"
+                              : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
                             <div className="flex items-center gap-3">
@@ -650,8 +634,8 @@ export default function SideBar({
                               <ChevronDown
                                 size={18}
                                 className={`${openMenus.includes(item.title)
-                                    ? "rotate-180"
-                                    : ""
+                                  ? "rotate-180"
+                                  : ""
                                   }`}
                               />
                             )}
@@ -668,8 +652,8 @@ export default function SideBar({
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
                                     className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
-                                        ? "bg-orange-500 text-white"
-                                        : "text-gray-600 hover:bg-gray-100"
+                                      ? "bg-orange-500 text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
                                       }`}
                                   >
                                     {child.title}

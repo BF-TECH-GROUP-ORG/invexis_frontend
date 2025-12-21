@@ -31,10 +31,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files — block ALL of them
-.env
-.env.*
-*.env
-*.env.*
+# .env
+# .env.*
+# *.env
+# *.env.*
 
 # vercel
 .vercel
