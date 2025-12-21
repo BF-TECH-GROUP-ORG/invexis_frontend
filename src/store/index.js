@@ -25,6 +25,7 @@ import warehousesReducer from "@/features/warehouses/warehousesSlice";
 import documentsReducer from '../features/documents/documentsSlice';
 import billingReducer from "../features/billing/billingSlice";
 import announcementsReducer from "@/features/announcements/announcementsSlice";
+import logsReducer from "@/features/logs/logsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -39,6 +40,7 @@ export const store = configureStore({
     documents: documentsReducer,
     billing: billingReducer,
     announcements: announcementsReducer,
+    logs: logsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

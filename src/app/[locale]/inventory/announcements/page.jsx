@@ -263,7 +263,7 @@ export default function AnnouncementsPage() {
 
                 {/* Toolbar */}
                 <div className="flex items-center justify-between mb-4 flex-none">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-gray-700">
                         <button className="p-1.5 hover:bg-gray-100 rounded hover:text-gray-900 transition-colors" title="Select All">
                             <CheckSquare className="w-4 h-4" />
                         </button>
