@@ -17,6 +17,8 @@ import { useSession } from "next-auth/react";
 import TransferModal from "./TransferModal";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
+
+
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
   const [tempFilter, setTempFilter] = useState(currentFilter);

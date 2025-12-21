@@ -520,7 +520,17 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { useSession } from "next-auth/react";
 
-const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorkerId, isWorker, isLoading: isSalesLoading }) => {
+const DataTable = ({
+  salesData,
+  workers = [],
+  selectedWorkerId,
+  setSelectedWorkerId,
+  shops = [],
+  selectedShopId,
+  setSelectedShopId,
+  isWorker,
+  isLoading: isSalesLoading
+}) => {
   const t = useTranslations("sales");
   const navigation = useRouter();
   const [search, setSearch] = useState("");
@@ -565,10 +575,13 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
         Date: sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : "N/A",
         rawDate: sale.createdAt,
         TotalValue: sale.totalAmount || 0,
+        shopId: sale.shopId,
+        soldBy: sale.soldBy,
+        ShopName: shops.find(s => (s._id || s.id) === sale.shopId)?.name || "N/A",
         action: "more"
       };
     });
-  }, [salesData]);
+  }, [salesData, shops]);
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -721,7 +734,6 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
     }
 
     // Advanced filter
-
     const { column, operator, value } = activeFilter;
 
     if (column && value) {
@@ -748,8 +760,17 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
       }
     }
 
+    // Client-side fallback for Worker and Shop filters
+    if (selectedWorkerId) {
+      currentRows = currentRows.filter(row => row.soldBy === selectedWorkerId);
+    }
+
+    if (selectedShopId) {
+      currentRows = currentRows.filter(row => row.shopId === selectedShopId);
+    }
+
     return currentRows;
-  }, [search, activeFilter, rows, selectedMonth]);
+  }, [search, activeFilter, rows, selectedMonth, selectedWorkerId, selectedShopId]);
 
   return (
     <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
@@ -789,22 +810,41 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           {/* Worker Filter (Only for Admins/Managers) */}
           {!isWorker && (
-            <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
-              <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
-              <Select
-                labelId="worker-filter-label"
-                value={selectedWorkerId}
-                label="Filter by Worker"
-                onChange={(e) => setSelectedWorkerId(e.target.value)}
-              >
-                <MenuItem value="">All Workers</MenuItem>
-                {workers.map((worker) => (
-                  <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
-                    {worker.firstName} {worker.lastName} ({worker.username})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <>
+              <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
+                <Select
+                  labelId="worker-filter-label"
+                  value={selectedWorkerId}
+                  label="Filter by Worker"
+                  onChange={(e) => setSelectedWorkerId(e.target.value)}
+                >
+                  <MenuItem value="">All Workers</MenuItem>
+                  {workers.map((worker) => (
+                    <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
+                      {worker.firstName} {worker.lastName} ({worker.username})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
+                <Select
+                  labelId="shop-filter-label"
+                  value={selectedShopId}
+                  label="Filter by Shop"
+                  onChange={(e) => setSelectedShopId(e.target.value)}
+                >
+                  <MenuItem value="">All Shops</MenuItem>
+                  {shops.map((shop) => (
+                    <MenuItem key={shop._id || shop.id} value={shop._id || shop.id}>
+                      {shop.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </>
           )}
 
           {/* Month Selector */}
@@ -862,6 +902,10 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
                 {t("productName")}
+              </TableCell>
+
+              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+                Shop
               </TableCell>
 
               <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
@@ -925,6 +969,7 @@ const DataTable = ({ salesData, workers = [], selectedWorkerId, setSelectedWorke
               >
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.ProductName}</TableCell>
+                <TableCell>{row.ShopName}</TableCell>
                 <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
                 <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
                 <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
