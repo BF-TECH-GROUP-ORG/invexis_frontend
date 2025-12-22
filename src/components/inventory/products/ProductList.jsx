@@ -105,7 +105,7 @@ export default function ProductList() {
 
   useEffect(() => {
     if (companyId) {
-      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
+      // dispatch(fetchProducts({ page: 1, limit: 20, companyId })); // Handled by the second useEffect
       dispatch(fetchCategories({ companyId }));
       dispatch(fetchWarehouses());
     }

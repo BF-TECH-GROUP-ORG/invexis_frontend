@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchInvoices } from "@/features/billing/billingSlice";
 import InvoiceExplorer from "../components/InvoiceExplorer";
-import { Loader2 } from "lucide-react";
+import Loading from "./loading";
 
 export default function InvoicesPage() {
     const dispatch = useDispatch();
@@ -16,11 +16,7 @@ export default function InvoicesPage() {
     }, [dispatch, status]);
 
     if (status === 'loading') {
-        return (
-            <div className="flex h-96 items-center justify-center">
-                <Loader2 className="animate-spin text-orange-500" size={32} />
-            </div>
-        );
+        return <Loading />;
     }
 
     return (

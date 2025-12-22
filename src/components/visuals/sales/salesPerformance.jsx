@@ -24,6 +24,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import Skeleton from '@/components/shared/Skeleton';
 
 const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#64748b', '#8b5cf6', '#ef4444'];
 const THEME_COLORS = ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"];
@@ -126,7 +127,48 @@ const SalesPerformance = ({
     console.log('- safeStockData:', safeStockData);
 
     if (loading) {
-        return <div className="p-10 text-center text-gray-500">Loading analytics data...</div>;
+        return (
+            <div className="space-y-6">
+                <br />
+                <div className="bg-white p-6 rounded-2xl border border-gray-300">
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                        <div className="flex gap-3">
+                            <Skeleton className="h-10 w-40" />
+                            <Skeleton className="h-10 w-64" />
+                        </div>
+                    </div>
+                    <Skeleton className="h-[400px] w-full rounded-xl" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm h-[400px]">
+                        <Skeleton className="h-6 w-48 mb-2" />
+                        <Skeleton className="h-4 w-32 mb-6" />
+                        <div className="flex items-center justify-around h-full pb-10">
+                            <Skeleton variant="circle" className="h-64 w-64" />
+                            <div className="space-y-3">
+                                <Skeleton className="h-8 w-32" />
+                                <Skeleton className="h-8 w-32" />
+                                <Skeleton className="h-8 w-32" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm h-[400px]">
+                        <Skeleton className="h-6 w-32 mb-2" />
+                        <Skeleton className="h-4 w-24 mb-6" />
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-8 w-full" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -272,14 +314,14 @@ const SalesPerformance = ({
                 </div>
             </div>
 
-            {/* --- (B) Sales by Payment Method --- */}
-            <div className="w-full flex space-x-10">
-                <div className="bg-white dark:bg-gray-800 w-1/2 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm  items-center justify-center">
-                    <div className=" mb-6">
+            {/* --- (B) Sales by Payment Method & (C) Top 5 Best-Selling Products --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center">
+                    <div className="w-full mb-6">
                         <h2 className="text-lg font-bold text-gray-800 dark:text-white">Sales by Payment Method</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Distribution across payment types</p>
                     </div>
-                    <div className="flex items-center w-full justify-around mt-12">
+                    <div className="flex flex-col md:flex-row items-center w-full justify-around gap-8">
                         <div className="h-64 w-64 flex-shrink-0 relative">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -332,7 +374,7 @@ const SalesPerformance = ({
                                 </span>
                             </div>
                         </div>
-                        <div className="flex flex-col justify-center gap-3 ml-8">
+                        <div className="flex flex-col justify-center gap-3 w-full md:w-auto">
                             {processedCategoryData.map((item, index) => (
                                 <div
                                     key={index}
@@ -356,8 +398,8 @@ const SalesPerformance = ({
                     </div>
                 </div>
                 {/* --- (C) Top 5 Best-Selling Products --- */}
-                <div className="bg-white dark:bg-gray-800 w-1/2 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm  items-center justify-center">
-                    <div className="mb-6 flex justify-between items-center">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center">
+                    <div className="w-full mb-6 flex justify-between items-center">
                         <div>
                             <h2 className="text-lg font-bold text-gray-800">Top Products</h2>
                             <p className="text-sm text-gray-500">Best performing items</p>
@@ -379,10 +421,12 @@ const SalesPerformance = ({
                                     tickLine={false}
                                     width={120}
                                     tick={{ fill: '#475569', fontSize: 13, fontWeight: 500 }}
+                                    tickFormatter={(name) => name.length > 15 ? `${name.substring(0, 15)}...` : name}
                                 />
                                 <Tooltip
                                     cursor={{ fill: '#f8fafc' }}
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    formatter={(value, name, props) => [value, props.payload.name]}
                                 />
                                 <Bar dataKey="quantity" fill="#3b82f6" radius={[0, 10, 20, 0]} background={{ fill: '#f1f5f9', radius: [0, 4, 4, 0] }}>
                                     {
@@ -397,7 +441,7 @@ const SalesPerformance = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className=" gap-6">
                 {/* --- (D) Stock In vs Stock Out --- */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-300 ">
                     <div className="flex justify-between items-center mb-6">

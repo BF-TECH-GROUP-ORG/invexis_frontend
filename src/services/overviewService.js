@@ -34,12 +34,13 @@ const OverviewService = {
    * Get company-wide inventory overview
    * GET /api/v1/companies/:companyId/overview
    */
-  getCompanyOverview: async (companyId) => {
+  getCompanyOverview: async (companyId, options = {}) => {
     const cacheStrategy = getCacheStrategy("ORGANIZATION");
     return apiClient.get(
       buildUrl(`/inventory/v1/companies/${companyId}/overview`),
       {
         cache: cacheStrategy,
+        ...options
       }
     );
   },
@@ -48,12 +49,13 @@ const OverviewService = {
    * Get inventory summary for a company
    * GET /api/v1/companies/:companyId/inventory-summary
    */
-  getInventorySummary: async (companyId) => {
+  getInventorySummary: async (companyId, options = {}) => {
     const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
     return apiClient.get(
       buildUrl(`/inventory/v1/companies/${companyId}/inventory-summary`),
       {
         cache: cacheStrategy,
+        ...options
       }
     );
   },
@@ -62,11 +64,12 @@ const OverviewService = {
    * Get all shops for a company
    * Note: API uses `/shop?companyId={companyId}`
    */
-  getShops: async (params = {}) => {
+  getShops: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("SHOPS");
     return apiClient.get(buildUrl(`/shop`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -74,12 +77,13 @@ const OverviewService = {
    * Get all low-stock products for a company
    * GET /api/v1/companies/:companyId/low-stock
    */
-  getLowStock: async (companyId) => {
+  getLowStock: async (companyId, options = {}) => {
     const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
     return apiClient.get(
       buildUrl(`/inventory/v1/companies/${companyId}/low-stock`),
       {
         cache: cacheStrategy,
+        ...options
       }
     );
   },
@@ -90,11 +94,12 @@ const OverviewService = {
    * Get all stock changes
    * GET /v1/stock/changes
    */
-  getStockChanges: async (params = {}) => {
+  getStockChanges: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
     return apiClient.get(buildUrl(`/inventory/v1/stock/changes`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -116,11 +121,12 @@ const OverviewService = {
    * Get company-level analytics metrics
    * GET /analytics/company-metrics
    */
-  getCompanyMetrics: async (params = {}) => {
+  getCompanyMetrics: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("ANALYTICS", "WIDGET");
     return apiClient.get(buildUrl(`/inventory/v1/analytics/company-metrics`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -128,13 +134,14 @@ const OverviewService = {
    * Get inventory trends graph data
    * GET /analytics/graphs/inventory-trends
    */
-  getInventoryTrends: async (params = {}) => {
+  getInventoryTrends: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("ANALYTICS", "WIDGET");
     return apiClient.get(
       buildUrl(`/inventory/v1/analytics/graphs/inventory-trends`),
       {
         params,
         cache: cacheStrategy,
+        ...options
       }
     );
   },
@@ -158,11 +165,12 @@ const OverviewService = {
    * Get top products by profit
    * GET /analytics/top-products
    */
-  getTopProducts: async (params = {}) => {
+  getTopProducts: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("ANALYTICS", "WIDGET");
     return apiClient.get(buildUrl(`/inventory/v1/analytics/top-products`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -170,11 +178,12 @@ const OverviewService = {
    * Get stockout risk products
    * GET /analytics/stockout-risk
    */
-  getStockoutRisk: async (params = {}) => {
+  getStockoutRisk: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("ANALYTICS", "WIDGET");
     return apiClient.get(buildUrl(`/inventory/v1/analytics/stockout-risk`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -184,7 +193,7 @@ const OverviewService = {
    * Get all products. Prefer company-scoped endpoint when companyId is provided:
    * GET /inventory/v1/companies/:companyId/products
    */
-  getProducts: async (params = {}) => {
+  getProducts: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
     const { companyId, ...query } = params || {};
     if (companyId) {
@@ -193,6 +202,7 @@ const OverviewService = {
         {
           params: query,
           cache: cacheStrategy,
+          ...options
         }
       );
     }
@@ -200,6 +210,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/products`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -209,12 +220,12 @@ const OverviewService = {
    * Fetch core dashboard data in parallel
    * This is an optimization to reduce sequential waterfall requests
    */
-  getDashboardData: async (companyId, params = {}) => {
+  getDashboardData: async (companyId, params = {}, options = {}) => {
     const [summary, metrics, trends, lowStock] = await Promise.all([
-      OverviewService.getInventorySummary(companyId),
-      OverviewService.getCompanyMetrics({ companyId, ...params }),
-      OverviewService.getInventoryTrends({ companyId, ...params }),
-      OverviewService.getLowStock(companyId),
+      OverviewService.getInventorySummary(companyId, options),
+      OverviewService.getCompanyMetrics({ companyId, ...params }, options),
+      OverviewService.getInventoryTrends({ companyId, ...params }, options),
+      OverviewService.getLowStock(companyId, options),
     ]);
 
     return {
