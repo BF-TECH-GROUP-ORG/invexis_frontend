@@ -33,9 +33,9 @@ const InventoryOverviewPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
           <p className="text-gray-500 animate-pulse font-medium">
             Loading Dashboard...
           </p>
@@ -46,7 +46,7 @@ const InventoryOverviewPage = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">
             Something went wrong
@@ -65,7 +65,7 @@ const InventoryOverviewPage = () => {
 
   if (!companyId) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-orange-600 mb-2">
             No Company Selected
@@ -116,6 +116,7 @@ const InventoryOverviewPage = () => {
             valueData={data.valueDistribution}
             totalUnits={data.summaryComputed?.totalUnits}
             totalValue={data.summaryComputed?.totalValue}
+            companyId={companyId}
           />
         )}
         {hasMovement && <InventoryMovementSection data={data.movementTrend} />}
