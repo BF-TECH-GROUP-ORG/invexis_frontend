@@ -41,7 +41,7 @@ export default function WebSocketProvider({ children }) {
                 priority: data.priority || 'normal',
                 type: data.type,
                 createdAt: data.createdAt || new Date().toISOString(),
-                readBy: data.readBy || [],
+                readBy: data.readBy || [], // New notifications are usually unread
                 actionUrl: data.actionUrl || null,
                 payload: data.payload || {}
             }));

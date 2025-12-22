@@ -5,7 +5,6 @@ import { Provider } from "react-redux";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import store from "@/store";
-import { SocketProvider } from "./SocketProvider";
 import NotificationProvider from "./NotificationProvider";
 
 const ClientProviders = ({ children }) => {
@@ -15,9 +14,7 @@ const ClientProviders = ({ children }) => {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <SocketProvider>
-            <NotificationProvider>{children}</NotificationProvider>
-          </SocketProvider>
+          <NotificationProvider>{children}</NotificationProvider>
         </SessionProvider>
       </QueryClientProvider>
     </Provider>
