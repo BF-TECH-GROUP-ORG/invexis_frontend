@@ -27,7 +27,7 @@ class WebSocketService {
 
         this.userId = userId;
 
-        const gatewayUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:9002';
+        const gatewayUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL_SW || 'http://localhost:9002';
         // Clean URL to prevent namespace errors if path is included
         const cleanUrl = gatewayUrl.replace(/\/$/, '').replace(/\/api$/, '');
 

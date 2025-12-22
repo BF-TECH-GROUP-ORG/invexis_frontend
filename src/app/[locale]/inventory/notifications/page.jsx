@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
 import {
   Bell,
@@ -44,32 +45,22 @@ export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // newest, oldest, priority
 
+  const { data: session } = useSession();
+  const currentUserId = session?.user?._id;
+
   useEffect(() => {
-    if (dispatch) {
-      dispatch(fetchNotificationsThunk({ limit: 20, page: 1 }))
-        .catch(err => {
-          console.log('[NotificationsPage] Failed to load notifications');
-        });
+    if (dispatch && currentUserId) {
+      // Fetch ALL notifications once - we'll filter client-side
+      dispatch(fetchNotificationsThunk({ limit: 50, page: 1, userId: currentUserId }));
     }
-  }, [dispatch]);
+  }, [dispatch, currentUserId]);
 
   const handleRefresh = () => {
-    dispatch(fetchNotificationsThunk({
-      readStatus: readFilter !== 'all' ? readFilter : undefined,
-      intent: intentFilter !== 'all' ? intentFilter : undefined,
-      limit: 20,
-      page: pagination.page
-    }));
+    if (currentUserId) {
+      dispatch(fetchNotificationsThunk({ limit: 50, page: 1, userId: currentUserId }));
+    }
   };
 
-  const handlePageChange = (newPage) => {
-    dispatch(fetchNotificationsThunk({
-      readStatus: readFilter !== 'all' ? readFilter : undefined,
-      intent: intentFilter !== 'all' ? intentFilter : undefined,
-      limit: 20,
-      page: newPage
-    }));
-  };
 
   const handleMarkAllRead = () => {
     dispatch(markAsReadThunk({ all: true })).then(() => {
@@ -106,12 +97,16 @@ export default function NotificationsPage() {
 
   const filteredAndSortedNotifications = useMemo(() => {
     let result = notifications.filter(n => {
-      // Read status filter
-      if (readFilter === 'unread' && n.readBy && n.readBy.length > 0) return false;
-      if (readFilter === 'read' && (!n.readBy || n.readBy.length === 0)) return false;
+      // If currentUserId is not available yet, treat all as unread
+      const isReadByMe = currentUserId ? (n.readBy && n.readBy.includes(currentUserId)) : false;
 
-      // Intent filter
-      if (intentFilter !== 'all' && n.intent !== intentFilter) return false;
+      // Read status filter
+      if (readFilter === 'unread' && isReadByMe) return false;
+      if (readFilter === 'read' && !isReadByMe) return false;
+
+      // Intent filter - check payload.intent field
+      const notificationIntent = n.payload?.intent || n.intent;
+      if (intentFilter !== 'all' && notificationIntent !== intentFilter) return false;
 
       // Search filter
       if (searchQuery) {
@@ -134,7 +129,7 @@ export default function NotificationsPage() {
     });
 
     return result;
-  }, [notifications, readFilter, intentFilter, searchQuery, sortBy]);
+  }, [notifications, readFilter, intentFilter, searchQuery, sortBy, currentUserId]);
 
   return (
     <div className="flex h-[calc(100vh-5rem)] bg-white">
@@ -312,9 +307,11 @@ export default function NotificationsPage() {
             ) : (
               <div className="space-y-4 max-w-5xl mx-auto">
                 {filteredAndSortedNotifications.map((n, index) => {
-                  const config = getIntentConfig(n.intent);
+                  const notificationIntent = n.payload?.intent || n.intent || 'operational';
+                  const config = getIntentConfig(notificationIntent);
                   const IconComponent = config.icon;
-                  const isUnread = !n.readBy || n.readBy.length === 0;
+                  const isReadByMe = n.readBy && n.readBy.includes(currentUserId);
+                  const isUnread = !isReadByMe;
                   const isUrgent = n.priority === PRIORITY_LEVELS.URGENT;
 
                   return (

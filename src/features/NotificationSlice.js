@@ -67,20 +67,22 @@ const notificationSlice = createSlice({
             })
             .addCase(fetchNotificationsThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                // apiClient.get() already returns response.data, so action.payload IS the data object
-                // Backend returns: { success: true, data: { notifications: [...], pagination: {...} } }
-                // apiClient returns: { notifications: [...], pagination: {...} }
-                // So action.payload directly contains notifications and pagination
 
-                if (action.payload && action.payload.notifications) {
-                    const { notifications, pagination } = action.payload;
+                // API returns: { success: true, data: { notifications: [...], pagination: {...} } }
+                if (action.payload?.data?.notifications) {
+                    const { notifications, pagination } = action.payload.data;
                     state.items = notifications || [];
                     state.pagination = pagination || state.pagination;
 
-                    // Calculate unread count from the notifications
-                    // Assuming the current user ID is in session, but we don't have it here
-                    // So we count notifications where readBy is empty or undefined
-                    state.unreadCount = notifications.filter(n => !n.readBy || n.readBy.length === 0).length;
+                    // Calculate unread count based on current user if we have it
+                    const userId = action.meta.arg?.userId;
+
+                    if (userId) {
+                        state.unreadCount = notifications.filter(n => !n.readBy || !n.readBy.includes(userId)).length;
+                    } else {
+                        // Fallback if userId not provided: count items with 0 readBy
+                        state.unreadCount = notifications.filter(n => !n.readBy || n.readBy.length === 0).length;
+                    }
                 }
             })
             .addCase(fetchNotificationsThunk.rejected, (state, action) => {
