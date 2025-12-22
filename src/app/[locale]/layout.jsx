@@ -23,6 +23,7 @@ export function generateStaticParams() {
 
 import AuthProvider from "@/providers/AuthProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import WebSocketProvider from "@/providers/WebSocketProvider";
 
 // ... existing imports
 
@@ -46,9 +47,11 @@ export default async function RootLayout({ children, params }) {
             <AuthProvider>
               <LoadingProvider>
                 <ThemeRegistry>
-                  {/* Initialize settings from localStorage */}
-                  <SettingsInitializer />
-                  <LayoutWrapper>{children}</LayoutWrapper>
+                  <WebSocketProvider>
+                    {/* Initialize settings from localStorage */}
+                    <SettingsInitializer />
+                    <LayoutWrapper>{children}</LayoutWrapper>
+                  </WebSocketProvider>
                 </ThemeRegistry>
               </LoadingProvider>
             </AuthProvider>
