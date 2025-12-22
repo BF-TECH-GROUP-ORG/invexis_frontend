@@ -1,4 +1,4 @@
-import apiClient from "@/lib/apiClient";
+ import apiClient from "@/lib/apiClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
