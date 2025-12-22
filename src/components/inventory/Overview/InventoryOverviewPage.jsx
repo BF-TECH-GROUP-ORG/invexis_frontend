@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useSession } from "next-auth/react";
 import useInventoryOverview from "@/hooks/useInventoryOverview";
@@ -31,17 +33,9 @@ const InventoryOverviewPage = () => {
 
   const isLoading = status === "loading" || dataLoading;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-gray-500 animate-pulse font-medium">
-            Loading Dashboard...
-          </p>
-        </div>
-      </div>
-    );
+  // Loading state is handled by loading.jsx, data should be prefetched
+  if (isLoading && !data) {
+    return null; // Server-side loading.jsx will show skeleton
   }
 
   if (error) {

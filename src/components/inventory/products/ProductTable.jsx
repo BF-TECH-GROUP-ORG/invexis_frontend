@@ -24,6 +24,7 @@ import {
   Typography,
   Avatar,
   TablePagination,
+  Skeleton,
 } from "@mui/material";
 import {
   Visibility as VisibilityIcon,
@@ -37,14 +38,14 @@ export default function ProductTable({
   products = [],
   loading = false,
   selectedIds = [],
-  onSelectIds = () => {},
-  onDelete = () => {},
-  onView = () => {},
-  onEdit = () => {},
+  onSelectIds = () => { },
+  onDelete = () => { },
+  onView = () => { },
+  onEdit = () => { },
   viewUrl,
   editUrl,
   pagination = {},
-  onPageChange = () => {},
+  onPageChange = () => { },
 }) {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuRowId, setMenuRowId] = useState(null);
@@ -162,203 +163,223 @@ export default function ProductTable({
           </TableHead>
 
           <TableBody>
-            {rows.map((product) => {
-              const id = product._id || product.id;
-              const name = product.name || product.ProductName || "Unnamed";
-              const category =
-                product.category?.name ||
-                product.categoryId?.name ||
-                product.Category ||
-                "Uncategorized";
-              const basePrice =
-                product.pricing?.basePrice ??
-                product.pricingId?.basePrice ??
-                product.price ??
-                product.UnitPrice ??
-                0;
-              const salePrice =
-                product.pricing?.salePrice ?? product.pricingId?.salePrice ?? 0;
-
-              // Use sale price if available and lower than base price
-              const effectivePrice =
-                salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
-
-              const stock =
-                product.stock?.total ??
-                product.stock?.available ??
-                product.inventory?.quantity ??
-                product.stock ??
-                0;
-              const status =
-                (typeof product.status === "object"
-                  ? product.status.active
-                    ? "active"
-                    : "inactive"
-                  : product.status) ||
-                product.availability ||
-                (stock > 0 ? "active" : "inactive");
-
-              // Calculate discount percentage
-              const discountPercent =
-                salePrice > 0 && basePrice > 0
-                  ? Math.round(((basePrice - salePrice) / basePrice) * 100)
-                  : 0;
-
-              // Calculate total value (effectivePrice * stock)
-              const totalValue = effectivePrice * stock;
-
-              return (
-                <TableRow
-                  key={id}
-                  hover
-                  selected={selectedIds.includes(id)}
-                  sx={{
-                    "&:hover": { backgroundColor: "#f4f6f8" },
-                    cursor: "pointer",
-                  }}
-                >
+            {loading ? (
+              [...Array(10)].map((_, index) => (
+                <TableRow key={index}>
                   <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedIds.includes(id)}
-                      onChange={() => handleSelectOne(id)}
-                      size="small"
-                    />
+                    <Skeleton variant="rectangular" width={20} height={20} />
                   </TableCell>
+                  <TableCell><Skeleton variant="text" width={150} /></TableCell>
+                  <TableCell><Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1 }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell align="center"><Skeleton variant="text" width={40} sx={{ mx: "auto" }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell align="center"><Skeleton variant="circular" width={30} height={30} sx={{ mx: "auto" }} /></TableCell>
+                </TableRow>
+              ))
+            ) : (
+              rows.map((product) => {
+                const id = product._id || product.id;
+                const name = product.name || product.ProductName || "Unnamed";
+                const category =
+                  product.category?.name ||
+                  product.categoryId?.name ||
+                  product.Category ||
+                  "Uncategorized";
+                const basePrice =
+                  product.pricing?.basePrice ??
+                  product.pricingId?.basePrice ??
+                  product.price ??
+                  product.UnitPrice ??
+                  0;
+                const salePrice =
+                  product.pricing?.salePrice ?? product.pricingId?.salePrice ?? 0;
 
-                  <TableCell>
-                    <Box minWidth={0}>
+                // Use sale price if available and lower than base price
+                const effectivePrice =
+                  salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+
+                const stock =
+                  product.stock?.total ??
+                  product.stock?.available ??
+                  product.inventory?.quantity ??
+                  product.stock ??
+                  0;
+                const status =
+                  (typeof product.status === "object"
+                    ? product.status.active
+                      ? "active"
+                      : "inactive"
+                    : product.status) ||
+                  product.availability ||
+                  (stock > 0 ? "active" : "inactive");
+
+                // Calculate discount percentage
+                const discountPercent =
+                  salePrice > 0 && basePrice > 0
+                    ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+                    : 0;
+
+                // Calculate total value (effectivePrice * stock)
+                const totalValue = effectivePrice * stock;
+
+                return (
+                  <TableRow
+                    key={id}
+                    hover
+                    selected={selectedIds.includes(id)}
+                    sx={{
+                      "&:hover": { backgroundColor: "#f4f6f8" },
+                      cursor: "pointer",
+                    }}
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedIds.includes(id)}
+                        onChange={() => handleSelectOne(id)}
+                        size="small"
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Box minWidth={0}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          color="text.primary"
+                          noWrap
+                        >
+                          {name}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <div className="relative w-14 h-14 flex-shrink-0">
+                          {product.media?.images?.[0]?.url ||
+                            product.images?.[0]?.url ? (
+                            <Avatar
+                              src={
+                                product.media?.images?.[0]?.url ||
+                                product.images?.[0]?.url
+                              }
+                              alt={name}
+                              variant="rounded"
+                              sx={{ width: 56, height: 56 }}
+                            />
+                          ) : (
+                            <Avatar
+                              variant="rounded"
+                              sx={{
+                                width: 56,
+                                height: 56,
+                                bgcolor: "orange.50",
+                                color: "orange.500",
+                              }}
+                            >
+                              <Package size={24} />
+                            </Avatar>
+                          )}
+                        </div>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {product.identifiers?.sku || product.sku || "N/A"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        label={category}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#E0F2FE",
+                          color: "#0369A1",
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {product.brand || "N/A"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {product.supplierName || product.manufacturer || "N/A"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell align="center">
                       <Typography
                         variant="body2"
                         fontWeight={600}
-                        color="text.primary"
-                        noWrap
+                        color={stock < 10 ? "error.main" : "text.primary"}
                       >
-                        {name}
+                        {stock}
                       </Typography>
-                    </Box>
-                  </TableCell>
+                    </TableCell>
 
-                  <TableCell>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <div className="relative w-14 h-14 flex-shrink-0">
-                        {product.media?.images?.[0]?.url ||
-                        product.images?.[0]?.url ? (
-                          <Avatar
-                            src={
-                              product.media?.images?.[0]?.url ||
-                              product.images?.[0]?.url
-                            }
-                            alt={name}
-                            variant="rounded"
-                            sx={{ width: 56, height: 56 }}
-                          />
-                        ) : (
-                          <Avatar
-                            variant="rounded"
-                            sx={{
-                              width: 56,
-                              height: 56,
-                              bgcolor: "orange.50",
-                              color: "orange.500",
-                            }}
-                          >
-                            <Package size={24} />
-                          </Avatar>
-                        )}
-                      </div>
-                    </Box>
-                  </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={
+                          status === "active"
+                            ? "Active"
+                            : status === "inactive"
+                              ? "Inactive"
+                              : status
+                        }
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            status === "active" ? "#E8F5E9" : "#FFEBEE",
+                          color: status === "active" ? "#2E7D32" : "#C62828",
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    </TableCell>
 
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {product.identifiers?.sku || product.sku || "N/A"}
-                    </Typography>
-                  </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        fontWeight={500}
+                        color="text.primary"
+                      >
+                        {totalValue.toLocaleString("en-US", {
+                          style: "currency",
+                          currency:
+                            product.pricing?.currency ||
+                            product.pricingId?.currency ||
+                            "RWF",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </Typography>
+                    </TableCell>
 
-                  <TableCell>
-                    <Chip
-                      label={category}
-                      size="small"
-                      sx={{
-                        backgroundColor: "#E0F2FE",
-                        color: "#0369A1",
-                        fontWeight: 600,
-                        fontSize: "0.75rem",
-                      }}
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {product.brand || "N/A"}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {product.supplierName || product.manufacturer || "N/A"}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      color={stock < 10 ? "error.main" : "text.primary"}
-                    >
-                      {stock}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={
-                        status === "active"
-                          ? "Active"
-                          : status === "inactive"
-                          ? "Inactive"
-                          : status
-                      }
-                      size="small"
-                      sx={{
-                        backgroundColor:
-                          status === "active" ? "#E8F5E9" : "#FFEBEE",
-                        color: status === "active" ? "#2E7D32" : "#C62828",
-                        fontWeight: 600,
-                        textTransform: "capitalize",
-                        fontSize: "0.75rem",
-                      }}
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      color="text.primary"
-                    >
-                      {totalValue.toLocaleString("en-US", {
-                        style: "currency",
-                        currency:
-                          product.pricing?.currency ||
-                          product.pricingId?.currency ||
-                          "RWF",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <Tooltip title="Actions">
-                      <IconButton size="small" onClick={(e) => openMenu(e, id)}>
-                        <MoreVertIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    <TableCell align="center">
+                      <Tooltip title="Actions">
+                        <IconButton size="small" onClick={(e) => openMenu(e, id)}>
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </TableContainer>

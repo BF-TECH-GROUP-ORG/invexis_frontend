@@ -32,7 +32,7 @@ const AnalyticsService = {
      * @param {object} filters - Query parameters
      * @returns {Promise} Response from API
      */
-    getReport: async (reportPath, filters = {}) => {
+    getReport: async (reportPath, filters = {}, options = {}) => {
         const params = {};
 
         // Date filtering
@@ -59,7 +59,7 @@ const AnalyticsService = {
             console.log(`[AnalyticsService] Requesting: ${fullPath}`, params);
         }
 
-        const response = await apiClient.get(fullPath, { params, retries: 0 });
+        const response = await apiClient.get(fullPath, { params, retries: 0, ...options });
 
         // Normalize response: backend returns { success: true, data: [...] }
         return response?.data?.data || response?.data || response;
