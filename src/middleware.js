@@ -58,10 +58,18 @@ export default withAuth(
 
     // 4. RBAC check — central mapping drives allowed roles for given path prefixes
     const allowed = getAllowedRolesForPath(pathWithoutLocale);
-    if (allowed && Array.isArray(allowed) && allowed.length > 0) {
+    if (allowed) {
       const userRole = token?.user?.role;
+      const assignedDepartments = token?.user?.assignedDepartments || [];
+
       // company_admins always have full admin-like access, allow them
-      if (userRole !== "company_admin" && !allowed.includes(userRole)) {
+      const isCompanyAdmin = userRole === "company_admin";
+      const hasAllowedRole = allowed.roles.includes(userRole);
+      const hasAllowedDepartment = assignedDepartments.some((dept) =>
+        allowed.departments.includes(dept)
+      );
+
+      if (!isCompanyAdmin && !hasAllowedRole && !hasAllowedDepartment) {
         return NextResponse.redirect(
           new URL(`/${locale}/unauthorized`, req.url)
         );

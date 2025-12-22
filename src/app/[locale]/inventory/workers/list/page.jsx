@@ -1,16 +1,39 @@
-import WorkersListPage from "@/components/pages/WorkersListPage";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
+import { getWorkersByCompanyId } from "@/services/workersService";
 import WorkersProtectedWrapper from "@/components/clients/WorkersProtectedWrapper";
 
 export const metadata = {
   title: "Workers List",
 };
 
-const WorkersList = () => {
-  return (
-    <div>
-      <WorkersProtectedWrapper />
-    </div>
-  );
-};
+export default async function WorkersList() {
+  const session = await getServerSession(authOptions);
+  const queryClient = getQueryClient();
 
-export default WorkersList;
+  const user = session?.user;
+  const companyObj = user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  if (session?.accessToken && companyId) {
+    try {
+      await queryClient.prefetchQuery({
+        queryKey: ["workers", companyId],
+        queryFn: () =>
+          getWorkersByCompanyId(companyId, {
+            headers: { Authorization: `Bearer ${session.accessToken}` },
+          }),
+      });
+    } catch (error) {
+      console.error("Error prefetching workers list:", error);
+    }
+  }
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <WorkersProtectedWrapper companyId={companyId} />
+    </HydrationBoundary>
+  );
+}

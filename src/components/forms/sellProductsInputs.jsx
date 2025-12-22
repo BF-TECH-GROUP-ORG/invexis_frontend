@@ -69,7 +69,7 @@ const SellProductsInputs = ({ id }) => {
     setIsModalOpen(false);
     setModalMessage("");
     if (modalType === "success") {
-      router.push(`/${locale}/inventory/sales`);
+      router.push(`/${locale}/inventory/sales/history`);
     }
   }, [modalType, router, locale]);
 

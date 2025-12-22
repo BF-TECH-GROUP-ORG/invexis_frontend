@@ -59,7 +59,7 @@ const typeLabel = (type) => {
     }
 };
 
-const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading }) => {
+const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading, className = '' }) => {
     const [selected, setSelected] = useState([]);
     const [query, setQuery] = useState('');
     const [page, setPage] = useState(0);
@@ -84,7 +84,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <div className={`flex flex-col items-center justify-center py-20 text-gray-400 ${className}`}>
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-4"></div>
                 <p>Loading updates...</p>
             </div>
@@ -93,7 +93,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
 
     if (!announcements || announcements.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400 text-center">
+            <div className={`flex flex-col items-center justify-center py-20 text-gray-400 text-center ${className}`}>
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 border border-gray-100">
                     <Settings className="w-8 h-8 text-gray-300" />
                 </div>
@@ -113,28 +113,28 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
     };
 
     return (
-        <Box className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <Box p={3}>
-                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+        <Box className={`bg-white overflow-hidden ${className}`}>
+            <div className="p-3 h-full flex flex-col">
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} className="flex-none">
                     <TextField size="small" placeholder="Search announcements..." value={query} onChange={(e) => setQuery(e.target.value)} sx={{ width: 360 }} />
                     <div className="text-sm text-gray-500">{filtered.length} results</div>
                 </Box>
 
-                <TableContainer sx={{ width: '100%' }}>
-                    <Table sx={{ minWidth: 900 }}>
+                <TableContainer className="flex-1 overflow-auto min-h-0 bg-white border rounded">
+                    <Table sx={{ minWidth: 900 }} stickyHeader>
                         <TableHead>
-                            <TableRow sx={{ backgroundColor: '#f9fafb' }}>
-                                <TableCell padding="checkbox" sx={{ px: 2 }}>
+                            <TableRow>
+                                <TableCell padding="checkbox" sx={{ px: 2, backgroundColor: '#f9fafb' }}>
                                     <Checkbox
                                         indeterminate={selected.length > 0 && selected.length < visible.length}
                                         checked={visible.length > 0 && selected.length === visible.length}
                                         onChange={handleSelectAll}
                                     />
                                 </TableCell>
-                                <TableCell sx={{ px: 2 }}>Title</TableCell>
-                                <TableCell sx={{ px: 2 }}>Type</TableCell>
-                                <TableCell sx={{ px: 2 }}>Received</TableCell>
-                                <TableCell sx={{ px: 2, width: 140, textAlign: 'center' }} />
+                                <TableCell sx={{ px: 2, backgroundColor: '#f9fafb' }}>Title</TableCell>
+                                <TableCell sx={{ px: 2, backgroundColor: '#f9fafb' }}>Type</TableCell>
+                                <TableCell sx={{ px: 2, backgroundColor: '#f9fafb' }}>Received</TableCell>
+                                <TableCell sx={{ px: 2, width: 140, textAlign: 'center', backgroundColor: '#f9fafb' }} />
                             </TableRow>
                         </TableHead>
 
@@ -195,7 +195,8 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
                                             </Tooltip>
 
                                             <Tooltip title="Delete">
-                                                <IconButton size="small" onClick={(e) => { e.stopPropagation(); setConfirmId(row.id);
+                                                <IconButton size="small" onClick={(e) => {
+                                                    e.stopPropagation(); setConfirmId(row.id);
                                                     // show confirmation toast
                                                     toast((t) => (
                                                         <div className="p-3">
@@ -220,9 +221,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
                     </Table>
                 </TableContainer>
 
-                {/* Confirmation handled by toast toasts to match requested toaster confirmation */}
-
-                <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mt={2} className="flex-none">
                     <TablePagination
                         component="div"
                         count={filtered.length}
@@ -234,7 +233,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading 
                     />
                     <div className="text-sm text-gray-500">{selected.length ? `${selected.length} selected` : ''}</div>
                 </Box>
-            </Box>
+            </div>
         </Box>
     );
 };

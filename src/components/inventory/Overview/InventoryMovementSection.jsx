@@ -66,7 +66,7 @@ const ModernLegend = (props) => {
   );
 };
 
-const InventoryMovementSection = ({ data }) => {
+const InventoryMovementSection = ({ data = [] }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
       <div className="flex justify-between items-center mb-6">

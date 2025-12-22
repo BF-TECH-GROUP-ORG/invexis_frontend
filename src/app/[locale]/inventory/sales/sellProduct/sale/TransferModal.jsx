@@ -31,6 +31,8 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
     const [validationError, setValidationError] = useState("");
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [targetName, setTargetName] = useState("");
+    const [isDebt, setIsDebt] = useState(false);
+    const [amountPaidNow, setAmountPaidNow] = useState(0);
 
     // Reset state when modal opens or mode changes
     useEffect(() => {
@@ -41,6 +43,8 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             setNotes("");
             setValidationError("");
             setSuccessModalOpen(false);
+            setIsDebt(false);
+            setAmountPaidNow(0);
         }
     }, [open, mode]);
 
@@ -146,6 +150,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             quantity: item.qty,
             unitPrice: item.price,
             totalPrice: item.price * item.qty,
+            costPrice: item.cost || 0,
             discount: 0,
             shopId: currentShopId
         }));
@@ -175,7 +180,9 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             paymentMethod: "Transfer",
             paymentId: `TRF-${Date.now()}`,
             totalAmount,
+            amountPaidNow: isDebt ? parseFloat(amountPaidNow) || 0 : totalAmount,
             discountAmount: 0,
+            isDebt: !!isDebt,
             isTransfer: true, // Mark as transfer
             transferTarget: {
                 mode,
@@ -210,7 +217,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                         quantity: item.qty,
                         pricingOverride: {
                             price: item.price,
-                            costPrice: item.minPrice // Assuming minPrice maps to costPrice or similar
+                            costPrice: item.cost || 0
                         }
                     })),
                     toCompanyId: targetCompany,
@@ -248,7 +255,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                     sx: { borderRadius: 3 }
                 }}
             >
-                <DialogTitle sx={{ bgcolor: "#1976d2", color: "white", fontWeight: "bold" }}>
+                <DialogTitle sx={{ color: "#000", fontWeight: "bold" }}>
                     {mode === 'company' ? 'Cross-Company Transfer' : 'Intra-Company Transfer'}
                 </DialogTitle>
 
@@ -259,7 +266,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                         </Box>
                     ) : (
                         <>
-                            <Box sx={{ mb: 3, p: 2, bgcolor: "#f5f5f5", borderRadius: 2 }}>
+                            <Box sx={{ mb: 3, p: 2, borderRadius: 2 }}>
                                 <Typography variant="subtitle2" gutterBottom>
                                     Products to Transfer:
                                 </Typography>
@@ -351,6 +358,51 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                 multiline
                                 rows={3}
                             />
+
+                            {/* Debt Transfer Toggle & Amount */}
+                            <Box sx={{ mt: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: isDebt ? 2 : 0 }}>
+                                    <Typography variant="subtitle2" fontWeight="bold">
+                                        Mark as Debt Transfer?
+                                    </Typography>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDebt(!isDebt)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${isDebt ? 'bg-orange-500' : 'bg-gray-300'}`}
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ${isDebt ? 'translate-x-6' : 'translate-x-1'}`}
+                                        />
+                                    </button>
+                                </Box>
+
+                                {isDebt && (
+                                    <>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                            Total Transfer Value: <strong>{Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW</strong>
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="Initial Payment Amount (FRW)"
+                                            type="number"
+                                            value={amountPaidNow}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                const total = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
+                                                if (val > total) {
+                                                    // Prevent entering more than total
+                                                    return;
+                                                }
+                                                setAmountPaidNow(e.target.value);
+                                            }}
+                                            InputProps={{
+                                                inputProps: { min: 0 }
+                                            }}
+                                            helperText={`Remaining Debt: ${(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) - (parseFloat(amountPaidNow) || 0)).toLocaleString()} FRW`}
+                                        />
+                                    </>
+                                )}
+                            </Box>
                         </>
                     )}
                 </DialogContent>

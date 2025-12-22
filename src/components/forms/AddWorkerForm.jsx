@@ -1,21 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  MenuItem,
-  Typography,
-  CircularProgress,
-  Stepper,
-  Step,
-  StepLabel,
-  StepConnector,
-  Card,
-  InputAdornment,
-  Select,
-} from "@mui/material";
+import { Box, Button, TextField, MenuItem, Typography, CircularProgress, Stepper, Step, StepLabel, StepConnector, Card, InputAdornment, Select } from "@mui/material";
 import Link from "next/link";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { useMutation } from "@tanstack/react-query";
@@ -26,12 +12,6 @@ import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { getDepartmentsByCompany } from "@/services/departmentsService";
 
-// const positions = [
-//   "Sales Representative",
-//   "Cashier",
-//   "Manager",
-//   "Stock Keeper",
-// ];
 const genders = ["male", "female", "other"];
 const stepLabels = [
   "Personal Information",
@@ -295,6 +275,16 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
 
     const payload = { ...worker };
+
+    // Find the selected department object to get its display name
+    const selectedDept = availableDepartments.find(
+      (dept) => (dept.id || dept._id || dept.department_id) === worker.department
+    );
+
+    if (selectedDept) {
+      payload.assignedDepartments = [selectedDept.display_name || selectedDept.name || selectedDept.department_name];
+    }
+
     delete payload.username;
     delete payload.department;
 
@@ -362,8 +352,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               value={
                 (worker.phone || "").startsWith(worker.countryCode || "+250")
                   ? (worker.phone || "").slice(
-                      (worker.countryCode || "+250").length
-                    )
+                    (worker.countryCode || "+250").length
+                  )
                   : worker.phone || ""
               }
               onChange={(e) => {
@@ -774,10 +764,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                   ? "Updating..."
                   : "Creating..."
                 : activeStep === stepLabels.length - 1
-                ? isEditMode
-                  ? "Update Worker"
-                  : "Create Worker"
-                : "Next"}
+                  ? isEditMode
+                    ? "Update Worker"
+                    : "Create Worker"
+                  : "Next"}
             </Button>
           </Box>
         </Box>
@@ -820,8 +810,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                           index === activeStep
                             ? "#fe6600"
                             : index < activeStep
-                            ? "#fe6600"
-                            : "#d0d0d0",
+                              ? "#fe6600"
+                              : "#d0d0d0",
                         backgroundColor:
                           index === activeStep ? "#fe6600" : "transparent",
                         color: index === activeStep ? "white" : "#666",

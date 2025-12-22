@@ -1,7 +1,35 @@
-import React from "react";
-import { AlertCircle, TrendingUp, Package } from "lucide-react";
+import React, { useState } from "react";
+import Link from "next/link";
+import {
+  AlertCircle,
+  TrendingUp,
+  Package,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-const ProductRiskSection = ({ topProducts, riskProducts }) => {
+const PAGE_SIZE = 5;
+
+const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
+  // If both lists are empty, hide the whole section per request
+  if ((topProducts?.length || 0) === 0 && (riskProducts?.length || 0) === 0)
+    return null;
+
+  const [topPage, setTopPage] = useState(0);
+  const [riskPage, setRiskPage] = useState(0);
+
+  const topPages = Math.ceil((topProducts?.length || 0) / PAGE_SIZE) || 1;
+  const riskPages = Math.ceil((riskProducts?.length || 0) / PAGE_SIZE) || 1;
+
+  const topSlice = (topProducts || []).slice(
+    topPage * PAGE_SIZE,
+    topPage * PAGE_SIZE + PAGE_SIZE
+  );
+  const riskSlice = (riskProducts || []).slice(
+    riskPage * PAGE_SIZE,
+    riskPage * PAGE_SIZE + PAGE_SIZE
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {/* Stockout Risk List */}
@@ -17,6 +45,14 @@ const ProductRiskSection = ({ topProducts, riskProducts }) => {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-11">
               Items predicted to run out soon
             </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/inventory/products"
+              className="text-xs text-indigo-600 hover:underline"
+            >
+              View all
+            </Link>
           </div>
         </div>
 
@@ -36,12 +72,12 @@ const ProductRiskSection = ({ topProducts, riskProducts }) => {
               </tr>
             </thead>
             <tbody className="text-sm">
-              {riskProducts.map((item) => (
+              {riskSlice.map((item) => (
                 <tr
                   key={item.id}
                   className="group hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
                 >
-                  <td className="py-4 pl-1">
+                  <td className="py-4 pl-1 min-w-0">
                     <div className="font-bold text-gray-900 dark:text-white mb-0.5">
                       {item.name}
                     </div>
@@ -68,6 +104,35 @@ const ProductRiskSection = ({ topProducts, riskProducts }) => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination for risk products */}
+        {riskProducts?.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-xs text-gray-500">
+              Showing {riskPage * PAGE_SIZE + 1}–
+              {Math.min((riskPage + 1) * PAGE_SIZE, riskProducts.length)} of{" "}
+              {riskProducts.length}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setRiskPage((p) => Math.max(0, p - 1))}
+                disabled={riskPage === 0}
+                className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 disabled:opacity-40"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() =>
+                  setRiskPage((p) => Math.min(riskPages - 1, p + 1))
+                }
+                disabled={riskPage >= riskPages - 1}
+                className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 disabled:opacity-40"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top Profit Products */}
@@ -84,43 +149,83 @@ const ProductRiskSection = ({ topProducts, riskProducts }) => {
               Highest grossing products this month
             </p>
           </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/inventory/products"
+              className="text-xs text-indigo-600 hover:underline"
+            >
+              View all
+            </Link>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col justify-center gap-4">
-          {topProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-750 hover:border-orange-200 hover:bg-orange-50/20 transition-all group"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                    index < 3
-                      ? "bg-orange-100 text-orange-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  #{index + 1}
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900 dark:text-white text-base">
-                    {product.name}
+          {topSlice.map((product, idx) => {
+            const index = topPage * PAGE_SIZE + idx;
+            return (
+              <div
+                key={product.id}
+                className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-750 hover:border-orange-200 hover:bg-orange-50/20 transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                      index < 3
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    #{index + 1}
                   </div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1 font-medium mt-0.5">
-                    <Package className="w-3 h-3" />
-                    {product.unitsSold} units sold
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white text-base">
+                      {product.name}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1 font-medium mt-0.5">
+                      <Package className="w-3 h-3" />
+                      {product.unitsSold} units sold
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
+                    +${(Number(product.profit) || 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-400 font-medium">
+                    Profit
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
-                  +${product.profit.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-400 font-medium">Profit</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Pagination for top products */}
+        {topProducts?.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-xs text-gray-500">
+              Showing {topPage * PAGE_SIZE + 1}–
+              {Math.min((topPage + 1) * PAGE_SIZE, topProducts.length)} of{" "}
+              {topProducts.length}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTopPage((p) => Math.max(0, p - 1))}
+                disabled={topPage === 0}
+                className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 disabled:opacity-40"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setTopPage((p) => Math.min(topPages - 1, p + 1))}
+                disabled={topPage >= topPages - 1}
+                className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 disabled:opacity-40"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

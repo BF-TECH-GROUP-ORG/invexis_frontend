@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
 
-export default function ProtectedRoute({ children, allowedRoles = [] }) {
+export default function ProtectedRoute({ children, allowedRoles = [], allowedDepartments = [] }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const user = session?.user ?? null;
@@ -64,10 +64,11 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       return;
     }
 
-    if (!BYPASS && allowedRoles.length > 0) {
+    if (!BYPASS && (allowedRoles.length > 0 || allowedDepartments.length > 0)) {
       // Compute user role in a compatible way — support `role` or `roles` arrays
       const userRole =
         user?.role || (Array.isArray(user?.roles) && user.roles[0]) || null;
+      const userDepartments = user?.assignedDepartments || [];
 
       // If we don't have a role (session stale/expired), treat that as not authenticated
       if (!userRole) {
@@ -89,7 +90,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         return;
       }
 
-      if (!allowedRoles.includes(userRole)) {
+      const isCompanyAdmin = userRole === "company_admin";
+      const hasAllowedRole = allowedRoles.includes(userRole);
+      const hasAllowedDepartment = userDepartments.some((dept) =>
+        allowedDepartments.includes(dept)
+      );
+
+      if (!isCompanyAdmin && !hasAllowedRole && !hasAllowedDepartment) {
         // Redirect to localized unauthorized page
         try {
           const runtimeLocale = locale || null;
@@ -108,7 +115,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     }
 
     // end useEffect
-  }, [status, user, allowedRoles, router, locale]);
+  }, [status, user, authToken, allowedRoles, allowedDepartments, router, locale, BYPASS]);
 
   return <>{children}</>;
 }
