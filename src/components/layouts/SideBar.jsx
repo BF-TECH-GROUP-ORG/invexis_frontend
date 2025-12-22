@@ -7,24 +7,19 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import {
   LayoutDashboard,
-  BarChart3,
   FileSpreadsheet,
   Users,
   Package,
   ShoppingBag,
   Wallet,
-  ShoppingCart,
   Receipt,
-  UserCheck,
   FileText,
-  AlertCircle,
   Menu,
   ChevronDown,
   MoreVertical,
   X,
   Bell,
 } from "lucide-react";
-import { title } from "process";
 import { useSession } from "next-auth/react";
 
 /* STATIC NAV ITEMS */
@@ -40,13 +35,6 @@ const navItems = [
     title: "Notifications",
     icon: <Bell size={22} />,
     path: "/inventory/notifications",
-    prefetch: true,
-  },
-  {
-    title: "Analytics",
-    icon: <BarChart3 size={22} />,
-    path: "/inventory/analytics",
-    roles: ["manager", "company_admin"],
     prefetch: true,
   },
   {
@@ -81,13 +69,16 @@ const navItems = [
     ],
   },
 
-  // SALES → NO CHILDREN
+  // SALES → WITH CHILDREN
   {
     title: "Sales",
     icon: <ShoppingBag size={22} />,
-    path: "/inventory/sales",
     roles: ["sales_manager", "company_admin"],
-    prefetch: true,
+    children: [
+      { title: "Sales History", path: "/inventory/sales/history", prefetch: true },
+      { title: "Stock-out", path: "/inventory/sales/sellProduct/sale", prefetch: true },
+      { title: "Reports", path: "/inventory/sales/reports", prefetch: true },
+    ],
   },
 
   {
@@ -96,62 +87,8 @@ const navItems = [
     roles: ["sales_manager", "company_admin"],
     children: [
       { title: "Debts List", path: "/inventory/debts", prefetch: true },
-      { title: "Debts Details",path: "/inventory/Debts/details",prefetch: true,},
-      { title: "Debts Analytics",path: "/inventory/debts/analytics",prefetch: true,},
-    ],
-  },
-  {
-    title: "E-commerce",
-    icon: <ShoppingCart size={22} />,
-    roles: ["sales_manager", "company_admin"],
-    children: [
-      {
-        title: "Overview",
-        path: "/inventory/ecommerce/overview",
-        prefetch: true,
-      },
-
-      // PRODUCTS
-      {
-        title: "Product List",
-        path: "/inventory/ecommerce/products",
-        prefetch: true,
-      },
-      {
-        title: "Inventory Management",
-        path: "/inventory/ecommerce/inventory_management",
-        prefetch: true,
-      },
-      {
-        title: "Customer Management",
-        path: "/inventory/ecommerce/customer_management",
-        prefetch: true,
-      },
-      {
-        title: "Order Management",
-        path: "/inventory/ecommerce/order_management",
-        prefetch: true,
-      },
-      {
-        title: "Payments & Finance",
-        path: "/inventory/ecommerce/payments_and_finance",
-        prefetch: true,
-      },
-      {
-        title: "Shipping & Logistics",
-        path: "/inventory/ecommerce/shippint_and_logistics",
-        prefetch: true,
-      },
-      {
-        title: "Marketing Management",
-        path: "/inventory/ecommerce/marketing_management",
-        prefetch: true,
-      },
-      {
-        title: "Reviews",
-        path: "/inventory/ecommerce/reveiews",
-        prefetch: true,
-      },
+      { title: "Debts Details", path: "/inventory/Debts/details", prefetch: true, },
+      { title: "Debts Analytics", path: "/inventory/debts/analytics", prefetch: true, },
     ],
   },
   {
@@ -177,53 +114,11 @@ const navItems = [
     ],
   },
   {
-    title: "Debt Manager",
-    icon: <UserCheck size={22} />,
-    roles: ["company_admin"],
-    children: [
-      {
-        title: "Customer Debts",
-        path: "/inventory/debts/customers",
-        prefetch: true,
-      },
-      {
-        title: "Supplier Debts",
-        path: "/inventory/debts/suppliers",
-        prefetch: true,
-      },
-    ],
-  },
-  {
     title: "Documents",
     icon: <FileText size={22} />,
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
     prefetch: true,
-
-    // children: [
-    //   // { title: "Documents", path: "/inventory/documents", prefetch: true },
-    //   // {
-    //   //   title: "Payment History",
-    //   //   path: "/inventory/invoices/details",
-    //   //   prefetch: true,
-    //   // },
-    // ],
-  },
-
-  {
-    title: "Notifications ",
-    icon: <AlertCircle size={22} />,  
-    path: "/inventory/announcements",
-    roles: ["manager", "company_admin"],
-    prefetch: true,
-    // children: [
-    //   { title: "List", path: "/inventory/announcements/list", prefetch: true },
-    //   {
-    //     title: "Create / Details",
-    //     path: "/inventory/announcements/details",
-    //     prefetch: true,
-    //   },
-    // ],
   },
   // company_admin-only logs link
   {
@@ -250,6 +145,21 @@ export default function SideBar({
   const [isMobile, setIsMobile] = useState(false);
   const [moreModalOpen, setMoreModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme
+  useEffect(() => {
+    if (!mounted) return;
+    const checkTheme = () => {
+      const darkMode = document.documentElement.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(darkMode);
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [mounted]);
 
   const expanded =
     typeof controlledExpanded === "boolean"
@@ -302,14 +212,66 @@ export default function SideBar({
   }, []);
 
   const { data: session } = useSession();
-  const userRole = session?.user?.role ?? null;
+  const user = session?.user;
+  const userRole = user?.role;
+  const assignedDepartments = user?.assignedDepartments || [];
 
   const visibleFor = (item) => {
     if (!item) return false;
-    if (!item.roles || item.roles.length === 0) return true;
-    // company_admin gets full visibility across the app
-    if (userRole === "company_admin") return true;
-    return item.roles.includes(userRole);
+
+    // Admin: role is company_admin OR no assigned departments
+    if (userRole === "company_admin" || assignedDepartments.length === 0) {
+      return true;
+    }
+
+    const itemTitle = item.title.trim();
+    const itemPath = item.path || "";
+    const isManager = assignedDepartments.includes("management");
+    const isWorker = assignedDepartments.includes("sales");
+
+    // Features for Worker (Sales)
+    const workerFeatures = [
+      "Dashboard",
+      "Inventory",
+      "Sales",
+      "Sales History",
+      "Stock-out",
+      "Debts",
+      "Notifications",
+      "Overview",
+      "Products",
+      "Categories",
+      "Debts List",
+      "Debts Details",
+      "Debts Analytics",
+    ];
+
+    // Paths that workers are NOT allowed to see even if the parent is allowed
+    const workerBlockedPaths = [
+      "/inventory/report",
+      "/inventory/stock",
+    ];
+
+    if (isWorker) {
+      if (workerBlockedPaths.some(p => itemPath.startsWith(p))) return false;
+      return workerFeatures.includes(itemTitle);
+    }
+
+    // Features for Manager (Management)
+    if (isManager) {
+      const managerFeatures = [
+        ...workerFeatures,
+        "Staff & Shops",
+        "Billing & Payments",
+        "E-commerce",
+        "Analytics",
+        "Reports",
+        "Documents",
+      ];
+      return managerFeatures.includes(itemTitle);
+    }
+
+    return false;
   };
 
   /* Mobile detection */
@@ -341,12 +303,13 @@ export default function SideBar({
               {/* Dashboard */}
               <Link
                 href={`/${locale}/inventory/dashboard`}
+                prefetch={true}
                 className="flex flex-col items-center gap-1 group"
               >
                 <div
                   className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <LayoutDashboard size={24} />
@@ -356,36 +319,36 @@ export default function SideBar({
                 )}
               </Link>
 
-              {/* Analytics */}
-              {visibleFor(navItems[1]) && (
-                <Link
-                  href={`/${locale}/inventory/analytics`}
-                  className="flex flex-col items-center gap-1 group"
+              {/* Notifications */}
+              <Link
+                href={`/${locale}/inventory/notifications`}
+                prefetch={true}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div
+                  className={`p-3 rounded-xl transition ${isActive("/inventory/notifications")
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                    }`}
                 >
-                  <div
-                    className={`p-3 rounded-xl transition ${isActive("/inventory/analytics")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                  >
-                    <BarChart3 size={24} />
-                  </div>
-                  {isActive("/inventory/analytics") && (
-                    <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
-                  )}
-                </Link>
-              )}
+                  <Bell size={24} />
+                </div>
+                {isActive("/inventory/notifications") && (
+                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                )}
+              </Link>
 
               {/* Reports */}
               {visibleFor(navItems[2]) && (
                 <Link
                   href={`/${locale}/inventory/reports`}
+                  prefetch={true}
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
                     className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <FileSpreadsheet size={24} />
@@ -403,8 +366,8 @@ export default function SideBar({
               >
                 <div
                   className={`p-3 rounded-xl transition ${moreModalOpen
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     }`}
                 >
                   <MoreVertical size={24} />
@@ -453,10 +416,11 @@ export default function SideBar({
                           {!item.children && (
                             <Link
                               href={`/${locale}${item.path}`}
+                              prefetch={item.prefetch}
                               onClick={() => setMoreModalOpen(false)}
                               className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
-                                  ? "bg-orange-500 text-white shadow-lg"
-                                  : "text-gray-700 hover:bg-orange-50"
+                                ? "bg-orange-500 text-white shadow-lg"
+                                : "text-gray-700 hover:bg-orange-50"
                                 }`}
                             >
                               {item.icon}
@@ -476,8 +440,8 @@ export default function SideBar({
                                   )
                                 }
                                 className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
-                                    ? "bg-orange-50 text-orange-700 border border-orange-200"
-                                    : "text-gray-700 hover:bg-orange-50"
+                                  ? "bg-orange-50 text-orange-700 border border-orange-200"
+                                  : "text-gray-700 hover:bg-orange-50"
                                   }`}
                               >
                                 <div className="flex items-center gap-4">
@@ -489,8 +453,8 @@ export default function SideBar({
                                 <ChevronDown
                                   size={20}
                                   className={`transition-transform ${openMenus.includes(item.title)
-                                      ? "rotate-180"
-                                      : ""
+                                    ? "rotate-180"
+                                    : ""
                                     }`}
                                 />
                               </div>
@@ -505,12 +469,13 @@ export default function SideBar({
                                         <Link
                                           key={child.title}
                                           href={`/${locale}${child.path}`}
+                                          prefetch={child.prefetch}
                                           onClick={() =>
                                             setMoreModalOpen(false)
                                           }
                                           className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
-                                              ? "bg-orange-500 text-white"
-                                              : "text-gray-600 hover:bg-gray-100"
+                                            ? "bg-orange-500 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
                                             }`}
                                         >
                                           {child.title}
@@ -533,30 +498,41 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed overflow-auto inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
+        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
           }`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <Menu size={22} />
-          </button>
+          {expanded ? (
+            // Original header when expanded
+            <>
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Menu size={22} />
+              </button>
 
-          <div
-            className={`overflow-auto transition-all ${expanded ? "w-40" : "w-0"
-              }`}
-          >
-            <span className="text-xl font-bold text-gray-900">
-              INVEX<span className="text-orange-500 font-extrabold">iS</span>
-            </span>
-          </div>
+              <div className="overflow-hidden transition-all">
+                <span className="text-xl font-bold text-gray-900 whitespace-nowrap">
+                  INVEX<span className="text-orange-500 font-extrabold">iS</span>
+                </span>
+              </div>
+            </>
+          ) : (
+            // Logo when collapsed
+            <div className="flex items-center justify-center w-full">
+              <img
+                src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
+                alt="Invexis"
+                className="h-8 w-8 object-contain transition-all duration-300"
+              />
+            </div>
+          )}
         </div>
 
         {/* NAVIGATION */}
-        <nav className={`flex-1 overflow-y-auto py-4 space-y-8 ${expanded ? "px-3" : "px-2"}`}>
+        <nav className={`flex-1 overflow-y-auto py-4 pb-20 space-y-8 ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
@@ -575,8 +551,8 @@ export default function SideBar({
                   href={`/${locale}${item.path}`}
                   prefetch={item.prefetch}
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-700 hover:bg-orange-50"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-700 hover:bg-orange-50"
                     }`}
                 >
                   {item.icon}
@@ -614,8 +590,8 @@ export default function SideBar({
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
                         className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                            ? "bg-orange-500 text-white"
-                            : "text-gray-700 hover:bg-orange-50"
+                          ? "bg-orange-500 text-white"
+                          : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
                         {item.icon}
@@ -637,8 +613,8 @@ export default function SideBar({
                               )
                             }
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                                ? "border-orange-500 border-l-3 text-orange-500"
-                                : "text-gray-700 hover:bg-orange-50"
+                              ? "border-orange-500 border-l-3 text-orange-500"
+                              : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
                             <div className="flex items-center gap-3">
@@ -650,8 +626,8 @@ export default function SideBar({
                               <ChevronDown
                                 size={18}
                                 className={`${openMenus.includes(item.title)
-                                    ? "rotate-180"
-                                    : ""
+                                  ? "rotate-180"
+                                  : ""
                                   }`}
                               />
                             )}
@@ -662,14 +638,14 @@ export default function SideBar({
                             item.children &&
                             openMenus.includes(item.title) && (
                               <div className="ml-10 mt-2 border-l-2 border-orange-200 pl-4 space-y-1">
-                                {item.children.map((child) => (
+                                {item.children.filter(visibleFor).map((child) => (
                                   <Link
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
                                     className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
-                                        ? "bg-orange-500 text-white"
-                                        : "text-gray-600 hover:bg-gray-100"
+                                      ? "bg-orange-500 text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
                                       }`}
                                   >
                                     {child.title}
@@ -684,6 +660,27 @@ export default function SideBar({
               })}
           </section>
         </nav>
+
+        {/* TOGGLE BUTTON - Bottom Right */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="absolute bottom-4 right-0 translate-x-1/2 z-40 p-2.5 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 hover:scale-110 group"
+          aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          <svg
+            className={`w-4 h-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
       </aside>
 
       {/* HOVER MENU */}

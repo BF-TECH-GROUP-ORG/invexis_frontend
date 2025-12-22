@@ -30,12 +30,23 @@ const SaleProduct = () => {
     // unless we want to lift the selection state. Given the "do not change any logic" constraint, I'll keep it safe.
 
     const stats = useMemo(() => {
-        const total = products.length
-        const lowStock = products.filter(p => p.Quantity < 10).length
-        const totalValue = products.reduce((sum, p) => sum + (p.Price * p.Quantity), 0)
+        // Role-based filtering for stats
+        const userRole = session?.user?.role;
+        const assignedDepartments = session?.user?.assignedDepartments || [];
+        const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
+        const userShopId = session?.user?.shops?.[0];
+
+        let filteredForStats = products;
+        if (isSalesWorker && userShopId) {
+            filteredForStats = products.filter(p => p.shopId === userShopId);
+        }
+
+        const total = filteredForStats.length
+        const lowStock = filteredForStats.filter(p => p.Quantity < 10).length
+        const totalValue = filteredForStats.reduce((sum, p) => sum + (p.Price * p.Quantity), 0)
 
         return { total, lowStock, totalValue }
-    }, [products])
+    }, [products, session?.user])
 
     const statCards = [
         {

@@ -362,7 +362,16 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
 // =======================================
 // MAIN TABLE COMPONENT
 // =======================================
-const DebtsTable = ({ debts = [] }) => {
+const DebtsTable = ({
+  debts = [],
+  workers = [],
+  selectedWorkerId,
+  setSelectedWorkerId,
+  shops = [],
+  selectedShopId,
+  setSelectedShopId,
+  isWorker
+}) => {
   const { data: session } = useSession();
   const tTable = useTranslations("Debtstable");
   const tPage = useTranslations("debtsPage");
@@ -372,19 +381,19 @@ const DebtsTable = ({ debts = [] }) => {
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   // Fetch shops to resolve names
-  const { data: shops = [] } = useQuery({
-    queryKey: ["shops", companyId],
+  const { data: allShops = [] } = useQuery({
+    queryKey: ["allShops", companyId],
     queryFn: () => getAllShops(companyId),
     enabled: !!companyId
   });
 
   const shopMap = useMemo(() => {
     const map = {};
-    shops.forEach(shop => {
+    allShops.forEach(shop => {
       map[shop._id || shop.id] = shop.name;
     });
     return map;
-  }, [shops]);
+  }, [allShops]);
 
   const [search, setSearch] = useState("");
   const [filterAnchor, setFilterAnchor] = useState(null);
@@ -657,8 +666,17 @@ const DebtsTable = ({ debts = [] }) => {
       rows = rows.filter(r => dayjs(r.dueDate).isBefore(dayjs(endDate).add(1, "day")));
     }
 
+    // Client-side fallback for Worker and Shop filters
+    if (selectedWorkerId) {
+      rows = rows.filter(r => (r.soldBy || r.sold_by) === selectedWorkerId);
+    }
+
+    if (selectedShopId) {
+      rows = rows.filter(r => (r.shopId || r.shop_id) === selectedShopId);
+    }
+
     return rows;
-  }, [search, startDate, endDate, debts]);
+  }, [search, startDate, endDate, debts, selectedWorkerId, selectedShopId]);
 
   return (
     <Paper sx={{ background: "transparent", boxShadow: "none" }}>
@@ -672,6 +690,52 @@ const DebtsTable = ({ debts = [] }) => {
           InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} /> }}
           sx={{ width: 320, bgcolor: "white", borderRadius: 2 }}
         />
+
+        {!isWorker && (
+          <Box sx={{ display: "flex", gap: 2, ml: 2 }}>
+            {/* Worker Filter */}
+            <FormControl sx={{ minWidth: 200 }} size="small">
+              <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
+              <Select
+                labelId="worker-filter-label"
+                value={selectedWorkerId}
+                label="Filter by Worker"
+                onChange={(e) => setSelectedWorkerId(e.target.value)}
+                sx={{ bgcolor: "white", borderRadius: 2 }}
+              >
+                <MenuItem value="">
+                  <em>All Workers</em>
+                </MenuItem>
+                {workers.map((worker) => (
+                  <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
+                    {worker.name || worker.email}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Shop Filter */}
+            <FormControl sx={{ minWidth: 200 }} size="small">
+              <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
+              <Select
+                labelId="shop-filter-label"
+                value={selectedShopId}
+                label="Filter by Shop"
+                onChange={(e) => setSelectedShopId(e.target.value)}
+                sx={{ bgcolor: "white", borderRadius: 2 }}
+              >
+                <MenuItem value="">
+                  <em>All Shops</em>
+                </MenuItem>
+                {shops.map((shop) => (
+                  <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
+                    {shop.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
 
         <Box sx={{ display: "flex", gap: 2 }}>
           <IconButton onClick={handleOpenFilter}>
@@ -724,43 +788,58 @@ const DebtsTable = ({ debts = [] }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRows.map((debt) => (
-              <TableRow key={debt._id} hover>
-                <TableCell>{debt._id?.slice(-6)}</TableCell>
-                <TableCell>{debt.customer?.name}</TableCell>
-                <TableCell>{debt.customer?.phone}</TableCell>
-                <TableCell>{shopMap[debt.shopId] || debt.shopId || "N/A"}</TableCell>
-                <TableCell align="right">{debt.totalAmount?.toLocaleString()} FRW</TableCell>
-                <TableCell align="right">{debt.amountPaidNow?.toLocaleString()} FRW</TableCell>
-                <TableCell align="right" sx={{ color: debt.balance > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
-                  {debt.balance?.toLocaleString()} FRW
-                </TableCell>
-                <TableCell>{debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}</TableCell>
-                <TableCell>
-                  <span
-                  className={`px-2 py-1 rounded text-sm font-bold ${
-                  debt.status === 'PAID'
-                  ? 'bg-green-200 text-green-700 rounded-xl '
-                  : debt.status === 'CANCELLED'
-                  ? 'bg-red-200 text-red-700 rounded-xl'
-                  : debt.status === 'PARTIALLY_PAID rounded-xl'
-                   ? 'bg-yellow-200 text-yellow-700 rounded-xl' 
-                   : 'bg-red-200 text-red-700 rounded-xl'
-                   }`}
-                  >
-  {debt.status.replace('_', ' ')}
-</span>
-                </TableCell>
-                <TableCell>
-                  <DebtActionsMenu
-                    debt={debt}
-                    onRepaymentSuccess={handleRepayment}
-                    onMarkAsPaid={handleMarkAsPaid}
-                    onCancelDebt={handleCancelDebt}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+            {filteredRows.map((debt) => {
+              const debtorName = debt.customer?.name || debt.knownUser?.customerName || "Unknown";
+              const debtorPhone = debt.customer?.phone || debt.knownUser?.customerPhone || "N/A";
+              const debtId = debt._id || debt.saleId || "N/A";
+              const displayId = typeof debtId === 'string' ? debtId.slice(-6) : debtId;
+              const status = (debt.status || "PENDING").toUpperCase();
+              const balance = parseFloat(debt.balance || 0);
+              const totalAmount = parseFloat(debt.totalAmount || 0);
+              const amountPaidNow = parseFloat(debt.amountPaidNow || 0);
+
+              return (
+                <TableRow key={debtId} hover>
+                  <TableCell>{displayId}</TableCell>
+                  <TableCell>{debtorName}</TableCell>
+                  <TableCell>{debtorPhone}</TableCell>
+                  <TableCell>{shopMap[debt.shopId] || debt.shopId || "N/A"}</TableCell>
+                  <TableCell align="right">{totalAmount.toLocaleString()} FRW</TableCell>
+                  <TableCell align="right">{amountPaidNow.toLocaleString()} FRW</TableCell>
+                  <TableCell align="right" sx={{ color: balance > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
+                    {balance.toLocaleString()} FRW
+                  </TableCell>
+                  <TableCell>{debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded text-sm font-bold ${status === 'PAID'
+                        ? 'bg-green-200 text-green-700 rounded-xl'
+                        : status === 'CANCELLED'
+                          ? 'bg-red-200 text-red-700 rounded-xl'
+                          : status === 'PARTIALLY_PAID'
+                            ? 'bg-yellow-200 text-yellow-700 rounded-xl'
+                            : 'bg-red-200 text-red-700 rounded-xl'
+                        }`}
+                    >
+                      {status.replace('_', ' ')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <DebtActionsMenu
+                      debt={{
+                        ...debt,
+                        _id: debtId,
+                        customer: { name: debtorName, phone: debtorPhone },
+                        balance: balance
+                      }}
+                      onRepaymentSuccess={handleRepayment}
+                      onMarkAsPaid={handleMarkAsPaid}
+                      onCancelDebt={handleCancelDebt}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

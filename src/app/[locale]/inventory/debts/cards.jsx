@@ -83,9 +83,9 @@ export default function DebtCards({ debts = [] }) {
   const t = useTranslations("debtsPage");
 
   const stats = {
-    totalAmount: debts.reduce((s, d) => s + (d.totalAmount || 0), 0),
-    totalRemaining: debts.reduce((s, d) => s + (d.balance || 0), 0),
-    paidCount: debts.filter(d => d.status === "PAID").length,
+    totalAmount: debts.reduce((s, d) => s + parseFloat(d.totalAmount || 0), 0),
+    totalRemaining: debts.reduce((s, d) => s + parseFloat(d.balance || 0), 0),
+    paidCount: debts.filter(d => (d.status || "").toUpperCase() === "PAID").length,
     totalDebts: debts.length,
   };
 

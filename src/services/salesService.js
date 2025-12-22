@@ -83,7 +83,7 @@ export const SellProduct = async (saleData, isDebt = false) => {
     // We use the relative URL to ensure it uses the baseURL from axios instance
     console.log("Recording sale...");
     const saleResponse = await apiClient.post("/sales", saleData);
-    console.log("Sale recorded:", saleResponse);  
+    console.log("Sale recorded:", saleResponse);
 
     // 2. If it's a debt, also record the debt
     if (isDebt) {
@@ -139,22 +139,62 @@ export const SellProduct = async (saleData, isDebt = false) => {
  *
  * CACHING: Historical sales cached for 2 minutes (frequently changing)
  */
-export const getSalesHistory = async (companyId) => {
-  if (typeof companyId === "object") {
-    console.error("Invalid companyId passed to getSalesHistory:", companyId);
-    throw new Error("Invalid companyId: Object passed instead of string");
+export const getSalesHistory = async (companyId, filters = {}, options = {}) => {
+  if (!companyId) {
+    console.error("companyId is required for getSalesHistory");
+    return [];
   }
 
   const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
+  const { shopId, soldBy } = filters;
 
   try {
-    const data = await apiClient.get(`${SALES_URL}?companyId=${companyId}`, {
+    let queryParams = `companyId=${companyId}`;
+    if (shopId) queryParams += `&shopId=${shopId}`;
+    if (soldBy) queryParams += `&soldBy=${soldBy}`;
+
+    const data = await apiClient.get(`${SALES_URL}?${queryParams}`, {
       cache: cacheStrategy,
+      ...options
     });
     console.log("Sales history fetched:", data);
-    return data;
+
+    // Handle cases where the API wraps the array in an object
+    if (data && !Array.isArray(data)) {
+      return data.sales || data.data || data.history || [];
+    }
+
+    return data || [];
   } catch (error) {
     console.log("Failed to fetch sales history:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Get sales history for a specific worker
+ * 
+ * @param {string} soldBy - Worker ID or username
+ * @param {string} companyId - Company ID
+ */
+export const getSalesByWorker = async (soldBy, companyId, options = {}) => {
+  const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
+
+  try {
+    const data = await apiClient.get(`/sales/sold-by?soldBy=${soldBy}&companyId=${companyId}`, {
+      cache: cacheStrategy,
+      ...options
+    });
+    console.log(`Sales history for worker ${soldBy} fetched:`, data);
+
+    // Handle cases where the API wraps the array in an object
+    if (data && !Array.isArray(data)) {
+      return data.sales || data.data || data.history || [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.log(`Failed to fetch sales history for worker ${soldBy}:`, error.message);
     return [];
   }
 };
@@ -164,12 +204,13 @@ export const getSalesHistory = async (companyId) => {
  *
  * CACHING: Sale details cached for 2 minutes
  */
-export const getSingleSale = async (saleId) => {
+export const getSingleSale = async (saleId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
 
   try {
     const data = await apiClient.get(`${SALES_URL}/${saleId}`, {
       cache: cacheStrategy,
+      ...options
     });
     console.log("Single sale fetched:", data);
     return data;
@@ -255,6 +296,7 @@ export default {
   singleProductFetch,
   SellProduct,
   getSalesHistory,
+  getSalesByWorker,
   getSingleSale,
   updateSale,
   deleteSale,

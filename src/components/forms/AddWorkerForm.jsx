@@ -275,6 +275,16 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
 
     const payload = { ...worker };
+
+    // Find the selected department object to get its display name
+    const selectedDept = availableDepartments.find(
+      (dept) => (dept.id || dept._id || dept.department_id) === worker.department
+    );
+
+    if (selectedDept) {
+      payload.assignedDepartments = [selectedDept.display_name || selectedDept.name || selectedDept.department_name];
+    }
+
     delete payload.username;
     delete payload.department;
 
@@ -510,7 +520,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                 availableDepartments.map((dept) => (
                   <MenuItem
                     key={dept.id || dept._id || dept.department_id}
-                    value={dept.display_name || dept.name || dept.department_name}
+                    value={dept.id || dept._id || dept.department_id}
                   >
                     {dept.display_name || dept.name || dept.department_name}
                   </MenuItem>

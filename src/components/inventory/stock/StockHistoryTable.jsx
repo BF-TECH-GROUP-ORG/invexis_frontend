@@ -1,14 +1,13 @@
 // src/components/inventory/stock/StockHistoryTable.jsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
   History,
   RefreshCw,
   Search,
-  Filter,
 } from "lucide-react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -16,39 +15,36 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
+import Skeleton from "@mui/material/Skeleton";
 import { getAllStockChanges } from "@/services/stockService";
+import { useQuery } from "@tanstack/react-query";
 
 export default function StockHistoryTable({ companyId }) {
-  const [changes, setChanges] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
 
-  const fetchChanges = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await getAllStockChanges({
-        page: page + 1,
-        limit: rowsPerPage,
-        companyId,
-      });
-      setChanges(result?.data || result || []);
-      setTotal(result?.pagination?.total || result?.length || 0);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load stock history");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use React Query for data fetching
+  const {
+    data: result,
+    isLoading: loading,
+    error,
+    refetch,
+    isFetching
+  } = useQuery({
+    queryKey: ["stock-changes", { page: page + 1, limit: rowsPerPage, companyId }],
+    queryFn: () => getAllStockChanges({
+      page: page + 1,
+      limit: rowsPerPage,
+      companyId,
+    }),
+    keepPreviousData: true,
+    enabled: !!companyId, // Only fetch if companyId is available
+  });
 
-  useEffect(() => {
-    fetchChanges();
-  }, [page, rowsPerPage, companyId]);
+  const changes = result?.data || result || [];
+  const total = result?.pagination?.total || result?.length || 0;
 
   const filteredChanges = changes.filter((change) => {
     const matchesSearch =
@@ -117,27 +113,52 @@ export default function StockHistoryTable({ companyId }) {
             </select>
 
             <button
-              onClick={fetchChanges}
+              onClick={() => refetch()}
               className="px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
             >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
               Refresh
             </button>
           </div>
         </div>
       </div>
 
+
       {/* Table */}
       {loading ? (
-        <div className="p-12 text-center">
-          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-500">Loading stock history...</p>
+        <div className="p-0">
+          <Table size="small">
+            <TableHead>
+              <TableRow className="bg-gray-50">
+                <TableCell className="font-semibold text-gray-700">Type</TableCell>
+                <TableCell className="font-semibold text-gray-700">Product</TableCell>
+                <TableCell className="font-semibold text-gray-700">SKU</TableCell>
+                <TableCell align="center" className="font-semibold text-gray-700">Quantity</TableCell>
+                <TableCell className="font-semibold text-gray-700">Reason</TableCell>
+                <TableCell className="font-semibold text-gray-700">Date</TableCell>
+                <TableCell className="font-semibold text-gray-700">By</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1 }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell align="center"><Skeleton variant="text" width={40} sx={{ mx: "auto" }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : error ? (
         <div className="p-12 text-center">
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500">{error.message || "Failed to load stock history"}</p>
           <button
-            onClick={fetchChanges}
+            onClick={() => refetch()}
             className="mt-2 text-orange-600 hover:underline"
           >
             Try again
@@ -184,11 +205,10 @@ export default function StockHistoryTable({ companyId }) {
                 <TableRow key={change._id || index} hover>
                   <TableCell>
                     <div
-                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                        change.type === "in"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${change.type === "in"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {change.type === "in" ? (
                         <ArrowDownCircle size={14} />
@@ -210,9 +230,8 @@ export default function StockHistoryTable({ companyId }) {
                   </TableCell>
                   <TableCell align="center">
                     <span
-                      className={`font-semibold ${
-                        change.type === "in" ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`font-semibold ${change.type === "in" ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {change.type === "in" ? "+" : "-"}
                       {change.quantity}

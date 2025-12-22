@@ -22,7 +22,7 @@ const CompaniesPage = () => {
     typeof companyObj === "string"
       ? companyObj
       : companyObj?.id || companyObj?._id;
-  
+
   console.log(companyId)
 
   const { data: shops = [] } = useQuery({
@@ -50,7 +50,7 @@ const CompaniesPage = () => {
   }, [shops]);
 
   return (
-    <ProtectedRoute allowedRoles={["company_admin"]}>
+    <ProtectedRoute allowedRoles={["company_admin"]} allowedDepartments={["management"]}>
       <>
         <section className="w-full inline-grid">
           <div className="space-y-10">

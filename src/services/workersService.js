@@ -16,8 +16,8 @@ export const createWorker = async (workerData) => {
     try {
         const response = await apiClient.post(`${AUTH_URL}/auth/register`, workerData);
         console.log("Worker created successfully:", response);
-        console.log('payload is'+workerData)
-        console.log('response is'+response)
+        console.log('payload is' + workerData)
+        console.log('response is' + response)
         return response;
     } catch (error) {
         console.error('Failed to create worker:', error.message);
@@ -28,10 +28,10 @@ export const createWorker = async (workerData) => {
 // Cache object to store fetched shops by companyId
 const shopsCache = {};
 
-export const getWorkersByCompanyId = async (companyId) => {
+export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
         const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
-        const response = await apiClient.get(url);
+        const response = await apiClient.get(url, options);
         console.log("Workers by company fetched:", response);
         return response.workers;
     } catch (error) {
@@ -41,13 +41,13 @@ export const getWorkersByCompanyId = async (companyId) => {
 };
 
 export const getShopsByCompanyId = async (companyId) => {
-  if (!companyId) return [];
+    if (!companyId) return [];
 
-  // Check cache first
-  if (shopsCache[companyId]) {
-    console.log("Returning cached shops for company:", companyId);
-    return shopsCache[companyId];
-  }
+    // Check cache first
+    if (shopsCache[companyId]) {
+        console.log("Returning cached shops for company:", companyId);
+        return shopsCache[companyId];
+    }
 
     try {
         const url = `${WORKERS_URL}/auth/company/${companyId}/shops`;

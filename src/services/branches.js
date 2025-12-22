@@ -2,10 +2,11 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const getBranches = async (companyId) => {
+export const getBranches = async (companyId, options = {}) => {
   try {
     const response = await apiClient.get(`${BASE_URL}/shop/`, {
       params: { companyId },
+      ...options,
     });
     console.log("Branches fetched:", response);
     return response;

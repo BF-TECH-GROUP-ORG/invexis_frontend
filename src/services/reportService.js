@@ -6,14 +6,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
  * Get reports list for a company
  * GET /v1/reports/company/:companyId
  */
-export async function getReports({ companyId, type, page = 1, limit = 20 }) {
+export async function getReports({ companyId, type, page = 1, limit = 20 }, options = {}) {
     try {
         if (!companyId) throw new Error("Company ID is required");
         const params = { page, limit };
         if (type) params.type = type;
 
         const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/company/${companyId}`, {
-            params
+            params,
+            ...options
         });
         return data;
     } catch (err) {
@@ -25,9 +26,9 @@ export async function getReports({ companyId, type, page = 1, limit = 20 }) {
  * Get a single report by ID
  * GET /v1/reports/:id
  */
-export async function getReportById(id) {
+export async function getReportById(id, options = {}) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/${id}`);
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/${id}`, options);
         return data;
     } catch (err) {
         throw err;
@@ -51,9 +52,9 @@ export async function generateReport(payload) {
  * Get inventory summary stats
  * GET /v1/reports/summary/:companyId
  */
-export async function getInventorySummary(companyId) {
+export async function getInventorySummary(companyId, options = {}) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/summary/${companyId}`);
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/summary/${companyId}`, options);
         return data;
     } catch (err) {
         throw err;
@@ -64,9 +65,9 @@ export async function getInventorySummary(companyId) {
  * Get ABC analysis
  * GET /v1/reports/abc-analysis/:companyId
  */
-export async function getABCAnalysis(companyId) {
+export async function getABCAnalysis(companyId, options = {}) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/abc-analysis/${companyId}`);
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/abc-analysis/${companyId}`, options);
         return data;
     } catch (err) {
         throw err;
@@ -77,14 +78,15 @@ export async function getABCAnalysis(companyId) {
  * Get stock movement data
  * GET /v1/reports/stock-movement/:companyId
  */
-export async function getStockMovement({ companyId, startDate, endDate }) {
+export async function getStockMovement({ companyId, startDate, endDate }, options = {}) {
     try {
         const params = {};
         if (startDate) params.startDate = startDate;
         if (endDate) params.endDate = endDate;
 
         const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/stock-movement/${companyId}`, {
-            params
+            params,
+            ...options
         });
         return data;
     } catch (err) {
@@ -96,9 +98,9 @@ export async function getStockMovement({ companyId, startDate, endDate }) {
  * Get aging inventory data
  * GET /v1/reports/aging-inventory/:companyId
  */
-export async function getAgingInventory(companyId) {
+export async function getAgingInventory(companyId, options = {}) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/aging-inventory/${companyId}`);
+        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/aging-inventory/${companyId}`, options);
         return data;
     } catch (err) {
         throw err;
