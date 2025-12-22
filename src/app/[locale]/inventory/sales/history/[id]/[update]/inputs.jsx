@@ -106,7 +106,7 @@ const UpdateInputs = ({ saleData, saleId }) => {
       alert("✅ Sale updated successfully!");
 
       // Redirect to sale detail page
-      navigate.push(`/${locale}/inventory/sales/${saleId}`);
+      navigate.push(`/${locale}/inventory/sales/history/${saleId}`);
     } catch (error) {
       console.error("Update failed:", error);
       alert("❌ Failed to update sale: " + (error.response?.data?.message || error.message));
@@ -119,7 +119,7 @@ const UpdateInputs = ({ saleData, saleId }) => {
     <div className="flex justify-center py-3">
       <div className="w-full max-w-4xl space-y-4">
         {/* Product Name + Category */}
-       
+
         {/* Quantity + Selling Price */}
         <div className="flex gap-5">
           <TextField

@@ -58,7 +58,7 @@ async function refreshAccessToken(token) {
   }
 }
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -194,6 +194,8 @@ const handler = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET || "changeme",
   debug: process.env.NODE_ENV === "development",
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

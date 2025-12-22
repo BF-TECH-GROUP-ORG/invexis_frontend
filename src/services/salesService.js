@@ -139,7 +139,7 @@ export const SellProduct = async (saleData, isDebt = false) => {
  *
  * CACHING: Historical sales cached for 2 minutes (frequently changing)
  */
-export const getSalesHistory = async (companyId, filters = {}) => {
+export const getSalesHistory = async (companyId, filters = {}, options = {}) => {
   if (!companyId) {
     console.error("companyId is required for getSalesHistory");
     return [];
@@ -155,6 +155,7 @@ export const getSalesHistory = async (companyId, filters = {}) => {
 
     const data = await apiClient.get(`${SALES_URL}?${queryParams}`, {
       cache: cacheStrategy,
+      ...options
     });
     console.log("Sales history fetched:", data);
 
@@ -176,12 +177,13 @@ export const getSalesHistory = async (companyId, filters = {}) => {
  * @param {string} soldBy - Worker ID or username
  * @param {string} companyId - Company ID
  */
-export const getSalesByWorker = async (soldBy, companyId) => {
+export const getSalesByWorker = async (soldBy, companyId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
 
   try {
     const data = await apiClient.get(`/sales/sold-by?soldBy=${soldBy}&companyId=${companyId}`, {
       cache: cacheStrategy,
+      ...options
     });
     console.log(`Sales history for worker ${soldBy} fetched:`, data);
 
@@ -202,12 +204,13 @@ export const getSalesByWorker = async (soldBy, companyId) => {
  *
  * CACHING: Sale details cached for 2 minutes
  */
-export const getSingleSale = async (saleId) => {
+export const getSingleSale = async (saleId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SALES", "HISTORICAL");
 
   try {
     const data = await apiClient.get(`${SALES_URL}/${saleId}`, {
       cache: cacheStrategy,
+      ...options
     });
     console.log("Single sale fetched:", data);
     return data;

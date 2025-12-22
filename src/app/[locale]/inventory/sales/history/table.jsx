@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete
 } from "@mui/material";
 import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -22,6 +22,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { InputAdornment } from "@mui/material";
 import { HiSearch } from "react-icons/hi";
+import Skeleton from "@/components/shared/Skeleton";
 
 // Placeholder for rows, will be managed by state in DataTable
 const rows = [];
@@ -276,7 +277,7 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
   const locale = useLocale();
   const handleEdit = (event) => {
     event.stopPropagation();
-    navigate.push(`/${locale}/inventory/sales/${rowId}/${rowId}`);
+    navigate.push(`/${locale}/inventory/sales/history/${rowId}/${rowId}`);
     handleClose();
   };
 
@@ -642,7 +643,7 @@ const DataTable = ({
   const locale = useLocale();
 
   const handleRedirectToSlug = (saleId, productId) => {
-    navigation.push(`/${locale}/inventory/sales/${saleId}`);
+    navigation.push(`/${locale}/inventory/sales/history/${saleId}`);
   };
 
   const handleOpenFilter = (event) => {
@@ -811,22 +812,24 @@ const DataTable = ({
           {/* Worker Filter (Only for Admins/Managers) */}
           {!isWorker && (
             <>
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
-                <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
-                <Select
-                  labelId="worker-filter-label"
-                  value={selectedWorkerId}
-                  label="Filter by Worker"
-                  onChange={(e) => setSelectedWorkerId(e.target.value)}
-                >
-                  <MenuItem value="">All Workers</MenuItem>
-                  {workers.map((worker) => (
-                    <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
-                      {worker.firstName} {worker.lastName} ({worker.username})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+                size="small"
+                sx={{ minWidth: 250 }}
+                options={workers}
+                getOptionLabel={(option) =>
+                  `${option.firstName} ${option.lastName} (${option.username})`
+                }
+                value={workers.find((w) => (w._id || w.id) === selectedWorkerId) || null}
+                onChange={(event, newValue) => {
+                  setSelectedWorkerId(newValue ? (newValue._id || newValue.id) : "");
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Filter by Worker" variant="outlined" />
+                )}
+                isOptionEqualToValue={(option, value) =>
+                  (option._id || option.id) === (value._id || value.id)
+                }
+              />
 
               <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
                 <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
@@ -958,39 +961,60 @@ const DataTable = ({
           </TableHead>
 
           <TableBody>
-            {filteredRows.map((row) => (
-              <TableRow
-                key={row.id}
-                hover
-                sx={{
-                  cursor: "default",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
-                }}
-              >
-                <TableCell>{row.id}</TableCell>
-                <TableCell>{row.ProductName}</TableCell>
-                <TableCell>{row.ShopName}</TableCell>
-                <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
-                <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
-                <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
-                <TableCell>{row.UnitPrice}</TableCell>
-                <TableCell>{row.originalQuantity}</TableCell>
-                <TableCell>{row.SoldQuantity}</TableCell>
-                <TableCell>{row.returnedValue}</TableCell>
-                <TableCell>{row.Discount}</TableCell>
-                <TableCell>{row.Date}</TableCell>
-                <TableCell>{row.TotalValue}</TableCell>
-                <TableCell>
-                  <RowActionsMenu
-                    rowId={row.id}
-                    productId={row.productId}
-                    onRedirect={handleRedirectToSlug}
-                    onDeleteRequest={toggleDeleteModalFor}
-                    onReturnRequest={handleOpenReturnModal}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+            {isSalesLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+                </TableRow>
+              ))
+            ) : (
+              filteredRows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  hover
+                  sx={{
+                    cursor: "default",
+                    "&:hover": { backgroundColor: "#f5f5f5" },
+                  }}
+                >
+                  <TableCell>{row.id}</TableCell>
+                  <TableCell>{row.ProductName}</TableCell>
+                  <TableCell>{row.ShopName}</TableCell>
+                  <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
+                  <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
+                  <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
+                  <TableCell>{row.UnitPrice}</TableCell>
+                  <TableCell>{row.originalQuantity}</TableCell>
+                  <TableCell>{row.SoldQuantity}</TableCell>
+                  <TableCell>{row.returnedValue}</TableCell>
+                  <TableCell>{row.Discount}</TableCell>
+                  <TableCell>{row.Date}</TableCell>
+                  <TableCell>{row.TotalValue}</TableCell>
+                  <TableCell>
+                    <RowActionsMenu
+                      rowId={row.id}
+                      productId={row.productId}
+                      onRedirect={handleRedirectToSlug}
+                      onDeleteRequest={toggleDeleteModalFor}
+                      onReturnRequest={handleOpenReturnModal}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
