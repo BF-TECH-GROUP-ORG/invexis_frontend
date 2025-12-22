@@ -102,7 +102,7 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
         {/* Left Section - Logo (Visible on mobile or if needed) */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
           <span className="font-bold text-lg text-gray-950 whitespace-nowrap">
-            INVEX<span className="text-orange-500 font-extrabold">iS</span>
+            INVEX<span className="text-orange-500 font-extrabold">IX</span>
           </span>
         </div>
 

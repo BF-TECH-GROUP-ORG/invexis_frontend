@@ -77,19 +77,16 @@ const navItems = [
     children: [
       { title: "Sales History", path: "/inventory/sales/history", prefetch: true },
       { title: "Stock-out", path: "/inventory/sales/sellProduct/sale", prefetch: true },
-      { title: "Reports", path: "/inventory/sales/reports", prefetch: true },
+      // { title: "Reports", path: "/inventory/sales/reports", prefetch: true },
     ],
   },
 
   {
     title: "Debts",
     icon: <Wallet size={22} />,
+    path: "/inventory/debts",
     roles: ["sales_manager", "company_admin"],
-    children: [
-      { title: "Debts List", path: "/inventory/debts", prefetch: true },
-      { title: "Debts Details", path: "/inventory/Debts/details", prefetch: true, },
-      { title: "Debts Analytics", path: "/inventory/debts/analytics", prefetch: true, },
-    ],
+    prefetch: true,
   },
   {
     title: "Billing & Payments",
@@ -498,27 +495,19 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
+        className={`hidden md:block fixed inset-y-0  left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
           }`}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-4 py-5 border-b">
+        <div className="flex items-center justify-between px-4 py-4 border-b">
           {expanded ? (
-            // Original header when expanded
-            <>
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Menu size={22} />
-              </button>
-
-              <div className="overflow-hidden transition-all">
-                <span className="text-xl font-bold text-gray-900 whitespace-nowrap">
-                  INVEX<span className="text-orange-500 font-extrabold">iS</span>
-                </span>
-              </div>
-            </>
+            // Only burger icon when expanded
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Menu size={22} />
+            </button>
           ) : (
             // Logo when collapsed
             <div className="flex items-center justify-center w-full">
@@ -532,7 +521,7 @@ export default function SideBar({
         </div>
 
         {/* NAVIGATION */}
-        <nav className={`flex-1 overflow-y-auto py-4 pb-20 space-y-8 ${expanded ? "px-3" : "px-2"}`}>
+        <nav className={`flex-1 overflow-y-auto  py-4 pb-20 space-y-6 ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
@@ -550,8 +539,8 @@ export default function SideBar({
                   key={item.title}
                   href={`/${locale}${item.path}`}
                   prefetch={item.prefetch}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                    ? "bg-orange-500 text-white"
+                  className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
+                    ? "bg-orange-50  border-l-2 border-orange-500 text-orange-500"
                     : "text-gray-700 hover:bg-orange-50"
                     }`}
                 >
@@ -562,7 +551,7 @@ export default function SideBar({
           </section>
 
           {/* MANAGEMENT */}
-          <section>
+          <section className="">
             <h3
               className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
                 }`}
@@ -589,8 +578,8 @@ export default function SideBar({
                       <Link
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
-                        className={`flex items-center gap-3 px-3 py-3 rounded-lg transition ${isActive(item.path)
-                          ? "bg-orange-500 text-white"
+                        className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
+                          ? "bg-orange-50  border-l-2 border-orange-500 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
@@ -613,7 +602,7 @@ export default function SideBar({
                               )
                             }
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                              ? "border-orange-500 border-l-3 text-orange-500"
+                              ? " bg-gray-200 rounded-xl text-black font-bold"
                               : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
@@ -637,14 +626,14 @@ export default function SideBar({
                           {expanded &&
                             item.children &&
                             openMenus.includes(item.title) && (
-                              <div className="ml-10 mt-2 border-l-2 border-orange-200 pl-4 space-y-1">
+                              <div className="ml-10 mt-2  border-l px-3">
                                 {item.children.filter(visibleFor).map((child) => (
                                   <Link
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
-                                    className={`block px-3 py-2 text-sm rounded-md transition ${isActive(child.path)
-                                      ? "bg-orange-500 text-white"
+                                    className={`block px-3 py-2 text-sm  transition ${isActive(child.path)
+                                      ? "bg-gray-200 rounded-lg text-black font-bold"
                                       : "text-gray-600 hover:bg-gray-100"
                                       }`}
                                   >
@@ -664,7 +653,7 @@ export default function SideBar({
         {/* TOGGLE BUTTON - Bottom Right */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="absolute bottom-4 right-0 translate-x-1/2 z-40 p-2.5 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 hover:scale-110 group"
+          className="absolute bottom-[54px] right-0 translate-x-1/2 z-40 p-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-full shadow-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 hover:scale-110 group"
           aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         >
           <svg
