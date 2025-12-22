@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     TextField,
@@ -19,19 +19,18 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
-const SHOP_OPTIONS = [
+import { getAllShops } from '@/services/shopService';
+import LogsService from '@/services/logsService';
+import { getWorkersByCompanyId } from '@/services/workersService';
+import { useSession } from 'next-auth/react';
+
+const DEFAULT_SHOP_OPTIONS = [
     { value: 'all', label: 'All Shops' },
-    { value: 'main_store', label: 'Main Store' },
-    { value: 'warehouse_a', label: 'Warehouse A' },
-    { value: 'online_store', label: 'Online Store' },
 ];
 
-const WORKER_OPTIONS = [
+const DEFAULT_WORKER_OPTIONS = [
     { value: 'all', label: 'All Workers' },
     { value: 'system', label: 'System' },
-    { value: 'john_doe', label: 'John Doe' },
-    { value: 'jane_smith', label: 'Jane Smith' },
-    { value: 'manager_mike', label: 'Manager Mike' },
 ];
 
 const TIME_PRESETS = [
@@ -56,6 +55,11 @@ const LogsFilterPanel = ({ filters, onApply }) => {
     const [worker, setWorker] = useState(filters.worker || 'all');
     const [timeRange, setTimeRange] = useState(filters.timeRange || 'current_month');
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
+
+    // Dynamic options loaded from backend
+    const [shopOptions, setShopOptions] = useState(DEFAULT_SHOP_OPTIONS);
+    const [workerOptions, setWorkerOptions] = useState(DEFAULT_WORKER_OPTIONS);
+    const { data: session } = useSession();
 
     // Advanced Filters State
     const [anchorEl, setAnchorEl] = useState(null);
@@ -93,6 +97,77 @@ const LogsFilterPanel = ({ filters, onApply }) => {
         setSearchQuery('');
         onApply({ ...filters, search: '' });
     };
+
+    // Derive current companyId from session if available
+    const companyObj = session?.user?.companies?.[0];
+    const sessionCompanyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+    // Load shops on mount or when session company changes
+    useEffect(() => {
+        let mounted = true;
+        const loadShops = async () => {
+            try {
+                const shops = await getAllShops(sessionCompanyId);
+                if (!mounted) return;
+                if (Array.isArray(shops) && shops.length > 0) {
+                    const opts = [{ value: 'all', label: 'All Shops' }, ...shops.map(s => ({ value: s._id || s.id || s._id, label: s.name }))];
+                    setShopOptions(opts);
+                } else {
+                    setShopOptions(DEFAULT_SHOP_OPTIONS);
+                }
+            } catch (err) {
+                setShopOptions(DEFAULT_SHOP_OPTIONS);
+            }
+        };
+        loadShops();
+        return () => { mounted = false; };
+    }, [sessionCompanyId]);
+
+    // Load workers when companyId or shop selection changes
+    useEffect(() => {
+        let mounted = true;
+        const loadWorkers = async () => {
+            try {
+                // Determine effective companyId and shopId
+                const effectiveCompanyId = sessionCompanyId || (shop && shop !== 'all' ? shop : undefined);
+                const shopId = (shop && shop !== 'all') ? shop : undefined;
+
+                // Use central workers service to load staff for the company
+                let workers = [];
+                if (effectiveCompanyId) {
+                    try {
+                        const wResp = await getWorkersByCompanyId(effectiveCompanyId);
+                        // workersService may return array or an object; normalize
+                        workers = Array.isArray(wResp) ? wResp : (wResp?.workers ?? wResp?.data ?? []);
+                    } catch (e) {
+                        workers = [];
+                    }
+                }
+
+                if (!mounted) return;
+
+                if (Array.isArray(workers) && workers.length > 0) {
+                    const opts = [
+                        { value: 'all', label: 'All Workers' },
+                        { value: 'system', label: 'System' },
+                        ...workers.map(w => {
+                            const id = w._id || w.id || w.userId || w.user || w.username;
+                            const name = w.name || w.fullName || ((w.firstName || '') + (w.lastName ? ` ${w.lastName}` : '')) || w.username || id;
+                            return { value: id, label: name };
+                        })
+                    ];
+                    setWorkerOptions(opts);
+                } else {
+                    setWorkerOptions(DEFAULT_WORKER_OPTIONS);
+                }
+            } catch (err) {
+                setWorkerOptions(DEFAULT_WORKER_OPTIONS);
+            }
+        };
+
+        loadWorkers();
+        return () => { mounted = false; };
+    }, [sessionCompanyId, shop]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -209,7 +284,7 @@ const LogsFilterPanel = ({ filters, onApply }) => {
                             inputProps={{ 'aria-label': 'Select Shop' }}
                             sx={{ backgroundColor: '#fafafa' }}
                         >
-                            {SHOP_OPTIONS.map((opt) => (
+                            {shopOptions.map((opt) => (
                                 <MenuItem key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </MenuItem>
@@ -225,7 +300,7 @@ const LogsFilterPanel = ({ filters, onApply }) => {
                             inputProps={{ 'aria-label': 'Select Worker' }}
                             sx={{ backgroundColor: '#fafafa' }}
                         >
-                            {WORKER_OPTIONS.map((opt) => (
+                            {workerOptions.map((opt) => (
                                 <MenuItem key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </MenuItem>

@@ -1,125 +1,97 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { mockLogs } from '@/mocks/logsMockData';
+import LogsService from '@/services/logsService';
 
-// Helper to simulate network delay
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Async thunk to fetch audit logs with filters and pagination using mock data
+// Async thunk to fetch audit logs using the service layer (no mocks here)
 export const fetchLogs = createAsyncThunk(
     'logs/fetchLogs',
-    async (params, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
-            await delay(400); // Simulate network latency
-
-            let filtered = [...mockLogs];
+            // Map UI-level filters to service parameters. Keep mapping minimal so UI can continue to use the same keys.
             const {
                 page = 1,
                 limit = 20,
-                shop,
-                worker,
+                shop, // -> companyId
+                worker, // -> workerId (or userId)
                 timeRange,
                 search,
-                // Advanced Filters
+                startDate: customStart,
+                endDate: customEnd,
+                // pass-through any server-supported filters
                 category,
                 action,
                 status,
-                actor, // simplified text
-                target, // simplified text
-            } = params;
+                source,
+                type,
+                entityId,
+                entityType,
+            } = params || {};
 
-            // 1. Shop Filter
-            if (shop && shop !== 'all') {
-                // In a real app, we'd filter by shopId. For mock, we skip or mock it.
-                // filtered = filtered.filter(l => l.shopId === shop);
-            }
-
-            // 2. Worker Filter
-            if (worker && worker !== 'all') {
-                if (worker === 'system') {
-                    filtered = filtered.filter(l => l.actorType === 'System' || l.user?.name === 'System');
-                } else {
-                    // Fuzzy match for mock convenience
-                    const namePart = worker.replace('_', ' ');
-                    filtered = filtered.filter(l => l.user?.name?.toLowerCase().includes(namePart.toLowerCase()));
-                }
-            }
-
-            // 3. Time Range Filter
-            const now = new Date();
-            let startDate = new Date();
-            let endDate = new Date(); // default to now
-
-            if (timeRange === 'last_month') {
-                startDate.setMonth(now.getMonth() - 1);
-                startDate.setDate(1);
-                endDate.setMonth(now.getMonth());
-                endDate.setDate(0); // Last day of prev month
-            } else if (timeRange === 'last_3_months') {
-                startDate.setMonth(now.getMonth() - 3);
-            } else if (timeRange === 'custom') {
-                // Custom logic would go here, defaulting to all for mock
-                startDate = new Date(0);
-            } else {
-                // Default: Current Month
-                startDate.setDate(1);
-            }
-
-            // Apply Date Filter
-            filtered = filtered.filter(l => {
-                const logTime = new Date(l.timestamp);
-                return logTime >= startDate && logTime <= endDate;
-            });
-
-            // 4. Advanced Filters (Chips)
-            if (category) {
-                filtered = filtered.filter(l => l.category?.toLowerCase() === category.toLowerCase());
-            }
-            if (action) {
-                filtered = filtered.filter(l => l.action?.toLowerCase() === action.toLowerCase());
-            }
-            if (status) {
-                filtered = filtered.filter(l => l.status?.toLowerCase() === status.toLowerCase());
-            }
-            if (actor) {
-                filtered = filtered.filter(l =>
-                    l.actorType?.toLowerCase().includes(actor.toLowerCase()) ||
-                    l.user?.name?.toLowerCase().includes(actor.toLowerCase())
-                );
-            }
-            if (target) {
-                filtered = filtered.filter(l => l.target?.toLowerCase().includes(target.toLowerCase()));
-            }
-
-            // 5. Smart Search (Global)
-            if (search) {
-                const lowerQ = search.toLowerCase();
-                filtered = filtered.filter(l =>
-                    l.description?.toLowerCase().includes(lowerQ) ||
-                    l.action?.toLowerCase().includes(lowerQ) ||
-                    l.category?.toLowerCase().includes(lowerQ) ||
-                    l.user?.name?.toLowerCase().includes(lowerQ) ||
-                    l.target?.toLowerCase().includes(lowerQ)
-                );
-            }
-
-            // Sort by latest first
-            filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const filters = {};
 
             // Pagination
-            const total = filtered.length;
-            const start = (page - 1) * limit;
-            const paginatedData = filtered.slice(start, start + limit);
+            filters.page = page;
+            filters.limit = limit;
 
-            return {
-                data: paginatedData,
-                pagination: {
-                    total,
-                    page,
-                    limit
-                }
+            // Company / shop
+            if (shop && shop !== 'all') filters.companyId = shop;
+
+            // Worker -> userId
+            if (worker && worker !== 'all') {
+                // Keep a special-case for `system` if the UI uses it
+                if (worker === 'system') filters.userId = 'system';
+                else filters.userId = worker;
+            }
+
+            // Time range -> startDate/endDate; allow custom overrides
+            if (timeRange === 'custom' && (customStart || customEnd)) {
+                if (customStart) filters.startDate = customStart;
+                if (customEnd) filters.endDate = customEnd;
+            } else if (timeRange === 'last_month') {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0).toISOString();
+                const lastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+                const end = new Date(now.getFullYear(), now.getMonth() - 1, lastDay, 23, 59, 59, 999).toISOString();
+                filters.startDate = start;
+                filters.endDate = end;
+            } else if (timeRange === 'last_3_months') {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth() - 3, 1, 0, 0, 0, 0).toISOString();
+                filters.startDate = start;
+            } else {
+                // default behaviour: leave dates undefined so service applies current-month defaults
+            }
+
+            // Search -> free-text param (map to `q` if backend supports it)
+            if (search) filters.q = search;
+
+            // Pass through server-side filters if present
+            if (source) filters.source = source;
+            if (type) filters.type = type;
+            if (entityId) filters.entityId = entityId;
+            if (entityType) filters.entityType = entityType;
+            if (category) filters.category = category;
+            if (action) filters.action = action;
+            if (status) filters.status = status;
+
+            // Call service (service returns backend payload). Let errors propagate to be handled by extraReducers.
+            const resp = await LogsService.getLogs(filters);
+
+            // LogsService.getLogs returns the backend payload (or throws).
+            // Normalize response shapes: backend might return { success, data, pagination } or { data, pagination }
+            const body = resp?.data ?? resp; // if service returned raw axios response, prefer .data; if already data, use it
+
+            // Backend contract: { success: true, data: [...], pagination: { total, page, pages } }
+            // Normalize to { data: [], pagination: { total, page, limit } }
+            const data = body?.data ?? [];
+            const pagination = body?.pagination ?? {
+                total: Array.isArray(data) ? data.length : 0,
+                page: Number(filters.page) || 1,
+                limit: Number(filters.limit) || 20,
             };
+
+            return { data, pagination };
         } catch (err) {
-            return rejectWithValue(err.message || 'Failed to fetch logs');
+            return rejectWithValue(err?.message || err || 'Failed to fetch logs');
         }
     }
 );
@@ -129,12 +101,12 @@ export const fetchLogDetail = createAsyncThunk(
     'logs/fetchLogDetail',
     async (id, { rejectWithValue }) => {
         try {
-            await delay(200);
-            const log = mockLogs.find((l) => l.id === Number(id));
-            if (!log) throw new Error('Log not found');
-            return { data: log };
+            if (!id) throw new Error('Log id is required');
+            const resp = await LogsService.getLog(id);
+            const body = resp?.data ?? resp;
+            return { data: body?.data ?? body };
         } catch (err) {
-            return rejectWithValue(err.message);
+            return rejectWithValue(err?.message || 'Failed to fetch log detail');
         }
     }
 );

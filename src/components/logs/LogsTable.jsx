@@ -41,7 +41,7 @@ const LogsTable = ({
         let label = s;
 
         if (s === 'SUCCESS') {
-            sx = { backgroundColor: "#E8F5E9", color: "#2E9D32" };
+            sx = { backgroundColor: "#E8F5E9", color: "#0fd815ff" };
             icon = <CheckCircleOutlineIcon style={{ fontSize: 16 }} />;
             label = "Success";
         } else if (s === 'FAILURE') {
