@@ -2,15 +2,23 @@
 import React, { useState } from 'react';
 import { Store, Users, Boxes, CircleX } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from "next-auth/react";
+import Skeleton from '@/components/shared/Skeleton';
 import SalesPerformance from '@/components/visuals/sales/salesPerformance';
 import CustomerReports from '@/components/visuals/reports/CustomerReports';
 import ShopEmployeeReports from '@/components/visuals/reports/ShopEmployeeReports';
 import AnalyticsService from '@/services/analyticsService';
+import { getBranches } from '@/services/branches';
+import { getWorkersByCompanyId } from '@/services/workersService';
 import dayjs from 'dayjs';
 
 const AnalyticsPage = () => {
     const [timeRange, setTimeRange] = useState('7d');
     const [selectedDate, setSelectedDate] = useState(dayjs());
+    const { data: session } = useSession();
+    const user = session?.user;
+    const companyObj = user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
     const dateStr = selectedDate.format('YYYY-MM-DD');
 
@@ -55,12 +63,18 @@ const AnalyticsPage = () => {
 
     const params = getQueryParams();
 
+    const options = session?.accessToken ? {
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`
+        }
+    } : {};
+
     // --- Queries ---
 
     // 1. Dashboard Summary
     const { data: summaryRes, isLoading: summaryLoading } = useQuery({
         queryKey: ['analytics', 'summary', params],
-        queryFn: () => AnalyticsService.getDashboardSummary(params),
+        queryFn: () => AnalyticsService.getDashboardSummary(params, options),
         staleTime: 60 * 1000, // 1 minute
         retry: false,
     });
@@ -68,7 +82,7 @@ const AnalyticsPage = () => {
     // 2. Sales Revenue
     const { data: salesRes, isLoading: salesLoading } = useQuery({
         queryKey: ['analytics', 'sales', params],
-        queryFn: () => AnalyticsService.getRevenueReport(params),
+        queryFn: () => AnalyticsService.getRevenueReport(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -76,7 +90,7 @@ const AnalyticsPage = () => {
     // 3. Profitability
     const { data: profitabilityRes, isLoading: profitabilityLoading } = useQuery({
         queryKey: ['analytics', 'profitability', params],
-        queryFn: () => AnalyticsService.getProfitabilityReport(params),
+        queryFn: () => AnalyticsService.getProfitabilityReport(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -84,7 +98,7 @@ const AnalyticsPage = () => {
     // 4. Top Products
     const { data: productsRes, isLoading: productsLoading } = useQuery({
         queryKey: ['analytics', 'products', params],
-        queryFn: () => AnalyticsService.getTopProducts(params),
+        queryFn: () => AnalyticsService.getTopProducts(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -92,7 +106,7 @@ const AnalyticsPage = () => {
     // 5. Inventory Health
     const { data: inventoryRes, isLoading: inventoryLoading } = useQuery({
         queryKey: ['analytics', 'inventory', params],
-        queryFn: () => AnalyticsService.getInventoryHealth(params),
+        queryFn: () => AnalyticsService.getInventoryHealth(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -100,7 +114,7 @@ const AnalyticsPage = () => {
     // 6. Payment Methods (Categories)
     const { data: categoriesRes, isLoading: categoriesLoading } = useQuery({
         queryKey: ['analytics', 'paymentMethods', params],
-        queryFn: () => AnalyticsService.getPaymentMethodStats(params),
+        queryFn: () => AnalyticsService.getPaymentMethodStats(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -108,21 +122,21 @@ const AnalyticsPage = () => {
     // 7. Customer Stats
     const { data: acquisitionRes, isLoading: acquisitionLoading } = useQuery({
         queryKey: ['analytics', 'acquisition', params],
-        queryFn: () => AnalyticsService.getNewCustomerStats(params),
+        queryFn: () => AnalyticsService.getNewCustomerStats(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
 
     const { data: activeUsersRes, isLoading: activeUsersLoading } = useQuery({
         queryKey: ['analytics', 'activeUsers', params],
-        queryFn: () => AnalyticsService.getActiveUsers(params),
+        queryFn: () => AnalyticsService.getActiveUsers(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
 
     const { data: topCustomersRes, isLoading: topCustomersLoading } = useQuery({
         queryKey: ['analytics', 'topCustomers', params],
-        queryFn: () => AnalyticsService.getTopCustomers(params),
+        queryFn: () => AnalyticsService.getTopCustomers(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
     });
@@ -130,16 +144,29 @@ const AnalyticsPage = () => {
     // 8. Shop & Employee Performance
     const { data: shopRes, isLoading: shopLoading } = useQuery({
         queryKey: ['analytics', 'shops', params],
-        queryFn: () => AnalyticsService.getShopPerformance(params),
+        queryFn: () => AnalyticsService.getShopPerformance(params, options),
         staleTime: 10 * 60 * 1000, // 10 minutes
         retry: false,
     });
 
     const { data: employeeRes, isLoading: employeeLoading } = useQuery({
         queryKey: ['analytics', 'employees', params],
-        queryFn: () => AnalyticsService.getEmployeePerformance(params),
+        queryFn: () => AnalyticsService.getEmployeePerformance(params, options),
         staleTime: 10 * 60 * 1000, // 10 minutes
         retry: false,
+    });
+
+    // Fetch Shops and Workers for name mapping
+    const { data: branchesRes } = useQuery({
+        queryKey: ['branches', companyId],
+        queryFn: () => getBranches(companyId, options),
+        enabled: !!companyId,
+    });
+
+    const { data: workersRes } = useQuery({
+        queryKey: ['workers', companyId],
+        queryFn: () => getWorkersByCompanyId(companyId, options),
+        enabled: !!companyId,
     });
 
     const loading = summaryLoading || salesLoading || profitabilityLoading || productsLoading || inventoryLoading || categoriesLoading || acquisitionLoading || activeUsersLoading || topCustomersLoading || shopLoading || employeeLoading;
@@ -202,17 +229,25 @@ const AnalyticsPage = () => {
 
     // Shop Performance
     const rawShops = shopRes?.data || shopRes || [];
-    const shopPerformance = rawShops.map(item => ({
-        name: `Shop ${item.shopId?.slice(0, 4)}...`,
-        value: parseFloat(item.totalRevenue) || 0
-    }));
+    const branches = branchesRes?.data || branchesRes || [];
+    const shopPerformance = rawShops.map(item => {
+        const shop = branches.find(b => (b._id || b.id) === item.shopId);
+        return {
+            name: shop ? shop.name : `Shop ${item.shopId?.slice(-4)}`,
+            value: parseFloat(item.totalRevenue) || 0
+        };
+    });
 
     // Employee Performance
     const rawEmployees = employeeRes?.data || employeeRes || [];
-    const employeePerformance = rawEmployees.map(item => ({
-        name: `Emp ${item.employeeId?.slice(0, 4)}...`,
-        value: parseFloat(item.totalSales) || 0
-    }));
+    const workers = workersRes || [];
+    const employeePerformance = rawEmployees.map(item => {
+        const worker = workers.find(w => (w._id || w.id) === item.employeeId);
+        return {
+            name: worker ? `${worker.firstName} ${worker.lastName}` : `Emp ${item.employeeId?.slice(-4)}`,
+            value: parseFloat(item.totalSales) || 0
+        };
+    });
 
     // Inventory Health
     const inventoryHealth = inventoryRes?.data || inventoryRes || [];
@@ -269,7 +304,11 @@ const AnalyticsPage = () => {
                             </div>
                         </div>
                         <h3 className="text-2xl font-bold">
-                            {loading ? '...' : card.value}
+                            {loading ? (
+                                <Skeleton className="h-8 w-24 mt-1" />
+                            ) : (
+                                card.value
+                            )}
                         </h3>
                     </div>
                 ))}
@@ -289,12 +328,12 @@ const AnalyticsPage = () => {
                     loading={loading}
                 />
 
-                <CustomerReports
+                {/* <CustomerReports
                     acquisitionData={customerAcquisition}
                     activeUsersData={activeUsers}
                     topCustomersData={topCustomers}
                     loading={loading}
-                />
+                />  */}
 
                 <ShopEmployeeReports
                     shopPerformance={shopPerformance}

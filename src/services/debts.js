@@ -9,7 +9,7 @@ const DEBT_API_URL = `/debt`;
  * CACHING: Debts cached for 60-120 seconds (moderate frequency)
  * Per blueprint: debts query caching 60-120 seconds
  */
-export const getDebts = async (companyId, filters = {}) => {
+export const getDebts = async (companyId, filters = {}, options = {}) => {
   if (typeof companyId === "object") {
     console.error("Invalid companyId passed to getDebts:", companyId);
     throw new Error("Invalid companyId: Object passed instead of string");
@@ -27,6 +27,7 @@ export const getDebts = async (companyId, filters = {}) => {
       `${DEBT_API_URL}/company/${companyId}/debts?${queryParams}`,
       {
         cache: cacheStrategy,
+        ...options
       }
     );
     console.log("Debts fetched:", data);

@@ -112,7 +112,7 @@ export async function getAllStockChanges({
   limit = 20,
   companyId,
   productId,
-} = {}) {
+} = {}, options = {}) {
   const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
 
   const params = { page, limit };
@@ -122,6 +122,7 @@ export async function getAllStockChanges({
   return apiClient.get(`${API_BASE}/inventory/v1/stock/changes`, {
     params,
     cache: cacheStrategy, // NO-STORE
+    ...options
   });
 }
 
@@ -202,7 +203,7 @@ export async function transferToShop(companyId, shopId, payload) {
 /**
  * Cross-Company Bulk Transfer
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
- */ 
+ */
 export async function transferToCompany(companyId, shopId, payload) {
   return apiClient.post(`${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`, payload);
 }

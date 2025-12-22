@@ -47,7 +47,8 @@ const INVENTORY_BASE = "/inventory/v1/shop-inventory";
  * -----------------------------------------------------
  */
 export async function getShopInventory(
-  { shopId, page = 1, limit = 20 }
+  { shopId, page = 1, limit = 20 },
+  options = {}
 ) {
   if (!shopId) {
     throw new Error("Shop ID is required");
@@ -57,6 +58,7 @@ export async function getShopInventory(
     `${INVENTORY_BASE}/shop/${shopId}`,
     {
       params: { page, limit },
+      ...options
     }
   );
 }
