@@ -3,6 +3,7 @@
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import { useMemo, useEffect } from "react";
+import Skeleton from "@/components/shared/Skeleton";
 
 const Counter = ({ value, currency = false }) => {
   const spring = useSpring(0, { mass: 0.8, stiffness: 75, damping: 15 });
@@ -24,13 +25,16 @@ const Counter = ({ value, currency = false }) => {
   return <motion.span>{display}</motion.span>;
 };
 
-const SalesCards = ({ sales = [] }) => {
+const SalesCards = ({ sales = [], isLoading = false }) => {
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
 
+    // Ensure sales is an array
+    const salesArray = Array.isArray(sales) ? sales : [];
+
     // Filter sales for today
-    const todaySales = sales.filter(sale =>
+    const todaySales = salesArray.filter(sale =>
       new Date(sale.createdAt).toDateString() === today
     );
 
@@ -104,36 +108,50 @@ const SalesCards = ({ sales = [] }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {cards.map((card, index) => {
-        const Icon = card.Icon;
-        return (
-          <motion.div
-            key={card.key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
-          >
+      {isLoading ? (
+        [1, 2, 3, 4].map((i) => (
+          <div key={i} className="border-2 border-gray-100 rounded-2xl p-5 bg-white">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-[#6b7280] font-medium mb-1">
-                  {card.title}
-                </p>
-                <p className="text-2xl font-bold font-jetbrains text-[#081422]">
-                  <Counter value={card.value} currency={card.isCurrency} />
-                </p>
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-8 w-32" />
               </div>
-
-              <div
-                className="p-3 rounded-xl shrink-0"
-                style={{ backgroundColor: card.bgColor }}
-              >
-                <Icon size={24} style={{ color: card.color }} />
-              </div>
+              <Skeleton className="h-12 w-12 rounded-xl" />
             </div>
-          </motion.div>
-        );
-      })}
+          </div>
+        ))
+      ) : (
+        cards.map((card, index) => {
+          const Icon = card.Icon;
+          return (
+            <motion.div
+              key={card.key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-[#6b7280] font-medium mb-1">
+                    {card.title}
+                  </p>
+                  <p className="text-2xl font-bold font-jetbrains text-[#081422]">
+                    <Counter value={card.value} currency={card.isCurrency} />
+                  </p>
+                </div>
+
+                <div
+                  className="p-3 rounded-xl shrink-0"
+                  style={{ backgroundColor: card.bgColor }}
+                >
+                  <Icon size={24} style={{ color: card.color }} />
+                </div>
+              </div>
+            </motion.div>
+          );
+        })
+      )}
     </div>
   );
 }

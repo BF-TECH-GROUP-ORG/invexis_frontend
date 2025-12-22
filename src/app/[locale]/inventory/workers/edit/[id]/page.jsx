@@ -5,6 +5,7 @@ import { getWorkerById } from "@/services/workersService";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Loading from "./loading";
 
 export default function EditWorkerPage({ params }) {
     const { id } = React.use(params);
@@ -38,11 +39,7 @@ export default function EditWorkerPage({ params }) {
     }, [id, session]);
 
     if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress />
-            </Box>
-        );
+        return <Loading />;
     }
 
     if (error) {

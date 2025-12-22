@@ -9,23 +9,34 @@ const DEBT_API_URL = `/debt`;
  * CACHING: Debts cached for 60-120 seconds (moderate frequency)
  * Per blueprint: debts query caching 60-120 seconds
  */
-export const getDebts = async (companyId) => {
+export const getDebts = async (companyId, filters = {}, options = {}) => {
   if (typeof companyId === "object") {
     console.error("Invalid companyId passed to getDebts:", companyId);
     throw new Error("Invalid companyId: Object passed instead of string");
   }
 
+  const { shopId, soldBy } = filters;
+  let queryParams = `companyId=${companyId}`;
+  if (shopId) queryParams += `&shopId=${shopId}`;
+  if (soldBy) queryParams += `&soldBy=${soldBy}`;
+
   const cacheStrategy = getCacheStrategy("DEBTS", "LIST");
 
   try {
     const data = await apiClient.get(
-      `${DEBT_API_URL}/company/${companyId}/debts`,
+      `${DEBT_API_URL}/company/${companyId}/debts?${queryParams}`,
       {
         cache: cacheStrategy,
+        ...options
       }
     );
     console.log("Debts fetched:", data);
-    return data;
+
+    // Handle potential object wrapping
+    if (data && !Array.isArray(data)) {
+      return data.items || data.data || data.debts || [];
+    }
+    return data || [];
   } catch (error) {
     console.error("Error fetching debts:", error);
     throw error;
@@ -42,7 +53,7 @@ export const getDebtById = async (debtId, companyId) => {
 
   try {
     const data = await apiClient.get(
-      `${DEBT_API_URL}/${companyId}/debt/${debtId}`,
+      `${DEBT_API_URL}/company/${companyId}/debts/${debtId}`,
       {
         cache: cacheStrategy,
       }
@@ -64,7 +75,7 @@ export const getDebtHistory = async (companyId, debtId) => {
   const cacheStrategy = getCacheStrategy("DEBTS", "DETAIL");
 
   try {
-    const data = await apiClient.get(`${DEBT_API_URL}/${companyId}/debt/${debtId}/history`,
+    const data = await apiClient.get(`${DEBT_API_URL}/company/${companyId}/debts/${debtId}/history`,
       {
         cache: cacheStrategy,
       }
@@ -108,7 +119,7 @@ export const createDebt = async (debtData) => {
 export const updateDebt = async (debtId, debtData, companyId) => {
   try {
     const data = await apiClient.patch(
-      `${DEBT_API_URL}company/${companyId}/debts/${debtId}`,
+      `${DEBT_API_URL}/company/${companyId}/debts/${debtId}`,
       debtData
     );
 
@@ -131,7 +142,7 @@ export const updateDebt = async (debtId, debtData, companyId) => {
 export const deleteDebt = async (debtId, companyId) => {
   try {
     const data = await apiClient.delete(
-      `${DEBT_API_URL}company/${companyId}/debts/${debtId}`
+      `${DEBT_API_URL}/company/${companyId}/debts/${debtId}`
     );
 
     // Clear debts cache
@@ -199,7 +210,7 @@ export const markDebtAsPaid = async (debtId, payload) => {
  */
 export const cancelDebt = async (debtId, payload) => {
   try {
-    const data = await apiClient.post(`${DEBT_API_URL}/${debtId}/cancel`,payload);
+    const data = await apiClient.post(`${DEBT_API_URL}/${debtId}/cancel`, payload);
 
     // Clear debts cache
     apiClient.clearCache("/debts");

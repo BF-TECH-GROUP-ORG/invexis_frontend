@@ -3,11 +3,11 @@
 import ProtectedRoute from "@/lib/ProtectedRoute";
 import WorkersListPage from "@/components/pages/WorkersListPage";
 
-export default function WorkersProtectedWrapper() {
+export default function WorkersProtectedWrapper({ companyId }) {
   return (
-    <ProtectedRoute allowedRoles={["company_admin"]}>
+    <ProtectedRoute allowedRoles={["company_admin"]} allowedDepartments={["management"]}>
       <div>
-        <WorkersListPage />
+        <WorkersListPage companyId={companyId} />
       </div>
     </ProtectedRoute>
   );

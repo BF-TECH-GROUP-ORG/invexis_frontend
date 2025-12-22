@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -45,9 +45,22 @@ export default function ProductList() {
   const categoriesState = useSelector((state) => state.categories || {});
   const warehousesState = useSelector((state) => state.warehouses || {});
 
-  const products = Array.isArray(productsState.items)
+  const allProducts = Array.isArray(productsState.items)
     ? productsState.items
     : [];
+
+  const products = useMemo(() => {
+    const userRole = session?.user?.role;
+    const assignedDepartments = session?.user?.assignedDepartments || [];
+    const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
+    const userShopId = session?.user?.shops?.[0];
+
+    if (isSalesWorker && userShopId) {
+      return allProducts.filter(p => p.shopId === userShopId);
+    }
+    return allProducts;
+  }, [allProducts, session?.user]);
+
   const categories = Array.isArray(categoriesState.items)
     ? categoriesState.items
     : [];
@@ -92,7 +105,7 @@ export default function ProductList() {
 
   useEffect(() => {
     if (companyId) {
-      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
+      // dispatch(fetchProducts({ page: 1, limit: 20, companyId })); // Handled by the second useEffect
       dispatch(fetchCategories({ companyId }));
       dispatch(fetchWarehouses());
     }
@@ -209,14 +222,12 @@ export default function ProductList() {
       // Format data for the table
       const rowData = [
         "", // Placeholder for image
-        `${product.name}\n${
-          product.description
-            ? String(product.description).substring(0, 30) + "..."
-            : ""
+        `${product.name}\n${product.description
+          ? String(product.description).substring(0, 30) + "..."
+          : ""
         }`,
         product.category?.name || product.categoryId?.name || "N/A",
-        `Qty: ${stock}\nPrice: $${effectivePrice.toLocaleString()}${
-          discount > 0 ? `\nDisc: ${discount}%` : ""
+        `Qty: ${stock}\nPrice: $${effectivePrice.toLocaleString()}${discount > 0 ? `\nDisc: ${discount}%` : ""
         }`,
         status,
         `$${totalValue.toLocaleString()}`,
@@ -352,14 +363,13 @@ export default function ProductList() {
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${
-                  isFilterOpen ||
+                className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${isFilterOpen ||
                   filters.category ||
                   filters.warehouse ||
                   filters.status
-                    ? "border-orange-500 text-orange-600 bg-orange-50"
-                    : "border-gray-300 hover:bg-gray-50 text-gray-700"
-                }`}
+                  ? "border-orange-500 text-orange-600 bg-orange-50"
+                  : "border-gray-300 hover:bg-gray-50 text-gray-700"
+                  }`}
               >
                 <Filter size={18} />
                 <span>Filters</span>

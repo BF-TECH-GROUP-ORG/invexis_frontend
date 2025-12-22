@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useSession } from "next-auth/react";
 import useInventoryOverview from "@/hooks/useInventoryOverview";
 import InventoryHeader from "./InventoryHeader";
 import InventoryKPISection from "./InventoryKPISection";
@@ -12,21 +15,27 @@ import ShopPerformanceSection from "./ShopPerformanceSection";
 import InventoryActivitySection from "./InventoryActivitySection";
 
 const InventoryOverviewPage = () => {
-  // Hardcoded company ID for now, or get from context/auth
-  const companyId = "mock-company-id";
-  const { loading, error, data, refetch } = useInventoryOverview(companyId);
+  const { data: session, status } = useSession();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-gray-500 animate-pulse font-medium">
-            Loading Dashboard...
-          </p>
-        </div>
-      </div>
-    );
+  // Extract companyId from session
+  const companyObj = session?.user?.companies?.[0];
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
+
+  const {
+    loading: dataLoading,
+    error,
+    data,
+    refetch,
+  } = useInventoryOverview(companyId);
+
+  const isLoading = status === "loading" || dataLoading;
+
+  // Loading state is handled by loading.jsx, data should be prefetched
+  if (isLoading && !data) {
+    return null; // Server-side loading.jsx will show skeleton
   }
 
   if (error) {
@@ -48,28 +57,85 @@ const InventoryOverviewPage = () => {
     );
   }
 
+  if (!companyId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-orange-600 mb-2">
+            No Company Selected
+          </h2>
+          <p className="text-gray-500 mb-4">
+            Please ensure you are associated with a company to view the
+            dashboard.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const hasDistribution =
+    (data?.statusDistribution?.length || 0) > 0 ||
+    (data?.valueDistribution?.length || 0) > 0;
+  const hasMovement = (data?.movementTrend?.length || 0) > 1;
+  const hasInsights =
+    (data?.financialChartData?.length || 0) > 1 || Boolean(data?.heatmapData);
+  const hasHealth = (data?.health?.length || 0) > 0;
+  const hasValueTrends = (data?.valueTrends?.length || 0) > 1;
+  const hasProductRisk =
+    (data?.topProducts?.length || 0) > 0 ||
+    (data?.riskProducts?.length || 0) > 0;
+  const hasShops =
+    data?.shopPerformance &&
+    ((data.shopPerformance.shops && data.shopPerformance.shops.length > 0) ||
+      (Array.isArray(data.shopPerformance) && data.shopPerformance.length > 0));
+  const hasActivity =
+    (data?.activities?.length || 0) > 0 ||
+    (data?.recentProducts?.length || 0) > 0;
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 p-6 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <InventoryHeader onRefresh={refetch} lastUpdated={new Date()} />
-        <InventoryKPISection summary={data.summary} />
-        <InventoryDistributionSection
-          statusData={data.statusDistribution}
-          valueData={data.valueDistribution}
+      <div className="max-w-[1600px] mx-auto space-y-6">
+        <InventoryHeader
+          onRefresh={refetch}
+          lastUpdated={
+            data?.summary?.lastUpdated ||
+            data?.summaryComputed?.lastUpdated ||
+            new Date()
+          }
         />
-        <InventoryMovementSection data={data.movementTrend} />
-        <InventoryInsightsSection financialData={data.financialTrend} />
-        <InventoryHealthSection /> {/* Uses mock internal data for now */}
-        <InventoryValueTrendSection /> {/* Uses mock internal data for now */}
-        <ProductRiskSection
-          topProducts={data.topProducts}
-          riskProducts={data.riskProducts}
-        />
-        <ShopPerformanceSection data={data.shopPerformance} />
-        <InventoryActivitySection
-          activities={data.activities}
-          recentProducts={data.recentProducts}
-        />
+        <InventoryKPISection summary={data} sparklines={data.kpiSparklines} />
+        {hasDistribution && (
+          <InventoryDistributionSection
+            statusData={data.statusDistribution}
+            valueData={data.valueDistribution}
+            totalUnits={data.summaryComputed?.totalUnits}
+            totalValue={data.summaryComputed?.totalValue}
+          />
+        )}
+        {hasMovement && <InventoryMovementSection data={data.movementTrend} />}
+        {hasInsights && (
+          <InventoryInsightsSection
+            financialData={data.financialChartData || data.financialTrend}
+            heatmapData={data.heatmapData}
+          />
+        )}
+        {hasHealth && <InventoryHealthSection data={data.health} />}
+        {hasValueTrends && (
+          <InventoryValueTrendSection data={data.valueTrends} />
+        )}
+        {hasProductRisk && (
+          <ProductRiskSection
+            topProducts={data.topProducts}
+            riskProducts={data.riskProducts}
+          />
+        )}
+        {hasShops && <ShopPerformanceSection data={data.shopPerformance} />}
+        {hasActivity && (
+          <InventoryActivitySection
+            activities={data.activities}
+            recentProducts={data.recentProducts}
+          />
+        )}
       </div>
     </div>
   );
