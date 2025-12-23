@@ -42,7 +42,6 @@ export const store = configureStore({
     documents: documentsReducer,
     billing: billingReducer,
     announcements: announcementsReducer,
-    
     notifications: notificationReducer,
     logs: logsReducer,
   },
