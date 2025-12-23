@@ -1,14 +1,12 @@
-'use client';
-import React from 'react';
-import ProtectedRoute from '@/lib/ProtectedRoute';
-import LogsDashboard from '@/components/logs/LogsDashboard';
+import LogsPageClient from "./LogsPageClient";
+
+export const metadata = {
+    title: "Audit Logs | INVEXIS",
+    description: "View and filter system audit logs",
+};
 
 const LogsPage = () => {
-  return (
-    <ProtectedRoute allowedRoles={["company_admin", "super_admin"]}>
-      <LogsDashboard />
-    </ProtectedRoute>
-  );
+    return <LogsPageClient />;
 };
 
 export default LogsPage;
