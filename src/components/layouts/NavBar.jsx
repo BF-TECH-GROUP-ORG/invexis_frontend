@@ -17,8 +17,7 @@ import { useLoading } from "@/contexts/LoadingContext";
 
 // Redux
 import { useSelector } from "react-redux";
-import { selectUnreadCount } from "@/features/announcements/announcementsSlice";
-import { useAnnouncementSocket } from "@/hooks/useAnnouncementSocket";
+import { selectUnreadCount } from "@/features/NotificationSlice";
 
 export default function TopNavBar({ expanded = true, isMobile = false }) {
   const router = useRouter();
@@ -29,9 +28,6 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
 
   // Redux State
   const unreadCount = useSelector(selectUnreadCount);
-
-  // Initialize Socket Global Listener
-  useAnnouncementSocket();
 
   // User from session
   const user = session?.user;
@@ -95,8 +91,8 @@ export default function TopNavBar({ expanded = true, isMobile = false }) {
           width: isMobile
             ? "100%"
             : expanded
-            ? "calc(100% - 16rem)"
-            : "calc(100% - 5rem)",
+              ? "calc(100% - 16rem)"
+              : "calc(100% - 5rem)",
         }}
       >
         {/* Left Section - Logo (Visible on mobile or if needed) */}

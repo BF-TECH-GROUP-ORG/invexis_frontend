@@ -1,275 +1,446 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
 import {
-    Package,
-    CreditCard,
-    Info,
-    CheckCircle,
-    Bell,
-    CheckCheck,
-    Filter,
-    Trash2
+  Bell,
+  RefreshCw,
+  CheckCheck,
+  ExternalLink,
+  Filter,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  Trash2,
+  Clock
 } from "lucide-react";
-import { getNotifications, markNotificationsRead } from "@/services/notificationService";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  selectAllNotifications,
+  selectUnreadCount,
+  selectNotificationLoading,
+  selectNotificationFilter,
+  fetchNotificationsThunk,
+  markAsReadThunk,
+  setFilter
+} from "@/features/NotificationSlice";
+import { INTENT_CONFIG, NOTIFICATION_INTENTS, PRIORITY_LEVELS } from "@/constants/notifications";
 
 export default function NotificationsPage() {
-    const { data: session } = useSession();
-    const locale = useLocale();
-    const router = useRouter();
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const locale = useLocale();
 
-    const [activeTab, setActiveTab] = useState("all");
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const LIMIT = 20;
+  const notifications = useSelector(selectAllNotifications);
+  const unreadCount = useSelector(selectUnreadCount);
+  const loading = useSelector(selectNotificationLoading);
+  const pagination = useSelector(state => state.notifications.pagination);
 
-    // Fetch Logic
-    const fetchNotifs = async () => {
-        try {
-            setLoading(true);
-            const typeFilter = activeTab === 'all' ? undefined :
-                activeTab === 'sales' ? 'sales_alert' :
-                    activeTab === 'inventory' ? 'inventory_alert' :
-                        activeTab === 'system' ? 'system_update' : undefined;
+  const [readFilter, setReadFilter] = useState('all'); // all, unread, read
+  const [intentFilter, setIntentFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, priority
 
-            const res = await getNotifications({
-                page,
-                limit: LIMIT,
-                type: typeFilter
-                // We probably want ALL notifications here (read and unread) for a history view
-                // unreadOnly: true // Removed to show history
-            });
+  const { data: session } = useSession();
+  const currentUserId = session?.user?._id;
 
-            if (res.success && res.data?.notifications) {
-                setNotifications(res.data.notifications);
-                setTotal(res.data.pagination?.total || 0);
-            }
-        } catch (err) {
-            console.error("Failed to load notifications", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    if (dispatch && currentUserId) {
+      // Fetch ALL notifications once - we'll filter client-side
+      dispatch(fetchNotificationsThunk({ limit: 50, page: 1, userId: currentUserId }));
+    }
+  }, [dispatch, currentUserId]);
 
-    useEffect(() => {
-        if (session?.user?.id) {
-            fetchNotifs();
-        }
-    }, [session?.user?.id, activeTab, page]);
+  const handleRefresh = () => {
+    if (currentUserId) {
+      dispatch(fetchNotificationsThunk({ limit: 50, page: 1, userId: currentUserId }));
+    }
+  };
 
-    // Actions
-    const handleMarkAllRead = async () => {
-        try {
-            await markNotificationsRead({ all: true });
-            // Optimistically update local state? 
-            // Or just refresh. Refresh shows them as read (if visual indicator exists)
-            fetchNotifs();
-        } catch (err) {
-            console.error("Failed to mark all read", err);
-        }
-    };
 
-    const handleMarkRead = async (id) => {
-        try {
-            await markNotificationsRead({ notificationIds: [id] });
-            // Update local state to show as read
-            setNotifications(prev => prev.map(n =>
-                n._id === id ? { ...n, readBy: [...(n.readBy || []), session.user.id] } : n
-            ));
-        } catch (err) {
-            console.error("Failed to mark read", err);
-        }
-    };
+  const handleMarkAllRead = () => {
+    dispatch(markAsReadThunk({ all: true })).then(() => {
+      handleRefresh();
+    });
+  };
 
-    const handleNotificationClick = (n) => {
-        // Mark read if needed
-        if (!n.readBy?.includes(session?.user?.id)) {
-            handleMarkRead(n._id);
-        }
+  const handleMarkRead = (id) => {
+    dispatch(markAsReadThunk({ notificationIds: [id] }));
+  };
 
-        // Navigate
-        const basePath = `/${locale}/inventory`;
-        switch (n.type) {
-            case 'inventory_alert':
-                if (n.payload?.productId) {
-                    router.push(`${basePath}/products/details/${n.payload.productId}`);
-                } else {
-                    router.push(`${basePath}/alerts`);
-                }
-                break;
-            case 'sales_alert':
-                router.push(`${basePath}/sales`);
-                break;
-            case 'payment_success':
-                router.push(`${basePath}/billing`);
-                break;
-            default:
-                break;
-        }
-    };
+  const handleNotificationClick = (notification) => {
+    if (!notification.readBy || notification.readBy.length === 0) {
+      handleMarkRead(notification._id);
+    }
+    if (notification.actionUrl) {
+      router.push(notification.actionUrl);
+    }
+  };
 
-    // Helpers
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'high':
-            case 'urgent': return "bg-red-500";
-            case 'medium': return "bg-orange-500";
-            case 'low': return "bg-blue-500";
-            default: return "bg-blue-400";
-        }
-    };
+  const getIntentConfig = (intent) => {
+    return INTENT_CONFIG[intent] || INTENT_CONFIG[NOTIFICATION_INTENTS.OPERATIONAL];
+  };
 
-    const getIconByType = (type) => {
-        switch (type) {
-            case 'inventory_alert': return <Package className="w-5 h-5 text-amber-600" />;
-            case 'sales_alert': return <CreditCard className="w-5 h-5 text-green-600" />;
-            case 'payment_success': return <CheckCircle className="w-5 h-5 text-green-600" />;
-            case 'system_update': return <Info className="w-5 h-5 text-blue-600" />;
-            default: return <Bell className="w-5 h-5 text-gray-600" />;
-        }
-    };
+  const getTimeAgo = (dateString) => {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
 
-    const isRead = (n) => n.readBy?.includes(session?.user?.id);
+  const filteredAndSortedNotifications = useMemo(() => {
+    let result = notifications.filter(n => {
+      // If currentUserId is not available yet, treat all as unread
+      const isReadByMe = currentUserId ? (n.readBy && n.readBy.includes(currentUserId)) : false;
 
-    return (
-        <div className="p-6 max-w-5xl mx-auto space-y-6">
+      // Read status filter
+      if (readFilter === 'unread' && isReadByMe) return false;
+      if (readFilter === 'read' && !isReadByMe) return false;
 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-                    <p className="text-gray-500">Stay updated with system alerts and activities.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleMarkAllRead}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition text-sm font-medium text-gray-700 shadow-sm"
-                    >
-                        <CheckCheck className="w-4 h-4" />
-                        Mark all as read
-                    </button>
-                </div>
-            </div>
+      // Intent filter - check payload.intent field
+      const notificationIntent = n.payload?.intent || n.intent;
+      if (intentFilter !== 'all' && notificationIntent !== intentFilter) return false;
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200">
-                <nav className="flex gap-6">
-                    {['all', 'sales', 'inventory', 'system'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => { setActiveTab(tab); setPage(1); }}
-                            className={`pb-4 text-sm font-medium capitalize transition-all relative ${activeTab === tab
-                                    ? 'text-orange-600'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            {tab}
-                            {activeTab === tab && (
-                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500 rounded-t-full" />
-                            )}
-                        </button>
-                    ))}
-                </nav>
-            </div>
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return n.title.toLowerCase().includes(query) || n.body.toLowerCase().includes(query);
+      }
 
-            {/* List */}
-            <div className="space-y-4">
-                {loading ? (
-                    <div className="text-center py-12 text-gray-400 flex flex-col items-center">
-                        <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-4" />
-                        Loading notifications...
-                    </div>
-                ) : notifications.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                        <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <h3 className="text-lg font-medium text-gray-900">No notifications found</h3>
-                        <p className="text-gray-500">You're all caught up!</p>
-                    </div>
-                ) : (
-                    notifications.map((n) => (
-                        <div
-                            key={n._id}
-                            onClick={() => handleNotificationClick(n)}
-                            className={`group relative flex items-start gap-4 p-5 rounded-xl border transition-all cursor-pointer hover:shadow-md ${isRead(n) ? 'bg-white border-gray-100' : 'bg-orange-50/30 border-orange-100'
-                                }`}
-                        >
-                            {/* Priority Indicator */}
-                            <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${getPriorityColor(n.priority)}`} />
+      return true;
+    });
 
-                            {/* Icon */}
-                            <div className={`p-3 rounded-lg flex-shrink-0 ${isRead(n) ? 'bg-gray-100' : 'bg-white shadow-sm'}`}>
-                                {getIconByType(n.type)}
-                            </div>
+    // Sorting
+    result.sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === 'priority') {
+        const priorityScore = { urgent: 3, high: 2, normal: 1, low: 0 };
+        return priorityScore[b.priority] - priorityScore[a.priority];
+      }
+      return 0;
+    });
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <h4 className={`text-base font-semibold ${isRead(n) ? 'text-gray-700' : 'text-gray-900'}`}>
-                                        {n.title}
-                                    </h4>
-                                    <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                                        {n.createdAt ? new Date(n.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''}
-                                    </span>
-                                </div>
-                                <p className={`text-sm leading-relaxed ${isRead(n) ? 'text-gray-500' : 'text-gray-600'}`}>
-                                    {n.body}
-                                </p>
+    return result;
+  }, [notifications, readFilter, intentFilter, searchQuery, sortBy, currentUserId]);
 
-                                {/* Payload Hints (Optional) */}
-                                {n.payload && Object.keys(n.payload).length > 0 && n.type === 'inventory_alert' && (
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                                            Stock: {n.payload.currentStock}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+  return (
+    <div className="flex h-[calc(100vh-5rem)] bg-white">
 
-                            {/* Actions (Hover) */}
-                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {!isRead(n) && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleMarkRead(n._id); }}
-                                        title="Mark as read"
-                                        className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"
-                                    >
-                                        <CheckCheck className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-
-            {/* Pagination (Simple) */}
-            {total > LIMIT && (
-                <div className="flex justify-center pt-8">
-                    <button
-                        disabled={page === 1}
-                        onClick={() => setPage(p => p - 1)}
-                        className="px-4 py-2 border rounded-l-lg hover:bg-gray-50 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <span className="px-4 py-2 border-t border-b bg-gray-50 text-sm flex items-center">
-                        Page {page}
-                    </span>
-                    <button
-                        disabled={page * LIMIT >= total}
-                        onClick={() => setPage(p => p + 1)}
-                        className="px-4 py-2 border rounded-r-lg hover:bg-gray-50 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-
+      {/* Left Sidebar - Filters */}
+      <aside className="w-72 border-r bg-gray-50/50 p-6 space-y-8 overflow-y-auto backdrop-blur-sm">
+        <div className="relative">
+          <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">Search Inbox</label>
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Filter by keyword..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-sm"
+            />
+          </div>
         </div>
-    );
+
+        <div>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <Filter className="w-3 h-3" />
+            Read Status
+          </h3>
+          <div className="space-y-1.5">
+            {['all', 'unread', 'read'].map(status => (
+              <button
+                key={status}
+                onClick={() => setReadFilter(status)}
+                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-between group ${readFilter === status
+                  ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                  : 'text-gray-600 hover:bg-white hover:shadow-md'
+                  }`}
+              >
+                <span className="capitalize">{status}</span>
+                {status === 'unread' && unreadCount > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${readFilter === status ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Intents</h3>
+          <div className="space-y-1.5">
+            <button
+              onClick={() => setIntentFilter('all')}
+              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${intentFilter === 'all'
+                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                : 'text-gray-600 hover:bg-white hover:shadow-md'
+                }`}
+            >
+              <Bell className="w-4 h-4" />
+              All Notifications
+            </button>
+            {Object.entries(INTENT_CONFIG).map(([key, config]) => {
+              const IconComponent = config.icon;
+              const isActive = intentFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setIntentFilter(key)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3 ${isActive
+                    ? `${config.bgColor} ${config.textColor} border-2 ${config.borderColor} shadow-md`
+                    : 'text-gray-600 hover:bg-white hover:shadow-md'
+                    }`}
+                >
+                  <div className={`p-1.5 rounded-lg ${isActive ? 'bg-white/20' : config.bgColor}`}>
+                    <IconComponent className={`w-4 h-4 ${isActive ? 'text-white' : config.textColor}`} />
+                  </div>
+                  {config.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden bg-gray-50/30">
+
+        {/* Header */}
+        <header className="px-8 py-6 border-b bg-white/80 backdrop-blur-md sticky top-0 z-20">
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Notification Inbox</h1>
+                <div className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-black uppercase rounded-md flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  Live Sync
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 flex items-center gap-2">
+                Showing {filteredAndSortedNotifications.length} items
+                <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                Updated {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200">
+                <button
+                  onClick={() => setSortBy('newest')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${sortBy === 'newest' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Newest
+                </button>
+                <button
+                  onClick={() => setSortBy('priority')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${sortBy === 'priority' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Priority
+                </button>
+              </div>
+
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="p-2.5 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-xl border border-gray-200 bg-white transition-all disabled:opacity-50"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all shadow-lg shadow-gray-900/10 text-sm font-black"
+                >
+                  <CheckCheck className="w-4 h-4" />
+                  Clear Unread
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Notification List */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+          <AnimatePresence mode="popLayout">
+            {loading && filteredAndSortedNotifications.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center h-80"
+              >
+                <div className="w-16 h-16 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin mb-6" />
+                <p className="text-gray-500 font-medium animate-pulse">Syncing notifications...</p>
+              </motion.div>
+            ) : filteredAndSortedNotifications.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center h-96 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-gray-200"
+              >
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                  <Bell className="w-12 h-12 text-gray-300" />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 mb-2">Clean Slate!</h3>
+                <p className="text-gray-500 text-sm max-w-xs text-center">
+                  {readFilter === 'unread' ? "You've successfully addressed all urgent matters." : "No notifications found matching your search criteria."}
+                </p>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="mt-6 text-orange-500 font-bold text-sm hover:underline"
+                  >
+                    Clear Search Query
+                  </button>
+                )}
+              </motion.div>
+            ) : (
+              <div className="space-y-4 max-w-5xl mx-auto">
+                {filteredAndSortedNotifications.map((n, index) => {
+                  const notificationIntent = n.payload?.intent || n.intent || 'operational';
+                  const config = getIntentConfig(notificationIntent);
+                  const IconComponent = config.icon;
+                  const isReadByMe = n.readBy && n.readBy.includes(currentUserId);
+                  const isUnread = !isReadByMe;
+                  const isUrgent = n.priority === PRIORITY_LEVELS.URGENT;
+
+                  return (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, delay: index * 0.05 }}
+                      key={n._id}
+                      onClick={() => handleNotificationClick(n)}
+                      className={`relative flex gap-6 p-6 rounded-[2rem] border-2 transition-all cursor-pointer group ${isUnread
+                        ? `bg-white ${config.borderColor} shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:scale-[1.01]`
+                        : 'bg-white/40 border-gray-100 opacity-80 hover:opacity-100 hover:border-gray-200'
+                        }`}
+                    >
+                      {/* Intent Icon */}
+                      <div className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${config.bgColor} ${isUrgent ? 'animate-pulse' : ''}`}>
+                        <IconComponent className={`w-8 h-8 ${config.textColor}`} />
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-6">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${config.bgColor} ${config.textColor}`}>
+                                {config.label}
+                              </span>
+                              {isUrgent && (
+                                <span className="px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded uppercase tracking-tighter">
+                                  Urgent Action
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase">
+                                <Clock className="w-3 h-3" />
+                                {getTimeAgo(n.createdAt)}
+                              </span>
+                            </div>
+                            <h3 className={`font-black text-xl mb-2 tracking-tight ${isUnread ? 'text-gray-900' : 'text-gray-600'}`}>
+                              {n.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                              {n.body}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-4">
+                            {isUnread && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkRead(n._id);
+                                }}
+                                className="p-3 bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white rounded-2xl transition-all shadow-sm group/btn"
+                                title="Mark as read"
+                              >
+                                <CheckCheck className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
+                              </button>
+                            )}
+                            {n.actionUrl && (
+                              <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                <ExternalLink className="w-5 h-5" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {n.actionUrl && (
+                          <div className="mt-4 flex items-center gap-2 text-orange-500 text-xs font-black uppercase tracking-widest group-hover:gap-3 transition-all">
+                            <span>Open Attachment</span>
+                            <div className="h-px flex-1 bg-orange-100" />
+                            <ArrowUpDown className="w-3 h-3 rotate-90" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Line Indicator */}
+                      {isUnread && (
+                        <div className={`absolute top-0 bottom-0 left-0 w-1.5 rounded-l-[2rem] ${config.bgColor === 'bg-orange-50' ? 'bg-orange-500' :
+                          config.bgColor === 'bg-blue-50' ? 'bg-blue-500' :
+                            config.bgColor === 'bg-red-50' ? 'bg-red-500' :
+                              config.bgColor === 'bg-green-50' ? 'bg-green-500' :
+                                config.bgColor === 'bg-purple-50' ? 'bg-purple-500' : 'bg-gray-500'}`} />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer / Pagination */}
+        {pagination.pages > 1 && (
+          <footer className="px-8 py-4 border-t bg-white flex items-center justify-between">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Page {pagination.page} of {pagination.pages}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(pagination.pages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${pagination.page === i + 1 ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.pages}
+                className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </footer>
+        )}
+      </main>
+    </div>
+  );
 }
