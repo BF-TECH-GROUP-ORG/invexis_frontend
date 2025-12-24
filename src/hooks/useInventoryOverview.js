@@ -81,102 +81,25 @@ const useInventoryOverview = (companyId) => {
     setError(null);
 
     try {
-      const [
-        dashboardData,
-        companyOverview,
-        inventorySummary,
-        shops,
-        riskProducts,
-        topProducts,
-        activitiesResponse,
-        recentProductsResponse,
-        productsResponse,
-        trendsResponse,
-        overviewAnalytics,
-      ] = await Promise.all([
-        OverviewService.getDashboardData(companyId),
-        OverviewService.getCompanyOverview(companyId),
-        OverviewService.getInventorySummary(companyId),
-        OverviewService.getShops({ companyId }),
-        OverviewService.getStockoutRisk({ companyId }),
-        OverviewService.getTopProducts({ companyId }),
-        OverviewService.getProducts({ companyId, limit: 50 }),
-        // fallback: use productsService if OverviewService doesn't return full details
-        productsService.getProducts({ companyId, limit: 1000 }),
-        OverviewService.getInventoryTrends({ companyId, period: "month" }),
-        // New: unified overview analytics endpoint (single source of truth for snapshot/KPIs/trends/activity)
-        OverviewService.getOverviewAnalytics({ companyId }),
-      ]);
+      // Primary source: unified overview analytics endpoint
+      const overviewAnalytics = await OverviewService.getOverviewAnalytics({
+        companyId,
+      });
 
-      // Attempt to use the unified overview analytics payload if available
-      const overviewPayload =
-        (overviewAnalytics &&
-          (overviewAnalytics.data || overviewAnalytics?.data?.data)) ||
-        null;
-      const overviewData =
-        overviewPayload?.data ||
-        overviewAnalytics?.data ||
-        overviewAnalytics ||
-        null; // support different shapes
+      // Extract the data payload from the unified response
+      const overviewData = overviewAnalytics?.data || overviewAnalytics || {};
 
-      // Map overview API fields into local variables (prefer overviewData when available)
-      const snapshot =
-        overviewData?.snapshot ||
-        (dashboardData && dashboardData.summary) ||
-        {};
-      const kpis =
-        overviewData?.kpis || (dashboardData && dashboardData.metrics) || {};
-      const distributions = overviewData?.distributions || {};
-      const trendsFromOverview = overviewData?.trends || null;
-      const heatmapFromOverview = overviewData?.heatmap || null;
-      const topProductsOverview = overviewData?.topProducts || null;
-      const recentActivityOverview = overviewData?.recentActivity || null;
-      const shopPerformanceOverview = overviewData?.shopPerformance || null;
-
-      // Prefer the most detailed products list available
-      const products =
-        (productsResponse && Array.isArray(productsResponse.data)
-          ? productsResponse.data
-          : productsResponse) ||
-        (productsResponse && Array.isArray(productsResponse)) ||
-        (productsResponse && productsResponse.items) ||
-        (productsResponse && productsResponse.data?.items) ||
-        (Array.isArray(recentProductsResponse) ? recentProductsResponse : []) ||
-        [];
-
-      // If OverviewService.getProducts returned empty, try the direct productsService
-      const fallbackProducts =
-        productsResponse && Array.isArray(productsResponse)
-          ? productsResponse
-          : productsResponse || [];
-
-      const effectiveProducts = products.length ? products : fallbackProducts;
-
-      // Normalize common API response shapes into arrays
+      // Helper to safely extract arrays from various response shapes
       const extractArray = (src) => {
         if (!src) return [];
         if (Array.isArray(src)) return src;
         if (src.items && Array.isArray(src.items)) return src.items;
         if (src.data && Array.isArray(src.data)) return src.data;
-        if (src.data && src.data.data && Array.isArray(src.data.data))
-          return src.data.data;
         if (src.results && Array.isArray(src.results)) return src.results;
-        if (src.metrics && Array.isArray(src.metrics)) return src.metrics;
         return [];
       };
 
-      // Activities should come from the unified overview payload first; fallback to any previous activity responses if present
-      const activities = extractArray(recentActivityOverview || []);
-      const recentProducts = extractArray(recentProductsResponse);
-      // normalize shops response to an array (api returns { success, data: [...] })
-      const shopsList = extractArray(shops);
-
-      const trendsArray =
-        extractArray(dashboardData.trends) ||
-        extractArray(trendsResponse) ||
-        extractArray(dashboardData.metrics?.graphs?.inventoryTrends) ||
-        [];
-
+      // Helper to format relative time
       const formatActivityTime = (dateStr) => {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return "Recently";
@@ -189,312 +112,282 @@ const useInventoryOverview = (companyId) => {
         return d.toLocaleDateString();
       };
 
-      // Compute inventory totals (units & value) from products
-      let totalValue = 0;
-      let totalUnits = 0;
-      let totalProducts = 0;
-      const categoryMap = {};
+      // ===== EXTRACT & MAP API RESPONSE FIELDS =====
 
-      effectiveProducts.forEach((p) => {
-        totalProducts += 1;
-        const details = (p.stock && p.stock.details) || [];
-        const price =
-          Number(p.pricing?.salePrice) || Number(p.pricing?.basePrice) || 0;
+      // Meta (summary info)
+      const meta = overviewData?.meta || {};
+      const summary = {
+        companyId: meta.companyId,
+        currency: meta.currency || "USD",
+        lastUpdated: meta.generatedAt || new Date().toISOString(),
+        dateRange: meta.dateRange || {},
+      };
 
-        if (details.length > 0) {
-          details.forEach((d) => {
-            const qty =
-              Number(d.availableQty ?? d.stockQty ?? d.available ?? 0) || 0;
-            totalUnits += qty;
-            totalValue += qty * price;
-            const catName =
-              p.category?.name || p.category?.slug || "Uncategorized";
-            categoryMap[catName] = (categoryMap[catName] || 0) + qty * price;
-          });
-        } else {
-          const qty = Number(p.stock?.total ?? p.stockQty ?? 0) || 0;
-          totalUnits += qty;
-          totalValue += qty * price;
-          const catName =
-            p.category?.name || p.category?.slug || "Uncategorized";
-          categoryMap[catName] = (categoryMap[catName] || 0) + qty * price;
-        }
-      });
+      // KPIs with counts
+      const kpisFromApi = overviewData?.kpis || {};
+      const kpis = {
+        totalInventoryUnits: Number(kpisFromApi.totalInventoryUnits ?? 0),
+        totalInventoryValue: Number(kpisFromApi.totalInventoryValue ?? 0),
+        netStockMovement: Number(kpisFromApi.netStockMovement ?? 0),
+        grossProfit: Number(kpisFromApi.grossProfit ?? 0),
+        lowStockItemsCount: Number(
+          overviewData?.inventoryStatusDistribution?.lowStock ??
+            kpisFromApi.lowStockItemsCount ??
+            0
+        ),
+        stockoutRiskItemsCount: Number(kpisFromApi.stockoutRiskItemsCount ?? 0),
+      };
 
-      const computedCategoryDistribution = Object.keys(categoryMap).map(
-        (k, i) => ({
-          name: k,
-          value: Math.round(categoryMap[k]),
-          fill: undefined,
+      // Generate sparklines from trend arrays
+      const generateSparklines = () => {
+        const trends = kpisFromApi.trends || {};
+        return {
+          units: extractArray(trends.totalInventoryUnits || []).map((v) => ({
+            value: Number(v ?? 0),
+          })),
+          value: extractArray(trends.totalInventoryValue || []).map((v) => ({
+            value: Number(v ?? 0),
+          })),
+          movement: extractArray(trends.netStockMovement || []).map((v) => ({
+            value: Number(v ?? 0),
+          })),
+          profit: extractArray(trends.grossProfit || []).map((v) => ({
+            value: Number(v ?? 0),
+          })),
+        };
+      };
+      const kpiSparklines = generateSparklines();
+
+      // Status distribution: convert object to array of { name, value }
+      const statusObj = overviewData?.inventoryStatusDistribution || {};
+      const statusDistribution = [
+        { name: "In Stock", value: Number(statusObj.inStock ?? 0) },
+        { name: "Low Stock", value: Number(statusObj.lowStock ?? 0) },
+        { name: "Out of Stock", value: Number(statusObj.outOfStock ?? 0) },
+        { name: "Overstocked", value: Number(statusObj.overstocked ?? 0) },
+        { name: "Reserved", value: Number(statusObj.reserved ?? 0) },
+      ].filter((s) => s.value > 0);
+
+      // Value distribution by category
+      const valueDistributionByCategory = (
+        overviewData?.inventoryValueDistribution?.byCategory || []
+      ).map((c) => ({
+        name: c.categoryName || c.name || "Unknown",
+        value: Number(c.value ?? 0),
+      }));
+
+      // Value distribution by shop
+      const valueDistributionByShop = (
+        overviewData?.inventoryValueDistribution?.byShop || []
+      ).map((s) => ({
+        name: s.shopName || s.name || "Unknown",
+        value: Number(s.value ?? 0),
+      }));
+
+      // Value distribution by status
+      const valueDistributionByStatus = (
+        overviewData?.inventoryValueDistribution?.byStatus || []
+      ).map((s) => ({
+        name: s.status || "Unknown",
+        value: Number(s.value ?? 0),
+      }));
+
+      // Movement trend mapping
+      const movementTrend = (overviewData?.inventoryMovementTrend || []).map(
+        (d, i) => ({
+          month: d.date || `Day ${i + 1}`,
+          stockIn: Number(d.stockIn ?? 0),
+          stockOut: Number(d.stockOut ?? 0),
+          netChange: Number(d.netMovement ?? 0),
         })
       );
 
-      // compute health counts
-      let inStockCnt = 0;
-      let lowStockCnt = 0;
-      let outOfStockCnt = 0;
-      effectiveProducts.forEach((p) => {
-        const details = (p.stock && p.stock.details) || [];
-        const total =
-          details.reduce(
-            (acc, d) =>
-              acc +
-              (Number(d.availableQty ?? d.stockQty ?? d.available ?? 0) || 0),
-            0
-          ) || Number(p.stock?.total ?? 0);
-        if (total <= 0) outOfStockCnt += 1;
-        else inStockCnt += 1;
-        // check low stock by thresholds if details present
-        const isLow = details.some(
-          (d) =>
-            d.isLowStock ||
-            (d.availableQty ?? d.stockQty) <= (d.lowStockThreshold ?? 0)
-        );
-        if (isLow) lowStockCnt += 1;
+      // Heatmap conversion: convert {dayOfWeek:1-7, hour} into 28-slot intensity array
+      const heatmapRaw = overviewData?.inventoryMovementHeatmap || [];
+      const heatmapSlots = Array.from({ length: 28 }).fill(0);
+      heatmapRaw.forEach((h) => {
+        const dayIdx = (Number(h.dayOfWeek ?? 1) - 1 + 7) % 7; // 0-6 (Mon-Sun)
+        const hour = Number(h.hour ?? 0);
+        const timeBlock = Math.min(3, Math.max(0, Math.floor(hour / 6))); // 0-3 (Morning/Noon/Evening/Night)
+        const idx = dayIdx * 4 + timeBlock; // day-major: 7 days × 4 time blocks
+        heatmapSlots[idx] += Number(h.quantityMoved ?? h.in ?? h.out ?? 0);
       });
-
-      // If unified overview API returned distributions use them (status/value)
-      const statusDistribution =
-        distributions?.status ||
-        inventorySummary?.data?.summary?.statusDistribution ||
-        dashboardData.summary?.distribution ||
-        [];
-
-      const valueDistribution =
-        distributions?.value?.byCategory ||
-        computedCategoryDistribution.length > 0
-          ? computedCategoryDistribution
-          : inventorySummary?.data?.summary?.byCategory ||
-            dashboardData.summary?.categoryDistribution ||
-            [];
-
-      // trends mapping: prefer the overview trends if present
-      const movementsTrend =
-        (trendsFromOverview && trendsFromOverview.movements) ||
-        trendsArray ||
-        [];
-      const profitTrend =
-        (trendsFromOverview && trendsFromOverview.profit) || null;
-
-      // heatmap: prefer overview heatmap
-      const heatmapDataFromApi =
-        heatmapFromOverview || dashboardData.heatmap || null;
-
-      // top products and recent activity
-      const topProductsFinal =
-        topProductsOverview ||
-        (topProducts && (topProducts.data || topProducts.items)) ||
-        topProducts ||
-        [];
-      const recentActivity = recentActivityOverview || activities || [];
-
-      // shop performance
-      const shopPerformanceFinal =
-        shopPerformanceOverview ||
-        (shopsList && shopsList.length ? shopsList : []);
-
-      // Sparklines will be computed later (after trendPoints declaration) to avoid duplicate declarations
-
-      const healthSeries = [
-        {
-          month: "Now",
-          inStock: inStockCnt,
-          lowStock: lowStockCnt,
-          outOfStock: outOfStockCnt,
-        },
-      ];
-
-      const trendPoints = trendsArray || [];
-
-      const sparkValue = generateSparkFromTrend(trendPoints, "totalValue", 10);
-      const sparkUnits = generateSparkFromTrend(trendPoints, "totalUnits", 10);
-      const sparkMovement = generateSparkFromTrend(
-        trendPoints,
-        "netMovement",
-        10
-      );
-      const sparkRisk = generateSparkFromTrend(
-        riskProducts || [],
-        "stockoutRiskDays",
-        10
+      const heatmapMax = Math.max(...heatmapSlots, 1);
+      const heatmapData = heatmapSlots.map((v) =>
+        Math.round((v / heatmapMax) * 100)
       );
 
-      // normalize movement trend for charting library
-      const processedMovementTrend = (trendPoints || []).map((d, i) => {
-        const metrics = d.metrics || {};
-        const stockIn =
-          Number(metrics.inbound ?? d.inbound ?? d.stockIn ?? 0) || 0;
-        const stockOut =
-          Number(metrics.outbound ?? d.outbound ?? d.stockOut ?? 0) || 0;
-        const netChange =
-          Number(
-            metrics.netMovement ??
-              d.netMovement ??
-              d.netChange ??
-              stockIn - stockOut
-          ) || 0;
-        const monthLabel =
-          d.month ||
-          (d.date && new Date(d.date).toLocaleDateString()) ||
-          `P${i + 1}`;
-        return {
-          month: monthLabel,
-          stockIn,
-          stockOut,
-          netChange,
-        };
-      });
-
-      // Compose financial chart friendly data
-      let financialChartData = [];
-      const profitComparison =
-        dashboardData.metrics?.graphs?.profitComparison ||
-        trendsResponse?.profitComparison ||
-        null;
-      if (profitComparison && profitComparison.periods) {
-        financialChartData = Object.keys(profitComparison.periods).map((k) => {
-          const p = profitComparison.periods[k];
-          return {
-            month: p.label || k,
-            revenue: Number(p.metrics?.revenue ?? 0),
-            cost: Number(p.metrics?.cost ?? 0),
-          };
-        });
-      } else if (dashboardData.financial) {
-        financialChartData = (dashboardData.financial || []).map((d, i) => ({
-          month: d.month || `P${i + 1}`,
+      // Financial (profit/cost/revenue) chart
+      const financialChartData = (overviewData?.profitCostTrend || []).map(
+        (d, i) => ({
+          month: d.date || `Day ${i + 1}`,
           revenue: Number(d.revenue ?? 0),
           cost: Number(d.cost ?? 0),
-        }));
-      } else {
-        financialChartData = generateSparkFromTrend(
-          trendPoints,
-          "profit",
-          10
-        ).map((v, i) => ({
-          month: `P${i + 1}`,
-          revenue: v.value || 0,
-          cost: 0,
-        }));
+          profit: Number(d.profit ?? 0),
+        })
+      );
+
+      // Inventory value trend
+      const valueTrends = (overviewData?.inventoryValueTrend || []).map(
+        (d) => ({
+          month: d.date || "",
+          value: Number(d.totalValue ?? 0),
+        })
+      );
+
+      // Top products by profit
+      const topProducts = (overviewData?.topProductsByProfit || []).map(
+        (p) => ({
+          id: p.productId || p._id,
+          name: p.productName || p.name || "",
+          unitsSold: Number(p.unitsSold ?? 0),
+          revenue: Number(p.revenue ?? 0),
+          profit: Number(p.grossProfit ?? 0),
+          stock: Number(p.currentStock ?? 0),
+        })
+      );
+
+      // Stockout risk products - compute burn/remaining days defensively
+      const riskProducts = (overviewData?.stockoutRiskProducts || []).map(
+        (r) => {
+          const stock = Number(r.currentStock ?? r.totalStock ?? 0);
+          const burn = Number(r.avgDailySales ?? r.burnRate ?? 0);
+          const derivedRemaining = burn > 0 ? Math.round(stock / burn) : null;
+          return {
+            id: r.productId || r._id || Math.random(),
+            name: r.productName || r.name || "",
+            stock,
+            burnRate: burn,
+            remainingDays:
+              r.daysUntilStockout ??
+              r.remainingDays ??
+              derivedRemaining ??
+              null,
+          };
+        }
+      );
+
+      // Stock status over time (health history)
+      const health =
+        (overviewData?.stockStatusOverTime || []).length > 0
+          ? overviewData.stockStatusOverTime.map((h, i) => ({
+              month: h.date || `Day ${i + 1}`,
+              inStock: Number(h.inStock ?? 0),
+              lowStock: Number(h.lowStock ?? 0),
+              outOfStock: Number(h.outOfStock ?? 0),
+            }))
+          : [{ month: "Now", inStock: 0, lowStock: 0, outOfStock: 0 }];
+
+      // Shop performance
+      const shopPerformance = (overviewData?.shopPerformance || []).map(
+        (s) => ({
+          name: s.shopName || s.name || "Unknown",
+          shopId: s.shopId || s.id,
+          revenue: Number(s.grossProfit ?? 0),
+          units: Number(s.inventoryValue ?? 0),
+          turnover: Number(s.stockTurnoverRate ?? 0),
+          stockoutRate: Number(s.stockoutRate ?? 0),
+        })
+      );
+
+      // Calculate global stock turnover rate
+      let globalStockTurnoverRate = 0;
+      if (shopPerformance.length > 0) {
+        const totalValue = shopPerformance.reduce(
+          (acc, s) => acc + (s.units || 0),
+          0
+        );
+        if (totalValue > 0) {
+          globalStockTurnoverRate =
+            shopPerformance.reduce(
+              (acc, s) => acc + (s.turnover || 0) * (s.units || 0),
+              0
+            ) / totalValue;
+        } else {
+          // Fallback to simple average if no value data
+          globalStockTurnoverRate =
+            shopPerformance.reduce((acc, s) => acc + (s.turnover || 0), 0) /
+            shopPerformance.length;
+        }
       }
+      kpis.stockTurnoverRate = Number(globalStockTurnoverRate.toFixed(2));
 
-      // prepare value trends with readable month labels
-      const valueTrendsProcessed = (trendPoints || [])
-        .slice(-12)
-        .map((d, i) => {
-          const v =
-            Number(
-              d.totalValue ??
-                d.metrics?.totalValue ??
-                d.value ??
-                d.netChange ??
-                0
-            ) || 0;
-          const month =
-            d.month ||
-            (d.date &&
-              new Date(d.date).toLocaleString(undefined, { month: "short" })) ||
-            `P${i + 1}`;
-          return { month, value: v };
-        });
+      // Recent activities
+      const activities = (overviewData?.recentInventoryActivities || []).map(
+        (a) => ({
+          id: a._id || a.id,
+          type: a.type || "STOCK_IN", // STOCK_IN or STOCK_OUT
+          productName: a.productName || a.name || "",
+          quantity: Number(a.quantity ?? 0),
+          shop: a.shopName || a.shopId || "",
+          performer: a.performedBy || a.performedByName || "System",
+          timestamp: a.createdAt || new Date().toISOString(),
+          time: formatActivityTime(a.createdAt),
+        })
+      );
 
+      // Recent products added
+      const recentProducts = (overviewData?.recentProducts || []).map((p) => ({
+        id: p.productId || p._id,
+        name: p.productName || p.name || "",
+        category: p.categoryName || "Uncategorized",
+        quantity: Number(p.initialQuantity ?? 0),
+        addedBy: p.createdAt ? formatActivityTime(p.createdAt) : "Recently",
+      }));
+
+      // Computed summary fields
+      const summaryComputed = {
+        totalUnits: kpis.totalInventoryUnits,
+        totalValue: kpis.totalInventoryValue,
+        netMovement: kpis.netStockMovement,
+        lowStockCount: kpis.lowStockItemsCount,
+      };
+
+      // Store raw API data for debugging
+      const _overviewRaw = overviewData;
+
+      // Recent activities mapping
+      const recentActivitiesFromApi = (
+        overviewData?.recentInventoryActivities ||
+        overviewData?.recentActivity ||
+        []
+      ).map((a) => ({
+        id: a.id || a._id || Math.random(),
+        type:
+          a.type || a.changeType || (a.quantity > 0 ? "STOCK_IN" : "STOCK_OUT"),
+        item: a.productName || a.product?.name || a.item || "Product",
+        quantity: a.quantity ?? a.qty ?? a.changeAmount ?? 0,
+        shop: a.shopName || a.shop || null,
+        performedBy: a.performedBy || a.user?.name || a.actor || null,
+        time: formatActivityTime(a.createdAt || a.timestamp || a.time),
+      }));
+
+      // Update state with all normalized data
       setData({
-        // Prefer the unified overview payload when present
-        summary:
-          overviewData?.snapshot ||
-          dashboardData.summary ||
-          dashboardData.metrics?.summary ||
-          {},
-        kpis: overviewData?.kpis || kpis || dashboardData.metrics || {},
-        // overwrite / complement summary fields with computed values
-        summaryComputed: {
-          totalValue,
-          totalUnits,
-          totalProducts,
-          lowStockCount:
-            (overviewData?.snapshot?.lowStockUnits ??
-              inventorySummary?.data?.overview?.lowStockCount) ||
-            (dashboardData.lowStock?.length ?? 0) ||
-            (dashboardData.summary?.lowStockCount ?? 0),
-          netStockMovement:
-            (overviewData?.kpis?.netStockMovement ??
-              dashboardData.summary?.netStockMovement) ||
-            0,
-        },
-        // Distributions
-        statusDistribution:
-          distributions?.status ||
-          inventorySummary?.data?.summary?.byCategory ||
-          dashboardData.summary?.distribution ||
-          [],
+        summary,
+        summaryComputed,
+        kpis,
+        kpiSparklines,
+        statusDistribution,
         valueDistribution:
-          distributions?.value?.byCategory ||
-          (computedCategoryDistribution.length > 0
-            ? computedCategoryDistribution
-            : inventorySummary?.data?.summary?.byCategory) ||
-          dashboardData.summary?.categoryDistribution ||
-          [],
-        // Trends & charts
-        movementTrend: movementsTrend || processedMovementTrend,
-        profitTrend: profitTrend || financialChartData,
-        financialTrend: dashboardData.metrics?.graphs?.profitComparison || [],
+          valueDistributionByCategory.length > 0
+            ? valueDistributionByCategory
+            : valueDistributionByShop,
+        valueDistributionByCategory,
+        valueDistributionByShop,
+        valueDistributionByStatus,
+        movementTrend,
+        heatmapData,
         financialChartData,
-        // Top products & risks
-        topProducts:
-          topProductsOverview ||
-          (topProducts && (topProducts.data || topProducts.items)) ||
-          topProducts ||
-          [],
-        riskProducts:
-          riskProducts && (riskProducts.data || riskProducts.items)
-            ? (riskProducts.data || riskProducts.items).map((r) => ({
-                id: r._id || r.productId || Math.random(),
-                name: r.productName || r.name || r.product?.name || "",
-                stock: Number(r.totalStock ?? r.stock ?? 0),
-                burnRate: Number(r.avgDailySales ?? r.burnRate ?? 0),
-                remainingDays:
-                  r.daysUntilStockout ??
-                  r.stockoutRiskDays ??
-                  r.remainingDays ??
-                  null,
-              }))
-            : Array.isArray(riskProducts)
-            ? riskProducts
-            : [],
-        shopPerformance: shopPerformanceFinal || [],
-        activities: (recentActivity || activities)
-          .map((a) => ({
-            id: a.id || a._id || Math.random(),
-            type: a.type || (a.changeType === "INCREASE" ? "RESTOCK" : "SALE"),
-            item: a.productName || a.product?.name || a.item || "Product",
-            quantity: a.qty ?? a.quantity ?? a.changeAmount ?? 0,
-            time: formatActivityTime(a.timestamp || a.createdAt || a.time),
-          }))
-          .slice(0, 10),
-        recentProducts: recentProducts.map((p) => ({
-          id: p.id || p._id || Math.random(),
-          name: p.name,
-          addedBy: p.createdBy?.name || p.creatorName || "Staff",
-        })),
-        health:
-          overviewData?.health && overviewData.health.length > 0
-            ? overviewData.health
-            : dashboardData.summary?.statusHistory || healthSeries,
-        valueTrends:
-          overviewData?.trends?.movements?.map((d) => ({
-            month: d.date || d.day || "",
-            value: Number(d.stockIn ?? d.netMovement ?? d.value ?? 0),
-          })) || valueTrendsProcessed,
-        heatmapData: heatmapDataFromApi || aggregateHeatmap(activities),
-        // sparklines prefer profit/movement trends from overview
-        kpiSparklines: {
-          value: sparkValue,
-          units: sparkUnits,
-          movement: sparkMovement,
-          risk: sparkRisk,
-        },
-        // include raw overview payload for debugging & future use
-        _overviewRaw: overviewData,
+        financialTrend: financialChartData,
+        valueTrends,
+        topProducts,
+        riskProducts,
+        shopPerformance,
+        activities,
+        recentProducts,
+        health,
+        _overviewRaw,
       });
     } catch (err) {
       console.error("Failed to fetch inventory overview data:", err);

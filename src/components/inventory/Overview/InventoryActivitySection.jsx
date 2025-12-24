@@ -14,12 +14,14 @@ const PAGE_SIZE = 5;
 const ActivityBadge = ({ type }) => {
   switch (type) {
     case "RESTOCK":
+    case "STOCK_IN":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
           Restock
         </span>
       );
     case "SALE":
+    case "STOCK_OUT":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
           Sale
@@ -94,6 +96,12 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
                     </td>
                     <td className="py-3 font-medium text-gray-900 dark:text-white">
                       {activity.item}
+                      <div className="text-xs text-gray-400 mt-1">
+                        {activity.shop ? `${activity.shop} · ` : ""}
+                        {activity.performedBy
+                          ? `By ${activity.performedBy}`
+                          : ""}
+                      </div>
                     </td>
                     <td
                       className={`py-3 text-right font-medium ${

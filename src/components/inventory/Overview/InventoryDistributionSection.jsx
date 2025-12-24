@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { getProducts } from "@/services/productsService";
 
@@ -64,10 +64,9 @@ const CustomLegend = ({ data = [], total }) => {
     const itemRect = e.currentTarget.getBoundingClientRect();
 
     if (containerRect) {
-      // position tooltip to the right and slightly above the hovered item
-      const x = itemRect.right - containerRect.left + 8; // right edge + offset
-      // clamp y so tooltip doesn't overflow container top
-      const y = Math.max(0, itemRect.top - containerRect.top - 40);
+      // Position tooltip centrally above the item
+      const x = itemRect.left - containerRect.left + itemRect.width / 2;
+      const y = itemRect.top - containerRect.top - 8;
       setTip({ visible: true, x, y, content });
     } else {
       setTip({ visible: true, x: 0, y: 0, content });
@@ -81,7 +80,7 @@ const CustomLegend = ({ data = [], total }) => {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col justify-center gap-3 ml-4 max-h-72 overflow-y-auto pr-2"
+      className="relative flex flex-col justify-center gap-3 ml-4 max-h-72 overflow-y-visible pr-2"
     >
       {(data || []).map((item = {}, index) => {
         const name = item.name ?? "—";
@@ -92,7 +91,7 @@ const CustomLegend = ({ data = [], total }) => {
           totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
         return (
           <div
-            key={item.name ?? index}
+            key={`${String(name)}-${index}`}
             onMouseEnter={(e) => handleMouseEnter(e, item)}
             onMouseLeave={handleMouseLeave}
             className="flex items-center justify-between text-sm group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 p-2 rounded-xl border border-transparent hover:border-gray-100 transition-all w-full min-w-[180px]"
@@ -120,12 +119,19 @@ const CustomLegend = ({ data = [], total }) => {
 
       {tip.visible && (
         <div
-          className="absolute z-50 pointer-events-none bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md text-xs"
-          style={{ left: tip.x, top: tip.y, minWidth: 140 }}
+          className="absolute z-[100] pointer-events-none bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-xl text-xs whitespace-nowrap"
+          style={{
+            left: tip.x,
+            top: tip.y,
+            transform: "translate(-50%, -100%)",
+            filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))",
+          }}
         >
-          <div className="font-semibold text-gray-900 dark:text-white">
+          <div className="font-bold text-gray-900 dark:text-white">
             {tip.content}
           </div>
+          {/* Small arrow down */}
+          <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-white dark:bg-gray-900 border-r border-b border-gray-200 dark:border-gray-700 rotate-45"></div>
         </div>
       )}
     </div>
@@ -134,12 +140,20 @@ const CustomLegend = ({ data = [], total }) => {
 
 const InventoryDistributionSection = ({
   statusData = [],
-  valueData = [],
+  valueByCategory = [],
+  valueByShop = [],
+  valueByStatus = [],
+  valueData = [], // back-compat
   totalUnits,
   totalValue,
   companyId,
 }) => {
-  const themeColors = ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"];
+  const themeColors = useMemo(
+    () => ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"],
+    []
+  );
+
+  const [valueView, setValueView] = React.useState("category");
 
   // Helper: format currency similar to KPI card (compact by default)
   const formatCurrency = (value, isCompact = true) => {
@@ -156,101 +170,9 @@ const InventoryDistributionSection = ({
     return `$${num.toString()}`;
   };
 
-  // Products-based distribution (fetch when companyId provided)
-  const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [productSlices, setProductSlices] = useState([]);
-  const [productList, setProductList] = useState([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalAvailableUnits, setTotalAvailableUnits] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-    const TOP_N = 8; // show top N products and group the rest as 'Other'
-
-    async function fetchProducts() {
-      if (!companyId) return;
-      setProductsLoading(true);
-      try {
-        const res = await getProducts({ companyId, limit: 1000 });
-        // normalize response shapes
-        const list =
-          (res && Array.isArray(res.data) && res.data) ||
-          (res && Array.isArray(res)) ||
-          (res && res.data && res.data.data) ||
-          [];
-
-        if (!mounted) return;
-
-        setProducts(list);
-
-        const processed = list.map((p) => {
-          const details = (p.stock && p.stock.details) || [];
-          const qty =
-            details.length > 0
-              ? details.reduce(
-                  (acc, d) =>
-                    acc +
-                    (Number(d.availableQty ?? d.stockQty ?? d.available ?? 0) ||
-                      0),
-                  0
-                )
-              : Number(p.stock?.available ?? p.stock?.total ?? 0) || 0;
-          return {
-            id: p._id || p.id,
-            name: p.name || p.productName || "Unnamed",
-            qty,
-          };
-        });
-
-        const totalUnitsCalc = processed.reduce(
-          (acc, p) => acc + (p.qty || 0),
-          0
-        );
-        const totalProductsCalc = processed.length;
-
-        // sort desc by qty
-        const sorted = processed.sort((a, b) => (b.qty || 0) - (a.qty || 0));
-        const top = sorted.slice(0, TOP_N);
-        const others = sorted.slice(TOP_N);
-        const otherSum = others.reduce((acc, p) => acc + (p.qty || 0), 0);
-
-        const slices = top.map((p, i) => ({
-          name: p.name,
-          value: p.qty,
-          fill: themeColors[i % themeColors.length],
-        }));
-        if (otherSum > 0) {
-          slices.push({
-            name: "Other",
-            value: otherSum,
-            fill: themeColors[top.length % themeColors.length],
-          });
-        }
-
-        setProductSlices(slices);
-        // create a full products list for legend (all items)
-        setProductList(
-          processed.map((p, i) => ({
-            name: p.name,
-            value: p.qty,
-            fill: themeColors[i % themeColors.length],
-          }))
-        );
-        setTotalProducts(totalProductsCalc);
-        setTotalAvailableUnits(totalUnitsCalc);
-      } catch (err) {
-        console.error("Failed to load products for distribution chart", err);
-      } finally {
-        if (mounted) setProductsLoading(false);
-      }
-    }
-
-    fetchProducts();
-    return () => {
-      mounted = false;
-    };
-  }, [companyId]);
+  const totalProducts = useMemo(() => {
+    return statusData.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
+  }, [statusData]);
 
   const statusDataBuffered = (statusData || []).map((d, i) => ({
     ...d,
@@ -264,154 +186,157 @@ const InventoryDistributionSection = ({
         : themeColors[i % themeColors.length],
   }));
 
-  const valueDataBuffered = (valueData || []).map((d, i) => ({
+  // Select current value dataset based on view preference
+  const selectedValueData =
+    valueView === "category"
+      ? valueByCategory
+      : valueView === "shop"
+      ? valueByShop
+      : valueView === "status"
+      ? valueByStatus
+      : valueData || [];
+
+  const valueDataBuffered = (selectedValueData || []).map((d, i) => ({
     ...d,
-    fill: themeColors[i % themeColors.length],
+    fill: d.fill || themeColors[i % themeColors.length],
+    name:
+      d.name ||
+      d.categoryName ||
+      d.shopName ||
+      d.status ||
+      d.categoryId ||
+      d.shopId ||
+      `Slice ${i + 1}`,
+    value: Number(d.value || d.amount || 0),
   }));
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {/* Status Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-2 dark:border-gray-700 shadow-sm flex items-center justify-center">
-        <div className="flex items-center w-full justify-around">
-          <div className="h-64 w-64 shrink-0 relative min-w-0 min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={
-                    productSlices.length ? productSlices : statusDataBuffered
-                  }
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={85}
-                  outerRadius={115}
-                  paddingAngle={4}
-                  dataKey="value"
-                  cornerRadius={8}
-                  stroke="none"
-                >
-                  {(productSlices.length
-                    ? productSlices
-                    : statusDataBuffered
-                  ).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={
-                    <CustomTooltip
-                      total={
-                        productSlices.length
-                          ? totalAvailableUnits
-                          : typeof totalUnits !== "undefined"
-                          ? totalUnits
-                          : statusDataBuffered.reduce(
-                              (acc, curr) => acc + (Number(curr.value) || 0),
-                              0
-                            )
-                      }
-                    />
-                  }
-                  wrapperStyle={{ zIndex: 1200, transform: "translateY(-8px)" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-32 h-32 rounded-full flex flex-col items-center justify-center bg-white/0">
-                <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {productSlices.length
-                    ? totalProducts.toLocaleString()
-                    : (typeof totalUnits !== "undefined"
-                        ? totalUnits
-                        : statusDataBuffered.reduce(
-                            (acc, curr) => acc + (Number(curr.value) || 0),
-                            0
-                          )
-                      ).toLocaleString()}
-                </span>
-                <span className="text-xs text-gray-400 font-bold tracking-widest uppercase mt-1">
-                  {productSlices.length ? "Products" : "Total Items"}
-                </span>
-              </div>
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col xl:flex-row items-center gap-6">
+        <div className="flex-1 w-full min-w-0 h-[300px] relative">
+          <div className="absolute top-0 left-0 z-10">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              Inventory Status
+            </h3>
+            <p className="text-xs text-gray-500">Breakdown by stock level</p>
+          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={statusDataBuffered}
+                cx="50%"
+                cy="55%"
+                innerRadius={70}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+                cornerRadius={6}
+                stroke="none"
+              >
+                {statusDataBuffered.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip
+                content={<CustomTooltip total={totalProducts} />}
+                wrapperStyle={{ zIndex: 1200 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-8">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold text-gray-900 dark:text-white leading-none">
+                {totalProducts.toLocaleString()}
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
+                Products
+              </span>
             </div>
           </div>
-          {productSlices.length ? (
-            <div className="flex flex-col items-start ml-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-2">
-                Products ({totalProducts.toLocaleString()})
-              </div>
-              <CustomLegend data={productList} total={totalAvailableUnits} />
-            </div>
-          ) : (
-            <CustomLegend data={statusDataBuffered} />
-          )}
+        </div>
+        <div className="flex-1 w-full flex items-center justify-center">
+          <CustomLegend data={statusDataBuffered} total={totalProducts} />
         </div>
       </div>
 
       {/* Value Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-center">
-        <div className="flex items-center w-full justify-around">
-          <div className="h-64 w-64 shrink-0 relative min-w-0 min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={valueDataBuffered}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={85}
-                  outerRadius={115}
-                  paddingAngle={4}
-                  dataKey="value"
-                  cornerRadius={8}
-                  stroke="none"
-                >
-                  {valueDataBuffered.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={
-                    <CustomTooltip
-                      total={
-                        typeof totalValue !== "undefined"
-                          ? totalValue
-                          : valueDataBuffered.reduce(
-                              (acc, curr) => acc + (Number(curr.value) || 0),
-                              0
-                            )
-                      }
-                    />
-                  }
-                  wrapperStyle={{ zIndex: 1200, transform: "translateY(-8px)" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-32 h-32 rounded-full flex flex-col items-center justify-center bg-white/0">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(
-                    typeof totalValue !== "undefined"
-                      ? totalValue
-                      : valueDataBuffered.reduce(
-                          (acc, curr) => acc + (Number(curr.value) || 0),
-                          0
-                        ),
-                    true
-                  )}
-                </span>
-                <span className="text-xs text-gray-400 font-bold tracking-widest uppercase mt-1">
-                  Total Value
-                </span>
-              </div>
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col xl:flex-row items-stretch gap-6">
+        <div className="flex-1 w-full min-w-0 h-[300px] relative">
+          <div className="absolute top-0 left-0 z-10">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              Value Distribution
+            </h3>
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              <button
+                onClick={() => setValueView("category")}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  valueView === "category"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                Category
+              </button>
+              <button
+                onClick={() => setValueView("shop")}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  valueView === "shop"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                Shop
+              </button>
+              <button
+                onClick={() => setValueView("status")}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  valueView === "status"
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                Status
+              </button>
             </div>
           </div>
-          <CustomLegend
-            data={valueDataBuffered}
-            total={valueDataBuffered.reduce(
-              (acc, c) => acc + (Number(c.value) || 0),
-              0
-            )}
-          />
+
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={valueDataBuffered}
+                cx="50%"
+                cy="55%"
+                innerRadius={70}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+                cornerRadius={6}
+                stroke="none"
+              >
+                {valueDataBuffered.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip
+                content={<CustomTooltip total={totalValue} />}
+                wrapperStyle={{ zIndex: 1200 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-12">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">
+                {formatCurrency(totalValue, true)}
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
+                Total Value
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 w-full flex items-center justify-center">
+          <CustomLegend data={valueDataBuffered} total={totalValue} />
         </div>
       </div>
     </div>

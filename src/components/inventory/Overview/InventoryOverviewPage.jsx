@@ -10,7 +10,7 @@ import InventoryDistributionSection from "./InventoryDistributionSection";
 import InventoryMovementSection from "./InventoryMovementSection";
 import InventoryInsightsSection from "./InventoryInsightsSection";
 import ProductRiskSection from "./ProductRiskSection";
-import InventoryHealthSection from "./InventoryHealthSection"; // Stacked Bar
+// import InventoryHealthSection from "./InventoryHealthSection"; // Stacked Bar
 import InventoryValueTrendSection from "./InventoryValueTrendSection";
 import ShopPerformanceSection from "./ShopPerformanceSection";
 import InventoryActivitySection from "./InventoryActivitySection";
@@ -80,7 +80,7 @@ const InventoryOverviewPage = () => {
   const hasMovement = (data?.movementTrend?.length || 0) > 1;
   const hasInsights =
     (data?.financialChartData?.length || 0) > 1 || Boolean(data?.heatmapData);
-  const hasHealth = (data?.health?.length || 0) > 0;
+  // const hasHealth = (data?.health?.length || 0) > 0;
   const hasValueTrends = (data?.valueTrends?.length || 0) > 1;
   const hasProductRisk =
     (data?.topProducts?.length || 0) > 0 ||
@@ -116,6 +116,10 @@ const InventoryOverviewPage = () => {
         {hasDistribution && (
           <InventoryDistributionSection
             statusData={data.statusDistribution}
+            valueByCategory={data.valueDistributionByCategory}
+            valueByShop={data.valueDistributionByShop}
+            valueByStatus={data.valueDistributionByStatus}
+            // back-compat
             valueData={data.valueDistribution}
             totalUnits={data.summaryComputed?.totalUnits}
             totalValue={data.summaryComputed?.totalValue}
@@ -129,7 +133,7 @@ const InventoryOverviewPage = () => {
             heatmapData={data.heatmapData}
           />
         )}
-        {hasHealth && <InventoryHealthSection data={data.health} />}
+        {/* {hasHealth && <InventoryHealthSection data={data.health} />} */}
         {hasValueTrends && (
           <InventoryValueTrendSection data={data.valueTrends} />
         )}

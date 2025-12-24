@@ -215,20 +215,11 @@ const computeTrendPercent = (arr = []) => {
 const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
   const [isCompact, setIsCompact] = useState(true);
 
-  // prefer computed values when available
-  const totalValue =
-    summary.summaryComputed?.totalValue ?? summary.totalValue ?? 0;
-  const totalUnits =
-    summary.summaryComputed?.totalUnits ??
-    summary.totalUnits ??
-    summary.totalProducts ??
-    0;
-  const lowStock =
-    summary.summaryComputed?.lowStockCount ?? summary.lowStockCount ?? 0;
-  const netMovement =
-    summary.summaryComputed?.netStockMovement ?? summary.netStockMovement ?? 0;
-
-  if (!summary) return null;
+  // Use kpis directly (from API) or fallback to computed values
+  const totalValue = kpis?.totalInventoryValue ?? summary?.totalValue ?? 0;
+  const totalUnits = kpis?.totalInventoryUnits ?? summary?.totalUnits ?? 0;
+  const lowStock = kpis?.lowStockItemsCount ?? summary?.lowStockCount ?? 0;
+  const netMovement = kpis?.netStockMovement ?? summary?.netStockMovement ?? 0;
 
   const getSpark = (key) =>
     sparklines?.[key]?.length > 0
@@ -280,7 +271,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
       </div>
 
       {/* Additional KPIs from analytics endpoint (if available) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
         <KPICard
           title="Gross Profit"
           value={kpis?.grossProfit ?? "—"}
@@ -293,31 +284,13 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           isCompact={true}
         />
         <KPICard
-          title="Gross Margin"
-          value={kpis?.grossMargin != null ? `${kpis.grossMargin}%` : "—"}
-          icon={TrendingUp}
-          trend={computeTrendPercent(getSpark("value"))}
-          data={getSpark("value")}
-          type="bar"
-          color="blue"
-        />
-        <KPICard
-          title="Inventory Turnover"
-          value={kpis?.inventoryTurnoverRatio ?? "—"}
+          title="Stock Turnover Rate"
+          value={kpis?.stockTurnoverRate ?? "—"}
           icon={Activity}
           trend={0}
           data={getSpark("movement")}
           type="bar"
           color="emerald"
-        />
-        <KPICard
-          title="Holding Days"
-          value={kpis?.inventoryHoldingDays ?? "—"}
-          icon={Package}
-          trend={0}
-          data={getSpark("units")}
-          type="bar"
-          color="rose"
         />
       </div>
     </>

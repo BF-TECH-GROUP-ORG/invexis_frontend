@@ -13,7 +13,11 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
               Total Units
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
-              {format(snapshot.totalUnits ?? snapshot.totalUnits)}
+              {format(
+                snapshot.totalUnits ??
+                  kpis?.totalInventoryUnits ??
+                  snapshot.totalUnits
+              )}
             </p>
             <p className="text-xs text-gray-400 mt-1">
               SKUs: {format(snapshot.totalSKUs ?? snapshot.totalSkus ?? "—")}
