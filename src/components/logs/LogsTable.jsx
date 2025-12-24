@@ -21,17 +21,27 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const LogsTable = ({
-    items,
-    total,
-    page,
-    limit,
-    loading,
+    items = [],
+    total = 0,
+    page = 1,
+    limit = 10,
+    loading = false,
+    workers = [],
     selectedIds = [],
     onSelectIds,
     onPageChange,
     onRowsPerPageChange,
     onSelectLog
 }) => {
+
+    const getWorkerName = (userId) => {
+        if (!userId) return 'System';
+        const worker = workers.find(w => (w._id || w.id) === userId);
+        if (worker) {
+            return `${worker.firstName || ''} ${worker.lastName || ''}`.trim() || worker.email || userId;
+        }
+        return userId;
+    };
 
     // Status Logic - Matching ProductList "Active/Inactive" style
     const getStatusChip = (status) => {
@@ -74,38 +84,6 @@ const LogsTable = ({
         );
     };
 
-    // Selection Handlers
-    const handleSelectAll = (event) => {
-        if (event.target.checked) {
-            const allIds = items.map(i => i.id);
-            onSelectIds(allIds);
-        } else {
-            onSelectIds([]);
-        }
-    };
-
-    const handleSelectOne = (event, id) => {
-        event.stopPropagation(); // Prevent row click
-        const selectedIndex = selectedIds.indexOf(id);
-        let newSelected = [];
-
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selectedIds, id);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selectedIds.slice(1));
-        } else if (selectedIndex === selectedIds.length - 1) {
-            newSelected = newSelected.concat(selectedIds.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(
-                selectedIds.slice(0, selectedIndex),
-                selectedIds.slice(selectedIndex + 1),
-            );
-        }
-        onSelectIds(newSelected);
-    };
-
-    const isSelected = (id) => selectedIds.indexOf(id) !== -1;
-
     if (loading && (!items || items.length === 0)) {
         return (
             <Paper elevation={0} sx={{ width: '100%', p: 2, border: "1px solid #e5e7eb", borderRadius: "0px " }}>
@@ -144,25 +122,21 @@ const LogsTable = ({
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#f9fafb" }}>
                             <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="15%">Time</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="12%">Category</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="12%">Action</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="35%">Description</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="12%">Actor</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="14%" align="right">Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="10%">Category</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="10%">Action</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="10%">Entity</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="25%">Description</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="15%">Worker</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="15%" align="right">Status</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {items.map((log) => {
-                            const isItemSelected = isSelected(log.id);
-
                             return (
                                 <TableRow
                                     key={log.id}
                                     hover
                                     onClick={() => onSelectLog(log.id)}
-                                    role="checkbox"
-                                    aria-checked={isItemSelected}
-                                    selected={isItemSelected}
                                     sx={{
                                         cursor: 'pointer',
                                         '&:hover': { backgroundColor: "#f4f6f8" },
@@ -201,8 +175,14 @@ const LogsTable = ({
                                     </TableCell>
 
                                     <TableCell sx={{ verticalAlign: 'middle' }}>
+                                        <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                                            {log.entityType || 'N/A'}
+                                        </Typography>
+                                    </TableCell>
+
+                                    <TableCell sx={{ verticalAlign: 'middle' }}>
                                         <Tooltip title={log.description} arrow placement="top">
-                                            <Typography variant="body2" noWrap sx={{ maxWidth: 400, color: "#111827" }}>
+                                            <Typography variant="body2" noWrap sx={{ maxWidth: 300, color: "#111827" }}>
                                                 {log.description}
                                             </Typography>
                                         </Tooltip>
@@ -211,10 +191,10 @@ const LogsTable = ({
                                     <TableCell sx={{ verticalAlign: 'middle' }}>
                                         <Box>
                                             <Typography variant="body2" fontWeight={500} color="#1F2937">
-                                                {log.user?.name || 'System'}
+                                                {getWorkerName(log.user?.name)}
                                             </Typography>
                                             <Typography variant="caption" color="#6B7280">
-                                                {log.actorType}
+                                                {log.actorType || 'System'}
                                             </Typography>
                                         </Box>
                                     </TableCell>

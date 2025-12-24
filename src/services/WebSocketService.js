@@ -26,32 +26,46 @@ class WebSocketService {
         }
 
         this.userId = userId;
+        const gatewayUrl = process.env.NEXT_PUBLIC_API_URL_SW || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-        const gatewayUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL_SW || 'http://localhost:9002';
+        if (!gatewayUrl) {
+            console.error('[WebSocket] ❌ No Gateway URL found in environment variables');
+            return;
+        }
+
         // Clean URL to prevent namespace errors if path is included
         const cleanUrl = gatewayUrl.replace(/\/$/, '').replace(/\/api$/, '');
 
         console.log(`[WebSocket] 🔌 Connecting to ${cleanUrl}...`);
 
-        this.socket = io(cleanUrl, {
-            path: '/socket.io',
-            auth: {
-                token: token,
-                userId: userId,
-            },
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 10,
-            extraHeaders: {
-                "ngrok-skip-browser-warning": "true"
-            }
-        });
+        try {
+            this.socket = io(cleanUrl, {
+                path: '/socket.io',
+                auth: {
+                    token: token,
+                    userId: userId,
+                },
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionAttempts: 10,
+                extraHeaders: {
+                    "ngrok-skip-browser-warning": "true",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+        } catch (error) {
+            console.error('[WebSocket] ❌ Initialization Error:', error.message);
+            return;
+        }
 
         this.socket.on('connect', () => {
             this.isConnected = true;
             console.log(`[WebSocket] 🟢 Connected! ID: ${this.socket.id}`);
-            console.log(`[WebSocket] 🟢 Joining room(s): user:${userId}`);
+
+            // Join user-specific room
+            console.log(`[WebSocket] 🟢 Joining room: user:${userId}`);
+            this.socket.emit('join', [`user:${userId}`]);
         });
 
         this.socket.on('disconnect', (reason) => {

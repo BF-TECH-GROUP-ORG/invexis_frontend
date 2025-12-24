@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete, TablePagination
 } from "@mui/material";
 import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -608,6 +608,20 @@ const DataTable = ({
   const [selectedMonth, setSelectedMonth] = useState(`${currentYear}-${String(currentMonth).padStart(2, '0')}`);
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+
   // Delete modal state owned by DataTable
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
   const [returnModal, setReturnModal] = useState({ open: false, id: null });
@@ -772,6 +786,10 @@ const DataTable = ({
 
     return currentRows;
   }, [search, activeFilter, rows, selectedMonth, selectedWorkerId, selectedShopId]);
+
+  const paginatedRows = useMemo(() => {
+    return filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  }, [filteredRows, page, rowsPerPage]);
 
   return (
     <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
@@ -981,7 +999,7 @@ const DataTable = ({
                 </TableRow>
               ))
             ) : (
-              filteredRows.map((row) => (
+              paginatedRows.map((row) => (
                 <TableRow
                   key={row.id}
                   hover
@@ -1018,6 +1036,33 @@ const DataTable = ({
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white border-x border-b border-gray-200">
+        <Typography variant="body2" color="text.secondary">
+          Showing {filteredRows.length > 0 ? page * rowsPerPage + 1 : 0} to {Math.min((page + 1) * rowsPerPage, filteredRows.length)} of {filteredRows.length} results
+        </Typography>
+        <TablePagination
+          component="div"
+          count={filteredRows.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 15]}
+          sx={{
+            border: "none",
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+              margin: 0,
+              display: { xs: 'none', sm: 'block' }
+            },
+            '.MuiTablePagination-toolbar': {
+              minHeight: 'auto',
+              padding: 0
+            }
+          }}
+        />
+      </div>
     </Paper>
   );
 };
