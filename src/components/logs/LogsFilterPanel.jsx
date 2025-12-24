@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     TextField,
@@ -12,27 +12,17 @@ import {
     Button,
     Chip,
     Typography,
-    InputLabel
+    InputLabel,
+    Autocomplete
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FilterListIcon from '@mui/icons-material/FilterList';
-
-const SHOP_OPTIONS = [
-    { value: 'all', label: 'All Shops' },
-    { value: 'main_store', label: 'Main Store' },
-    { value: 'warehouse_a', label: 'Warehouse A' },
-    { value: 'online_store', label: 'Online Store' },
-];
-
-const WORKER_OPTIONS = [
-    { value: 'all', label: 'All Workers' },
-    { value: 'system', label: 'System' },
-    { value: 'john_doe', label: 'John Doe' },
-    { value: 'jane_smith', label: 'Jane Smith' },
-    { value: 'manager_mike', label: 'Manager Mike' },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getWorkersByCompanyId } from "@/services/workersService";
+import { getBranches } from "@/services/branches.js";
+import { useSession } from "next-auth/react";
 
 const TIME_PRESETS = [
     { value: 'current_month', label: 'Current Month' },
@@ -41,7 +31,6 @@ const TIME_PRESETS = [
     { value: 'custom', label: 'Custom Range...' },
 ];
 
-// Advanced Filters Config
 const ADVANCED_FILTERS_CONFIG = [
     { label: 'Category', key: 'category', options: ['User & Access', 'Inventory', 'Sales', 'Payments', 'System'] },
     { label: 'Action', key: 'action', options: ['Created', 'Updated', 'Deleted', 'Logged In', 'Logged Out', 'Paid', 'Failed', 'Backup'] },
@@ -50,7 +39,40 @@ const ADVANCED_FILTERS_CONFIG = [
     { label: 'Advanced Target', key: 'target', type: 'text' },
 ];
 
-const LogsFilterPanel = ({ filters, onApply }) => {
+const LogsFilterPanel = ({ filters, onApply, workers = [] }) => {
+    const { data: session } = useSession();
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+    console.log('LogsFilterPanel companyId:', companyId);
+
+    const options = session?.accessToken ? {
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`
+        }
+    } : {};
+
+    const { data: shopsData = null } = useQuery({
+        queryKey: ["shops", companyId],
+        queryFn: () => getBranches(companyId, options),
+        enabled: !!companyId,
+    });
+
+    // Ensure unique shops with valid IDs
+    const shops = React.useMemo(() => {
+        const unique = [];
+        const seen = new Set();
+        (shopsData?.data || []).forEach(s => {
+            const id = s._id || s.id;
+            if (id && !seen.has(id)) {
+                seen.add(id);
+                unique.push(s);
+            }
+        });
+        return unique;
+    }, [shopsData]);
+
+    console.log('LogsFilterPanel shops:', shops);
+
     // Basic Filters State
     const [shop, setShop] = useState(filters.shop || 'all');
     const [worker, setWorker] = useState(filters.worker || 'all');
@@ -62,6 +84,14 @@ const LogsFilterPanel = ({ filters, onApply }) => {
     const [activeField, setActiveField] = useState(null);
     const [tempValue, setTempValue] = useState('');
 
+    // Sync internal state with filters prop
+    useEffect(() => {
+        setShop(filters.shop || 'all');
+        setWorker(filters.worker || 'all');
+        setTimeRange(filters.timeRange || 'current_month');
+        setSearchQuery(filters.search || '');
+    }, [filters]);
+
     // --- Basic Handlers ---
     const handleShopChange = (e) => {
         const val = e.target.value;
@@ -69,8 +99,8 @@ const LogsFilterPanel = ({ filters, onApply }) => {
         onApply({ ...filters, shop: val });
     };
 
-    const handleWorkerChange = (e) => {
-        const val = e.target.value;
+    const handleWorkerChange = (newValue) => {
+        const val = newValue ? (newValue._id || newValue.id) : 'all';
         setWorker(val);
         onApply({ ...filters, worker: val });
     };
@@ -191,7 +221,6 @@ const LogsFilterPanel = ({ filters, onApply }) => {
         );
     };
 
-    // Identify active advanced filters to display as chips
     const activeAdvancedFilters = Object.entries(filters).filter(([key]) =>
         ADVANCED_FILTERS_CONFIG.some(c => c.key === key)
     );
@@ -199,45 +228,45 @@ const LogsFilterPanel = ({ filters, onApply }) => {
     return (
         <Box sx={{ p: 2, borderBottom: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
             <Stack spacing={2}>
-                {/* Top Row: Basic Controls */}
                 <Stack direction="row" spacing={2} alignItems="center">
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                    {/* Shop Selector */}
+                    <FormControl size="small" sx={{ minWidth: 160 }}>
                         <Select
                             value={shop}
                             onChange={handleShopChange}
                             displayEmpty
-                            inputProps={{ 'aria-label': 'Select Shop' }}
                             sx={{ backgroundColor: '#fafafa' }}
                         >
-                            {SHOP_OPTIONS.map((opt) => (
-                                <MenuItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </MenuItem>
+                            <MenuItem value="all">All Shops</MenuItem>
+                            {shops.map(s => (
+                                <MenuItem key={s._id || s.id} value={s._id || s.id}>{s.name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
+                    {/* Worker Selector */}
+                    <Autocomplete
+                        size="small"
+                        options={workers}
+                        getOptionLabel={(option) => `${option.firstName || ''} ${option.lastName || ''}`.trim() || option.email || "Unknown"}
+                        isOptionEqualToValue={(option, value) => (option._id || option.id) === (value._id || value.id)}
+                        renderOption={(props, option) => (
+                            <li {...props} key={option._id || option.id}>
+                                {`${option.firstName || ''} ${option.lastName || ''}`.trim() || option.email || "Unknown"}
+                            </li>
+                        )}
+                        value={workers.find(w => (w._id || w.id) === worker) || null}
+                        onChange={(event, newValue) => handleWorkerChange(newValue)}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="All Workers" sx={{ width: 200, backgroundColor: '#fafafa' }} />
+                        )}
+                    />
+
+                    {/* Time Range */}
                     <FormControl size="small" sx={{ minWidth: 160 }}>
-                        <Select
-                            value={worker}
-                            onChange={handleWorkerChange}
-                            displayEmpty
-                            inputProps={{ 'aria-label': 'Select Worker' }}
-                            sx={{ backgroundColor: '#fafafa' }}
-                        >
-                            {WORKER_OPTIONS.map((opt) => (
-                                <MenuItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControl size="small" sx={{ minWidth: 180 }}>
                         <Select
                             value={timeRange}
                             onChange={handleTimeChange}
-                            displayEmpty
                             startAdornment={
                                 <InputAdornment position="start">
                                     <CalendarTodayIcon fontSize="small" color="action" />
@@ -245,7 +274,7 @@ const LogsFilterPanel = ({ filters, onApply }) => {
                             }
                             sx={{ backgroundColor: '#fafafa' }}
                         >
-                            {TIME_PRESETS.map((opt) => (
+                            {TIME_PRESETS.map(opt => (
                                 <MenuItem key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </MenuItem>
@@ -255,7 +284,7 @@ const LogsFilterPanel = ({ filters, onApply }) => {
 
                     {/* Smart Search */}
                     <TextField
-                        placeholder={`Search activities in ${TIME_PRESETS.find(p => p.value === timeRange)?.label || 'selected range'}...`}
+                        placeholder={`Search activities...`}
                         size="small"
                         value={searchQuery}
                         onChange={handleSearchChange}
@@ -316,7 +345,7 @@ const LogsFilterPanel = ({ filters, onApply }) => {
                         })}
                         <Button
                             size="small"
-                            onClick={() => onApply({ shop, worker, timeRange, search })} // Reset to just basics
+                            onClick={() => onApply({ shop, worker, timeRange, search: searchQuery })} // Reset to just basics
                             sx={{ textTransform: 'none', color: '#6b7280' }}
                         >
                             Clear Advanced

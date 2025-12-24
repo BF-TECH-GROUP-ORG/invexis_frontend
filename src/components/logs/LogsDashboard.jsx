@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -18,6 +18,10 @@ import {
     closeLogDetail,
     fetchLogDetail
 } from '@/features/logs/logsSlice';
+import { useSession } from "next-auth/react";
+
+import { useQuery } from "@tanstack/react-query";
+import { getWorkersByCompanyId } from "@/services/workersService";
 
 import LogsFilterPanel from './LogsFilterPanel';
 import LogsTable from './LogsTable';
@@ -25,7 +29,37 @@ import LogDetailDrawer from './LogDetailDrawer';
 
 const LogsDashboard = () => {
     const dispatch = useDispatch();
+    const { data: session } = useSession();
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+    console.log('LogsDashboard companyId:', companyId);
+    console.log('LogsDashboard session:', session);
 
+    const options = session?.accessToken ? {
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`
+        }
+    } : {};
+
+    // Fetch workers here to share with FilterPanel and Table
+    const { data: rawWorkers = [] } = useQuery({
+        queryKey: ["workers", companyId],
+        queryFn: () => getWorkersByCompanyId(companyId, options),
+        enabled: !!companyId,
+    });
+
+    const workers = React.useMemo(() => {
+        const unique = [];
+        const seen = new Set();
+        (rawWorkers || []).forEach(w => {
+            const id = w._id || w.id;
+            if (id && !seen.has(id)) {
+                seen.add(id);
+                unique.push(w);
+            }
+        });
+        return unique;
+    }, [rawWorkers]);
 
     const {
         items,
@@ -40,14 +74,14 @@ const LogsDashboard = () => {
 
     // Initial fetch and fetch on dependencies change
     useEffect(() => {
-        dispatch(fetchLogs({ page, limit, ...filters }));
-    }, [dispatch, page, limit, filters]);
+        if (companyId) {
+            dispatch(fetchLogs({ page, limit, ...filters, companyId }));
+        }
+    }, [dispatch, page, limit, filters, companyId]);
 
     const handleApplyFilters = (newFilters) => {
         dispatch(setFilters(newFilters));
     };
-
-
 
     const handleChangePage = (event, newPage) => {
         dispatch(setPage(newPage + 1));
@@ -80,10 +114,10 @@ const LogsDashboard = () => {
             </Box>
 
             {/* Filters */}
-            {/* Filters */}
             <LogsFilterPanel
                 filters={filters}
                 onApply={handleApplyFilters}
+                workers={workers}
             />
 
             {/* Content Area */}
@@ -105,6 +139,7 @@ const LogsDashboard = () => {
                                 page={page}
                                 limit={limit}
                                 loading={loading}
+                                workers={workers}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
                                 onSelectLog={handleLogSelect}
@@ -132,7 +167,7 @@ const LogsDashboard = () => {
                         <CloseIcon />
                     </IconButton>
                 </Box>
-                <LogDetailDrawer />
+                <LogDetailDrawer workers={workers} />
             </Drawer>
         </Box>
     );

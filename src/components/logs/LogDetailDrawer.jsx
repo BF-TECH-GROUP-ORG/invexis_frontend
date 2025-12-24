@@ -21,9 +21,18 @@ import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
-const LogDetailDrawer = () => {
+const LogDetailDrawer = ({ workers = [] }) => {
     const { selectedLogDetail, detailLoading, detailError } = useSelector((state) => state.logs);
     const [showTechnical, setShowTechnical] = useState(false);
+
+    const getWorkerName = (userId) => {
+        if (!userId) return 'System';
+        const worker = workers.find(w => (w._id || w.id) === userId);
+        if (worker) {
+            return `${worker.firstName || ''} ${worker.lastName || ''}`.trim() || worker.email || userId;
+        }
+        return userId;
+    };
 
     if (detailLoading) {
         return (
@@ -67,6 +76,8 @@ const LogDetailDrawer = () => {
         source,
         entityType,
         entityId,
+        payload,
+        metadata
     } = selectedLogDetail;
 
     const getStatusChipProps = (status) => {
@@ -99,201 +110,180 @@ const LogDetailDrawer = () => {
                     <Chip
                         label={category}
                         size="small"
-                        sx={{ bgcolor: '#E0F2FE', color: '#0369A1', fontWeight: 600, borderRadius: '6px', fontSize: '0.75rem' }}
+                        sx={{ bgcolor: '#eff6ff', color: '#1d4ed8', fontWeight: 600, borderRadius: '6px' }}
                     />
-                    <Typography variant="caption" color="textSecondary">•</Typography>
-                    <Typography variant="caption" color="textSecondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                        {new Date(timestamp).toLocaleString()}
-                    </Typography>
+                    <Chip {...statusProps} size="small" />
                 </Stack>
 
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#111', mb: 1, lineHeight: 1.3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: '#111827', mb: 1 }}>
+                    {action}
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#4b5563', lineHeight: 1.5 }}>
                     {description}
                 </Typography>
 
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2 }}>
-                    <Chip
-                        {...statusProps}
-                        size="small"
-                    />
+                <Stack direction="row" spacing={3} sx={{ mt: 3 }}>
+                    <Box>
+                        <Typography variant="caption" color="textSecondary" display="block">TIMESTAMP</Typography>
+                        <Typography variant="body2" fontWeight={600}>{new Date(timestamp).toLocaleString()}</Typography>
+                    </Box>
+                    <Box>
+                        <Typography variant="caption" color="textSecondary" display="block">LOG ID</Typography>
+                        <Typography variant="body2" fontWeight={600} sx={{ fontFamily: 'monospace' }}>{id}</Typography>
+                    </Box>
                 </Stack>
             </Box>
 
-            <Box sx={{ p: 4, overflowY: 'auto', flex: 1 }}>
-
-                {/* Context Grid */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={6}>
-                        <Typography variant="overline" color="textSecondary" fontWeight={600}>ACTOR</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
-                            <Box sx={{ bgcolor: '#fff0e0', p: 1, borderRadius: '50%', color: '#ff6600' }}>
-                                <PersonIcon />
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" fontWeight={600}>{user?.name || 'System'}</Typography>
-                                <Typography variant="caption" color="textSecondary" sx={{ display: 'block' }}>
-                                    {user?.role || actorType}
-                                </Typography>
-                                {user?.email && (
-                                    <Typography variant="caption" sx={{ color: '#ff6600', display: 'block' }}>{user.email}</Typography>
-                                )}
-                            </Box>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Typography variant="overline" color="textSecondary" fontWeight={600}>COMPANY</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
-                            <Box sx={{ bgcolor: '#f5f5f5', p: 1, borderRadius: '50%', color: '#666' }}>
-                                <BusinessIcon />
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" fontWeight={600}>{company?.name || 'N/A'}</Typography>
-                                <Typography variant="caption" color="textSecondary" sx={{ display: 'block' }}>ID: {company?.id}</Typography>
-                                {company?.location && (
-                                    <Typography variant="caption" color="textSecondary">{company.location}</Typography>
-                                )}
-                            </Box>
-                        </Box>
-                    </Grid>
-                </Grid>
-
-                <Divider sx={{ my: 3 }} />
-
-                {/* State Changes (Human Readable) */}
-                {(before || after) && (
-                    <Box sx={{ mb: 5 }}>
-                        <Typography
-                            variant="overline"
-                            sx={{
-                                color: '#6b7280',
-                                mb: 2,
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                letterSpacing: '0.05em'
-                            }}
-                        >
-                            <CompareArrowsIcon sx={{ fontSize: 18, color: '#9ca3af' }} />
-                            STATE CHANGES
+            {/* Actor & Entity Info */}
+            <Box sx={{ p: 4 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <Typography variant="overline" color="textSecondary" fontWeight={600} sx={{ letterSpacing: 1.2 }}>
+                            ACTOR INFORMATION
                         </Typography>
-
-                        <Grid container spacing={3}>
-                            {/* BEFORE CARD */}
-                            <Grid item xs={6}>
-                                <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444' }} />
-                                    <Typography variant="overline" sx={{ fontWeight: 800, color: '#ef4444' }}>PREVIOUS STATE</Typography>
+                        <Paper variant="outlined" sx={{ p: 2, mt: 1, borderRadius: '12px', bgcolor: '#f9fafb', borderStyle: 'dashed' }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <Box sx={{ p: 1, borderRadius: '50%', bgcolor: '#fff', border: '1px solid #e5e7eb' }}>
+                                    <PersonIcon sx={{ color: '#6b7280' }} />
                                 </Box>
-                                <Paper
-                                    variant="outlined"
-                                    sx={{
-                                        p: 2.5,
-                                        backgroundColor: '#fff',
-                                        border: '1px solid #fee2e2',
-                                        borderRadius: '12px',
-                                        minHeight: 120,
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                                        position: 'relative',
-                                    }}
-                                >
-                                    {before ? (
-                                        <Stack spacing={2}>
+                                <Box>
+                                    <Typography variant="subtitle2" fontWeight={700}>{getWorkerName(user?.name)}</Typography>
+                                    <Typography variant="caption" color="textSecondary">{actorType || 'System'}</Typography>
+                                </Box>
+                            </Stack>
+                        </Paper>
+                    </Grid>
+
+                    {/* State Changes Section - Matching Image */}
+                    <Grid item xs={12}>
+                        <Typography variant="overline" color="textSecondary" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1, letterSpacing: 1.2 }}>
+                            <CompareArrowsIcon fontSize="small" /> STATE CHANGES
+                        </Typography>
+                        <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                            <Grid item xs={6}>
+                                <Typography variant="caption" color="#C62828" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#C62828' }} /> PREVIOUS STATE
+                                </Typography>
+                                <Paper variant="outlined" sx={{
+                                    p: 3,
+                                    borderRadius: '16px',
+                                    minHeight: 120,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #FFEBEE'
+                                }}>
+                                    {!before || Object.keys(before).length === 0 ? (
+                                        <Typography variant="body2" sx={{ color: '#9ca3af', fontStyle: 'italic' }}>
+                                            No previous data available
+                                        </Typography>
+                                    ) : (
+                                        <Box sx={{ width: '100%' }}>
                                             {Object.entries(before).map(([key, val]) => (
-                                                <Box key={key} sx={{ borderBottom: '1px solid #f9fafb', pb: 1, '&:last-child': { borderBottom: 'none', pb: 0 } }}>
-                                                    <Typography variant="caption" sx={{ color: '#9ca3af', textTransform: 'uppercase', fontWeight: 700, fontSize: '0.65rem' }}>
-                                                        {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500, mt: 0.2 }}>
-                                                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                                                    </Typography>
+                                                <Box key={key} sx={{ mb: 1.5 }}>
+                                                    <Typography variant="caption" sx={{ color: '#9ca3af', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>{key.replace(/_/g, ' ')}</Typography>
+                                                    <Typography variant="body2" fontWeight={700} color="#111827">{String(val)}</Typography>
                                                 </Box>
                                             ))}
-                                        </Stack>
-                                    ) : (
-                                        <Box sx={{ py: 2, textAlign: 'center' }}>
-                                            <Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic', opacity: 0.6 }}>No previous data available</Typography>
                                         </Box>
                                     )}
                                 </Paper>
                             </Grid>
-
-                            {/* AFTER CARD */}
                             <Grid item xs={6}>
-                                <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
-                                    <Typography variant="overline" sx={{ fontWeight: 800, color: '#10b981' }}>NEW STATE</Typography>
-                                </Box>
-                                <Paper
-                                    variant="outlined"
-                                    sx={{
-                                        p: 2.5,
-                                        backgroundColor: '#fff',
-                                        border: '1px solid #dcfce7',
-                                        borderRadius: '12px',
-                                        minHeight: 120,
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                                        position: 'relative',
-                                    }}
-                                >
-                                    {after ? (
-                                        <Stack spacing={2}>
+                                <Typography variant="caption" color="#2E7D32" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#2E7D32' }} /> NEW STATE
+                                </Typography>
+                                <Paper variant="outlined" sx={{
+                                    p: 3,
+                                    borderRadius: '16px',
+                                    minHeight: 120,
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #E8F5E9'
+                                }}>
+                                    {!after || Object.keys(after).length === 0 ? (
+                                        <Typography variant="body2" sx={{ color: '#9ca3af', fontStyle: 'italic' }}>
+                                            No data recorded
+                                        </Typography>
+                                    ) : (
+                                        <Box sx={{ width: '100%' }}>
                                             {Object.entries(after).map(([key, val]) => (
-                                                <Box key={key} sx={{ borderBottom: '1px solid #f9fafb', pb: 1, '&:last-child': { borderBottom: 'none', pb: 0 } }}>
-                                                    <Typography variant="caption" sx={{ color: '#9ca3af', textTransform: 'uppercase', fontWeight: 700, fontSize: '0.65rem' }}>
-                                                        {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#111827', fontWeight: 600, mt: 0.2 }}>
-                                                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                                                    </Typography>
+                                                <Box key={key} sx={{ mb: 1.5 }}>
+                                                    <Typography variant="caption" sx={{ color: '#9ca3af', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>{key.replace(/_/g, ' ')}</Typography>
+                                                    <Typography variant="body2" fontWeight={700} color="#111827">{String(val)}</Typography>
                                                 </Box>
                                             ))}
-                                        </Stack>
-                                    ) : (
-                                        <Box sx={{ py: 2, textAlign: 'center' }}>
-                                            <Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic', opacity: 0.6 }}>Record Finalized / Deleted</Typography>
                                         </Box>
                                     )}
                                 </Paper>
                             </Grid>
                         </Grid>
-                    </Box>
-                )}
+                    </Grid>
 
-                {/* Additional Client/Business Context */}
-                <Box sx={{ mt: 2 }}>
-                    <Typography variant="overline" color="textSecondary" fontWeight={600} sx={{ letterSpacing: '0.05em' }}>RELEVANT BUSINESS DATA</Typography>
-                    <Paper
-                        variant="outlined"
-                        sx={{
+                    {/* Relevant Business Data Section - Matching Image */}
+                    <Grid item xs={12} sx={{ mt: 2 }}>
+                        <Typography variant="overline" color="textSecondary" fontWeight={600} sx={{ letterSpacing: 1.2 }}>
+                            RELEVANT BUSINESS DATA
+                        </Typography>
+                        <Paper variant="outlined" sx={{
                             p: 3,
-                            mt: 1.5,
-                            borderRadius: '12px',
-                            bgcolor: '#fbfbfb',
-                            borderStyle: 'dashed',
-                            borderColor: '#e5e7eb'
-                        }}
-                    >
-                        <Grid container spacing={3}>
-                            <Grid item xs={6}>
-                                <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }} display="block">Primary Target</Typography>
-                                <Typography variant="body2" fontWeight={700} color="#111" sx={{ mt: 0.5 }}>{target || 'N/A'}</Typography>
+                            mt: 1,
+                            borderRadius: '20px',
+                            bgcolor: '#f9fafb',
+                            border: '1px dashed #e5e7eb'
+                        }}>
+                            <Grid container spacing={2} sx={{ mb: 3 }}>
+                                <Grid item xs={6}>
+                                    <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 700, display: 'block', mb: 0.5 }}>PRIMARY TARGET</Typography>
+                                    <Typography variant="body2" fontWeight={700} color="#111827">{target || entityType || 'N/A'}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 700, display: 'block', mb: 0.5 }}>ACTION CONTEXT</Typography>
+                                    <Typography variant="body2" fontWeight={700} color="#111827">{action}</Typography>
+                                </Grid>
                             </Grid>
-                            <Grid item xs={6}>
-                                <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }} display="block">Action Context</Typography>
-                                <Typography variant="body2" fontWeight={700} color="#111" sx={{ mt: 0.5 }}>{action}</Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Divider sx={{ my: 2, opacity: 0.5 }} />
-                                <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }} display="block">Audit Summary</Typography>
-                                <Typography variant="body2" sx={{ color: '#4b5563', mt: 1, lineHeight: 1.6 }}>
-                                    This {category.toLowerCase()} event was initiated by <strong>{user?.name || 'the system'}</strong> for <strong>{company?.name || 'the organization'}</strong>.
+
+                            <Divider sx={{ mb: 3, borderStyle: 'dashed' }} />
+
+                            <Box>
+                                <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 700, display: 'block', mb: 1 }}>AUDIT SUMMARY</Typography>
+                                <Typography variant="body2" sx={{ color: '#4b5563', lineHeight: 1.6 }}>
+                                    This {entityType || 'system'} event was initiated by <strong>{getWorkerName(user?.name)}</strong>.
+                                    The action <strong>{action}</strong> was performed on <strong>{target || entityId || 'the target entity'}</strong>.
                                     The status of this operation is recorded as <strong>{status}</strong>.
                                 </Typography>
-                            </Grid>
-                        </Grid>
-                    </Paper>
-                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
+
+                    {/* Technical Data Toggle */}
+                    <Grid item xs={12} sx={{ mt: 2 }}>
+                        <Button
+                            fullWidth
+                            onClick={() => setShowTechnical(!showTechnical)}
+                            endIcon={showTechnical ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            sx={{ justifyContent: 'space-between', color: '#6b7280', textTransform: 'none', py: 1, fontWeight: 600 }}
+                        >
+                            Technical Details (Raw JSON)
+                        </Button>
+                        <Collapse in={showTechnical}>
+                            <Paper variant="outlined" sx={{ p: 2, mt: 1, borderRadius: '12px', bgcolor: '#111827', color: '#fff' }}>
+                                <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block', mb: 1 }}>RAW PAYLOAD</Typography>
+                                <Box component="pre" sx={{ m: 0, fontSize: '0.75rem', overflow: 'auto', maxHeight: 300, fontFamily: 'monospace' }}>
+                                    {JSON.stringify(payload || {}, null, 2)}
+                                </Box>
+                                {metadata && (
+                                    <>
+                                        <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block', mt: 2, mb: 1 }}>METADATA</Typography>
+                                        <Box component="pre" sx={{ m: 0, fontSize: '0.75rem', overflow: 'auto', maxHeight: 300, fontFamily: 'monospace' }}>
+                                            {JSON.stringify(metadata, null, 2)}
+                                        </Box>
+                                    </>
+                                )}
+                            </Paper>
+                        </Collapse>
+                    </Grid>
+                </Grid>
             </Box>
         </Box>
     );
