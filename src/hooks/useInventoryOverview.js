@@ -92,6 +92,7 @@ const useInventoryOverview = (companyId) => {
         recentProductsResponse,
         productsResponse,
         trendsResponse,
+        overviewAnalytics,
       ] = await Promise.all([
         OverviewService.getDashboardData(companyId),
         OverviewService.getCompanyOverview(companyId),
@@ -99,12 +100,38 @@ const useInventoryOverview = (companyId) => {
         OverviewService.getShops({ companyId }),
         OverviewService.getStockoutRisk({ companyId }),
         OverviewService.getTopProducts({ companyId }),
-        OverviewService.getStockChanges({ companyId, limit: 50 }),
         OverviewService.getProducts({ companyId, limit: 50 }),
         // fallback: use productsService if OverviewService doesn't return full details
         productsService.getProducts({ companyId, limit: 1000 }),
         OverviewService.getInventoryTrends({ companyId, period: "month" }),
+        // New: unified overview analytics endpoint (single source of truth for snapshot/KPIs/trends/activity)
+        OverviewService.getOverviewAnalytics({ companyId }),
       ]);
+
+      // Attempt to use the unified overview analytics payload if available
+      const overviewPayload =
+        (overviewAnalytics &&
+          (overviewAnalytics.data || overviewAnalytics?.data?.data)) ||
+        null;
+      const overviewData =
+        overviewPayload?.data ||
+        overviewAnalytics?.data ||
+        overviewAnalytics ||
+        null; // support different shapes
+
+      // Map overview API fields into local variables (prefer overviewData when available)
+      const snapshot =
+        overviewData?.snapshot ||
+        (dashboardData && dashboardData.summary) ||
+        {};
+      const kpis =
+        overviewData?.kpis || (dashboardData && dashboardData.metrics) || {};
+      const distributions = overviewData?.distributions || {};
+      const trendsFromOverview = overviewData?.trends || null;
+      const heatmapFromOverview = overviewData?.heatmap || null;
+      const topProductsOverview = overviewData?.topProducts || null;
+      const recentActivityOverview = overviewData?.recentActivity || null;
+      const shopPerformanceOverview = overviewData?.shopPerformance || null;
 
       // Prefer the most detailed products list available
       const products =
@@ -138,7 +165,8 @@ const useInventoryOverview = (companyId) => {
         return [];
       };
 
-      const activities = extractArray(activitiesResponse);
+      // Activities should come from the unified overview payload first; fallback to any previous activity responses if present
+      const activities = extractArray(recentActivityOverview || []);
       const recentProducts = extractArray(recentProductsResponse);
       // normalize shops response to an array (api returns { success, data: [...] })
       const shopsList = extractArray(shops);
@@ -224,6 +252,48 @@ const useInventoryOverview = (companyId) => {
         );
         if (isLow) lowStockCnt += 1;
       });
+
+      // If unified overview API returned distributions use them (status/value)
+      const statusDistribution =
+        distributions?.status ||
+        inventorySummary?.data?.summary?.statusDistribution ||
+        dashboardData.summary?.distribution ||
+        [];
+
+      const valueDistribution =
+        distributions?.value?.byCategory ||
+        computedCategoryDistribution.length > 0
+          ? computedCategoryDistribution
+          : inventorySummary?.data?.summary?.byCategory ||
+            dashboardData.summary?.categoryDistribution ||
+            [];
+
+      // trends mapping: prefer the overview trends if present
+      const movementsTrend =
+        (trendsFromOverview && trendsFromOverview.movements) ||
+        trendsArray ||
+        [];
+      const profitTrend =
+        (trendsFromOverview && trendsFromOverview.profit) || null;
+
+      // heatmap: prefer overview heatmap
+      const heatmapDataFromApi =
+        heatmapFromOverview || dashboardData.heatmap || null;
+
+      // top products and recent activity
+      const topProductsFinal =
+        topProductsOverview ||
+        (topProducts && (topProducts.data || topProducts.items)) ||
+        topProducts ||
+        [];
+      const recentActivity = recentActivityOverview || activities || [];
+
+      // shop performance
+      const shopPerformanceFinal =
+        shopPerformanceOverview ||
+        (shopsList && shopsList.length ? shopsList : []);
+
+      // Sparklines will be computed later (after trendPoints declaration) to avoid duplicate declarations
 
       const healthSeries = [
         {
@@ -329,44 +399,52 @@ const useInventoryOverview = (companyId) => {
         });
 
       setData({
-        summary: dashboardData.summary || dashboardData.metrics?.summary || {},
+        // Prefer the unified overview payload when present
+        summary:
+          overviewData?.snapshot ||
+          dashboardData.summary ||
+          dashboardData.metrics?.summary ||
+          {},
+        kpis: overviewData?.kpis || kpis || dashboardData.metrics || {},
         // overwrite / complement summary fields with computed values
         summaryComputed: {
           totalValue,
           totalUnits,
           totalProducts,
           lowStockCount:
-            inventorySummary?.data?.overview?.lowStockCount ||
+            (overviewData?.snapshot?.lowStockUnits ??
+              inventorySummary?.data?.overview?.lowStockCount) ||
             (dashboardData.lowStock?.length ?? 0) ||
             (dashboardData.summary?.lowStockCount ?? 0),
-          netStockMovement: dashboardData.summary?.netStockMovement || 0,
+          netStockMovement:
+            (overviewData?.kpis?.netStockMovement ??
+              dashboardData.summary?.netStockMovement) ||
+            0,
         },
+        // Distributions
         statusDistribution:
+          distributions?.status ||
           inventorySummary?.data?.summary?.byCategory ||
           dashboardData.summary?.distribution ||
           [],
         valueDistribution:
-          computedCategoryDistribution.length > 0
+          distributions?.value?.byCategory ||
+          (computedCategoryDistribution.length > 0
             ? computedCategoryDistribution
-            : inventorySummary?.data?.summary?.byCategory ||
-              dashboardData.summary?.categoryDistribution ||
-              [],
-        movementTrend: processedMovementTrend,
+            : inventorySummary?.data?.summary?.byCategory) ||
+          dashboardData.summary?.categoryDistribution ||
+          [],
+        // Trends & charts
+        movementTrend: movementsTrend || processedMovementTrend,
+        profitTrend: profitTrend || financialChartData,
         financialTrend: dashboardData.metrics?.graphs?.profitComparison || [],
         financialChartData,
+        // Top products & risks
         topProducts:
-          topProducts && (topProducts.data || topProducts.items)
-            ? (topProducts.data || topProducts.items).map((p) => ({
-                id: p._id || p.id || Math.random(),
-                name: p.name || p.productName || p.label || "Product",
-                profit: Number(p.profit ?? p.metrics?.profit ?? 0),
-                unitsSold: Number(
-                  p.units ?? p.metrics?.units ?? p.totalSold ?? 0
-                ),
-              }))
-            : Array.isArray(topProducts)
-            ? topProducts
-            : [],
+          topProductsOverview ||
+          (topProducts && (topProducts.data || topProducts.items)) ||
+          topProducts ||
+          [],
         riskProducts:
           riskProducts && (riskProducts.data || riskProducts.items)
             ? (riskProducts.data || riskProducts.items).map((r) => ({
@@ -383,19 +461,14 @@ const useInventoryOverview = (companyId) => {
             : Array.isArray(riskProducts)
             ? riskProducts
             : [],
-        shopPerformance:
-          shopsList.map((shop) => ({
-            name: shop.name || shop.label || "Store",
-            revenue: shop.revenue || shop.performance?.revenue || 0,
-            units: shop.stockCount || shop.performance?.units || 0,
-          })) || [],
-        activities: activities
+        shopPerformance: shopPerformanceFinal || [],
+        activities: (recentActivity || activities)
           .map((a) => ({
             id: a.id || a._id || Math.random(),
             type: a.type || (a.changeType === "INCREASE" ? "RESTOCK" : "SALE"),
-            item: a.productName || a.product?.name || "Product",
-            quantity: a.quantity || a.changeAmount || 0,
-            time: formatActivityTime(a.createdAt || a.timestamp),
+            item: a.productName || a.product?.name || a.item || "Product",
+            quantity: a.qty ?? a.quantity ?? a.changeAmount ?? 0,
+            time: formatActivityTime(a.timestamp || a.createdAt || a.time),
           }))
           .slice(0, 10),
         recentProducts: recentProducts.map((p) => ({
@@ -404,23 +477,24 @@ const useInventoryOverview = (companyId) => {
           addedBy: p.createdBy?.name || p.creatorName || "Staff",
         })),
         health:
-          (dashboardData.summary?.statusHistory || []).length > 0
-            ? dashboardData.summary.statusHistory
-            : healthSeries,
+          overviewData?.health && overviewData.health.length > 0
+            ? overviewData.health
+            : dashboardData.summary?.statusHistory || healthSeries,
         valueTrends:
-          valueTrendsProcessed.length > 0
-            ? valueTrendsProcessed
-            : sparkValue.map((s, i) => ({
-                month: `P${i + 1}`,
-                value: s.value,
-              })),
-        heatmapData: aggregateHeatmap(activities),
+          overviewData?.trends?.movements?.map((d) => ({
+            month: d.date || d.day || "",
+            value: Number(d.stockIn ?? d.netMovement ?? d.value ?? 0),
+          })) || valueTrendsProcessed,
+        heatmapData: heatmapDataFromApi || aggregateHeatmap(activities),
+        // sparklines prefer profit/movement trends from overview
         kpiSparklines: {
           value: sparkValue,
           units: sparkUnits,
           movement: sparkMovement,
           risk: sparkRisk,
         },
+        // include raw overview payload for debugging & future use
+        _overviewRaw: overviewData,
       });
     } catch (err) {
       console.error("Failed to fetch inventory overview data:", err);

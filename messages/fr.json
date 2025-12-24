@@ -198,22 +198,61 @@
   "home": {
     "login": "Connexion",
     "register": "S'inscrire",
-    "home": "Accueil",
-    "about": "À propos",
-    "faq": "FAQ",
-    "services": "Services",
     "hero": {
-      "title1": "Arrêtez de perdre du temps",
-      "title2": "dans les enregistrements manuels",
-      "subtitle": "Augmentez l'efficacité, économisez du temps et de l'argent avec ce système de gestion des stocks.",
-      "getStarted": "Commencer"
+      "title": "Gérez votre entreprise en temps réel — où que vous soyez",
+      "subtitle": "Inventaire, ventes, personnel, créances, rapports, notifications et audits — tout dans un tableau de bord puissant.",
+      "kpi1": { "title": "Alertes en temps réel", "value": "Live" },
+      "kpi2": { "title": "Échelle mondiale", "value": "Multi-région" }
     },
-    "stats": {
-      "users": "Utilisateurs",
-      "system": "Système",
-      "satisfaction": "Taux de satisfaction",
-      "uptime": "Garantie de disponibilité"
+    "landing": {
+      "nav": {
+        "home": "Accueil",
+        "features": "Fonctionnalités",
+        "pricing": "Tarifs",
+        "login": "Connexion"
+      },
+      "cta": {
+        "start": "Démarrer l'essai",
+        "demo": "Demander une démo",
+        "final": {
+          "title": "Gérez votre entreprise plus intelligemment — aujourd'hui",
+          "subtitle": "Essai gratuit, aucune carte requise"
+        }
+      },
+      "trust": {
+        "heading": "Adopté par des entreprises modernes dans le monde entier"
+      },
+      "features": {
+        "title": "Modules complets",
+        "subtitle": "Tout ce dont vous avez besoin pour gérer vos opérations en temps réel."
+      },
+      "how": {
+        "title": "Comment fonctionne Invexix",
+        "subtitle": "Configurez et surveillez en quelques minutes."
+      },
+      "why": {
+        "title": "Contrôle total et informations en temps réel",
+        "subtitle": "Conçu pour les entreprises de toutes tailles."
+      },
+      "pricing": { "title": "Des tarifs flexibles pour chaque entreprise" },
+      "cases": { "title": "Conçu pour toutes les entreprises, partout." }
     }
+  },
+  "home": "Accueil",
+  "about": "À propos",
+  "faq": "FAQ",
+  "services": "Services",
+  "hero": {
+    "title1": "Arrêtez de perdre du temps",
+    "title2": "dans les enregistrements manuels",
+    "subtitle": "Augmentez l'efficacité, économisez du temps et de l'argent avec ce système de gestion des stocks.",
+    "getStarted": "Commencer"
+  },
+  "stats": {
+    "users": "Utilisateurs",
+    "system": "Système",
+    "satisfaction": "Taux de satisfaction",
+    "uptime": "Garantie de disponibilité"
   },
   "termsPopup": {
     "title": "Conditions générales et politique de confidentialité",

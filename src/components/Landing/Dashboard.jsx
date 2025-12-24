@@ -106,24 +106,34 @@ export default function AnalyticsDashboard({
     return matchesStatus && matchesShop;
   });
 
+  const getStock = (product) => {
+    return (
+      product.inventory?.quantity ??
+      product.stock?.available ??
+      product.stock?.total ??
+      Number(product.stock) ??
+      0
+    );
+  };
+
   const dynamicStats = {
     totalProducts: filteredProducts.length,
     totalStockQuantity: filteredProducts.reduce(
-      (acc, product) => acc + (Number(product.stock) || 0),
+      (acc, product) => acc + (getStock(product) || 0),
       0
     ),
     lowStockCount: filteredProducts.filter((product) => {
-      const qty = Number(product.stock);
+      const qty = getStock(product);
       const threshold =
         product.lowStockThreshold ?? product.stock?.lowStockThreshold ?? 10;
       return qty > 0 && qty <= threshold;
     }).length,
     outOfStockCount: filteredProducts.filter(
-      (product) => Number(product.stock) <= 0
+      (product) => getStock(product) <= 0
     ).length,
     totalValue: filteredProducts.reduce((sum, p) => {
       const price = Number(p.price) || 0;
-      const qty = Number(p.stock) || 0;
+      const qty = getStock(p) || 0;
       return sum + price * qty;
     }, 0),
   };

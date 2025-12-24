@@ -29,7 +29,7 @@ export async function lookupProduct(scanData) {
 export async function stockIn(payload) {
   try {
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/in`,
+      `${API_BASE}/inventory/v1/stock/bulk-in`,
       payload
     );
     return res.data;
@@ -64,11 +64,14 @@ export async function stockOut(payload) {
  * @param {Array<Object>} items - An array of items to add to inventory
  * @returns {Promise<Object>} The response data from the API
  */
-export async function bulkStockIn(items) {
+export async function bulkStockIn(payload) {
   try {
-    const res = await apiClient.post(`${API_BASE}/inventory/v1/stock/bulk-in`, {
-      items,
-    });
+    // payload may be either an array of items or an object { companyId, shopId, userId, items }
+    const body = Array.isArray(payload) ? { items: payload } : payload;
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/bulk-in`,
+      body
+    );
     return res.data;
   } catch (err) {
     throw err;
@@ -107,12 +110,10 @@ export async function bulkStockOut(items) {
  *
  * CACHING: NO-STORE - Real-time stock movements must always be current
  */
-export async function getAllStockChanges({
-  page = 1,
-  limit = 20,
-  companyId,
-  productId,
-} = {}, options = {}) {
+export async function getAllStockChanges(
+  { page = 1, limit = 20, companyId, productId } = {},
+  options = {}
+) {
   const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
 
   const params = { page, limit };
@@ -122,7 +123,7 @@ export async function getAllStockChanges({
   return apiClient.get(`${API_BASE}/inventory/v1/stock/changes`, {
     params,
     cache: cacheStrategy, // NO-STORE
-    ...options
+    ...options,
   });
 }
 
@@ -151,6 +152,50 @@ export async function getStockHistory({
   return apiClient.get(`${API_BASE}/inventory/v1/stock/history`, {
     params,
     cache: cacheStrategy, // 1 hour cache
+  });
+}
+
+/**
+ * Get stock change history (analytics endpoint)
+ * GET /inventory/v1/analytics/stock-change-history?companyId=...
+ *
+ * This endpoint returns an object { history: [...], pagination: { ... }, stats: { ... } }
+ * Use for historical analytics and paginated history views.
+ */
+export async function getStockChangeHistory(
+  { companyId, page = 1, limit = 50 } = {},
+  options = {}
+) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+
+  const params = { page, limit };
+  if (companyId) params.companyId = companyId;
+
+  return apiClient.get(
+    `${API_BASE}/inventory/v1/analytics/stock-change-history`,
+    {
+      params,
+      cache: cacheStrategy,
+      ...options,
+    }
+  );
+}
+
+/**
+ * Get daily stock summary for a company
+ * GET /inventory/v1/stock/daily-summary?companyId=...
+ *
+ * Response shape: { success: true, data: { today: {...}, inventory: {...} } }
+ */
+export async function getDailySummary({ companyId } = {}, options = {}) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+  const params = {};
+  if (companyId) params.companyId = companyId;
+
+  return apiClient.get(`${API_BASE}/inventory/v1/stock/daily-summary`, {
+    params,
+    cache: cacheStrategy,
+    ...options,
   });
 }
 
@@ -184,6 +229,8 @@ export default {
   bulkStockOut,
   getAllStockChanges,
   getStockHistory,
+  getStockChangeHistory,
+  getDailySummary,
   getStockChangeById,
   createStockChange,
   getCompanyDetails,
@@ -197,7 +244,10 @@ export default {
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-transfer
  */
 export async function transferToShop(companyId, shopId, payload) {
-  return apiClient.post(`${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`, payload);
+  return apiClient.post(
+    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`,
+    payload
+  );
 }
 
 /**
@@ -205,13 +255,16 @@ export async function transferToShop(companyId, shopId, payload) {
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
  */
 export async function transferToCompany(companyId, shopId, payload) {
-  return apiClient.post(`${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`, payload);
+  return apiClient.post(
+    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`,
+    payload
+  );
 }
 
 /**
  * Get company details by ID
  * GET /company/companies/:id
- * 
+ *
  * @param {string} id - Company ID
  * @returns {Promise<Object>} Company details
  */
@@ -222,7 +275,7 @@ export async function getCompanyDetails(id) {
 /**
  * Get all companies
  * GET /company/companies
- * 
+ *
  * @returns {Promise<Object>} List of companies
  */
 export async function getAllCompanies() {

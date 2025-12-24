@@ -3,7 +3,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const getApiBase = () => {
   // Prioritize the standard HTTP API URL
-  let url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_SW || "http://localhost:5000";
+  let url =
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL_SW ||
+    "http://localhost:5000";
 
   // Safety: If for some reason we got a WebSocket URL (wss:// or ws://), convert it to HTTP for fetch
   if (url.startsWith("wss://")) {
@@ -81,8 +84,9 @@ export const authOptions = {
             return {
               id: userPayload._id ?? userPayload.id ?? userPayload.username,
               name:
-                `${userPayload.firstName ?? ""} ${userPayload.lastName ?? ""
-                  }`.trim() ||
+                `${userPayload.firstName ?? ""} ${
+                  userPayload.lastName ?? ""
+                }`.trim() ||
                 userPayload.username ||
                 userPayload.email,
               email: userPayload.email,
@@ -98,7 +102,9 @@ export const authOptions = {
         try {
           const loginUrl = `${API_BASE}/auth/login`;
           if (process.env.NODE_ENV === "development") {
-            console.log(`[NextAuth] Authorizing: ${loginUrl}`, { identifier: credentials.identifier });
+            console.log(`[NextAuth] Authorizing: ${loginUrl}`, {
+              identifier: credentials.identifier,
+            });
           }
 
           const res = await fetch(loginUrl, {
@@ -116,8 +122,15 @@ export const authOptions = {
             console.log(`[NextAuth] Backend Response Status: ${res.status}`);
           }
 
-          if (!res.ok || (data.ok === false) || (!data.user && !data.accessToken)) {
-            const errorMessage = data.message || data.error || "Invalid credentials or backend error";
+          if (
+            !res.ok ||
+            data.ok === false ||
+            (!data.user && !data.accessToken)
+          ) {
+            const errorMessage =
+              data.message ||
+              data.error ||
+              "Invalid credentials or backend error";
             if (process.env.NODE_ENV === "development") {
               console.error(`[NextAuth] Auth failed:`, errorMessage);
             }

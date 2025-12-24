@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import useInventoryOverview from "@/hooks/useInventoryOverview";
 import InventoryHeader from "./InventoryHeader";
 import InventoryKPISection from "./InventoryKPISection";
+import InventorySnapshotPanel from "./InventorySnapshotPanel";
 import InventoryDistributionSection from "./InventoryDistributionSection";
 import InventoryMovementSection from "./InventoryMovementSection";
 import InventoryInsightsSection from "./InventoryInsightsSection";
@@ -103,7 +104,15 @@ const InventoryOverviewPage = () => {
             new Date()
           }
         />
-        <InventoryKPISection summary={data} sparklines={data.kpiSparklines} />
+        <InventorySnapshotPanel
+          snapshot={data?.summary || {}}
+          kpis={data?.kpis || {}}
+        />
+        <InventoryKPISection
+          summary={data}
+          kpis={data?.kpis}
+          sparklines={data.kpiSparklines}
+        />
         {hasDistribution && (
           <InventoryDistributionSection
             statusData={data.statusDistribution}

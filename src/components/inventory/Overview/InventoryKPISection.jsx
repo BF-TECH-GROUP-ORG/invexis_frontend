@@ -212,7 +212,7 @@ const computeTrendPercent = (arr = []) => {
   return Math.round(((last - first) / Math.abs(first)) * 100);
 };
 
-const InventoryKPISection = ({ summary = {}, sparklines = {} }) => {
+const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
   const [isCompact, setIsCompact] = useState(true);
 
   // prefer computed values when available
@@ -236,47 +236,91 @@ const InventoryKPISection = ({ summary = {}, sparklines = {} }) => {
       : Array.from({ length: 10 }).map(() => ({ value: 0 }));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <KPICard
-        title="Total Inventory Value"
-        value={totalValue}
-        icon={DollarSign}
-        trend={computeTrendPercent(getSpark("value"))}
-        data={getSpark("value")}
-        type="area"
-        color="indigo"
-        isCurrency={true}
-        isCompact={isCompact}
-        onToggleCompact={() => setIsCompact(!isCompact)}
-      />
-      <KPICard
-        title="Total Units"
-        value={totalUnits}
-        icon={Package}
-        trend={computeTrendPercent(getSpark("units"))}
-        data={getSpark("units")}
-        type="bar"
-        color="orange"
-      />
-      <KPICard
-        title="Low Stock Items"
-        value={lowStock}
-        icon={AlertTriangle}
-        trend={computeTrendPercent(getSpark("risk"))}
-        data={getSpark("risk")}
-        type="area"
-        color="rose"
-      />
-      <KPICard
-        title="Net Movement"
-        value={netMovement > 0 ? `+${netMovement}` : netMovement}
-        icon={Activity}
-        trend={computeTrendPercent(getSpark("movement"))}
-        data={getSpark("movement")}
-        type="bar"
-        color="emerald"
-      />
-    </div>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <KPICard
+          title="Total Inventory Value"
+          value={totalValue}
+          icon={DollarSign}
+          trend={computeTrendPercent(getSpark("value"))}
+          data={getSpark("value")}
+          type="area"
+          color="indigo"
+          isCurrency={true}
+          isCompact={isCompact}
+          onToggleCompact={() => setIsCompact(!isCompact)}
+        />
+        <KPICard
+          title="Total Units"
+          value={totalUnits}
+          icon={Package}
+          trend={computeTrendPercent(getSpark("units"))}
+          data={getSpark("units")}
+          type="bar"
+          color="orange"
+        />
+        <KPICard
+          title="Low Stock Items"
+          value={lowStock}
+          icon={AlertTriangle}
+          trend={computeTrendPercent(getSpark("risk"))}
+          data={getSpark("risk")}
+          type="area"
+          color="rose"
+        />
+        <KPICard
+          title="Net Movement"
+          value={netMovement > 0 ? `+${netMovement}` : netMovement}
+          icon={Activity}
+          trend={computeTrendPercent(getSpark("movement"))}
+          data={getSpark("movement")}
+          type="bar"
+          color="emerald"
+        />
+      </div>
+
+      {/* Additional KPIs from analytics endpoint (if available) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <KPICard
+          title="Gross Profit"
+          value={kpis?.grossProfit ?? "—"}
+          icon={DollarSign}
+          trend={Math.round(kpis?.grossMargin ?? 0)}
+          data={getSpark("value")}
+          type="area"
+          color="indigo"
+          isCurrency={true}
+          isCompact={true}
+        />
+        <KPICard
+          title="Gross Margin"
+          value={kpis?.grossMargin != null ? `${kpis.grossMargin}%` : "—"}
+          icon={TrendingUp}
+          trend={computeTrendPercent(getSpark("value"))}
+          data={getSpark("value")}
+          type="bar"
+          color="blue"
+        />
+        <KPICard
+          title="Inventory Turnover"
+          value={kpis?.inventoryTurnoverRatio ?? "—"}
+          icon={Activity}
+          trend={0}
+          data={getSpark("movement")}
+          type="bar"
+          color="emerald"
+        />
+        <KPICard
+          title="Holding Days"
+          value={kpis?.inventoryHoldingDays ?? "—"}
+          icon={Package}
+          trend={0}
+          data={getSpark("units")}
+          type="bar"
+          color="rose"
+        />
+      </div>
+    </>
   );
 };
 

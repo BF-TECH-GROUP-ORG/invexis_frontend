@@ -198,22 +198,59 @@
   "home": {
     "login": "Injira",
     "register": "Iyandikishe",
-    "home": "Ahabanza",
-    "about": "Ibitwerekeye",
-    "faq": "FAQ",
-    "services": "Serivisi",
     "hero": {
-      "title1": "Reka gupfusha ubusa igihe",
-      "title2": "mu byanditswe by'intoki",
-      "subtitle": "Ongera umusaruro, ubone umwanya n'amafaranga ukoresheje ubu buryo bwo gucunga ububiko.",
-      "getStarted": "Tangira"
+      "title": "Tunganya business yawe mu gihe nyacyo — aho uri hose",
+      "subtitle": "Ububiko, ubucuruzi, abakozi, amadeni, raporo, amatangazo n'amadosiye — byose kuri dashboard imwe.",
+      "kpi1": { "title": "Amatangazo y'ako kanya", "value": "Live" },
+      "kpi2": { "title": "Gukora ku rwego rw'isi", "value": "Multi-region" }
     },
-    "stats": {
-      "users": "Abakoresha",
-      "system": "Sisitemu",
-      "satisfaction": "Urwego rwo kunyurwa",
-      "uptime": "Garanti yo gukora"
+    "landing": {
+      "nav": {
+        "home": "Ahabanza",
+        "features": "Ibikorwa",
+        "pricing": "Ibiciro",
+        "login": "Injira"
+      },
+      "cta": {
+        "start": "Tangirira ubu",
+        "demo": "Saba Demo",
+        "final": {
+          "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
+          "subtitle": "Gerageza ubuntu, ntukeneye ikarita ya banki"
+        }
+      },
+      "trust": { "heading": "Bizwi n'amashyirahamwe agezweho ku isi yose" },
+      "features": {
+        "title": "Modules zuzuye",
+        "subtitle": "Ibyo ukeneye byose mu micungire y'ibikorwa mu gihe nyacyo."
+      },
+      "how": {
+        "title": "Uko Invexix ikora",
+        "subtitle": "Shyiraho, utegure, ukurebe mu minota mike."
+      },
+      "why": {
+        "title": "Ubugenzuzi bwuzuye n'ibitekerezo by'ako kanya",
+        "subtitle": "Yubatswe ku nzego zose z'ubucuruzi."
+      },
+      "pricing": { "title": "Ibiciro byoroshye ku kigo cyose" },
+      "cases": { "title": "Yubakiwe buri sosiyete, hose." }
     }
+  },
+  "home": "Ahabanza",
+  "about": "Ibitwerekeye",
+  "faq": "FAQ",
+  "services": "Serivisi",
+  "hero": {
+    "title1": "Reka gupfusha ubusa igihe",
+    "title2": "mu byanditswe by'intoki",
+    "subtitle": "Ongera umusaruro, ubone umwanya n'amafaranga ukoresheje ubu buryo bwo gucunga ububiko.",
+    "getStarted": "Tangira"
+  },
+  "stats": {
+    "users": "Abakoresha",
+    "system": "Sisitemu",
+    "satisfaction": "Urwego rwo kunyurwa",
+    "uptime": "Garanti yo gukora"
   },
   "termsPopup": {
     "title": "Amategeko & Itegeko ry'Ibanga",

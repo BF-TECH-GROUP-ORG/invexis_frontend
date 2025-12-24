@@ -220,6 +220,110 @@
       "uptime": "Uptime Guarantee"
     }
   },
+  "landing": {
+    "nav": {
+      "home": "Home",
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Login"
+    },
+    "hero": {
+      "title": "Run Your Entire Business in Real Time — Anywhere",
+      "subtitle": "Inventory, sales, staff, debts, reports, notifications and audits — all in one powerful dashboard that scales from SMB to Enterprise.",
+      "kpi1": { "title": "Realtime Alerts", "value": "Live" },
+      "kpi2": { "title": "Global Scale", "value": "Multi-region" }
+    },
+    "cta": {
+      "start": "Start Free Trial",
+      "demo": "Request a Demo",
+      "final": {
+        "title": "Start Managing Your Business Smarter — Today",
+        "subtitle": "Free trial, no credit card required"
+      }
+    },
+    "trust": { "heading": "Trusted by modern businesses worldwide" },
+    "features": {
+      "title": "Comprehensive Modules",
+      "subtitle": "Everything you need to run operations in real time.",
+      "operations": {
+        "title": "Centralized Dashboard",
+        "desc": "One view for KPIs and alerts."
+      },
+      "inventory": {
+        "title": "Inventory Management",
+        "desc": "Track stock, stock levels, and forecasts."
+      },
+      "analytics": {
+        "title": "Reports & Analytics",
+        "desc": "Actionable insights and custom reports."
+      },
+      "staff": {
+        "title": "Worker Management",
+        "desc": "Roles, shifts and performance."
+      },
+      "notifications": {
+        "title": "Real-time Alerts",
+        "desc": "Push and in-app alerts across devices."
+      },
+      "logs": {
+        "title": "Logs & Audits",
+        "desc": "Full activity history for compliance."
+      }
+    },
+    "how": {
+      "title": "How Invexix Works",
+      "subtitle": "Set up, configure, and monitor in minutes.",
+      "steps": {
+        "step1": "Create your workspace",
+        "step2": "Configure inventory & staff",
+        "step3": "Monitor operations in real time",
+        "step4": "Receive instant alerts & insights",
+        "step5": "Scale without losing control"
+      }
+    },
+    "why": {
+      "title": "Full control, real-time updates, and business intelligence — anywhere, anytime.",
+      "subtitle": "Designed for businesses of all sizes to maintain operational control and make data-driven decisions.",
+      "items": [
+        "Centralized control of all operations",
+        "Real-time notifications across devices",
+        "Full activity tracking via logs & audits",
+        "Data-driven decisions through analytics"
+      ]
+    },
+    "pricing": {
+      "title": "Flexible Pricing for Every Business",
+      "subtitle": "Choose monthly or yearly billing",
+      "month": "mo",
+      "year": "yr",
+      "cta": "Start Free Trial"
+    },
+    "cases": {
+      "title": "Built for every business, everywhere.",
+      "subtitle": "Adaptable to retail, wholesale, services, logistics and enterprise workflows.",
+      "items": {
+        "retail": "Retail",
+        "wholesale": "Wholesale",
+        "services": "Services",
+        "logistics": "Logistics"
+      }
+    },
+    "footer": {
+      "desc": "Invexix is a global business management platform built for scale.",
+      "links": {
+        "title": "Explore",
+        "about": "About",
+        "features": "Features",
+        "pricing": "Pricing"
+      },
+      "contact": { "title": "Contact", "email": "hello@invexix.com" },
+      "legal": {
+        "title": "Legal",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
+    }
+  },
   "termsPopup": {
     "title": "Terms & Privacy Policy",
     "description": "Please review and accept our Terms & Conditions and Privacy Policy before proceeding."
