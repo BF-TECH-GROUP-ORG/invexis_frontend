@@ -22,7 +22,7 @@ import warehousesReducer from "@/features/warehouses/warehousesSlice";
 // import inventoryReducer from '../features/inventory/inventorySlice';
 // import authReducer from '../features/auth/authSlice';
 // import settingsReducer from '../features/settings/settingsSlice';
-import documentsReducer from '../features/documents/documentsSlice';
+import documentsReducer from "../features/documents/documentsSlice";
 import billingReducer from "../features/billing/billingSlice";
 import announcementsReducer from "@/features/announcements/announcementsSlice";
 
@@ -44,6 +44,7 @@ export const store = configureStore({
     announcements: announcementsReducer,
     notifications: notificationReducer,
     logs: logsReducer,
+    onboarding: onboardingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
