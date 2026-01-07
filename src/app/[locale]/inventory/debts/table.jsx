@@ -771,7 +771,19 @@ const DebtsTable = ({
       </Popover>
 
       {/* Table */}
-      <TableContainer sx={{ maxHeight: 650, bgcolor: "white" }}>
+      <TableContainer sx={{
+        maxHeight: 650,
+        bgcolor: "white",
+        width: '100%',
+        overflowX: 'auto',
+        '&::-webkit-scrollbar': {
+          height: '6px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: '#e5e7eb',
+          borderRadius: '10px',
+        },
+      }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ bgcolor: "#e3f2fd" }}>

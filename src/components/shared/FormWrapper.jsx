@@ -85,7 +85,7 @@ export default function FormWrapper({
   error = null,
   success = null,
   showTerms = false,
-  onAcceptTerms = () => {},
+  onAcceptTerms = () => { },
   acceptedTerms = false,
 }) {
   const t = useTranslations("form");
@@ -110,7 +110,7 @@ export default function FormWrapper({
   };
 
   return (
-    <div className="w-full max-w-md p-8 rounded-2xl bg-white dark:bg-zinc-900">
+    <div className="w-full max-w-2xl p-8 rounded-2xl bg-white dark:bg-zinc-900">
       {/* Header + Help */}
       <div className="fixed top-10 right-10 flex items-center justify-center gap-8">
         <Link href="#" className="hover:underline text-sm text-gray-500">
@@ -159,76 +159,84 @@ export default function FormWrapper({
       )}
 
       {/* Form */}
-      <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         {fields.map((field, idx) => {
           if (field.hidden) return null;
           const isPassword = field.type === "password";
+          const colSpan = field.colSpan || 2;
 
           return (
-            <PasswordField key={idx} field={field} isPassword={isPassword} />
+            <div key={idx} className={colSpan === 1 ? "col-span-1" : "col-span-1 md:col-span-2"}>
+              <PasswordField field={field} isPassword={isPassword} />
+            </div>
           );
         })}
 
         {/* Terms & Conditions Checkbox */}
         {showTerms && (
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={acceptedTerms}
-                onChange={(e) => onAcceptTerms(e.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <span className="text-sm text-gray-600 font-metropolis">
-                {t("agreeTo")}{" "}
-                <Link
-                  href={`/${locale}/terms`}
-                  className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
-                >
-                  {t("termsOfService")}
-                </Link>{" "}
-                {t("and")}{" "}
-                <Link
-                  href={`/${locale}/privacy`}
-                  className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
-                >
-                  {t("privacyPolicy")}
-                </Link>
-                .
-              </span>
-            }
-            sx={{ mt: 1 }}
-          />
+          <div className="col-span-1 md:col-span-2">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={acceptedTerms}
+                  onChange={(e) => onAcceptTerms(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <span className="text-sm text-gray-600 font-metropolis">
+                  {t("agreeTo")}{" "}
+                  <Link
+                    href={`/${locale}/terms`}
+                    className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
+                  >
+                    {t("termsOfService")}
+                  </Link>{" "}
+                  {t("and")}{" "}
+                  <Link
+                    href={`/${locale}/privacy`}
+                    className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
+                  >
+                    {t("privacyPolicy")}
+                  </Link>
+                  .
+                </span>
+              }
+              sx={{ mt: 1 }}
+            />
+          </div>
         )}
 
         {/* Submit Button */}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={isLoading}
-          className="flex items-center justify-center mt-2"
-          endIcon={!isLoading && submitIcon}
-          sx={{
-            borderRadius: "12px",
-            height: "50px",
-            fontFamily: "Metropolis, sans-serif",
-            fontSize: "14px",
-            textTransform: "none",
-          }}
-        >
-          {isLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            submitLabel
-          )}
-        </Button>
+        <div className="col-span-1 md:col-span-2">
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+            fullWidth
+            className="flex items-center justify-center mt-2"
+            endIcon={!isLoading && submitIcon}
+            sx={{
+              borderRadius: "12px",
+              height: "50px",
+              fontFamily: "Metropolis, sans-serif",
+              fontSize: "14px",
+              textTransform: "none",
+            }}
+          >
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              submitLabel
+            )}
+          </Button>
+        </div>
       </form>
 
       {/* Divider */}
       {showDivider && (
-        <div className="flex items-center my-10">
+        <div className="col-span-1 md:col-span-2 flex items-center my-10">
           <Divider className="flex-grow" />
           <span className="px-4 text-gray-500 font-medium">{t("or")}</span>
           <Divider className="flex-grow" />

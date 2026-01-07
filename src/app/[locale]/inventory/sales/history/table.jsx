@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete, TablePagination
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete, TablePagination, Chip, Avatar, Stack
 } from "@mui/material";
 import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
@@ -29,14 +29,50 @@ const rows = [];
 
 // Small local confirmation dialog to avoid external prop mismatches
 const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => (
-  <Dialog open={open} onClose={onCancel}>
-    <DialogTitle>{title || "Confirm"}</DialogTitle>
+  <Dialog
+    open={open}
+    onClose={onCancel}
+    PaperProps={{
+      sx: {
+        borderRadius: 3,
+        p: 1,
+        minWidth: 320
+      }
+    }}
+  >
+    <DialogTitle sx={{ fontWeight: 700, color: "#111827" }}>{title || "Confirm"}</DialogTitle>
     <DialogContent>
-      <Typography>{message || "Are you sure?"}</Typography>
+      <Typography color="text.secondary">{message || "Are you sure?"}</Typography>
     </DialogContent>
-    <DialogActions>
-      <Button onClick={onCancel} color="primary" variant="outlined">Cancel</Button>
-      <Button onClick={onConfirm} color="error" variant="contained">Delete</Button>
+    <DialogActions sx={{ p: 2, gap: 1 }}>
+      <Button
+        onClick={onCancel}
+        variant="outlined"
+        sx={{
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+          borderColor: "#e5e7eb",
+          color: "#374151",
+          "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" }
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={onConfirm}
+        variant="contained"
+        color="error"
+        sx={{
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+          boxShadow: "none",
+          "&:hover": { boxShadow: "none", bgcolor: "#dc2626" }
+        }}
+      >
+        Delete
+      </Button>
     </DialogActions>
   </Dialog>
 );
@@ -91,7 +127,6 @@ const ReturnModal = ({ open, onClose, saleId }) => {
     const qty = parseInt(newQty) || 0;
     const item = selectedItems[saleItemId];
     if (!item) return;
-
     if (qty < 1) return;
     if (qty > item.maxQuantity) return;
 
@@ -142,34 +177,66 @@ const ReturnModal = ({ open, onClose, saleId }) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Return Products - Sale #{saleId}</DialogTitle>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 4, overflow: "hidden" }
+      }}
+    >
+      <DialogTitle sx={{
+        bgcolor: "#f9fafb",
+        borderBottom: "1px solid #e5e7eb",
+        px: 3,
+        py: 2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+        <Typography variant="h6" fontWeight="700">Return Products - Sale #{saleId}</Typography>
+        <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 3 }}>
         {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress />
+          <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+            <CircularProgress size={40} thickness={4} sx={{ color: "#FF6D00" }} />
           </Box>
         ) : sale ? (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 1 }}>
             {submitError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
                 {submitError}
               </Alert>
             )}
 
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, color: "#374151" }}>
               Select Items to Return
             </Typography>
-            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+            <TableContainer component={Paper} variant="outlined" sx={{
+              mb: 3,
+              borderRadius: 2,
+              border: "1px solid #e5e7eb",
+              boxShadow: "none",
+              width: '100%',
+              overflowX: 'auto',
+              '&::-webkit-scrollbar': {
+                height: '6px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#e5e7eb',
+                borderRadius: '10px',
+              },
+            }}>
               <Table size="small">
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: "#f9fafb" }}>
                     <TableCell padding="checkbox">Select</TableCell>
-                    <TableCell>Product ID</TableCell>
-                    <TableCell>Product Name</TableCell>
-                    <TableCell>Sold Qty</TableCell>
-                    <TableCell>Return Qty</TableCell>
-                    <TableCell>Refund Amount</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Sold Qty</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Return Qty</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Refund Amount</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -178,19 +245,18 @@ const ReturnModal = ({ open, onClose, saleId }) => {
                     const selectedItem = selectedItems[item.saleItemId];
 
                     return (
-                      <TableRow key={item.saleItemId} selected={isSelected}>
+                      <TableRow key={item.saleItemId} selected={isSelected} sx={{ "&.Mui-selected": { bgcolor: "#FFF3E0" } }}>
                         <TableCell padding="checkbox">
                           <Checkbox
                             checked={isSelected}
                             onChange={() => handleCheckboxChange(item)}
+                            sx={{ color: "#d1d5db", "&.Mui-checked": { color: "#FF6D00" } }}
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
-                            {item.productId}
-                          </Typography>
+                          <Typography variant="body2" fontWeight="600">{item.productName}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: "monospace" }}>{item.productId}</Typography>
                         </TableCell>
-                        <TableCell>{item.productName}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
                         <TableCell>
                           <TextField
@@ -200,10 +266,13 @@ const ReturnModal = ({ open, onClose, saleId }) => {
                             value={selectedItem ? selectedItem.quantity : ""}
                             onChange={(e) => handleQuantityChange(item.saleItemId, e.target.value)}
                             inputProps={{ min: 1, max: item.quantity }}
-                            sx={{ width: 80 }}
+                            sx={{
+                              width: 80,
+                              "& .MuiOutlinedInput-root": { borderRadius: "6px" }
+                            }}
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: isSelected ? "#E65100" : "inherit" }}>
                           {isSelected
                             ? (selectedItem.quantity * parseFloat(item.unitPrice)).toLocaleString()
                             : "0"}{" "}
@@ -223,25 +292,48 @@ const ReturnModal = ({ open, onClose, saleId }) => {
               value={returnReason}
               onChange={(e) => setReturnReason(e.target.value)}
               fullWidth
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 3,
+                "& .MuiOutlinedInput-root": { borderRadius: "8px" }
+              }}
             />
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-              <Typography variant="h6" sx={{ mr: 2 }}>
+            <Box sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              p: 2,
+              bgcolor: "#f9fafb",
+              borderRadius: 2
+            }}>
+              <Typography variant="h6" fontWeight="800" color="primary">
                 Total Refund: {totalRefundAmount.toLocaleString()} FRW
               </Typography>
             </Box>
           </Box>
         ) : (
-          <Alert severity="warning">Sale not found</Alert>
+          <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>Sale not found</Alert>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+      <DialogActions sx={{ p: 3, borderTop: "1px solid #e5e7eb" }}>
+        <Button
+          onClick={onClose}
+          sx={{ textTransform: "none", fontWeight: 600, color: "#6b7280" }}
+        >
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          color="primary"
+          sx={{
+            bgcolor: "#FF6D00",
+            "&:hover": { bgcolor: "#E65100" },
+            textTransform: "none",
+            fontWeight: 600,
+            px: 4,
+            borderRadius: "8px",
+            boxShadow: "none"
+          }}
           disabled={returnMutation.isPending || isLoading}
         >
           {returnMutation.isPending ? "Processing..." : "Confirm Return"}
@@ -376,7 +468,10 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
   const availableColumns = [
     { label: 'Category', value: 'Category', type: 'text' },
     { label: 'Unit Price (FRW)', value: 'UnitPrice', type: 'number' },
+    { label: 'Status', value: 'Status', type: 'status' },
   ];
+
+  const statusOptions = ['Debt', 'Transfer', 'Returned', 'Completed'];
 
   const getOperators = (columnType) => {
     if (columnType === 'number') {
@@ -385,6 +480,9 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
         { label: 'is less than', value: '<' },
         { label: 'equals', value: '==' },
       ];
+    }
+    if (columnType === 'status') {
+      return [{ label: 'is', value: '==' }];
     }
     return [
       { label: 'contains', value: 'contains' },
@@ -437,78 +535,116 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       PaperProps={{
         sx: {
-          padding: 2,
-          borderRadius: 2,
-          boxShadow: '0 8px 32px 0 rgba(0,0,0,0.1)',
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 248, 255, 0.8))',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          minWidth: 550,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
+          padding: 3,
+          borderRadius: 3,
+          boxShadow: '0 12px 48px rgba(0,0,0,0.12)',
+          background: '#fff',
+          minWidth: 500,
           mt: 1,
         }
       }}
     >
-      <IconButton onClick={handleClearFilter} size="small" sx={{ position: 'absolute', top: 8, left: 8 }}>
-        <CloseIcon />
-      </IconButton>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h6" fontWeight="700">Filter Sales</Typography>
+        <IconButton onClick={handleClearFilter} size="small"><CloseIcon /></IconButton>
+      </Box>
 
-      <FormControl variant="outlined" size="small" sx={{ minWidth: 150, mt: 3 }}>
-        <InputLabel>Columns</InputLabel>
-        <Select
-          label="Columns"
-          name="column"
-          value={filterCriteria.column}
-          onChange={handleSelectChange}
-        >
-          {availableColumns.map(col => (
-            <MenuItem key={col.value} value={col.value}>{col.label}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <FormControl variant="outlined" size="small" sx={{ minWidth: 150, mt: 3 }}>
-        <InputLabel>Operator</InputLabel>
-        <Select
-          label="Operator"
-          name="operator"
-          value={filterCriteria.operator}
-          onChange={handleSelectChange}
-        >
-          {getOperators(selectedColumnType).map(op => (
-            <MenuItem key={op.value} value={op.value}>{op.label}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <FormControl variant="outlined" size="small" sx={{ flexGrow: 1, minWidth: 160, mt: 3 }}>
-        <InputLabel>{selectedColumnType === 'number' ? 'Filter amount' : 'Filter value'}</InputLabel>
-        {selectedColumnType === 'number' ? (
-          <TextField
-            size="small"
-            variant="outlined"
-            name="value"
-            value={filterCriteria.value}
-            onChange={handleValueChange}
-            type="number"
-            InputLabelProps={{ shrink: true }}
-            label="Filter amount"
-          />
-        ) : (
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Column</InputLabel>
           <Select
-            label="Filter value"
-            name="value"
-            value={filterCriteria.value}
-            onChange={handleValueChange}
+            label="Column"
+            name="column"
+            value={filterCriteria.column}
+            onChange={handleSelectChange}
+            sx={{ borderRadius: "8px" }}
           >
-            {uniqueCategories.map(cat => (
-              <MenuItem key={cat} value={cat}>{cat || "All Categories"}</MenuItem>
+            {availableColumns.map(col => (
+              <MenuItem key={col.value} value={col.value}>{col.label}</MenuItem>
             ))}
           </Select>
-        )}
-      </FormControl>
+        </FormControl>
+
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Operator</InputLabel>
+          <Select
+            label="Operator"
+            name="operator"
+            value={filterCriteria.operator}
+            onChange={handleSelectChange}
+            sx={{ borderRadius: "8px" }}
+          >
+            {getOperators(selectedColumnType).map(op => (
+              <MenuItem key={op.value} value={op.value}>{op.label}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Box sx={{ flexGrow: 1 }}>
+          {selectedColumnType === 'number' ? (
+            <TextField
+              size="small"
+              variant="outlined"
+              name="value"
+              value={filterCriteria.value}
+              onChange={handleValueChange}
+              type="number"
+              fullWidth
+              label="Amount"
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
+            />
+          ) : selectedColumnType === 'status' ? (
+            <FormControl variant="outlined" size="small" fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Status"
+                name="value"
+                value={filterCriteria.value}
+                onChange={handleValueChange}
+                sx={{ borderRadius: "8px" }}
+              >
+                {statusOptions.map(status => (
+                  <MenuItem key={status} value={status}>{status}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <FormControl variant="outlined" size="small" fullWidth>
+              <InputLabel>Value</InputLabel>
+              <Select
+                label="Value"
+                name="value"
+                value={filterCriteria.value}
+                onChange={handleValueChange}
+                sx={{ borderRadius: "8px" }}
+              >
+                {uniqueCategories.map(cat => (
+                  <MenuItem key={cat} value={cat}>{cat || "All Categories"}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Box>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 1 }}>
+        <Button
+          onClick={handleClearFilter}
+          variant="outlined"
+          size="small"
+          sx={{ borderRadius: "6px", textTransform: "none" }}
+        >
+          Clear
+        </Button>
+        <Button
+          onClick={onClose}
+          variant="contained"
+          size="small"
+          sx={{ borderRadius: "6px", textTransform: "none", bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+        >
+          Apply
+        </Button>
+      </Box>
     </Popover>
   );
 };
@@ -678,9 +814,14 @@ const DataTable = ({
 
   // Export Functions
   const exportCSV = (rows) => {
-    let csv = "Sale ID,Product Name,Category,Unit Price (FRW),Sold Quantity,Returned,Discount,Date,Total Value (FRW)\n";
+    let csv = "Sale ID,Product Name,Shop,Status,Unit Price (FRW),Original Qty,Sold Qty,Returned Qty,Discount,Date,Total Value (FRW)\n";
     rows.forEach(r => {
-      csv += `${r.id},${r.ProductName},${r.Category},${r.UnitPrice},${r.SoldQuantity},${r.returned},${r.Discount},${r.Date},${r.TotalValue}\n`;
+      let status = "Completed";
+      if (r.isDebt) status = "Debt";
+      else if (r.Category) status = "Transfer";
+      else if (r.returned !== "false") status = "Returned";
+
+      csv += `${r.id},${r.ProductName},${r.ShopName},${status},${r.UnitPrice},${r.originalQuantity},${r.SoldQuantity},${r.returnedValue},${r.Discount},${r.Date},${r.TotalValue}\n`;
     });
     const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
@@ -698,18 +839,27 @@ const DataTable = ({
     doc.setTextColor(0, 0, 0);
     doc.text("Sales Report", 14, 20);
 
-    const tableColumn = ["Sale ID", "Product", "Category", "Unit Price", "Sold Qty", "Returned", "Discount", "Date", "Total"];
-    const tableRows = rows.map(r => [
-      r.id,
-      r.ProductName,
-      r.Category,
-      r.UnitPrice.toLocaleString(),
-      r.SoldQuantity,
-      r.returned === "false" ? "No" : "Yes",
-      r.Discount,
-      r.Date,
-      r.TotalValue.toLocaleString()
-    ]);
+    const tableColumn = ["Sale ID", "Product", "Shop", "Status", "Unit Price", "Orig Qty", "Sold Qty", "Ret Qty", "Discount", "Date", "Total"];
+    const tableRows = rows.map(r => {
+      let status = "Completed";
+      if (r.isDebt) status = "Debt";
+      else if (r.Category) status = "Transfer";
+      else if (r.returned !== "false") status = "Returned";
+
+      return [
+        r.id,
+        r.ProductName,
+        r.ShopName,
+        status,
+        r.UnitPrice.toLocaleString(),
+        r.originalQuantity,
+        r.SoldQuantity,
+        r.returnedValue,
+        r.Discount,
+        r.Date,
+        r.TotalValue.toLocaleString()
+      ];
+    });
 
     autoTable(doc, {
       head: [tableColumn],
@@ -717,7 +867,8 @@ const DataTable = ({
       startY: 30,
       headStyles: { fillColor: "#FF6D00", textColor: 255 },
       alternateRowStyles: { fillColor: [255, 243, 230] },
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      styles: { fontSize: 8 } // Smaller font to fit more columns
     });
 
     doc.save("sales_report.pdf");
@@ -772,6 +923,14 @@ const DataTable = ({
           if (operator === '==') return rowValue === filterValue;
           return true;
         });
+      } else if (column === 'Status') {
+        currentRows = currentRows.filter((row) => {
+          if (value === 'Debt') return row.isDebt;
+          if (value === 'Transfer') return !!row.Category;
+          if (value === 'Returned') return row.returned !== "false";
+          if (value === 'Completed') return !row.isDebt && !row.Category && row.returned === "false";
+          return true;
+        });
       }
     }
 
@@ -815,166 +974,206 @@ const DataTable = ({
         saleId={returnModal.id}
       />
 
-      <Toolbar
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          borderBottom: "1px solid #ddd",
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-          {t("stockOutHistory")}
-        </Typography>
+      {/* Consolidated Header */}
+      <Box sx={{
+        p: 3,
+        borderBottom: "1px solid #e5e7eb",
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        bgcolor: "#fff"
+      }}>
+        {/* Top Row: Title & Search */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          {/* Worker Filter (Only for Admins/Managers) */}
-          {!isWorker && (
-            <>
-              <Autocomplete
-                size="small"
-                sx={{ minWidth: 250 }}
-                options={workers}
-                getOptionLabel={(option) =>
-                  `${option.firstName} ${option.lastName} (${option.username})`
-                }
-                value={workers.find((w) => (w._id || w.id) === selectedWorkerId) || null}
-                onChange={(event, newValue) => {
-                  setSelectedWorkerId(newValue ? (newValue._id || newValue.id) : "");
-                }}
-                renderInput={(params) => (
-                  <TextField {...params} label="Filter by Worker" variant="outlined" />
-                )}
-                isOptionEqualToValue={(option, value) =>
-                  (option._id || option.id) === (value._id || value.id)
-                }
-              />
+            <Box>
+              <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
+                {t("stockOutHistory")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                View and manage all past sales transactions, returns, and debts.
+              </Typography>
+            </Box>
+          </Box>
 
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
-                <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
-                <Select
-                  labelId="shop-filter-label"
-                  value={selectedShopId}
-                  label="Filter by Shop"
-                  onChange={(e) => setSelectedShopId(e.target.value)}
-                >
-                  <MenuItem value="">All Shops</MenuItem>
-                  {shops.map((shop) => (
-                    <MenuItem key={shop._id || shop.id} value={shop._id || shop.id}>
-                      {shop.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </>
-          )}
-
-          {/* Month Selector */}
-          <TextField
-            placeholder="Search sales..."
-            variant="outlined"
-            size="small"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ flex: 1, maxWidth: 300 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <HiSearch size={18} />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-
-
-          <IconButton onClick={handleOpenFilter} variant="contained"  >
-            <FilterAltRoundedIcon
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <TextField
+              size="small"
+              placeholder="Search sales..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+              }}
               sx={{
-                borderRadius: "6px",
-                height: "30px",
-                padding: "2px",
-                color: activeFilter.value ? 'black' : 'black',
-                filter: activeFilter.value ? 'drop-shadow(0 0 4px rgba(0, 123, 255, 0.4))' : 'none'
+                width: 320,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#f9fafb",
+                  "& fieldset": { borderColor: "#e5e7eb" },
+                  "&:hover fieldset": { borderColor: "#d1d5db" },
+                  "&.Mui-focused fieldset": { borderColor: "#FF6D00" }
+                }
               }}
             />
-            <small className="font-bold text-black text-sm ">{t('filter')}</small>
-          </IconButton>
-
-          <IconButton onClick={handleExportMenuOpen} sx={{ bgcolor: "none" }} className="space-x-3"  >
-            <CloudDownloadRoundedIcon
-              sx={{ padding: "2px", color: "black" }} />
-            <small className="font-bold text-black text-sm ">{t('export')}</small>
-          </IconButton>
-
-          <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
-            <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
-            <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
-          </Menu>
+            <IconButton
+              onClick={handleOpenFilter}
+              sx={{
+                bgcolor: activeFilter.value ? "#FFF3E0" : "#f3f4f6",
+                color: activeFilter.value ? "#FF6D00" : "#4b5563",
+                borderRadius: "8px",
+                p: 1,
+                "&:hover": { bgcolor: activeFilter.value ? "#FFE0B2" : "#e5e7eb" }
+              }}
+            >
+              <FilterAltRoundedIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleExportMenuOpen}
+              sx={{
+                bgcolor: "#f3f4f6",
+                color: "#4b5563",
+                borderRadius: "8px",
+                p: 1,
+                "&:hover": { bgcolor: "#e5e7eb" }
+              }}
+            >
+              <CloudDownloadRoundedIcon />
+            </IconButton>
+            <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
+              <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
+              <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
+            </Menu>
+          </Box>
         </Box>
-      </Toolbar>
 
-      <TableContainer sx={{ maxHeight: 600 }}>
+        {/* Bottom Row: Filters & Date Selector */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {!isWorker && (
+              <>
+                <Autocomplete
+                  size="small"
+                  sx={{
+                    minWidth: 250,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      bgcolor: "#f9fafb",
+                    }
+                  }}
+                  options={workers}
+                  getOptionLabel={(option) =>
+                    `${option.firstName} ${option.lastName} (${option.username})`
+                  }
+                  value={workers.find((w) => (w._id || w.id) === selectedWorkerId) || null}
+                  onChange={(event, newValue) => {
+                    setSelectedWorkerId(newValue ? (newValue._id || newValue.id) : "");
+                  }}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Filter by Worker" variant="outlined" />
+                  )}
+                  isOptionEqualToValue={(option, value) =>
+                    (option._id || option.id) === (value._id || value.id)
+                  }
+                />
+
+                <FormControl variant="outlined" size="small" sx={{
+                  minWidth: 200,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                    bgcolor: "#f9fafb",
+                  }
+                }}>
+                  <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
+                  <Select
+                    labelId="shop-filter-label"
+                    value={selectedShopId}
+                    label="Filter by Shop"
+                    onChange={(e) => setSelectedShopId(e.target.value)}
+                  >
+                    <MenuItem value="">All Shops</MenuItem>
+                    {shops.map((shop) => (
+                      <MenuItem key={shop._id || shop.id} value={shop._id || shop.id}>
+                        {shop.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            )}
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <TextField
+              type="month"
+              size="small"
+              label="Select Month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#f9fafb",
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      <TableContainer sx={{
+        maxHeight: 600,
+        width: '100%',
+        overflowX: 'auto',
+        '&::-webkit-scrollbar': {
+          height: '6px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: '#e5e7eb',
+          borderRadius: '10px',
+        },
+      }}>
         <Table stickyHeader>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#1976d2" }}>
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+            <TableRow>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("sale")}
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("productName")}
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 Shop
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                is Debt
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
+                Status
               </TableCell>
-
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                is Transfered
-              </TableCell>
-
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                {t("Returned")}
-              </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("unitPrice")} (FRW)
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                originalQuantity
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
+                Original Qty
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                sold Quantity
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
+                Sold Qty
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
-                returnedQuantity
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
+                Returned Qty
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("Discount")}
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("date")}
               </TableCell>
-
-              <TableCell sx={{ color: "#000", fontWeight: "bold" }}>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("totalValue")}
               </TableCell>
-
-              <TableCell sx={{ color: "#000000", fontWeight: "bold" }}>
+              <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
                 {t("action")}
               </TableCell>
-
             </TableRow>
           </TableHead>
 
@@ -988,12 +1187,10 @@ const DataTable = ({
                   <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
                 </TableRow>
@@ -1004,24 +1201,103 @@ const DataTable = ({
                   key={row.id}
                   hover
                   sx={{
-                    cursor: "default",
-                    "&:hover": { backgroundColor: "#f5f5f5" },
+                    "&:hover": { backgroundColor: "#f9fafb" },
+                    transition: "all 0.2s ease",
                   }}
                 >
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.ProductName}</TableCell>
-                  <TableCell>{row.ShopName}</TableCell>
-                  <TableCell>{row.isDebt ? "Yes" : "No"}</TableCell>
-                  <TableCell>{row.Category ? "Yes" : "No"}</TableCell>
-                  <TableCell>{row.returned == "false" ? <span className='text-green-500'>No</span> : <span className='text-red-500'>Yes</span>}</TableCell>
-                  <TableCell>{row.UnitPrice}</TableCell>
-                  <TableCell>{row.originalQuantity}</TableCell>
-                  <TableCell>{row.SoldQuantity}</TableCell>
-                  <TableCell>{row.returnedValue}</TableCell>
-                  <TableCell>{row.Discount}</TableCell>
-                  <TableCell>{row.Date}</TableCell>
-                  <TableCell>{row.TotalValue}</TableCell>
                   <TableCell>
+                    <Typography variant="body2" fontWeight="600" color="primary">
+                      #{row.id}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Avatar
+                        variant="rounded"
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          bgcolor: "orange.50",
+                          color: "orange.500",
+                          fontSize: "0.875rem"
+                        }}
+                      >
+                        {row.ProductName.charAt(0)}
+                      </Avatar>
+                      <Typography variant="body2" fontWeight="500">
+                        {row.ProductName}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {row.ShopName}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      {row.isDebt && (
+                        <Chip
+                          label="Debt"
+                          size="small"
+                          sx={{ bgcolor: "#FEF2F2", color: "#DC2626", fontWeight: 600, fontSize: "0.75rem" }}
+                        />
+                      )}
+                      {row.Category && (
+                        <Chip
+                          label="Transfer"
+                          size="small"
+                          sx={{ bgcolor: "#EFF6FF", color: "#2563EB", fontWeight: 600, fontSize: "0.75rem" }}
+                        />
+                      )}
+                      {row.returned !== "false" && (
+                        <Chip
+                          label="Returned"
+                          size="small"
+                          sx={{ bgcolor: "#F5F3FF", color: "#7C3AED", fontWeight: 600, fontSize: "0.75rem" }}
+                        />
+                      )}
+                      {!row.isDebt && !row.Category && row.returned === "false" && (
+                        <Chip
+                          label="Completed"
+                          size="small"
+                          sx={{ bgcolor: "#ECFDF5", color: "#059669", fontWeight: 600, fontSize: "0.75rem" }}
+                        />
+                      )}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="600">
+                      {row.UnitPrice.toLocaleString()}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.originalQuantity}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{row.SoldQuantity}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: row.returnedValue > 0 ? "error.main" : "inherit", fontWeight: row.returnedValue > 0 ? 700 : 400 }}>
+                      {row.returnedValue}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color={row.Discount > 0 ? "error" : "text.secondary"}>
+                      {row.Discount.toLocaleString()}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {row.Date}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="700" color="primary">
+                      {row.TotalValue.toLocaleString()}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
                     <RowActionsMenu
                       rowId={row.id}
                       productId={row.productId}
@@ -1220,7 +1496,16 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
         sx={{
           borderRadius: 3,
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-          overflow: "hidden"
+          overflow: "hidden",
+          width: '100%',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#e5e7eb',
+            borderRadius: '10px',
+          },
         }}
       >
         <Table>

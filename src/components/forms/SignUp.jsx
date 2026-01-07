@@ -77,15 +77,14 @@ export default function SignUp() {
   };
 
   return (
-    <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a]">
+    <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a] overflow-hidden">
       {/* Left Side - Image */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center bg-orange-100 relative">
+      <div className="hidden md:flex md:w-1/2 md:h-full items-center justify-center relative">
         <Image
           src="/images/8.png"
           alt="Sign Up Illustration"
-          width={600}
-          height={600}
-          className="object-contain hidden md:block md:max-h-[40%] px-4"
+          fill
+          className="object-cover"
           priority
         />
       </div>
@@ -116,6 +115,7 @@ export default function SignUp() {
               value: formData.firstName,
               onChange: (e) => handleChange("firstName", e.target.value),
               required: true,
+              colSpan: 1,
             },
             {
               label: "Last Name",
@@ -123,6 +123,7 @@ export default function SignUp() {
               value: formData.lastName,
               onChange: (e) => handleChange("lastName", e.target.value),
               required: true,
+              colSpan: 1,
             },
             {
               label: "Email",
