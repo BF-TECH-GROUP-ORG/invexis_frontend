@@ -1,180 +1,314 @@
 // src/components/inventory/stock/StockOperationForm.jsx
 "use client";
 
-import React, { useState } from "react";
-import { ArrowDownCircle, ArrowUpCircle, Package, Loader2 } from "lucide-react";
-import { stockIn, stockOut } from "@/services/stockService";
+import React, { useState, useEffect } from "react";
+import { ArrowDownCircle, Package, Loader2, X } from "lucide-react";
+import { bulkStockIn } from "@/services/stockService";
+import useAuth from "@/hooks/useAuth";
+import { useSnackbar } from "@/contexts/SnackbarContext";
 
-export default function StockOperationForm({ product = null, onSuccess = () => { } }) {
-    const [operationType, setOperationType] = useState("in");
-    const [quantity, setQuantity] = useState("");
-    const [reason, setReason] = useState("");
-    const [notes, setNotes] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(null);
+export default function StockOperationForm({
+  product = null,
+  onSuccess = () => {},
+  companyId,
+  productsCache = [],
+}) {
+  const { user } = useAuth();
+  const { showSnackbar } = useSnackbar();
+  const [quantity, setQuantity] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
-    const reasons = {
-        in: ["Restock", "Return", "Transfer In", "Adjustment", "Other"],
-        out: ["Sale", "Damaged", "Expired", "Transfer Out", "Lost", "Other"],
+  // Batch state - products added for bulk in
+  const [batchItems, setBatchItems] = useState([]);
+
+  // When product prop changes, populate the form (but do not auto-add to batch)
+  useEffect(() => {
+    if (!product) {
+      setQuantity("");
+      return;
+    }
+    // Default quantity empty so user must set it to add
+    setQuantity("");
+  }, [product]);
+
+  const addToBatch = () => {
+    if (!product || !Number(quantity) || Number(quantity) <= 0) {
+      setMessage({
+        type: "error",
+        text: "Please select a product and enter quantity greater than 0 to add to batch.",
+      });
+      return;
+    }
+    const item = {
+      productId: product._id || product.id,
+      productName: product.name || product.ProductName,
+      shopId: product.shopId || product.metadata?.shopId || undefined,
+      quantity: Number(quantity),
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!product || !quantity || Number(quantity) <= 0) return;
+    setBatchItems((prev) => {
+      // replace if exists else add
+      const exists = prev.findIndex((p) => p.productId === item.productId);
+      if (exists !== -1) {
+        const copy = [...prev];
+        copy[exists] = item;
+        return copy;
+      }
+      return [item, ...prev];
+    });
 
-        setLoading(true);
-        setMessage(null);
+    // Clear form after adding
+    setQuantity("");
+    setMessage({ type: "success", text: `${item.productName} added to batch` });
+  };
 
+  const removeFromBatch = (productId) => {
+    setBatchItems((prev) => prev.filter((p) => p.productId !== productId));
+  };
+
+  const loadBatchItem = (item) => {
+    // load item into form for editing
+    const p =
+      productsCache.find((pp) => (pp._id || pp.id) === item.productId) || {};
+    // set selected product context not changed here; just populate fields
+    setQuantity(String(item.quantity));
+  };
+
+  const handleSubmitBatch = async (e) => {
+    e.preventDefault();
+
+    // If there are no batch items but current form has a selected product + quantity, treat it as a single-item batch
+    let itemsToSubmit = batchItems;
+    if (itemsToSubmit.length === 0) {
+      if (!product || !Number(quantity) || Number(quantity) <= 0)
+        return setMessage({
+          type: "error",
+          text: "No products in batch to submit. Add items or enter quantity to restock the selected product.",
+        });
+
+      itemsToSubmit = [
+        {
+          productId: product._id || product.id,
+          productName: product.name || product.ProductName,
+          shopId: product.shopId || product.metadata?.shopId || undefined,
+          quantity: Number(quantity),
+        },
+      ];
+    }
+
+    // Group by shopId (items without shopId go under key '__no_shop__')
+    const groups = itemsToSubmit.reduce((acc, it) => {
+      const key = it.shopId || "__no_shop__";
+      acc[key] = acc[key] || [];
+      acc[key].push(it);
+      return acc;
+    }, {});
+
+    setLoading(true);
+    setMessage(null);
+
+    const results = [];
+
+    try {
+      for (const [shopKey, items] of Object.entries(groups)) {
         const payload = {
-            productId: product._id || product.id,
-            quantity: Number(quantity),
-            reason,
-            notes,
+          companyId: companyId,
+          shopId: shopKey === "__no_shop__" ? undefined : shopKey,
+          userId: user?.id || user?.sub || undefined,
+          items: items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+          })),
         };
 
         try {
-            if (operationType === "in") {
-                await stockIn(payload);
-                setMessage({ type: "success", text: `Added ${quantity} units to inventory` });
-            } else {
-                await stockOut(payload);
-                setMessage({ type: "success", text: `Removed ${quantity} units from inventory` });
-            }
-            setQuantity("");
-            setReason("");
-            setNotes("");
-            onSuccess();
+          await bulkStockIn(payload);
+          results.push({
+            shop: payload.shopId || "-",
+            count: items.length,
+            ok: true,
+          });
         } catch (err) {
-            setMessage({
-                type: "error",
-                text: err.response?.data?.message || "Operation failed"
-            });
-        } finally {
-            setLoading(false);
+          results.push({
+            shop: payload.shopId || "-",
+            count: items.length,
+            ok: false,
+            error: err.response?.data?.message || err.message,
+          });
         }
-    };
+      }
 
-    return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Package size={20} className="text-orange-600" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Stock Operation</h3>
-                    <p className="text-sm text-gray-500">Add or remove inventory</p>
-                </div>
-            </div>
+      const successCount = results.filter((r) => r.ok).length;
+      const failed = results.filter((r) => !r.ok);
 
-            {/* Operation Type Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-                <button
-                    type="button"
-                    onClick={() => setOperationType("in")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-medium transition-all ${operationType === "in"
-                            ? "bg-white text-green-600 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
-                        }`}
-                >
-                    <ArrowDownCircle size={18} />
-                    Stock In
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setOperationType("out")}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-medium transition-all ${operationType === "out"
-                            ? "bg-white text-red-600 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
-                        }`}
-                >
-                    <ArrowUpCircle size={18} />
-                    Stock Out
-                </button>
-            </div>
+      if (failed.length === 0) {
+        showSnackbar(
+          `Bulk stock in completed for ${successCount} group(s).`,
+          "success"
+        );
+        setMessage({
+          type: "success",
+          text: `Bulk stock in completed for ${successCount} group(s).`,
+        });
+        setBatchItems([]);
+        setQuantity("");
+        onSuccess();
+      } else {
+        const firstErr = failed[0];
+        showSnackbar(`Some groups failed: ${firstErr.error}`, "error");
+        setMessage({
+          type: "error",
+          text: `Some groups failed: ${firstErr.error}`,
+        });
+      }
+    } catch (err) {
+      showSnackbar(
+        err.response?.data?.message || "Bulk operation failed",
+        "error"
+      );
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Bulk operation failed",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {/* Selected Product */}
-            {product ? (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-                    <p className="text-sm text-gray-500">Selected Product</p>
-                    <p className="font-medium text-gray-900">{product.name || product.ProductName}</p>
-                    <p className="text-xs text-gray-500">Current Stock: {product.inventory?.quantity ?? product.stock ?? 0}</p>
-                </div>
-            ) : (
-                <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg mb-4 text-center">
-                    <p className="text-sm text-orange-700">Please scan or lookup a product first</p>
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
-                    <input
-                        type="number"
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                        placeholder="Enter quantity"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
-                    <select
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
-                        required
-                    >
-                        <option value="">Select reason</option>
-                        {reasons[operationType].map((r) => (
-                            <option key={r} value={r}>{r}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                    <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Additional notes..."
-                        rows={3}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 resize-none"
-                    />
-                </div>
-
-                {message && (
-                    <div className={`p-3 rounded-lg text-sm ${message.type === "success"
-                            ? "bg-green-50 text-green-700 border border-green-100"
-                            : "bg-red-50 text-red-700 border border-red-100"
-                        }`}>
-                        {message.text}
-                    </div>
-                )}
-
-                <button
-                    type="submit"
-                    disabled={loading || !product || !quantity}
-                    className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${operationType === "in"
-                            ? "bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-300"
-                            : "bg-red-600 hover:bg-red-700 text-white disabled:bg-gray-300"
-                        } disabled:cursor-not-allowed`}
-                >
-                    {loading ? (
-                        <>
-                            <Loader2 size={18} className="animate-spin" />
-                            Processing...
-                        </>
-                    ) : (
-                        <>
-                            {operationType === "in" ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
-                            {operationType === "in" ? "Add Stock" : "Remove Stock"}
-                        </>
-                    )}
-                </button>
-            </form>
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <Package size={20} className="text-orange-600" />
         </div>
-    );
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Stock In (Bulk)
+          </h3>
+          <p className="text-sm text-gray-500">
+            Add products to the batch below then submit a single bulk stock-in
+            request
+          </p>
+        </div>
+      </div>
+
+      {/* Batch chips */}
+      {batchItems.length > 0 && (
+        <div className="mb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            {batchItems.map((b) => (
+              <div
+                key={b.productId}
+                className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2 text-sm"
+              >
+                <button
+                  onClick={() => loadBatchItem(b)}
+                  className="font-medium text-gray-800"
+                >
+                  {b.productName}
+                </button>
+                <button
+                  onClick={() => removeFromBatch(b.productId)}
+                  className="p-1 rounded-full hover:bg-gray-200"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Selected Product */}
+      {product ? (
+        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+          <p className="text-sm text-gray-500">Selected Product</p>
+          <p className="font-medium text-gray-900">
+            {product.name || product.ProductName}
+          </p>
+          <p className="text-xs text-gray-500">
+            Current Stock:{" "}
+            {product.inventory?.quantity ??
+              product.stock?.available ??
+              product.stock?.total ??
+              product.stock ??
+              0}
+          </p>
+        </div>
+      ) : (
+        <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg mb-4 text-center">
+          <p className="text-sm text-orange-700">
+            Please scan or lookup a product first
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmitBatch} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Quantity to add *
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="Enter quantity"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
+          />
+        </div>
+
+        {message && (
+          <div
+            className={`p-3 rounded-lg text-sm ${
+              message.type === "success"
+                ? "bg-green-50 text-green-700 border border-green-100"
+                : "bg-red-50 text-red-700 border border-red-100"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={addToBatch}
+            disabled={!product || !Number(quantity) || Number(quantity) <= 0}
+            className={`flex-1 py-2.5 ${
+              !product || !Number(quantity) || Number(quantity) <= 0
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-orange-500 hover:bg-orange-600"
+            } text-white rounded-lg transition-colors`}
+          >
+            Add to Batch
+          </button>
+          <button
+            type="submit"
+            disabled={
+              loading ||
+              (batchItems.length === 0 &&
+                (!product || !Number(quantity) || Number(quantity) <= 0))
+            }
+            className={`flex-1 py-2.5 ${
+              loading ||
+              (batchItems.length === 0 &&
+                (!product || !Number(quantity) || Number(quantity) <= 0))
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+            } text-white rounded-lg transition-colors`}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Processing...
+              </>
+            ) : (
+              "Submit Batch"
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }

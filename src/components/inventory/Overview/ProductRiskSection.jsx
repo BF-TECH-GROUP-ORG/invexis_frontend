@@ -11,12 +11,11 @@ import {
 const PAGE_SIZE = 5;
 
 const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
+  const [topPage, setTopPage] = useState(0);
+  const [riskPage, setRiskPage] = useState(0);
   // If both lists are empty, hide the whole section per request
   if ((topProducts?.length || 0) === 0 && (riskProducts?.length || 0) === 0)
     return null;
-
-  const [topPage, setTopPage] = useState(0);
-  const [riskPage, setRiskPage] = useState(0);
 
   const topPages = Math.ceil((topProducts?.length || 0) / PAGE_SIZE) || 1;
   const riskPages = Math.ceil((riskProducts?.length || 0) / PAGE_SIZE) || 1;

@@ -130,6 +130,17 @@ export const AuthService = {
     return response.data;
   },
 
+  // Get user by ID (admin / lookup)
+  getUserById: async (userId) => {
+    if (!userId) throw new Error("userId is required");
+    try {
+      const response = await api.get(`/auth/me`, { params: { userId } });
+      return response.data; // expected shape: { ok: true, user: { ... } }
+    } catch (err) {
+      throw err.response?.data || err;
+    }
+  },
+
   revokeSession: async (sessionId) => {
     const response = await api.delete(`/auth/sessions/${sessionId}`);
     return response.data;

@@ -5,11 +5,12 @@ import { useSession } from "next-auth/react";
 import useInventoryOverview from "@/hooks/useInventoryOverview";
 import InventoryHeader from "./InventoryHeader";
 import InventoryKPISection from "./InventoryKPISection";
+import InventorySnapshotPanel from "./InventorySnapshotPanel";
 import InventoryDistributionSection from "./InventoryDistributionSection";
 import InventoryMovementSection from "./InventoryMovementSection";
 import InventoryInsightsSection from "./InventoryInsightsSection";
 import ProductRiskSection from "./ProductRiskSection";
-import InventoryHealthSection from "./InventoryHealthSection"; // Stacked Bar
+// import InventoryHealthSection from "./InventoryHealthSection"; // Stacked Bar
 import InventoryValueTrendSection from "./InventoryValueTrendSection";
 import ShopPerformanceSection from "./ShopPerformanceSection";
 import InventoryActivitySection from "./InventoryActivitySection";
@@ -40,7 +41,7 @@ const InventoryOverviewPage = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">
             Something went wrong
@@ -59,7 +60,7 @@ const InventoryOverviewPage = () => {
 
   if (!companyId) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-orange-600 mb-2">
             No Company Selected
@@ -79,7 +80,7 @@ const InventoryOverviewPage = () => {
   const hasMovement = (data?.movementTrend?.length || 0) > 1;
   const hasInsights =
     (data?.financialChartData?.length || 0) > 1 || Boolean(data?.heatmapData);
-  const hasHealth = (data?.health?.length || 0) > 0;
+  // const hasHealth = (data?.health?.length || 0) > 0;
   const hasValueTrends = (data?.valueTrends?.length || 0) > 1;
   const hasProductRisk =
     (data?.topProducts?.length || 0) > 0 ||
@@ -103,13 +104,26 @@ const InventoryOverviewPage = () => {
             new Date()
           }
         />
-        <InventoryKPISection summary={data} sparklines={data.kpiSparklines} />
+        <InventorySnapshotPanel
+          snapshot={data?.summary || {}}
+          kpis={data?.kpis || {}}
+        />
+        <InventoryKPISection
+          summary={data}
+          kpis={data?.kpis}
+          sparklines={data.kpiSparklines}
+        />
         {hasDistribution && (
           <InventoryDistributionSection
             statusData={data.statusDistribution}
+            valueByCategory={data.valueDistributionByCategory}
+            valueByShop={data.valueDistributionByShop}
+            valueByStatus={data.valueDistributionByStatus}
+            // back-compat
             valueData={data.valueDistribution}
             totalUnits={data.summaryComputed?.totalUnits}
             totalValue={data.summaryComputed?.totalValue}
+            companyId={companyId}
           />
         )}
         {hasMovement && <InventoryMovementSection data={data.movementTrend} />}
@@ -119,7 +133,7 @@ const InventoryOverviewPage = () => {
             heatmapData={data.heatmapData}
           />
         )}
-        {hasHealth && <InventoryHealthSection data={data.health} />}
+        {/* {hasHealth && <InventoryHealthSection data={data.health} />} */}
         {hasValueTrends && (
           <InventoryValueTrendSection data={data.valueTrends} />
         )}

@@ -40,7 +40,7 @@ const OverviewService = {
       buildUrl(`/inventory/v1/companies/${companyId}/overview`),
       {
         cache: cacheStrategy,
-        ...options
+        ...options,
       }
     );
   },
@@ -55,7 +55,7 @@ const OverviewService = {
       buildUrl(`/inventory/v1/companies/${companyId}/inventory-summary`),
       {
         cache: cacheStrategy,
-        ...options
+        ...options,
       }
     );
   },
@@ -69,7 +69,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/shop`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 
@@ -83,7 +83,7 @@ const OverviewService = {
       buildUrl(`/inventory/v1/companies/${companyId}/low-stock`),
       {
         cache: cacheStrategy,
-        ...options
+        ...options,
       }
     );
   },
@@ -99,7 +99,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/stock/changes`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 
@@ -126,7 +126,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/analytics/company-metrics`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 
@@ -141,9 +141,22 @@ const OverviewService = {
       {
         params,
         cache: cacheStrategy,
-        ...options
+        ...options,
       }
     );
+  },
+
+  /**
+   * Get a full overview analytics payload combining snapshot, KPIs, distributions, trends and activity
+   * GET /inventory/v1/analytics/overview?companyId={companyId}
+   */
+  getOverviewAnalytics: async (params = {}, options = {}) => {
+    const cacheStrategy = getCacheStrategy("ANALYTICS", "OVERVIEW");
+    return apiClient.get(buildUrl(`/inventory/v1/analytics/overview`), {
+      params,
+      cache: cacheStrategy,
+      ...options,
+    });
   },
 
   /**
@@ -170,7 +183,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/analytics/top-products`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 
@@ -183,7 +196,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/analytics/stockout-risk`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 
@@ -202,7 +215,7 @@ const OverviewService = {
         {
           params: query,
           cache: cacheStrategy,
-          ...options
+          ...options,
         }
       );
     }
@@ -210,7 +223,7 @@ const OverviewService = {
     return apiClient.get(buildUrl(`/inventory/v1/products`), {
       params,
       cache: cacheStrategy,
-      ...options
+      ...options,
     });
   },
 

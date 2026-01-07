@@ -198,22 +198,59 @@
   "home": {
     "login": "Ingia",
     "register": "Jisajili",
-    "home": "Nyumbani",
-    "about": "Kuhusu",
-    "faq": "Maswali Yanayoulizwa Mara kwa Mara",
-    "services": "Huduma",
     "hero": {
-      "title1": "Acha kupoteza muda",
-      "title2": "katika rekodi za mikono",
-      "subtitle": "Ongeza ufanisi, okoa muda na pesa na mfumo huu wa usimamizi wa hisa.",
-      "getStarted": "Anza"
+      "title": "Soma biashara yako yote kwa wakati halisi — popote ulipo",
+      "subtitle": "Hesabu, mauzo, wafanyakazi, madeni, ripoti, arifu na ukaguzi — yote kwenye dashibodi moja yenye nguvu.",
+      "kpi1": { "title": "Arifa za wakati halisi", "value": "Live" },
+      "kpi2": { "title": "Skeli ya kimataifa", "value": "Multi-region" }
     },
-    "stats": {
-      "users": "Watumiaji",
-      "system": "Mfumo",
-      "satisfaction": "Kiwango cha Kuridhika",
-      "uptime": "Dhamana ya Upatikanaji"
+    "landing": {
+      "nav": {
+        "home": "Nyumbani",
+        "features": "Vipengele",
+        "pricing": "Bei",
+        "login": "Ingia"
+      },
+      "cta": {
+        "start": "Anza Jaribio Bila Malipo",
+        "demo": "Omba Demo",
+        "final": {
+          "title": "Anza Kusimamia Biashara Yako Kwa Ujasiri — Leo",
+          "subtitle": "Jaribio la bure, bila kadi ya mkopo"
+        }
+      },
+      "trust": { "heading": "Imetolewa kwa biashara za kisasa ulimwenguni" },
+      "features": {
+        "title": "Moduli Kamili",
+        "subtitle": "Kila unachohitaji kuendesha shughuli zako kwa wakati halisi."
+      },
+      "how": {
+        "title": "Jinsi Invexix Inavyofanya Kazi",
+        "subtitle": "Tengeneza, weka, na fuatilia ndani ya dakika."
+      },
+      "why": {
+        "title": "Udhibiti kamili na taarifa za wakati halisi",
+        "subtitle": "Iliyoundwa kwa biashara za ukubwa wote."
+      },
+      "pricing": { "title": "Bei zinazofaa kwa kila biashara" },
+      "cases": { "title": "Imejengwa kwa kila biashara, kila mahali." }
     }
+  },
+  "home": "Nyumbani",
+  "about": "Kuhusu",
+  "faq": "Maswali Yanayoulizwa Mara kwa Mara",
+  "services": "Huduma",
+  "hero": {
+    "title1": "Acha kupoteza muda",
+    "title2": "katika rekodi za mikono",
+    "subtitle": "Ongeza ufanisi, okoa muda na pesa na mfumo huu wa usimamizi wa hisa.",
+    "getStarted": "Anza"
+  },
+  "stats": {
+    "users": "Watumiaji",
+    "system": "Mfumo",
+    "satisfaction": "Kiwango cha Kuridhika",
+    "uptime": "Dhamana ya Upatikanaji"
   },
   "termsPopup": {
     "title": "Sheria na Sera ya Faragha",

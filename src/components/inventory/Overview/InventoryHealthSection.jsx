@@ -137,7 +137,7 @@ const InventoryHealthSection = ({ data = [] }) => {
               stackId="a"
               fill="#3b82f6"
               name="In Stock"
-              radius={[0, 0, 0, 0]}
+              radius={[15, 15, 10, 10]}
             />
             {/* Texture overlay for In Stock */}
             <Bar
@@ -153,7 +153,7 @@ const InventoryHealthSection = ({ data = [] }) => {
                 zIndex: 10,
               }}
               barSize={40}
-              radius={[0, 0, 0, 0]}
+              radius={[15, 15, 15, 15]}
             />
 
             <Bar
@@ -161,14 +161,14 @@ const InventoryHealthSection = ({ data = [] }) => {
               stackId="a"
               fill="#ea580c"
               name="Low Stock"
-              radius={[0, 0, 0, 0]}
+              radius={[15, 15, 15, 15]}
             />
             <Bar
               dataKey="outOfStock"
               stackId="a"
               fill="#ef4444"
               name="Out of Stock"
-              radius={[30, 30, 0, 0]}
+              radius={[15, 15, 15, 15]}
             />
           </BarChart>
         </ResponsiveContainer>

@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               </span>
             </div>
             <span className="font-bold text-gray-900 dark:text-white font-mono">
-              {entry.name === "Revenue" ? "$" : ""}
+              {entry.name === "Gross Profit" ? "$" : ""}
               {entry.value.toLocaleString()}
             </span>
           </div>
@@ -66,6 +66,15 @@ const ModernLegend = (props) => {
 };
 
 const ShopPerformanceSection = ({ data = [] }) => {
+  // Normalize shop performance to chart-friendly shape
+  const chartData = (data || []).map((s) => ({
+    name: s.shopName || s.shopId || s.name || "Shop",
+    profit: Number(s.grossProfit ?? s.revenue ?? 0),
+    value: Number(s.inventoryValue ?? 0),
+    turnover: Number(s.stockTurnoverRate ?? s.turnover ?? 0),
+    stockoutRate: Number(s.stockoutRate ?? 0),
+  }));
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
       <div className="flex justify-between items-center mb-6">
@@ -77,12 +86,28 @@ const ShopPerformanceSection = ({ data = [] }) => {
             Revenue vs Inventory Volume by Location
           </p>
         </div>
+        {/* Quick metrics: turnover & inventory value */}
+        <div className="flex gap-4 overflow-x-auto mb-4 mt-2 no-scrollbar">
+          {chartData.map((s) => (
+            <div
+              key={s.name}
+              className="flex flex-col gap-1 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 min-w-[120px]"
+            >
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">
+                {s.name}
+              </div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                Turnover: {s.turnover}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="h-96 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             barGap={12} // Increased gap
             barSize={32} // Thicker bars
@@ -127,7 +152,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-              tickFormatter={(val) => `${val / 1000}k`}
+              tickFormatter={(val) => `$${val / 1000}k`}
             />
             <Tooltip
               content={<CustomTooltip />}
@@ -137,30 +162,27 @@ const ShopPerformanceSection = ({ data = [] }) => {
 
             <Bar
               yAxisId="left"
-              dataKey="revenue"
-              name="Revenue"
+              dataKey="profit"
+              name="Gross Profit"
               fill="#081422"
-              radius={[12, 12, 12, 12]} // Fully rounded top
-              // Add pattern fill via style or separate element if possible?
-              // Recharts pattern fill is simplest on 'fill' attr
+              radius={[12, 12, 12, 12]}
             />
-            {/* Overlay pattern on Revenue */}
+            {/* Overlay pattern on Gross Profit - Hidden from legend */}
             <Bar
               yAxisId="left"
-              dataKey="revenue"
-              name="Revenue"
+              dataKey="profit"
               fill="url(#diagonal-stripe)"
               radius={[12, 12, 12, 12]}
               legendType="none"
               tooltipType="none"
               barSize={32}
-              style={{ pointerEvents: "none", position: "absolute" }}
+              style={{ pointerEvents: "none" }}
             />
 
             <Bar
               yAxisId="right"
-              dataKey="units"
-              name="Stock Volume"
+              dataKey="value"
+              name="Inventory Value"
               fill="#ea580c"
               radius={[12, 12, 12, 12]}
             />
