@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { IconButton, InputAdornment, CircularProgress } from "@mui/material";
+import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
 import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
@@ -93,13 +93,12 @@ const LoginPage = () => {
   return (
     <div className="w-screen h-screen flex text-sm flex-col md:flex-row bg-white dark:bg-[#1a1a1a] overflow-hidden">
       {/* Left Side - Image (Hidden on mobile) */}
-      <div className="hidden md:flex md:w-1/2 md:h-full items-center justify-center bg-orange-100 relative">
+      <div className="hidden md:flex md:w-1/2 md:h-full items-center justify-center relative">
         <Image
-          src="/images/8.png"
+          src="/images/login.jpg"
           alt="Login Illustration"
-          width={600}
-          height={600}
-          className="object-contain md:max-h-[40%] px-4"
+          fill
+          className="object-cover"
           priority
         />
       </div>
