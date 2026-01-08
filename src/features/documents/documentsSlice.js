@@ -131,7 +131,7 @@ export const exportDocuments = createAsyncThunk(
 // ==================== INITIAL STATE ====================
 
 const initialState = {
-  items: [],
+  items: mockData,
   status: "idle",
   error: null,
   search: "",

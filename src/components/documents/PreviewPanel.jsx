@@ -1,12 +1,17 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { downloadDocument, archiveDocument, trashDocument, deleteDocument } from '@/features/documents/documentsSlice';
+import {
+    X, Download, Printer, Share2, Info,
+    ChevronLeft, ChevronRight, Maximize2,
+    Archive, Trash2, ShieldCheck, Clock
+} from 'lucide-react';
+import { downloadDocument, archiveDocument, trashDocument } from '@/features/documents/documentsSlice';
 
 export default function PreviewPanel({ document, onClose }) {
     const dispatch = useDispatch();
-    // Role Toggle State (Simulated)
-    const [role, setRole] = useState("Company"); // 'Company' | 'Super Admin'
+    const [showInfo, setShowInfo] = useState(false);
+    const [zoom, setZoom] = useState(1);
 
     if (!document) return null;
 
@@ -14,198 +19,272 @@ export default function PreviewPanel({ document, onClose }) {
         dispatch(downloadDocument({ id: document.id, name: document.name }));
     };
 
-    const handleArchive = () => {
-        dispatch(archiveDocument(document.id));
-        onClose();
-    };
-
-    const handleTrash = () => {
-        dispatch(trashDocument(document.id));
-        onClose();
+    const handlePrint = () => {
+        window.print();
     };
 
     return (
-        <div className="flex h-screen border-l border-gray-200 bg-gray-50 max-w-5xl w-full shadow-2xl relative z-50">
-            {/* Left Column: Metadata & Activity */}
-            <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
-                <div className="p-6 border-b flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 truncate">Document Details</h3>
-                    <div className="flex items-center gap-2">
-                        {/* Archive Button */}
-                        <button onClick={handleArchive} title="Archive" className="text-gray-400 hover:text-blue-600 p-1 hover:bg-blue-50 rounded">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                        </button>
-                        {/* Trash Button */}
-                        <button onClick={handleTrash} title="Move to Trash" className="text-gray-400 hover:text-red-600 p-1 hover:bg-red-50 rounded">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                        <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="p-6 space-y-6 flex-1 overflow-y-auto">
-                    {/* Role Toggle */}
-                    <div className="bg-gray-100 p-1 rounded-lg flex text-xs font-semibold mb-4">
-                        <button
-                            onClick={() => setRole("Company")}
-                            className={`flex-1 py-1.5 rounded-md transition-all ${role === "Company" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                        >
-                            Company View
-                        </button>
-                        <button
-                            onClick={() => setRole("Super Admin")}
-                            className={`flex-1 py-1.5 rounded-md transition-all ${role === "Super Admin" ? "bg-purple-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                        >
-                            Super Admin
-                        </button>
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between"><span className="text-gray-500 text-sm">ID</span><span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{document.id}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500 text-sm">Date</span><span className="text-sm font-medium">{document.date}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500 text-sm">Type</span><span className="text-sm font-medium">{document.type}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500 text-sm">Amount</span><span className="text-sm font-medium">${document.amount?.toLocaleString()}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500 text-sm">Status</span>
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${document.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-800'}`}>
-                                {document.status}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Activity Log */}
-                    <div className="pt-4 border-t">
-                        <h4 className="text-sm font-bold text-gray-900 mb-4">Activity Timeline</h4>
-                        <div className="space-y-4 relative border-l-2 border-gray-100 ml-2">
-                            {document.activity && document.activity.map((act, index) => {
-                                // Filter internal logs for Company role
-                                if (role === 'Company' && act.isInternal) return null;
-
-                                return (
-                                    <div key={index} className="ml-4 relative">
-                                        <div className={`absolute -left-[21px] top-1.5 w-3 h-3 rounded-full border-2 border-white ${index === 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                                        <p className="text-xs text-gray-500 mb-0.5">{act.date}</p>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm text-gray-900 leading-snug">{act.action}</span>
-                                            {act.isInternal && <span className="text-[10px] uppercase font-bold text-purple-600 bg-purple-50 self-start px-1 rounded mt-0.5">Internal Log</span>}
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">by {act.user}</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6 border-t bg-gray-50">
+        <div className="fixed inset-0 z-[100] bg-[#0c141d]/95 backdrop-blur-md flex flex-col animate-in fade-in duration-500 print:bg-white print:backdrop-blur-0">
+            {/* Immersive Header */}
+            <div className="h-20 px-8 flex items-center justify-between border-b border-white/5 bg-white/5 backdrop-blur-xl relative z-[110] print:hidden">
+                <div className="flex items-center gap-6">
                     <button
-                        onClick={handleDownload}
-                        className="w-full py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 shadow-sm flex items-center justify-center gap-2"
+                        onClick={onClose}
+                        className="p-3 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-all active:scale-90"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        Download PDF
+                        <X size={24} />
+                    </button>
+                    <div className="h-8 w-[1px] bg-white/10 hidden sm:block" />
+                    <div>
+                        <h3 className="text-white font-bold text-lg tracking-tight truncate max-w-[300px]">
+                            {document.name}
+                        </h3>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
+                            {document.type} repository // {document.id}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="hidden lg:flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 rounded-full mr-4 text-white/60 text-xs font-bold uppercase tracking-widest">
+                        <Clock size={14} className="text-orange-400" />
+                        Last Read: Just Now
+                    </div>
+
+                    <div className="flex items-center bg-white/5 rounded-2xl p-1 border border-white/10">
+                        <button onClick={handleDownload} className="p-2 sm:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all" title="Download Copy">
+                            <Download size={20} />
+                        </button>
+                        <button onClick={handlePrint} className="p-2 sm:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all" title="Print Document">
+                            <Printer size={20} />
+                        </button>
+                        <button className="p-2 sm:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all" title="Share Access">
+                            <Share2 size={20} />
+                        </button>
+                    </div>
+
+                    <div className="h-8 w-[1px] bg-white/10 mx-2 hidden sm:block" />
+
+                    <button
+                        onClick={() => setShowInfo(!showInfo)}
+                        className={`p-3 rounded-2xl transition-all ${showInfo ? 'bg-orange-500 text-white shadow-lg' : 'text-white/70 hover:bg-white/10'}`}
+                    >
+                        <Info size={22} />
                     </button>
                 </div>
             </div>
 
-            {/* Right Column: PDF Viewer */}
-            <div className="flex-1 bg-gray-100 p-8 flex justify-center overflow-y-auto">
-                {/* The "Paper" */}
-                <div className="bg-white shadow-xl w-full max-w-[21cm] min-h-[29.7cm] p-12 relative flex flex-col">
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-12">
-                        <div>
-                            {document.images?.[0] ? (
-                                <img src={document.images[0].url} alt="Logo" className="h-12 mb-2 object-contain" />
-                            ) : (
-                                <h1 className="text-3xl font-bold text-gray-900">INVEXIS</h1>
-                            )}
-                            <p className="text-gray-500 text-sm">123 Business Rd, Tech City</p>
-                        </div>
-                        <div className="text-right">
-                            <h2 className="text-2xl font-light text-gray-400 uppercase tracking-widest">{document.type}</h2>
-                            <p className="font-mono text-lg text-gray-900 mt-1">#{document.id.toUpperCase()}</p>
-                        </div>
-                    </div>
-
-                    {/* Content Body */}
-                    <div className="flex-1 space-y-8">
-                        {/* Bill To / From */}
-                        <div className="flex justify-between">
+            <div className="flex-1 relative flex overflow-hidden print:overflow-visible print:bg-white">
+                {/* Main Viewer Area */}
+                <div className="flex-1 flex flex-col items-center overflow-y-auto p-12 scrollbar-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent print:bg-none print:p-0 print:overflow-visible">
+                    {/* The High-Fidelity Paper */}
+                    <div
+                        style={{ transform: `scale(${zoom})` }}
+                        className="bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-[21cm] min-h-[29.7cm] p-16 relative flex flex-col transition-transform duration-500 origin-top mb-20 rounded-sm print:shadow-none print:transform-none print:mb-0 print:p-0 print:w-full print:max-w-none"
+                    >
+                        {/* Header Mockup */}
+                        <div className="flex justify-between items-start mb-16 border-b-4 border-[#081422] pb-10">
                             <div>
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-1">Bill To</p>
-                                <p className="font-bold text-gray-900">Customer Name</p>
-                                <p className="text-gray-600 text-sm">456 Customer Ln</p>
+                                <h1 className="text-4xl font-black text-[#081422] tracking-tighter mb-2 italic">INVEXIS</h1>
+                                <p className="text-[#081422]/60 text-xs font-bold uppercase tracking-widest">Asset Management & Financial Intelligence</p>
+                                <div className="mt-4 flex items-center gap-3 print:hidden">
+                                    <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-emerald-100 flex items-center gap-1.5">
+                                        <ShieldCheck size={10} />
+                                        Verified Internal
+                                    </div>
+                                </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-1">Details</p>
-                                <p className="text-sm"><span className="text-gray-500">Issued:</span> {document.date}</p>
-                                <p className="text-sm"><span className="text-gray-500">Due:</span> {document.date}</p>
+                                <h2 className="text-4xl font-black text-[#081422]/10 uppercase tracking-tighter absolute top-16 right-16 rotate-0 h-10 select-none print:hidden">{document.type}</h2>
+                                <p className="font-mono text-lg font-black text-[#081422] mt-10">REF: {document.id.toUpperCase()}</p>
+                                <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Date issued: {document.date}</p>
                             </div>
                         </div>
 
-                        {/* Table Mockup */}
-                        <table className="w-full text-sm mt-8">
-                            <thead className="border-b-2 border-gray-100">
-                                <tr className="text-left text-gray-500">
-                                    <th className="py-2">Description</th>
-                                    <th className="py-2 text-right">Qty</th>
-                                    <th className="py-2 text-right">Price</th>
-                                    <th className="py-2 text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                <tr>
-                                    <td className="py-3 font-medium text-gray-900">Service / Product A</td>
-                                    <td className="py-3 text-right">1</td>
-                                    <td className="py-3 text-right">$500.00</td>
-                                    <td className="py-3 text-right">$500.00</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-3 font-medium text-gray-900">Service / Product B</td>
-                                    <td className="py-3 text-right">2</td>
-                                    <td className="py-3 text-right">$250.00</td>
-                                    <td className="py-3 text-right">$500.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        {/* Content Body Rendering */}
+                        <div className="flex-1 space-y-12">
+                            <div className="flex justify-between text-sm">
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Entity Origin</p>
+                                        <p className="font-black text-[#081422] text-xl">Invexis Global Corp</p>
+                                        <p className="text-slate-500 font-medium leading-relaxed max-w-xs text-xs italic">HQ Gateway Drive, Terminal 4-B<br />Distributed Ledger Division</p>
+                                    </div>
+                                </div>
+                                <div className="text-right space-y-4">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Target Account</p>
+                                        <p className="font-black text-[#081422] text-lg">External Partner Entity</p>
+                                        <p className="text-slate-500 font-medium text-xs">Standard Routing: 0049-XX</p>
+                                    </div>
+                                </div>
+                            </div>
 
-                        {/* Totals */}
-                        <div className="flex justify-end mt-4">
-                            <div className="w-48 space-y-2">
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span>$1,000.00</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Tax (10%)</span>
-                                    <span>$100.00</span>
-                                </div>
-                                <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-2 mt-2">
-                                    <span>Total</span>
-                                    <span>$1,100.00</span>
+                            {/* Data Grid Mockup */}
+                            <div className="relative">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b-2 border-slate-100/50 text-left text-slate-400">
+                                            <th className="py-4 font-black uppercase tracking-[0.2em] text-[9px]">Ledger Entry</th>
+                                            <th className="py-4 text-right font-black uppercase tracking-[0.2em] text-[9px]">Volume</th>
+                                            <th className="py-4 text-right font-black uppercase tracking-[0.2em] text-[9px]">Rate</th>
+                                            <th className="py-4 text-right font-black uppercase tracking-[0.2em] text-[9px]">Index Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {[1, 2, 3].map(i => (
+                                            <tr key={i}>
+                                                <td className="py-6 pr-8">
+                                                    <p className="font-black text-[#081422]">Fiscal Record Segment {i}</p>
+                                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Classification: Type-A Operating Expense</p>
+                                                </td>
+                                                <td className="py-6 text-right font-bold text-slate-600 italic">x {i * 2}</td>
+                                                <td className="py-6 text-right font-medium text-slate-900">${(i * 125).toLocaleString()}</td>
+                                                <td className="py-6 text-right font-black text-[#081422] text-lg tracking-tighter">${(i * i * 250).toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Totals Summary */}
+                            <div className="flex justify-end pt-10">
+                                <div className="p-8 bg-slate-50 rounded-3xl w-72 border border-slate-100 print:bg-white print:border-slate-200">
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between text-xs font-bold text-slate-400">
+                                            <span>BASE INDEX</span>
+                                            <span>$4,125.00</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs font-bold text-slate-400">
+                                            <span>MARGIN (2.5%)</span>
+                                            <span>$103.12</span>
+                                        </div>
+                                        <div className="h-[1px] bg-slate-200 my-2" />
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">GRAND TOTAL</span>
+                                            <span className="text-3xl font-black text-[#081422] tracking-tighter">$4,228.12</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Footer / Signature */}
-                    <div className="mt-12 pt-8 border-t border-gray-100 flex justify-between items-end">
-                        <div className="text-xs text-gray-400">
-                            <p>Generated by Invexis System</p>
-                            <p>{document.id} • {document.lastModified}</p>
-                        </div>
-                        {document.images?.[1] && (
-                            <div>
-                                <img src={document.images[1].url} alt="Signature" className="h-10 opacity-70" />
-                                <p className="text-xs text-gray-400 mt-1 border-t w-32 pt-1">Authorized Signature</p>
+                        {/* Footer Authenticator */}
+                        <div className="mt-20 pt-10 border-t border-slate-100 flex justify-between items-center opacity-40">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-[#081422] text-white flex items-center justify-center rounded-lg font-black italic">IX</div>
+                                <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                    <p>© 2026 Invexis Blockchain Auth</p>
+                                    <p className="mt-0.5">Hash: {document.id.substring(0, 16)}...</p>
+                                </div>
                             </div>
-                        )}
+                            <div className="w-24 h-24 border-2 border-slate-100 rounded-full flex items-center justify-center text-[8px] font-black text-slate-300 uppercase tracking-tighter text-center leading-none">
+                                System<br />Seal
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Metadata Sidebar - Sliding Gmail Menu */}
+                {showInfo && (
+                    <div className="w-96 bg-white border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-right duration-500 overflow-y-auto print:hidden">
+                        <div className="p-8 border-b border-gray-100">
+                            <h4 className="text-xl font-black text-[#081422] tracking-tighter flex items-center gap-3">
+                                <Info className="text-orange-500" size={24} />
+                                Document Intelligence
+                            </h4>
+                        </div>
+
+                        <div className="p-8 space-y-10">
+                            {/* Stats */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                                    <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Status</p>
+                                    <p className="text-sm font-black text-orange-950">{document.status}</p>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Index Size</p>
+                                    <p className="text-sm font-black text-slate-900">{document.size}</p>
+                                </div>
+                            </div>
+
+                            {/* Details */}
+                            <div className="space-y-6">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Transaction Anchor</span>
+                                    <span className="text-sm font-bold text-[#081422] truncate">{document.id}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Primary Holder</span>
+                                    <span className="text-sm font-bold text-[#081422]">Invexis Global Partners</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verification Path</span>
+                                    <span className="text-sm font-bold text-emerald-600 flex items-center gap-2">
+                                        <ShieldCheck size={16} />
+                                        End-to-End Encrypted
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Activity Log - Refined */}
+                            <div className="pt-8 border-t border-gray-100">
+                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Audit Timeline</h5>
+                                <div className="space-y-8">
+                                    {document.activity && document.activity.map((act, i) => (
+                                        <div key={i} className="flex gap-4 relative">
+                                            {i !== document.activity.length - 1 && (
+                                                <div className="absolute left-[7px] top-6 bottom-[-32px] w-[1px] bg-slate-100" />
+                                            )}
+                                            <div className="w-4 h-4 rounded-full border-2 border-white bg-orange-500 mt-1 shadow-sm relative z-10" />
+                                            <div>
+                                                <p className="text-[11px] font-black text-[#081422]">{act.action}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 mt-0.5 capitalize">{act.date} • {act.user}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 flex gap-4">
+                            <button className="flex-1 py-4 bg-[#081422] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg active:scale-95">
+                                Archive Doc
+                            </button>
+                            <button className="p-4 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all active:scale-90">
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Viewer Controls Layer */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-[#081422] p-2 rounded-[2rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[110] print:hidden">
+                <button
+                    onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                    className="p-3 text-white/70 hover:text-orange-500 hover:bg-white/5 rounded-full transition-all"
+                >
+                    <div className="w-4 h-0.5 bg-current" />
+                </button>
+                <div className="text-white text-xs font-black min-w-16 text-center tracking-widest">
+                    {Math.round(zoom * 100)}%
+                </div>
+                <button
+                    onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+                    className="p-3 text-white/70 hover:text-orange-500 hover:bg-white/5 rounded-full transition-all overflow-hidden relative"
+                >
+                    <div className="h-4 w-0.5 bg-current mx-auto" />
+                    <div className="w-4 h-0.5 bg-current absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </button>
+                <div className="w-[1px] h-6 bg-white/10 mx-2" />
+                <button
+                    onClick={() => setZoom(1)}
+                    className="p-3 text-white/70 hover:text-orange-400 hover:bg-white/5 rounded-full transition-all"
+                    title="Reset Zoom"
+                >
+                    <Maximize2 size={18} />
+                </button>
             </div>
         </div>
     );

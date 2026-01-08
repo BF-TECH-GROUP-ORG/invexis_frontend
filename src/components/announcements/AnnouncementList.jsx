@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Receipt, CreditCard, Package, RefreshCw, AlertTriangle, Target, User, Settings, Archive, Trash2, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import PaymentsCustomersIcon from '@/components/announcements/PaymentsCustomersIcon';
-import { formatDistanceToNow } from 'date-fns';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 import {
     Box,
     Table,
@@ -171,7 +174,7 @@ const AnnouncementList = ({ announcements = [], onAction = () => { }, isLoading,
                                     </TableCell>
 
                                     <TableCell sx={{ px: 2 }}>
-                                        <span className={`${!row.isRead ? 'text-orange-600 font-medium' : 'text-gray-400 text-xs'}`}>{formatDistanceToNow(new Date(row.timestamp), { addSuffix: true })}</span>
+                                        <span className={`${!row.isRead ? 'text-orange-600 font-medium' : 'text-gray-400 text-xs'}`}>{dayjs(row.timestamp).fromNow()}</span>
                                     </TableCell>
 
                                     <TableCell align="center" sx={{ px: 2 }} onClick={(e) => e.stopPropagation()}>

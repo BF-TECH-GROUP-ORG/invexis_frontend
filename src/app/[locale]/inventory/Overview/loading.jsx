@@ -1,66 +1,68 @@
 "use client";
-import { Skeleton } from "@mui/material";
+import Skeleton from "@/components/shared/Skeleton";
 
 export default function Loading() {
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 md:p-8 font-sans">
-            <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="min-h-screen bg-white p-6 md:p-8 font-sans animate-in fade-in duration-500">
+            <div className="max-w-[1600px] mx-auto space-y-8">
                 {/* Header Skeleton */}
-                <div className="flex justify-between items-center">
-                    <div>
-                        <Skeleton variant="text" width={250} height={40} />
-                        <Skeleton variant="text" width={180} height={24} sx={{ mt: 1 }} />
+                <div className="flex justify-between items-center px-2">
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-4 w-48" />
                     </div>
-                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 2 }} />
+                    <Skeleton className="w-32 h-12 rounded-2xl" />
                 </div>
 
                 {/* KPI Cards Skeleton */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200">
-                            <Skeleton variant="text" width={120} height={20} />
-                            <Skeleton variant="text" width={100} height={36} sx={{ mt: 1 }} />
-                            <Skeleton variant="text" width={80} height={16} sx={{ mt: 1 }} />
+                        <div key={i} className="bg-white rounded-[2rem] p-8 border border-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-32" />
+                            <Skeleton className="h-3 w-20" />
                         </div>
                     ))}
                 </div>
 
-                {/* Distribution Charts Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {[1, 2].map((i) => (
-                        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200">
-                            <Skeleton variant="text" width={180} height={28} />
-                            <Skeleton variant="circular" width={200} height={200} sx={{ mx: "auto", mt: 4 }} />
+                {/* Main Charts & Analytics Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
+                        <div className="flex justify-between items-center">
+                            <Skeleton className="h-6 w-48" />
+                            <Skeleton className="h-8 w-32 rounded-xl" />
                         </div>
-                    ))}
-                </div>
-
-                {/* Movement Trend Skeleton */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200">
-                    <Skeleton variant="text" width={200} height={28} />
-                    <Skeleton variant="rectangular" width="100%" height={300} sx={{ mt: 4, borderRadius: 2 }} />
-                </div>
-
-                {/* Insights Section Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {[1, 2].map((i) => (
-                        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200">
-                            <Skeleton variant="text" width={180} height={28} />
-                            <Skeleton variant="rectangular" width="100%" height={250} sx={{ mt: 4, borderRadius: 2 }} />
+                        <Skeleton className="h-[350px] w-full rounded-2xl" />
+                    </div>
+                    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
+                        <Skeleton className="h-6 w-40" />
+                        <div className="flex justify-center py-8">
+                            <Skeleton className="w-56 h-56 rounded-full" />
                         </div>
-                    ))}
+                        <div className="space-y-4">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-2/3" />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Product Risk Tables Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Detailed Insights Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {[1, 2].map((i) => (
-                        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200">
-                            <Skeleton variant="text" width={150} height={28} />
-                            <div className="space-y-3 mt-4">
-                                {[1, 2, 3, 4, 5].map((j) => (
-                                    <div key={j} className="flex justify-between items-center">
-                                        <Skeleton variant="text" width={120} />
-                                        <Skeleton variant="text" width={60} />
+                        <div key={i} className="bg-white rounded-[2rem] p-8 border border-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="w-12 h-12 rounded-2xl" />
+                                <Skeleton className="h-6 w-40" />
+                            </div>
+                            <div className="space-y-3">
+                                {[1, 2, 3, 4].map((j) => (
+                                    <div key={j} className="flex justify-between py-3 border-b border-slate-50 last:border-0 items-center">
+                                        <div className="space-y-2 flex-1">
+                                            <Skeleton className="h-4 w-1/3" />
+                                            <Skeleton className="h-3 w-1/4" />
+                                        </div>
+                                        <Skeleton className="h-6 w-16 rounded-full" />
                                     </div>
                                 ))}
                             </div>

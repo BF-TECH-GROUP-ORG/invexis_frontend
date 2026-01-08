@@ -7,7 +7,12 @@ const initialState = {
 // Load from localStorage
 const savedSession = typeof window !== "undefined" ? localStorage.getItem("session") : null;
 if (savedSession) {
-  initialState.session = JSON.parse(savedSession);
+  try {
+    initialState.session = JSON.parse(savedSession);
+  } catch (e) {
+    console.error("Failed to parse session from localStorage", e);
+    localStorage.removeItem("session");
+  }
 }
 
 const sessionSlice = createSlice({

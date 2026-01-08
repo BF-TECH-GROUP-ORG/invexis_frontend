@@ -13,7 +13,9 @@ import {
     CheckCircle,
     Clock
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 const TypeIcon = ({ type }) => {
     switch (type) {
@@ -31,7 +33,7 @@ const TypeIcon = ({ type }) => {
 const AnnouncementItem = ({ announcement, onAction }) => {
     const { id, type, title, context, timestamp, isRead } = announcement;
 
-    const timeAgo = formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    const timeAgo = dayjs(timestamp).fromNow();
 
     const handleAction = (e, action) => {
         e.stopPropagation();

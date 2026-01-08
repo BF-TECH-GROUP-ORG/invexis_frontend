@@ -121,6 +121,10 @@ export default function InvoiceGenerator({ invoice }) {
                 <div className="flex items-center gap-3 text-sm text-gray-400 font-medium">
                     <span>{invoice.id}</span>
                     <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${invoice.type === 'Expense' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
+                        {invoice.type || 'Income'}
+                    </span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                     <span>{new Date(invoice.date).toLocaleDateString()}</span>
                 </div>
                 <p className="mt-2 text-lg font-bold text-gray-800">

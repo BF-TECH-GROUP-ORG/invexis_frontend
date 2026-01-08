@@ -24,10 +24,12 @@ export default function EcommerceDataTable({
   rows = [],
   initialRowsPerPage = 5,
   denseDefault = false,
-  onEdit = () => {},
-  onDelete = () => {},
+  onEdit = () => { },
+  onDelete = () => { },
   showSearch = true,
   keyField = "id",
+  filters = null,
+  actions = null,
 }) {
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
@@ -69,17 +71,21 @@ export default function EcommerceDataTable({
 
   return (
     <Box>
-      {showSearch && (
-        <Box display="flex" gap={2} alignItems="center" mb={2}>
-          <TextField
-            size="small"
-            placeholder="Search table..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            sx={{ width: 320 }}
-          />
+      <Box display="flex" flexWrap="wrap" gap={2} alignItems="center" justifyContent="space-between" mb={2}>
+        <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+          {showSearch && (
+            <TextField
+              size="small"
+              placeholder="Search table..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              sx={{ width: 320 }}
+            />
+          )}
+          {filters}
         </Box>
-      )}
+        <Box>{actions}</Box>
+      </Box>
 
       <TableContainer sx={{ width: "100%" }}>
         <Table size={dense ? "small" : "medium"}>
