@@ -20,7 +20,7 @@ export default function TransactionsPage() {
     }
 
     return (
-        <div className="p-6 space-y-8 max-w-7xl mx-auto">
+        <div className="p-4 space-y-8 w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>

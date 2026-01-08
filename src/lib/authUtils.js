@@ -33,7 +33,13 @@ export const getRefreshToken = () => {
 export const getUser = () => {
   if (typeof window === "undefined") return null;
   const userStr = localStorage.getItem(USER_KEY);
-  return userStr ? JSON.parse(userStr) : null;
+  if (!userStr) return null;
+  try {
+    return JSON.parse(userStr);
+  } catch (e) {
+    console.error("Failed to parse user from localStorage", e);
+    return null;
+  }
 };
 
 /**

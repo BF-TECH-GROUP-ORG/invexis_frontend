@@ -12,6 +12,13 @@ import MonthGrid from '@/components/documents/explorer/MonthGrid';
 import DocumentList from '@/components/documents/explorer/DocumentList';
 import RecentDocsList from '@/components/documents/explorer/RecentDocsList';
 
+// Skeletons
+import YearGridSkeleton from '@/components/documents/explorer/skeletons/YearGridSkeleton';
+import MonthGridSkeleton from '@/components/documents/explorer/skeletons/MonthGridSkeleton';
+import DocumentListSkeleton from '@/components/documents/explorer/skeletons/DocumentListSkeleton';
+
+import mockData from '@/features/documents/mockData';
+
 export default function DocumentsPage() {
   const dispatch = useDispatch();
   const { items: allDocs = [], status } = useSelector((state) => state.documents || {});
@@ -37,44 +44,8 @@ export default function DocumentsPage() {
 
   // --- Derived Data Logic ---
   const filteredByCategory = useMemo(() => {
-    const docs = Array.isArray(allDocs) ? allDocs : [];
-
-    return docs.filter(d => {
-      // 1. Handle System Folders (Trash / Archived)
-      if (drillState.category === "Trash") {
-        return d.status === 'Trash';
-      }
-      if (drillState.category === "Archived") {
-        return d.status === 'Archived';
-      }
-
-      // 2. Handle Active Folders (Exclude Trash/Archived)
-      if (d.status === 'Trash' || d.status === 'Archived') {
-        return false;
-      }
-
-      // 3. Category Matching
-      const matchCategory = drillState.category === "All Files" ||
-        d.category === drillState.category ||
-        (drillState.category === "Sales & Orders" && ["Sales", "Orders", "Finance"].includes(d.category)) ||
-        (drillState.category === "Financial" && d.category === "Finance") ||
-        (drillState.category === "Inventory" && d.category === "Procurement");
-
-      if (!matchCategory) return false;
-
-      // 4. Search Filtering
-      if (searchTerm) {
-        const lowerTerm = searchTerm.toLowerCase();
-        return (
-          d.name?.toLowerCase().includes(lowerTerm) ||
-          d.date?.includes(lowerTerm) ||
-          d.type?.toLowerCase().includes(lowerTerm)
-        );
-      }
-
-      return true;
-    });
-  }, [allDocs, drillState.category, searchTerm]);
+    return mockData;
+  }, []);
 
   // Recent Docs (Top 4 by date)
   const recentDocs = useMemo(() => {
@@ -84,8 +55,15 @@ export default function DocumentsPage() {
   }, [filteredByCategory]);
 
   const availableYears = useMemo(() => {
-    const years = new Set(filteredByCategory.map(d => new Date(d.date).getFullYear()));
-    return Array.from(years).sort((a, b) => b - a); // Descending
+    const years = new Set(
+      filteredByCategory
+        .map(d => {
+          const year = new Date(d.date).getFullYear();
+          return isNaN(year) ? null : year;
+        })
+        .filter(y => y !== null)
+    );
+    return Array.from(years).sort((a, b) => b - a);
   }, [filteredByCategory]);
 
   const availableMonths = useMemo(() => {
@@ -177,38 +155,38 @@ export default function DocumentsPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto pb-20"> {/* Added padding for toolbar */}
-            {/* Render Logic */}
-            {!drillState.year ? (
-              <>
-                <RecentDocsList
-                  documents={recentDocs}
-                  onOpenValues={setSelectedDoc}
-                  selectedIds={selectedIds}
-                  onToggleSelect={handleToggleSelect}
-                />
-                <YearGrid
-                  years={availableYears}
-                  onSelectYear={(y) => setDrillState(prev => ({ ...prev, year: y }))}
-                />
-              </>
-            ) : !drillState.month ? (
-              <MonthGrid
-                year={drillState.year}
-                availableMonths={availableMonths}
-                onSelectMonth={(m) => setDrillState(prev => ({ ...prev, month: m }))}
-                onBack={() => setDrillState(prev => ({ ...prev, year: null }))}
-              />
+          <div className="flex-1 overflow-y-auto">
+            {/* Hierarchical Drill-down View */}
+            {status === 'loading' ? (
+              !drillState.year ? <YearGridSkeleton /> :
+                !drillState.month ? <MonthGridSkeleton /> :
+                  <DocumentListSkeleton />
             ) : (
-              <DocumentList
-                documents={currentDocs}
-                year={drillState.year}
-                month={drillState.month}
-                onOpenValues={setSelectedDoc}
-                onBack={() => setDrillState(prev => ({ ...prev, month: null }))}
-                selectedIds={selectedIds}
-                onToggleSelect={handleToggleSelect}
-              />
+              <>
+                {!drillState.year ? (
+                  <YearGrid
+                    years={availableYears}
+                    onSelectYear={(y) => setDrillState(prev => ({ ...prev, year: y }))}
+                  />
+                ) : !drillState.month ? (
+                  <MonthGrid
+                    year={drillState.year}
+                    availableMonths={availableMonths}
+                    onSelectMonth={(m) => setDrillState(prev => ({ ...prev, month: m }))}
+                    onBack={() => setDrillState(prev => ({ ...prev, year: null }))}
+                  />
+                ) : (
+                  <DocumentList
+                    documents={currentDocs}
+                    year={drillState.year}
+                    month={drillState.month}
+                    onOpenValues={setSelectedDoc}
+                    onBack={() => setDrillState(prev => ({ ...prev, month: null }))}
+                    selectedIds={selectedIds}
+                    onToggleSelect={handleToggleSelect}
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -262,19 +240,15 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* Document Viewer Overlay */}
-        {selectedDoc && (
-          <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex justify-end">
-            <div className="w-full md:w-[1000px] h-full shadow-2xl bg-white border-l border-gray-200">
-              <PreviewPanel
-                document={selectedDoc}
-                onClose={() => setSelectedDoc(null)}
-              />
-            </div>
-          </div>
-        )}
-
       </div>
+
+      {/* Full-Screen Immersive Document Viewer */}
+      {selectedDoc && (
+        <PreviewPanel
+          document={selectedDoc}
+          onClose={() => setSelectedDoc(null)}
+        />
+      )}
     </div>
   );
 }

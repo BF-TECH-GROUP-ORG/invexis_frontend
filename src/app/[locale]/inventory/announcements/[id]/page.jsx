@@ -5,7 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import announcementService from '@/services/announcementService';
-import { formatDistanceToNow } from 'date-fns';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 import { Button } from '@mui/material';
 import { ArrowLeft, Trash2, CheckCircle, Clock, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -19,7 +22,7 @@ export default function AnnouncementDetailPage() {
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!id) return;
     let mounted = true;
     const load = async () => {
@@ -108,14 +111,14 @@ export default function AnnouncementDetailPage() {
           <div className="text-sm text-gray-500">
             <Link href={`/${locale}/inventory/announcements`} prefetch className="hover:underline">Notifications Overview</Link>
             <span className="px-2">/</span>
-            <span className="text-gray-700">{announcement.title.length > 60 ? announcement.title.slice(0,60) + '...' : announcement.title}</span>
+            <span className="text-gray-700">{announcement.title.length > 60 ? announcement.title.slice(0, 60) + '...' : announcement.title}</span>
           </div>
         </div>
         <h2 className="text-lg font-semibold">{announcement.title}</h2>
       </div>
 
       <div className="mb-4 text-sm text-gray-500">
-        {formatDistanceToNow(new Date(announcement.timestamp), { addSuffix: true })}
+        {dayjs(announcement.timestamp).fromNow()}
       </div>
 
       <div className="border rounded p-4 mb-4 bg-white">
