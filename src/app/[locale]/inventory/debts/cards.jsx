@@ -130,9 +130,9 @@ export default function DebtCards({ debts = [] }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {cards.map((card, index) => (
+      {cards.map(({ key, ...card }, index) => (
         <DebtCardItem
-          key={card.key}
+          key={key}
           {...card}
           index={index}
         />

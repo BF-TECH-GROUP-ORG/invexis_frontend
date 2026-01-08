@@ -185,8 +185,14 @@ const AnalyticsService = {
             const [revenue, profitability, returns, categories] = await Promise.all([
                 AnalyticsService.getRevenueReport(filters),
                 AnalyticsService.getProfitabilityReport(filters),
-                AnalyticsService.getReturnRates(filters).catch(() => ({ data: [] })),
-                AnalyticsService.getPaymentMethodStats(filters).catch(() => ({ data: [] }))
+                AnalyticsService.getReturnRates(filters).catch((err) => {
+                    console.warn('[AnalyticsService] Return Rates statistics failed:', err.message || err);
+                    return { data: [] };
+                }),
+                AnalyticsService.getPaymentMethodStats(filters).catch((err) => {
+                    console.warn('[AnalyticsService] Payment Method statistics failed:', err.message || err);
+                    return { data: [] };
+                })
             ]);
 
             // Calculate summary metrics from the reports
@@ -204,7 +210,7 @@ const AnalyticsService = {
                 paymentMethods: categories
             };
         } catch (error) {
-            console.error('[AnalyticsService] Dashboard Summary Error:', error);
+            console.error('[AnalyticsService] Dashboard Summary Critical Failure:', error.message || error, error);
             return {
                 totalDailySales: 0,
                 totalDailyProfit: 0,

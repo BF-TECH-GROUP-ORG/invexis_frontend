@@ -79,25 +79,21 @@ function transformError(error) {
     return error;
   }
 
-  if (error.response) {
-    return {
-      message: error.response.data?.message || error.message,
-      status: error.response.status,
-      data: error.response.data,
-    };
-  } else if (error.request) {
-    return {
-      message: "Network Error: No response from server. Check CORS or Backend status.",
-      status: 0,
-      data: null,
-    };
-  } else {
-    return {
-      message: error.message || "Request setup failed",
-      status: -1,
-      data: null,
-    };
-  }
+  // Handle Axios error structure
+  const responseData = error.response?.data;
+  const message = responseData?.message || error.message || "An unexpected error occurred";
+  const status = error.response?.status ?? (error.request ? 0 : -1);
+
+  return {
+    message,
+    status,
+    data: responseData || null,
+    config: error.config ? {
+      url: error.config.url,
+      method: error.config.method,
+      params: error.config.params
+    } : null
+  };
 }
 
 /**
@@ -176,7 +172,11 @@ apiClient.interceptors.response.use(
   (error) => {
     const transformedError = transformError(error);
     if (process.env.NODE_ENV === "development") {
-      console.error("[API Error Interceptor]", transformedError);
+      const { method, url } = error.config || {};
+      console.error(
+        `[API Error Interceptor] ${method?.toUpperCase()} ${url} | Status: ${transformedError.status} | Message: ${transformedError.message}`,
+        transformedError
+      );
     }
     return Promise.reject(transformedError);
   }

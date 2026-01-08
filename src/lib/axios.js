@@ -25,29 +25,19 @@ const api = axios.create({
  * -----------------------------------------------------
  */
 function normalizeError(error) {
-  if (error?.response) {
-    return {
-      message:
-        error.response.data?.message ||
-        error.response.statusText ||
-        "Request failed",
-      status: error.response.status,
-      data: error.response.data,
-    };
-  }
+  const message = error?.response?.data?.message ||
+    error?.response?.statusText ||
+    error?.message ||
+    "Unexpected error";
 
-  if (error?.request) {
-    return {
-      message: "No response from server",
-      status: 0,
-      data: null,
-    };
-  }
+  const status = error?.response?.status ?? (error?.request ? 0 : -1);
 
   return {
-    message: error?.message || "Unexpected error",
-    status: -1,
-    data: null,
+    message,
+    status,
+    data: error?.response?.data || null,
+    stack: process.env.NODE_ENV === "development" ? error?.stack : undefined,
+    originalError: process.env.NODE_ENV === "development" ? error : undefined,
   };
 }
 
