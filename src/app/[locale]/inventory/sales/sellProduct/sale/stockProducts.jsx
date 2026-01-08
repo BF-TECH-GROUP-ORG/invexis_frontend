@@ -638,9 +638,11 @@ const CurrentInventory = () => {
         <TableContainer
           sx={{
             maxHeight: "calc(100vh - 300px)",
-            "&::-webkit-scrollbar": { width: 4, height: 8 },
+            width: '100%',
+            overflowX: 'auto',
+            "&::-webkit-scrollbar": { width: 4, height: 6 },
             "&::-webkit-scrollbar-track": { bgcolor: "#f1f1f1" },
-            "&::-webkit-scrollbar-thumb": { bgcolor: "#c1c1c1", borderRadius: 4 },
+            "&::-webkit-scrollbar-thumb": { bgcolor: "#e5e7eb", borderRadius: 4 },
             paddingLeft: "8px",
             paddingRight: "2px"
           }}
