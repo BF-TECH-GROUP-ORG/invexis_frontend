@@ -106,12 +106,39 @@ const SuccessModal = ({ open, onClose }) => (
   <Dialog
     open={open}
     onClose={onClose}
+    TransitionProps={{
+      timeout: {
+        enter: 400,
+        exit: 300
+      }
+    }}
     PaperProps={{
       sx: {
         borderRadius: 4,
         p: 2,
         minWidth: 400,
-        textAlign: "center"
+        textAlign: "center",
+        animation: open ? "popIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "popOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "@keyframes popIn": {
+          from: {
+            opacity: 0,
+            transform: "scale(0.8) translateY(-20px)"
+          },
+          to: {
+            opacity: 1,
+            transform: "scale(1) translateY(0)"
+          }
+        },
+        "@keyframes popOut": {
+          from: {
+            opacity: 1,
+            transform: "scale(1) translateY(0)"
+          },
+          to: {
+            opacity: 0,
+            transform: "scale(0.8) translateY(-20px)"
+          }
+        }
       }
     }}
   >
@@ -124,7 +151,36 @@ const SuccessModal = ({ open, onClose }) => (
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        mb: 1
+        mb: 1,
+        animation: open ? "bounceIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both" : "bounceOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "@keyframes bounceIn": {
+          "0%": {
+            opacity: 0,
+            transform: "scale(0.3)"
+          },
+          "50%": {
+            opacity: 1,
+            transform: "scale(1.05)"
+          },
+          "100%": {
+            opacity: 1,
+            transform: "scale(1)"
+          }
+        },
+        "@keyframes bounceOut": {
+          "0%": {
+            opacity: 1,
+            transform: "scale(1)"
+          },
+          "50%": {
+            opacity: 1,
+            transform: "scale(1.05)"
+          },
+          "100%": {
+            opacity: 0,
+            transform: "scale(0.3)"
+          }
+        }
       }}>
         <CheckCircle size={48} className="text-emerald-500" />
       </Box>
@@ -479,13 +535,13 @@ const CurrentInventory = () => {
   const paginatedProducts = filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <section className="bg-white md:p-6 my-2">
+    <section>
       <Paper sx={{
-        width: "100%",
+        
         overflow: "hidden",
-        borderRadius: "16px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        borderRadius: { xs: "0px", md: "16px" },
+        border: { xs: "none", md: "1px solid #e5e7eb" },
+        boxShadow: { xs: "none", md: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)" },
         bgcolor: "white"
       }}>
         <FilterPopover
@@ -497,7 +553,7 @@ const CurrentInventory = () => {
 
         {/* Consolidated Header */}
         <Box sx={{
-          p: 3,
+          p: { xs: 2, md: 3 },
           borderBottom: "1px solid #e0e0e0",
           display: "flex",
           flexDirection: "column",
@@ -642,18 +698,22 @@ const CurrentInventory = () => {
           currentShopId={Object.values(selectedItems)[0]?.shopId || session?.user?.shops?.[0]}
         />
 
-        {/* Table */}
-        <TableContainer
-          sx={{
-            maxHeight: 800,
-            width: '100%',
-            overflowX: 'auto',
-            "&::-webkit-scrollbar": { width: 4, height: 6 },
-            "&::-webkit-scrollbar-track": { bgcolor: "#f1f1f1" },
-            "&::-webkit-scrollbar-thumb": { bgcolor: "#e5e7eb", borderRadius: 4 },
-          }}
-        >
-          <Table stickyHeader size="medium" sx={{ minWidth: 1000 }}>
+        {/* Table Container - Responsive */}
+        <Box sx={{
+          overflowX: { xs: "auto", md: "visible" },
+          width: "100%",
+          "&::-webkit-scrollbar": { width: 4, height: 6 },
+          "&::-webkit-scrollbar-track": { bgcolor: "#f1f1f1" },
+          "&::-webkit-scrollbar-thumb": { bgcolor: "#e5e7eb", borderRadius: 4 },
+        }}>
+          <TableContainer
+            sx={{
+              maxHeight: 800,
+              width: '100%',
+              overflowX: 'auto',
+            }}
+          >
+            <Table stickyHeader size="medium" sx={{ minWidth: { xs: 800, md: 1000 } }}>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Select</TableCell>
@@ -874,7 +934,8 @@ const CurrentInventory = () => {
               )}
             </TableBody>
           </Table>
-        </TableContainer>
+          </TableContainer>
+        </Box>
 
         {/* Pagination */}
         <TablePagination
@@ -899,11 +960,38 @@ const CurrentInventory = () => {
       <Dialog
         open={priceModal.open}
         onClose={handleClosePriceModal}
+        TransitionProps={{
+          timeout: {
+            enter: 400,
+            exit: 300
+          }
+        }}
         PaperProps={{
           sx: {
             borderRadius: 3,
             minWidth: 400,
-            boxShadow: "0 12px 48px rgba(0, 0, 0, 0.15)"
+            boxShadow: "0 12px 48px rgba(0, 0, 0, 0.15)",
+            animation: priceModal.open ? "slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "@keyframes slideUp": {
+              from: {
+                opacity: 0,
+                transform: "translateY(30px)"
+              },
+              to: {
+                opacity: 1,
+                transform: "translateY(0)"
+              }
+            },
+            "@keyframes slideDown": {
+              from: {
+                opacity: 1,
+                transform: "translateY(0)"
+              },
+              to: {
+                opacity: 0,
+                transform: "translateY(30px)"
+              }
+            }
           }
         }}
       >
@@ -960,189 +1048,519 @@ const CurrentInventory = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Customer Information Modal */}
+      {/* Customer Information Modal - Premium Design & Responsive */}
       <Dialog
         open={customerModal}
         onClose={handleCloseCustomerModal}
-        maxWidth="sm"
+        maxWidth="lg"
         fullWidth
+        TransitionProps={{
+          timeout: {
+            enter: 400,
+            exit: 300
+          }
+        }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            boxShadow: "0 12px 48px rgba(0, 0, 0, 0.15)"
+            borderRadius: { xs: "0px", md: "16px" },
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.1)",
+            bgcolor: "#FFFFFF",
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            minHeight: { xs: "auto", md: "600px" },
+            animation: customerModal ? "slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "@keyframes slideUp": {
+              from: {
+                opacity: 0,
+                transform: "translateY(30px)"
+              },
+              to: {
+                opacity: 1,
+                transform: "translateY(0)"
+              }
+            },
+            "@keyframes slideDown": {
+              from: {
+                opacity: 1,
+                transform: "translateY(0)"
+              },
+              to: {
+                opacity: 0,
+                transform: "translateY(30px)"
+              }
+            }
           }
         }}
       >
-        <DialogTitle sx={{
-          color: "#000",
-          fontWeight: "bold",
-          fontSize: "1.25rem"
+        {/* Premium Header - Left Side - Hidden on Mobile */}
+        <Box sx={{
+          display: { xs: "none", md: "flex" },
+          background: "linear-gradient(135deg, #1F2937 0%, #111827 100%)",
+          padding: "40px 32px",
+          borderRadius: "16px 0 0 16px",
+          flex: "0 0 35%",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          animation: customerModal ? "slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "@keyframes slideInLeft": {
+            from: {
+              opacity: 0,
+              transform: "translateX(-40px)"
+            },
+            to: {
+              opacity: 1,
+              transform: "translateX(0)"
+            }
+          },
+          "@keyframes slideOutLeft": {
+            from: {
+              opacity: 1,
+              transform: "translateX(0)"
+            },
+            to: {
+              opacity: 0,
+              transform: "translateX(-40px)"
+            }
+          }
         }}>
-          Customer Information
-        </DialogTitle>
-        <DialogContent sx={{ pt: 3, pb: 2 }}>
-          {/* Sale Summary */}
-          <Box sx={{
-            mb: 3,
-            p: 2,
-            bgcolor: "#FFF3E0",
-            borderRadius: 1,
-            border: "1px solid #FFE0B2"
-          }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              <strong>Sale Summary</strong>
+          <Box>
+            <Typography variant="h5" sx={{
+              color: "white",
+              fontWeight: 700,
+              fontSize: "2rem",
+              letterSpacing: "-0.5px",
+              mb: 1
+            }}>
+              Complete Sale
             </Typography>
-            <Typography variant="h6" sx={{ color: "#FF6D00", fontWeight: "bold" }}>
-              {Object.keys(selectedItems).length} product(s) - Total: {
-                Object.values(selectedItems).reduce((sum, item) =>
-                  sum + (item.price * item.qty), 0
-                ).toLocaleString()
-              } FRW
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {isDebt ? "💳 Debt Sale (Payment Pending)" : "✅ Regular Sale (Paid in Full)"}
+            <Typography variant="body2" sx={{
+              color: "#D1D5DB",
+              fontWeight: 500,
+              fontSize: "0.95rem",
+              lineHeight: 1.6
+            }}>
+              Enter customer details and select payment method to finalize transaction
             </Typography>
           </Box>
 
-          {/* Customer Name */}
-          <TextField
-            autoFocus
-            fullWidth
-            label="Customer Name *"
-            value={customerName}
-            onChange={(e) => {
-              setCustomerName(e.target.value);
-              setCustomerErrors({ ...customerErrors, customerName: "" });
-            }}
-            error={!!customerErrors.customerName}
-            helperText={customerErrors.customerName}
-            placeholder="John Doe"
-            sx={{ mb: 2 }}
-          />
+          {/* Sale Summary Card - Left Side */}
+          <Box sx={{
+            width: "100%",
+            p: "20px 24px",
+            bgcolor: "rgba(255, 255, 255, 0.1)",
+            borderRadius: "12px",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(10px)",
+            animation: customerModal ? "scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both" : "scaleOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "@keyframes scaleIn": {
+              from: {
+                opacity: 0,
+                transform: "scale(0.95)"
+              },
+              to: {
+                opacity: 1,
+                transform: "scale(1)"
+              }
+            },
+            "@keyframes scaleOut": {
+              from: {
+                opacity: 1,
+                transform: "scale(1)"
+              },
+              to: {
+                opacity: 0,
+                transform: "scale(0.95)"
+              }
+            }
+          }}>
+            <Typography variant="caption" sx={{
+              color: "#D1D5DB",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              display: "block",
+              mb: 1
+            }}>
+              Total Amount
+            </Typography>
+            <Typography variant="h4" sx={{
+              color: "#FBBF24",
+              fontWeight: 800,
+              fontSize: "1.875rem",
+              mb: 1
+            }}>
+              {Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW
+            </Typography>
+            <Typography variant="caption" sx={{
+              color: "#9CA3AF",
+              display: "block"
+            }}>
+              {Object.keys(selectedItems).length} product{Object.keys(selectedItems).length !== 1 ? 's' : ''} • {isDebt ? "💳 Debt Sale" : "✅ Paid in Full"}
+            </Typography>
+          </Box>
+        </Box>
 
-          {/* Customer Phone */}
-          <TextField
-            fullWidth
-            label="Customer Phone *"
-            value={customerPhone}
-            onChange={(e) => {
-              setCustomerPhone(e.target.value);
-              setCustomerErrors({ ...customerErrors, customerPhone: "" });
-            }}
-            error={!!customerErrors.customerPhone}
-            helperText={customerErrors.customerPhone}
-            placeholder="+250788123456"
-            sx={{ mb: 2 }}
-          />
+        <DialogContent sx={{ 
+          pt: { xs: 2, md: 4 }, 
+          pb: { xs: 20, md: 24 }, 
+          px: { xs: 2, md: 4 }, 
+          flex: 1, 
+          overflow: "auto", 
+          position: "relative",
+          width: { xs: "100%", md: "auto" },
+          animation: customerModal ? "slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "@keyframes slideInRight": {
+            from: {
+              opacity: 0,
+              transform: "translateX(40px)"
+            },
+            to: {
+              opacity: 1,
+              transform: "translateX(0)"
+            }
+          },
+          "@keyframes slideOutRight": {
+            from: {
+              opacity: 1,
+              transform: "translateX(0)"
+            },
+            to: {
+              opacity: 0,
+              transform: "translateX(40px)"
+            }
+          }
+        }}>
+          {/* Customer Name Field */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{
+              color: "#111827",
+              fontWeight: 600,
+              mb: 1.2,
+              fontSize: "0.95rem"
+            }}>
+              Customer Name <span style={{ color: "#FF6D00" }}>*</span>
+            </Typography>
+            <TextField
+              autoFocus
+              fullWidth
+              placeholder="e.g. John Doe"
+              value={customerName}
+              onChange={(e) => {
+                setCustomerName(e.target.value);
+                setCustomerErrors({ ...customerErrors, customerName: "" });
+              }}
+              error={!!customerErrors.customerName}
+              helperText={customerErrors.customerName}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#FFFFFF",
+                  borderRadius: "10px",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  "& fieldset": {
+                    borderColor: "#E5E7EB",
+                    borderWidth: "1.5px"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#D1D5DB"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#FF6D00",
+                    borderWidth: "2px"
+                  }
+                },
+                "& .MuiOutlinedInput-input": {
+                  padding: "12px 16px",
+                  color: "#111827"
+                },
+                "& .MuiFormHelperText-root": {
+                  color: "#EF4444",
+                  fontSize: "0.8rem",
+                  marginTop: "6px"
+                }
+              }}
+            />
+          </Box>
 
-          {/* Customer Email (Optional) */}
-          <TextField
-            fullWidth
-            label="Customer Email (Optional)"
-            type="email"
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-            placeholder="customer@example.com"
-            sx={{ mb: 2 }}
-          />
+          {/* Customer Phone Field */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="body2" sx={{
+              color: "#111827",
+              fontWeight: 600,
+              mb: 1.2,
+              fontSize: "0.95rem"
+            }}>
+              Phone Number <span style={{ color: "#FF6D00" }}>*</span>
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="e.g. +250788123456"
+              value={customerPhone}
+              onChange={(e) => {
+                setCustomerPhone(e.target.value);
+                setCustomerErrors({ ...customerErrors, customerPhone: "" });
+              }}
+              error={!!customerErrors.customerPhone}
+              helperText={customerErrors.customerPhone}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#FFFFFF",
+                  borderRadius: "10px",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  "& fieldset": {
+                    borderColor: "#E5E7EB",
+                    borderWidth: "1.5px"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#D1D5DB"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#FF6D00",
+                    borderWidth: "2px"
+                  }
+                },
+                "& .MuiOutlinedInput-input": {
+                  padding: "12px 16px",
+                  color: "#111827"
+                },
+                "& .MuiFormHelperText-root": {
+                  color: "#EF4444",
+                  fontSize: "0.8rem",
+                  marginTop: "6px"
+                }
+              }}
+            />
+          </Box>
 
-          {/* Payment Method Selection */}
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Payment Method *</Typography>
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5, mb: 2 }}>
-            {[
-              { id: "cash", label: "Cash", icon: "💵" },
-              { id: "mtn", label: "MTN", img: "https://upload.wikimedia.org/wikipedia/commons/9/93/New-mtn-logo.jpg" },
-              { id: "airtel", label: "Airtel", img: "https://download.logo.wine/logo/Airtel_Uganda/Airtel_Uganda-Logo.wine.png" },
-              { id: "mpesa", label: "M-Pesa", img: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png" },
-              { id: "bank_transfer", label: "Bank", icon: "🏦" },
-            ].map((method) => (
-              <Box
-                key={method.id}
-                onClick={() => setPaymentMethod(method.id)}
-                sx={{
-                  border: `2px solid ${paymentMethod === method.id ? "#FF6D00" : "#e0e0e0"}`,
-                  borderRadius: 2,
-                  p: 1.5,
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  bgcolor: paymentMethod === method.id ? "#FFF3E0" : "white",
-                  transition: "all 0.2s ease",
-                  "&:hover": { borderColor: "#FF6D00", bgcolor: "#fff8f0" },
-                  height: 80
-                }}
-              >
-                {method.img ? (
+          {/* Payment Method Selection - Premium Design */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="body2" sx={{
+              color: "#111827",
+              fontWeight: 600,
+              mb: 2,
+              fontSize: "0.95rem"
+            }}>
+              Payment Method <span style={{ color: "#FF6D00" }}>*</span>
+            </Typography>
+            <Box sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "repeat(5, 1fr)", sm: "repeat(5, 1fr)" },
+              gap: { xs: "8px", md: "10px" }
+            }}>
+              {[
+                { id: "cash", label: "Cash", img: "/images/cash.jpeg" },
+                { id: "mtn", label: "MTN", img: "/images/mtn-momo-mobile-money-uganda-logo-png_seeklogo-556395.png" },
+                { id: "airtel", label: "Airtel", img: "/images/Airtel Money Uganda Logo PNG Vector (PDF) Free Download.jpeg" },
+                { id: "mpesa", label: "M-Pesa", img: "/images/mpesa.jpeg" },
+                { id: "bank_transfer", label: "Bank", img: "/images/🏦 Bank Emoji.jpeg" },
+              ].map((method) => {
+                const isSelected = paymentMethod === method.id;
+                return (
                   <Box
-                    component="img"
-                    src={method.img}
-                    alt={method.label}
+                    key={method.id}
+                    onClick={() => setPaymentMethod(method.id)}
                     sx={{
-                      height: 32,
-                      width: "auto",
-                      objectFit: "contain",
-                      mb: 0.5,
-                      filter: paymentMethod === method.id ? "none" : "grayscale(100%)",
-                      opacity: paymentMethod === method.id ? 1 : 0.7
+                      aspectRatio: "1/1",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                      bgcolor: isSelected ? "#F3F4F6" : "#F9FAFB",
+                      border: isSelected ? "2.5px solid #FF6D00" : "",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative",
+                      overflow: "hidden",
+                      "&:hover": {
+                        border: isSelected ? "2.5px solid #FF6D00" : "2px solid #D1D5DB",
+                        bgcolor: isSelected ? "#E5E7EB" : "#F3F4F6",
+                        transform: "translateY(-2px)",
+                        boxShadow: isSelected ? "0 8px 24px rgba(255, 109, 0, 0.15)" : "0 4px 12px rgba(0, 0, 0, 0.08)"
+                      }
                     }}
-                  />
-                ) : (
-                  <Typography variant="h5" sx={{ mb: 0.5 }}>{method.icon}</Typography>
-                )}
-                <Typography variant="caption" fontWeight={600} color={paymentMethod === method.id ? "#E65100" : "text.secondary"}>
-                  {method.label}
-                </Typography>
-              </Box>
-            ))}
+                  >
+                    <Box
+                      component="img"
+                      src={method.img}
+                      alt={method.label}
+                      sx={{
+                        height: "40px",
+                        width: "auto",
+                        maxWidth: "85%",
+                        objectFit: "contain",
+                        transition: "all 0.3s ease"
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.7rem",
+                        color: isSelected ? "#FF6D00" : "#6B7280",
+                        textAlign: "center",
+                        letterSpacing: "0.3px"
+                      }}
+                    >
+                      {method.label}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
           </Box>
 
           {/* Conditional Phone Input for Mobile Payments */}
           {(paymentMethod === "airtel" || paymentMethod === "mtn" || paymentMethod === "mpesa") && (
-            <TextField
-              fullWidth
-              label={`Payment Phone Number (${paymentMethod.toUpperCase()})`}
-              value={customerPhone} // Re-using customer phone for simplicity, or could be a separate state if needed
-              onChange={(e) => {
-                 setCustomerPhone(e.target.value);
-                 setCustomerErrors({ ...customerErrors, customerPhone: "" });
-              }}
-              placeholder="e.g. +250..."
-              sx={{ mb: 2 }}
-              helperText="Phone number to be used for payment request"
-            />
+            <Box>
+              <Typography variant="body2" sx={{
+                color: "#111827",
+                fontWeight: 600,
+                mb: 1.2,
+                fontSize: "0.95rem"
+              }}>
+                Payment Phone <span style={{ color: "#FF6D00" }}>*</span>
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder={`e.g. +250788123456`}
+                value={customerPhone}
+                onChange={(e) => {
+                  setCustomerPhone(e.target.value);
+                  setCustomerErrors({ ...customerErrors, customerPhone: "" });
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#FFFFFF",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#FFD4A3",
+                      borderWidth: "1.5px"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#FFC080"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#FF6D00",
+                      borderWidth: "2px"
+                    }
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "10px 14px",
+                    fontSize: "0.9rem"
+                  }
+                }}
+              />
+              <Typography variant="caption" sx={{
+                color: "#EA580C",
+                display: "block",
+                marginTop: "8px",
+                fontWeight: 500
+              }}>
+                ℹ Payment will be requested via {paymentMethod.toUpperCase()}
+              </Typography>
+            </Box>
           )}
 
           {/* Amount Paid Now (Only for Debt) */}
           {isDebt && (
-            <TextField
-              fullWidth
-              label="Amount Paid Now (FRW)"
-              type="number"
-              value={amountPaidNow}
-              onChange={(e) => {
-                setAmountPaidNow(e.target.value);
-                if (customerErrors.amountPaidNow) {
-                  setCustomerErrors((prev) => ({ ...prev, amountPaidNow: "" }));
-                }
-              }}
-              placeholder="0"
-              InputProps={{ inputProps: { min: 0, max: Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) } }}
-              sx={{ mb: 2 }}
-              error={!!customerErrors.amountPaidNow}
-              helperText={customerErrors.amountPaidNow || `Enter the initial payment amount. Remaining balance will be recorded as debt.`}
-            />
+            <Box sx={{ mb: 4, p: "16px 20px", bgcolor: "#F0F9FF", borderRadius: "10px", border: "1.5px solid #BAE6FD" }}>
+              <Typography variant="body2" sx={{
+                color: "#111827",
+                fontWeight: 600,
+                mb: 1.2,
+                fontSize: "0.95rem"
+              }}>
+                Amount Paid Now (FRW)
+              </Typography>
+              <TextField
+                fullWidth
+                type="number"
+                placeholder="0"
+                value={amountPaidNow}
+                onChange={(e) => {
+                  setAmountPaidNow(e.target.value);
+                  if (customerErrors.amountPaidNow) {
+                    setCustomerErrors((prev) => ({ ...prev, amountPaidNow: "" }));
+                  }
+                }}
+                error={!!customerErrors.amountPaidNow}
+                helperText={customerErrors.amountPaidNow || `Remaining will be recorded as debt`}
+                inputProps={{
+                  min: 0,
+                  max: Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0),
+                  step: "1"
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#FFFFFF",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#BFDBFE",
+                      borderWidth: "1.5px"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#93C5FD"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#3B82F6",
+                      borderWidth: "2px"
+                    }
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "10px 14px",
+                    fontSize: "0.9rem"
+                  },
+                  "& .MuiFormHelperText-root": {
+                    color: "#0369A1",
+                    fontSize: "0.8rem"
+                  }
+                }}
+              />
+            </Box>
           )}
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>
-            * Required fields
-          </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+
+        {/* Premium Footer - Responsive */}
+        <Box sx={{
+          borderTop: "1px solid #E5E7EB",
+          padding: { xs: "16px", md: "20px 28px" },
+          bgcolor: "#F9FAFB",
+          borderRadius: { xs: "0", md: "0 0 16px 16px" },
+          display: "flex",
+          gap: "12px",
+          justifyContent: "flex-end",
+          position: { xs: "relative", md: "absolute" },
+          bottom: { xs: "auto", md: 0 },
+          right: { xs: "auto", md: 0 },
+          left: { xs: "auto", md: "35%" },
+          width: { xs: "100%", md: "auto" }
+        }}>
           <MuiButton
             onClick={handleCloseCustomerModal}
-            sx={{ color: "#666" }}
+            sx={{
+              color: "#6B7280",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textTransform: "none",
+              px: "24px",
+              py: "10px",
+              borderRadius: "8px",
+              border: "1.5px solid #E5E7EB",
+              bgcolor: "#FFFFFF",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: "#F3F4F6",
+                borderColor: "#D1D5DB",
+                color: "#374151"
+              }
+            }}
           >
             Cancel
           </MuiButton>
@@ -1152,13 +1570,31 @@ const CurrentInventory = () => {
             disabled={sellMutation.isPending}
             sx={{
               bgcolor: "#FF6D00",
-              "&:hover": { bgcolor: "#E65100" },
-              minWidth: 120
+              color: "white",
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              textTransform: "none",
+              px: "32px",
+              py: "10px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(255, 109, 0, 0.3)",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": {
+                bgcolor: "#E65100",
+                boxShadow: "0 8px 20px rgba(255, 109, 0, 0.4)",
+                transform: "translateY(-2px)"
+              },
+              "&:disabled": {
+                bgcolor: "#D1D5DB",
+                color: "#F3F4F6",
+                boxShadow: "none",
+                cursor: "not-allowed"
+              }
             }}
           >
-            {sellMutation.isPending ? "Processing..." : "Confirm Sale"}
+            {sellMutation.isPending ? "Processing..." : "Complete Sale"}
           </MuiButton>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       <SuccessModal

@@ -5,23 +5,43 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export const getBranches = async (companyId, options = {}) => {
   try {
     const url = `${BASE_URL}/shop/`;
-    console.log(`Fetching branches from: ${url}`);
+    console.log(`Fetching branches from: ${url} with companyId:`, companyId);
     const response = await apiClient.get(url, {
       params: { companyId },
       ...options,
     });
     console.log("Branches API Raw Response:", response);
+    console.log("Response.data structure:", response.data);
 
-    // Handle different possible response structures
-    if (Array.isArray(response)) return response;
-    if (response.data && Array.isArray(response.data)) return response.data;
-    if (response.shops && Array.isArray(response.shops)) return response.shops;
-    if (response.branches && Array.isArray(response.branches)) return response.branches;
+    // Axios wraps the response in response.data
+    // Backend returns: {success: true, data: Array(...), pagination: {...}}
+    const apiResponse = response.data;
+    
+    // Check if we have the nested data structure
+    if (apiResponse && typeof apiResponse === 'object') {
+      // Case 1: Standard API response with data property containing array
+      if (apiResponse.data && Array.isArray(apiResponse.data)) {
+        console.log("✓ Extracting from response.data.data - found array with", apiResponse.data.length, "items");
+        return apiResponse.data;
+      }
+      
+      // Case 2: Direct array in response (shouldn't happen with this API)
+      if (Array.isArray(apiResponse)) {
+        console.log("✓ Response is direct array with", apiResponse.length, "items");
+        return apiResponse;
+      }
+      
+      // Case 3: Array directly (edge case)
+      if (apiResponse.length !== undefined && apiResponse.length >= 0) {
+        console.log("✓ Response detected as array with", apiResponse.length, "items");
+        return apiResponse;
+      }
+    }
 
-    console.warn("Unexpected branches response structure:", response);
-    return response.data || [];
+    console.warn("⚠️ Unexpected branches response structure:", apiResponse);
+    throw new Error(`Invalid branches response structure. Expected array or {data: Array}, got: ${JSON.stringify(apiResponse).substring(0, 100)}`);
   } catch (error) {
-    console.error("Error fetching branches:", error);
+    console.error("❌ Error fetching branches:", error);
     throw error;
   }
 };

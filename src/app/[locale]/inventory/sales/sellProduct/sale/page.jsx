@@ -80,21 +80,16 @@ const SaleProduct = () => {
     ]
 
     return (
-        <div className="p-6 space-y-8 ">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <button
+        <div className="">
+            <button
                         onClick={() => router.back()}
                         className="group mb-4 flex items-center space-x-2 text-sm font-medium text-gray-600 hover:text-orange-600 transition-colors"
                     >
                         <ArrowBack className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                         <span>{t('back')}</span>
                     </button>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('saleProducts')}</h1>
-                    <p className="text-gray-500 mt-1">{t('saleSubTitile')}</p>
-                </div>
-            </div>
-
+            <br />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((card, index) => {
                     const Icon = card.Icon
@@ -104,7 +99,7 @@ const SaleProduct = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all"
+                            className="bg-white rounded-2xl p-6  border-2 border-gray-300 cursor-pointer transition-all"
                         >
                             <div className="flex items-center justify-between">
                                 <div>
@@ -122,6 +117,15 @@ const SaleProduct = () => {
                     )
                 })}
             </div>
+            <br />
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('saleProducts')}</h1>
+                    <p className="text-gray-500 mt-1">{t('saleSubTitile')}</p>
+                </div>
+            </div>
+            <br />
 
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <CurrentInventory />

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
-// import { getWorkersByCompanyId } from "@/services/workersService";
+import { getWorkersByCompanyId } from "@/services/workersService";
 import WorkersProtectedWrapper from "@/components/clients/WorkersProtectedWrapper";
 
 export const metadata = {
@@ -17,23 +17,26 @@ export default async function WorkersList() {
   const companyObj = user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
-  // Prefetching removed to prevent SSR crashes with apiClient. 
-  // WorkersTable fetches data client-side.
-  /*
+  // Prefetch workers if authenticated
   if (session?.accessToken && companyId) {
     try {
+      const options = {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`
+        }
+      };
+      
       await queryClient.prefetchQuery({
         queryKey: ["workers", companyId],
-        queryFn: () =>
-          getWorkersByCompanyId(companyId, {
-            headers: { Authorization: `Bearer ${session.accessToken}` },
-          }),
+        queryFn: () => getWorkersByCompanyId(companyId, options),
       });
+      
+      console.log("✅ Successfully prefetched workers on server");
     } catch (error) {
-      console.error("Error prefetching workers list:", error);
+      console.error("⚠️ Error prefetching workers list:", error);
+      // Continue without prefetch - client will fetch
     }
   }
-  */
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

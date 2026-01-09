@@ -34,6 +34,11 @@ export default async function SalesPage() {
           soldBy: currentUserId,
           shopId: ""
         }, options),
+      }),
+      // Always fetch shops for visibility (for all roles)
+      queryClient.prefetchQuery({
+        queryKey: ["shops", companyId],
+        queryFn: () => getBranches(companyId, options),
       })
     ];
 
@@ -42,10 +47,6 @@ export default async function SalesPage() {
         queryClient.prefetchQuery({
           queryKey: ["workers", companyId],
           queryFn: () => getWorkersByCompanyId(companyId, options),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: ["shops", companyId],
-          queryFn: () => getBranches(companyId, options),
         })
       );
     }

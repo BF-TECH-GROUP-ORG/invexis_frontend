@@ -81,11 +81,12 @@ const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => (
 // Return Modal Component
 // ----------------------------------------------------------------------
 
-const ReturnModal = ({ open, onClose, saleId }) => {
+const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selectedShopId }) => {
   const t = useTranslations("sales");
   const [selectedItems, setSelectedItems] = useState({});
   const [returnReason, setReturnReason] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: sale, isLoading } = useQuery({
     queryKey: ["sale", saleId],
@@ -95,11 +96,39 @@ const ReturnModal = ({ open, onClose, saleId }) => {
 
   const returnMutation = useMutation({
     mutationFn: createReturn,
-    onSuccess: () => {
-      onClose();
-      // Optional: Show success snackbar
+    onMutate: async (payload) => {
+      // Cancel ongoing queries
+      await queryClient.cancelQueries({
+        queryKey: ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+      });
+
+      // Return context for rollback
+      return {
+        previousSales: queryClient.getQueryData([
+          "salesHistory",
+          companyId,
+          selectedWorkerId,
+          selectedShopId,
+        ]),
+      };
     },
-    onError: (err) => {
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({
+        queryKey: ["salesHistory", companyId],
+      });
+      onClose();
+      setSelectedItems({});
+      setReturnReason("");
+    },
+    onError: (err, payload, context) => {
+      // Rollback on error if needed
+      if (context?.previousSales) {
+        queryClient.setQueryData(
+          ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+          context.previousSales
+        );
+      }
       setSubmitError(err.message || "Failed to create return");
     },
   });
@@ -720,15 +749,49 @@ const DataTable = ({
     });
   }, [salesData, shops]);
 
-  // Delete mutation
+  // Delete mutation with optimistic update
   const deleteMutation = useMutation({
     mutationFn: (saleId) => deleteSale(saleId),
-    onSuccess: () => {
-      // Invalidate and refetch sales history
-      queryClient.invalidateQueries(["salesHistory", companyId]);
-      console.log("Sale deleted and cache invalidated");
+    onMutate: async (saleId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+      });
+
+      // Snapshot the previous value
+      const previousSales = queryClient.getQueryData([
+        "salesHistory",
+        companyId,
+        selectedWorkerId,
+        selectedShopId,
+      ]);
+
+      // Optimistically update to the new value
+      if (previousSales) {
+        queryClient.setQueryData(
+          ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+          previousSales.filter((sale) => sale.saleId !== saleId)
+        );
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousSales };
     },
-    onError: (error) => {
+    onSuccess: () => {
+      // Success - the optimistic update stays
+      queryClient.invalidateQueries({
+        queryKey: ["salesHistory", companyId],
+      });
+      console.log("Sale deleted successfully with optimistic update");
+    },
+    onError: (error, saleId, context) => {
+      // Rollback to previous value on error
+      if (context?.previousSales) {
+        queryClient.setQueryData(
+          ["salesHistory", companyId, selectedWorkerId, selectedShopId],
+          context.previousSales
+        );
+      }
       console.error("Failed to delete sale:", error);
       alert("Failed to delete sale. Please try again.");
     },
@@ -980,6 +1043,9 @@ const DataTable = ({
         open={returnModal.open}
         onClose={handleCloseReturnModal}
         saleId={returnModal.id}
+        companyId={companyId}
+        selectedWorkerId={selectedWorkerId}
+        selectedShopId={selectedShopId}
       />
 
       {/* Consolidated Header */}

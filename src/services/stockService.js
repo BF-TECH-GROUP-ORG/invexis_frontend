@@ -279,5 +279,30 @@ export async function getCompanyDetails(id) {
  * @returns {Promise<Object>} List of companies
  */
 export async function getAllCompanies() {
-  return apiClient.get(`${API_BASE}/company/companies`);
+  try {
+    const response = await apiClient.get(`${API_BASE}/company/companies`);
+    console.log("getAllCompanies raw response:", response);
+    
+    // Axios wraps response in response.data
+    // Backend may return: {data: Array(...), ...} or just Array
+    const apiResponse = response.data;
+    
+    // Return the structured response so components can access via .data
+    // This maintains consistency with React Query
+    if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+      console.log("✓ Companies extracted:", apiResponse.data.length, "companies");
+      return { data: apiResponse.data };
+    }
+    
+    if (Array.isArray(apiResponse)) {
+      console.log("✓ Companies (direct array):", apiResponse.length, "companies");
+      return { data: apiResponse };
+    }
+    
+    console.warn("Unexpected companies response:", apiResponse);
+    return { data: [] };
+  } catch (error) {
+    console.error("Error fetching companies:", error);
+    throw error;
+  }
 }

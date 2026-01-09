@@ -70,15 +70,15 @@ const SalesPageClient = () => {
         }
     }, [selectedShopId, filteredWorkers, selectedWorkerId, user]);
 
-    // Fetch shops for the filter (only for admins/managers)
-    const { data: shopsData = null } = useQuery({
+    // Fetch shops for the filter (fetch for all roles now)
+    const { data: shops = [] } = useQuery({
         queryKey: ["shops", companyId],
         queryFn: () => getBranches(companyId, options),
-        enabled: !!companyId && !isWorker,
+        enabled: !!companyId,
+        staleTime: Infinity, // Cache indefinitely - shops rarely change
     });
 
-    const shops = shopsData?.data || [];
-
+    // Sales history query with optimistic updates
     const { data: sales = [], isLoading: isSalesLoading } = useQuery({
         queryKey: ["salesHistory", companyId, selectedWorkerId, selectedShopId],
         queryFn: () => getSalesHistory(companyId, {
@@ -86,7 +86,9 @@ const SalesPageClient = () => {
             shopId: selectedShopId
         }, options),
         enabled: !!companyId,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 0, // Always fetch fresh data
+        gcTime: 1000 * 60 * 30, // Keep in cache for 30 min
+        refetchOnWindowFocus: false, // Don't refetch on focus (we'll refetch on actions)
     });
 
     const locale = useLocale();

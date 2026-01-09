@@ -38,6 +38,8 @@ import { getAllShops } from "@/services/shopService";
 import { useSession } from "next-auth/react";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import PaymentMethodSelector from "@/components/forms/PaymentMethodSelector";
+import { DEBT_PAYMENT_METHODS } from "@/constants/paymentMethods";
 
 // =======================================
 // DataTable Component - Uses debts prop from parent
@@ -67,7 +69,6 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
-  const [phoneError, setPhoneError] = useState("");
 
   const handleConfirm = () => {
     // Build the repayment payload
@@ -132,74 +133,14 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
           sx={{ mt: 3, mb: 3 }}
         />
 
-        {/* Payment Method Selection */}
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Payment Method *</Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5, mb: 2 }}>
-          {[
-            { id: "CASH", label: "Cash", icon: "💵" },
-            { id: "MTN", label: "MTN", img: "https://upload.wikimedia.org/wikipedia/commons/9/93/New-mtn-logo.jpg" },
-            { id: "AIRTEL", label: "Airtel", img: "https://download.logo.wine/logo/Airtel_Uganda/Airtel_Uganda-Logo.wine.png" },
-            { id: "MPESA", label: "M-Pesa", img: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png" },
-            { id: "BANK_TRANSFER", label: "Bank", icon: "🏦" },
-          ].map((method) => (
-            <Box
-              key={method.id}
-              onClick={() => setPaymentMethod(method.id)}
-              sx={{
-                border: `2px solid ${paymentMethod === method.id ? "#FF6D00" : "#e0e0e0"}`,
-                borderRadius: 2,
-                p: 1.5,
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: paymentMethod === method.id ? "#FFF3E0" : "white",
-                transition: "all 0.2s ease",
-                "&:hover": { borderColor: "#FF6D00", bgcolor: "#fff8f0" },
-                height: 80
-              }}
-            >
-              {method.img ? (
-                <Box
-                  component="img"
-                  src={method.img}
-                  alt={method.label}
-                  sx={{
-                    height: 32,
-                    width: "auto",
-                    objectFit: "contain",
-                    mb: 0.5,
-                    filter: paymentMethod === method.id ? "none" : "grayscale(100%)",
-                    opacity: paymentMethod === method.id ? 1 : 0.7
-                  }}
-                />
-              ) : (
-                <Typography variant="h5" sx={{ mb: 0.5 }}>{method.icon}</Typography>
-              )}
-              <Typography variant="caption" fontWeight={600} color={paymentMethod === method.id ? "#E65100" : "text.secondary"}>
-                {method.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        {/* Conditional Phone Input for Mobile Payments */}
-        {isPhoneRequired && (
-          <TextField
-            fullWidth
-            label={`Payment Phone Number (${paymentMethod})`}
-            value={phone}
-            onChange={(e) => {
-               setPhone(e.target.value);
-               setPhoneError("");
-            }}
-            placeholder="e.g. +250..."
-            sx={{ mb: 2 }}
-            helperText="Phone number to be used for payment request"
-            error={!!phoneError}
-          />
-        )}
+        {/* Payment Method Selection with Icons */}
+        <PaymentMethodSelector
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
+          phone={phone}
+          onPhoneChange={setPhone}
+          type="debt"
+        />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 3, gap: 2 }}>
