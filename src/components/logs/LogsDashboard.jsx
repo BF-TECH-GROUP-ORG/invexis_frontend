@@ -104,7 +104,7 @@ const LogsDashboard = () => {
     return (
         <Box sx={{ backgroundColor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             {/* Header Area */}
-            <Box sx={{ px: 3, py: 2, borderBottom: '1px solid #f0f0f0' }}>
+            <Box sx={{ px: { xs: 2, md: 3 }, py: 2, borderBottom: '1px solid #f0f0f0' }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
                     Logs & Audits
                 </Typography>
@@ -121,7 +121,7 @@ const LogsDashboard = () => {
             />
 
             {/* Content Area */}
-            <Box sx={{ p: 3, flexGrow: 1, backgroundColor: '#fff' }}>
+            <Box sx={{ p: { xs: 0, md: 3 }, flexGrow: 1, backgroundColor: '#fff' }}>
                 {loading && (!items || items.length === 0) ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
                         <CircularProgress sx={{ color: '#ff6600' }} />

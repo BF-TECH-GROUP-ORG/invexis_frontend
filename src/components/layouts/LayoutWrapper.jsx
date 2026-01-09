@@ -134,11 +134,7 @@ export default function LayoutWrapper({ children }) {
         <DashboardLayout>
           {/* Layout-level protection: only require authenticated session; per-route RBAC enforced in middleware */}
           <ProtectedRoute>
-            <div className="flex h-screen">
-              <div className="flex-1 flex flex-col">
-                <main className="flex-1 p-4">{children}</main>
-              </div>
-            </div>
+            {children}
           </ProtectedRoute>
           {isDev && <DevBypassToggle />}
         </DashboardLayout>

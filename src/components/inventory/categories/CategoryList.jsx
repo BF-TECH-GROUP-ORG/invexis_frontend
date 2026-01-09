@@ -190,7 +190,7 @@ export default function CategoryList() {
   // }
 
   return (
-    <div className="p-6 bg-white min-h-screen">
+    <div className="md:p-6 bg-white min-h-screen">
 
       {error && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
@@ -200,7 +200,7 @@ export default function CategoryList() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-0">
         {Object.entries(stats).map(([key, value]) => {
           const config = {
             total: { icon: Folder, color: "#ff782d", bgColor: "#fff8f5", label: "Total Categories" },
@@ -232,9 +232,9 @@ export default function CategoryList() {
         })}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-300">
+      <div className="bg-white rounded-xl border border-gray-300 mx-2 md:mx-0">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 md:p-6 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
@@ -311,7 +311,7 @@ export default function CategoryList() {
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-0 md:p-6">
           {viewMode === "table" ? (
             <CategoryTable
               categories={items}

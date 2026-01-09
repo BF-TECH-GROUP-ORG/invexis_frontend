@@ -94,7 +94,7 @@ const InventoryOverviewPage = () => {
     (data?.recentProducts?.length || 0) > 0;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-6 md:p-8 font-sans">
+    <div className="font-sans">
       <div className="max-w-[1600px] mx-auto space-y-6">
         <InventoryHeader
           onRefresh={refetch}

@@ -6,30 +6,19 @@ import TopNavBar from "./NavBar";
 
 export default function DashboardLayout({ children }) {
   const [expanded, setExpanded] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  const handleMobileChange = useCallback((mobile) => {
-    setIsMobile(mobile);
-  }, []);
 
   return (
-    <div className="">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden flex flex-col">
       <SideBar
         expanded={expanded}
         setExpanded={setExpanded}
-        onMobileChange={handleMobileChange}
       />
-      <TopNavBar expanded={expanded} isMobile={isMobile} />
+      <TopNavBar expanded={expanded} />
 
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 flex-1 pt-20 ${
-          isMobile
-            ? "ml-0 pb-24" // No left margin on mobile, add bottom padding for bottom nav
-            : expanded
-            ? "ml-64"
-            : "ml-20"
-        }`}
+        className={`transition-all duration-300 flex-1 pt-20 px-4 md:px-8 pb-24 md:pb-8 min-h-screen ${expanded ? "ml-0 md:ml-64" : "ml-0 md:ml-20"
+          }`}
       >
         {children}
       </main>

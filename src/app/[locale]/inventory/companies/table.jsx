@@ -4,7 +4,7 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip
 } from "@mui/material";
 import { InputAdornment } from "@mui/material";
-import { HiSearch } from "react-icons/hi";  
+import { HiSearch } from "react-icons/hi";
 import { useLocale } from "next-intl";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import CloudDownloadRoundedIcon from "@mui/icons-material/CloudDownloadRounded";
@@ -242,7 +242,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
                 <InputLabel>{selectedColumnType === 'number' ? 'Filter amount' : 'Filter value'}</InputLabel>
                 {selectedColumnType === 'number' ? (
                     <TextField
-                        size="small"    
+                        size="small"
                         variant="outlined"
                         name="value"
                         value={filterCriteria.value}
@@ -450,7 +450,14 @@ const CompaniesTable = ({ initialRows = [] }) => {
     }, [search, activeFilter, rows]);
 
     return (
-        <Paper sx={{border:"1px solid #ddd", width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
+        <Paper sx={{
+            border: "1px solid #e5e7eb",
+            width: "100%",
+            borderRadius: "16px",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+            bgcolor: "white",
+            overflow: "hidden"
+        }}>
             <FilterPopover
                 anchorEl={filterAnchorEl}
                 onClose={handleCloseFilter}
@@ -471,7 +478,8 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    borderBottom: "1px solid #ddd",
+                    borderBottom: "1px solid #eee",
+                    py: 2
                 }}
             >
                 <Typography variant="h5" sx={{ fontWeight: "bold" }}>
@@ -479,22 +487,22 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 </Typography>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                   
+
                     <TextField
-                              placeholder="Search workers..."
-                              variant="outlined"
-                              size="small"
-                              value={search}
-                              onChange={(e) => setSearch(e.target.value)}
-                              sx={{ flex: 1, maxWidth: 300 }}
-                              InputProps={{
-                                startAdornment: (
-                                  <InputAdornment position="start">
+                        placeholder="Search workers..."
+                        variant="outlined"
+                        size="small"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        sx={{ flex: 1, maxWidth: 300 }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
                                     <HiSearch size={18} />
-                                  </InputAdornment>
-                                ),
-                              }}
-                            />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
 
                     <IconButton onClick={handleOpenFilter} variant="contained"  >
                         <FilterAltRoundedIcon
@@ -522,8 +530,19 @@ const CompaniesTable = ({ initialRows = [] }) => {
                 </Box>
             </Toolbar>
 
-            <TableContainer sx={{ maxHeight: 600 }}>
-                <Table stickyHeader>
+            <TableContainer sx={{
+                maxHeight: 800,
+                width: '100%',
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                    height: '6px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '10px',
+                },
+            }}>
+                <Table stickyHeader sx={{ minWidth: 1000 }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#1976d2" }}>
                             <TableCell sx={{ color: "#000", fontWeight: "bold" }}>Shop Name</TableCell>

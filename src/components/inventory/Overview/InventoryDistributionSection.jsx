@@ -80,7 +80,7 @@ const CustomLegend = ({ data = [], total }) => {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col justify-center gap-3 ml-4 max-h-72 overflow-y-visible pr-2"
+      className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 ml-0 xl:ml-4 max-h-72 overflow-y-auto pr-2 w-full"
     >
       {(data || []).map((item = {}, index) => {
         const name = item.name ?? "—";
@@ -94,18 +94,18 @@ const CustomLegend = ({ data = [], total }) => {
             key={`${String(name)}-${index}`}
             onMouseEnter={(e) => handleMouseEnter(e, item)}
             onMouseLeave={handleMouseLeave}
-            className="flex items-center justify-between text-sm group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 p-2 rounded-xl border border-transparent hover:border-gray-100 transition-all w-full min-w-[180px]"
+            className="flex items-center justify-between text-sm group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 p-2 rounded-xl border border-transparent hover:border-gray-100 transition-all w-full"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <span
-                className="w-3.5 h-3.5 rounded-full shadow-sm ring-2 ring-gray-100 dark:ring-gray-700"
+                className="w-3.5 h-3.5 rounded-full shadow-sm ring-2 ring-gray-100 dark:ring-gray-700 shrink-0"
                 style={{ backgroundColor: color }}
               ></span>
-              <span className="text-gray-600 dark:text-gray-300 font-medium">
+              <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
                 {name}
               </span>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0 ml-2">
               <div className="font-bold text-gray-900 dark:text-white tabular-nums">
                 {value.toLocaleString()}
               </div>
@@ -180,10 +180,10 @@ const InventoryDistributionSection = ({
       d.name === "In Stock"
         ? "#081422"
         : d.name === "Low Stock"
-        ? "#ea580c"
-        : d.name === "Out of Stock"
-        ? "#ef4444"
-        : themeColors[i % themeColors.length],
+          ? "#ea580c"
+          : d.name === "Out of Stock"
+            ? "#ef4444"
+            : themeColors[i % themeColors.length],
   }));
 
   // Select current value dataset based on view preference
@@ -191,10 +191,10 @@ const InventoryDistributionSection = ({
     valueView === "category"
       ? valueByCategory
       : valueView === "shop"
-      ? valueByShop
-      : valueView === "status"
-      ? valueByStatus
-      : valueData || [];
+        ? valueByShop
+        : valueView === "status"
+          ? valueByStatus
+          : valueData || [];
 
   const valueDataBuffered = (selectedValueData || []).map((d, i) => ({
     ...d,
@@ -270,31 +270,28 @@ const InventoryDistributionSection = ({
             <div className="flex flex-wrap gap-1 mt-1.5">
               <button
                 onClick={() => setValueView("category")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                  valueView === "category"
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "category"
                     ? "bg-orange-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Category
               </button>
               <button
                 onClick={() => setValueView("shop")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                  valueView === "shop"
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "shop"
                     ? "bg-orange-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Shop
               </button>
               <button
                 onClick={() => setValueView("status")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                  valueView === "status"
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "status"
                     ? "bg-orange-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Status
               </button>

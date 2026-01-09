@@ -125,14 +125,12 @@ export default function DashboardOverview() {
         // Format data for the table
         const rowData = [
           "", // Placeholder for image
-          `${product.name}\n${
-            product.description
-              ? String(product.description).substring(0, 30) + "..."
-              : ""
+          `${product.name}\n${product.description
+            ? String(product.description).substring(0, 30) + "..."
+            : ""
           }`,
           product.category?.name || "N/A",
-          `Qty: ${stock}\nPrice: $${price.toLocaleString()}${
-            discount > 0 ? `\nDisc: ${discount}%` : ""
+          `Qty: ${stock}\nPrice: $${price.toLocaleString()}${discount > 0 ? `\nDisc: ${discount}%` : ""
           }`,
           status,
           `$${totalValue.toLocaleString()}`,
@@ -282,8 +280,8 @@ export default function DashboardOverview() {
           const displayVal = stat.isMoney
             ? `$${formatValue(stat.value, isCompactValue)}`
             : typeof stat.value === "number"
-            ? stat.value.toLocaleString()
-            : stat.value;
+              ? stat.value.toLocaleString()
+              : stat.value;
 
           return (
             <div
@@ -297,11 +295,10 @@ export default function DashboardOverview() {
                 </p>
                 <div className="flex items-center gap-2">
                   <p
-                    className={`font-bold text-[#1F1F1F] transition-all ${
-                      displayVal.toString().length > 12
+                    className={`font-bold text-[#1F1F1F] transition-all ${displayVal.toString().length > 12
                         ? "text-2xl"
                         : "text-4xl"
-                    }`}
+                      }`}
                   >
                     {displayVal}
                   </p>
@@ -437,11 +434,10 @@ export default function DashboardOverview() {
                                 0;
                               return (
                                 <span
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                    stockValue > 10
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${stockValue > 10
                                       ? "bg-green-100 text-green-800"
                                       : "bg-red-100 text-red-800"
-                                  }`}
+                                    }`}
                                 >
                                   {stockValue}
                                 </span>

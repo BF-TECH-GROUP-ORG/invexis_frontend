@@ -95,12 +95,12 @@ const SalesPageClient = () => {
     return (
         <>
             <section className="w-full inline-grid">
-                <div className="space-y-10 w-full">
+                <div className="space-y-6 w-full">
                     <SalesCards sales={sales} isLoading={isSalesLoading} />
-                    <div className="space-y-5 flex justify-between items-center">
+                    <div className="space-y-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h1 className="text-2xl font-medium ">{t("title")}</h1>
-                            <p className="space-x-10 font-light">
+                            <p className="space-x-4 md:space-x-10 font-light">
                                 <span>{t("dashboard")}</span>
                                 <span>.</span>
                                 <span>{t("products")}</span>
@@ -108,9 +108,9 @@ const SalesPageClient = () => {
                                 <span className="text-gray-500">{t("list")}</span>
                             </p>
                         </div>
-                        <div className="flex gap-4">
-                            <Link href={`/${locale}/inventory/sales/sellProduct/sale`}>
-                                <button className="px-8 py-3 rounded-lg bg-[#1F1F1F] text-white cursor-pointer">
+                        <div className="flex gap-4 w-full md:w-auto">
+                            <Link href={`/${locale}/inventory/sales/sellProduct/sale`} className="w-full md:w-auto">
+                                <button className="px-8 py-3 rounded-lg bg-[#1F1F1F] text-white cursor-pointer w-full md:w-auto">
                                     {t("stockOut")}
                                 </button>
                             </Link>

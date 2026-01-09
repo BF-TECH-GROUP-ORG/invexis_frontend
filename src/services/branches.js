@@ -1,15 +1,25 @@
- import apiClient from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const getBranches = async (companyId, options = {}) => {
   try {
-    const response = await apiClient.get(`${BASE_URL}/shop/`, {
+    const url = `${BASE_URL}/shop/`;
+    console.log(`Fetching branches from: ${url}`);
+    const response = await apiClient.get(url, {
       params: { companyId },
       ...options,
     });
-    console.log("Branches fetched:", response);
-    return response;
+    console.log("Branches API Raw Response:", response);
+
+    // Handle different possible response structures
+    if (Array.isArray(response)) return response;
+    if (response.data && Array.isArray(response.data)) return response.data;
+    if (response.shops && Array.isArray(response.shops)) return response.shops;
+    if (response.branches && Array.isArray(response.branches)) return response.branches;
+
+    console.warn("Unexpected branches response structure:", response);
+    return response.data || [];
   } catch (error) {
     console.error("Error fetching branches:", error);
     throw error;

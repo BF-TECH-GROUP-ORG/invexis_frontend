@@ -78,8 +78,8 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium text-gray-900">${doc.amount?.toLocaleString()}</span>
           <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'Approved' ? 'bg-green-100 text-green-700' :
-              doc.status === 'Financial' ? 'bg-blue-100 text-blue-700' :
-                'bg-gray-100 text-gray-700'
+            doc.status === 'Financial' ? 'bg-blue-100 text-blue-700' :
+              'bg-gray-100 text-gray-700'
             }`}>
             {doc.status}
           </span>
@@ -126,10 +126,10 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
       <td className="p-4">
         <span
           className={`px-2 py-1 rounded-md text-xs font-semibold ${doc.status === "Financial" ? "bg-blue-50 text-blue-700" :
-              doc.status === "Workshop" ? "bg-yellow-50 text-yellow-700" :
-                doc.status === "Approved" ? "bg-green-50 text-green-700" :
-                  doc.status === "Archived" ? "bg-gray-100 text-gray-600" :
-                    "bg-gray-50 text-gray-700"
+            doc.status === "Workshop" ? "bg-yellow-50 text-yellow-700" :
+              doc.status === "Approved" ? "bg-green-50 text-green-700" :
+                doc.status === "Archived" ? "bg-gray-100 text-gray-600" :
+                  "bg-gray-50 text-gray-700"
             }`}
         >
           {doc.status}
@@ -138,7 +138,7 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
       <td className="p-4">
         {doc.priority && (
           <span className={`text-xs font-medium ${doc.priority === 'high' ? 'text-red-600' :
-              doc.priority === 'medium' ? 'text-orange-600' : 'text-gray-500'
+            doc.priority === 'medium' ? 'text-orange-600' : 'text-gray-500'
             }`}>
             {doc.priority.charAt(0).toUpperCase() + doc.priority.slice(1)}
           </span>
@@ -168,7 +168,7 @@ export default function DataTable({ onViewDocument, onEditDocument }) {
           {data.map((doc) => <DocumentCard key={doc.id} doc={doc} />)}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">

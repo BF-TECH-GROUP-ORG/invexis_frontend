@@ -130,7 +130,6 @@ const navItems = [
 export default function SideBar({
   expanded: controlledExpanded,
   setExpanded: setControlledExpanded,
-  onMobileChange,
 }) {
   const pathname = usePathname();
   const locale = useLocale();
@@ -278,16 +277,12 @@ export default function SideBar({
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // Notify parent component of mobile state change
-      if (onMobileChange) {
-        onMobileChange(mobile);
-      }
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, [mounted, onMobileChange]);
+  }, [mounted]);
 
   return (
     <>

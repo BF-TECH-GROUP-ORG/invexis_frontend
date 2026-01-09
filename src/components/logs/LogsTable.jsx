@@ -108,17 +108,27 @@ const LogsTable = ({
     }
 
     return (
-        <Box>
+        <Paper sx={{
+            border: "1px solid #e5e7eb",
+            borderRadius: "16px",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+            overflow: "hidden",
+            bgcolor: "white"
+        }}>
             <TableContainer
-                component={Paper}
-                elevation={0}
                 sx={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 0,
-                    boxShadow: 'none',
+                    width: '100%',
+                    overflowX: 'auto',
+                    '&::-webkit-scrollbar': {
+                        height: '6px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '10px',
+                    },
                 }}
             >
-                <Table size="medium">
+                <Table size="medium" sx={{ minWidth: 1000 }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#f9fafb" }}>
                             <TableCell sx={{ fontWeight: 600, color: "#4b5563" }} width="15%">Time</TableCell>
@@ -210,7 +220,7 @@ const LogsTable = ({
             </TableContainer>
 
             {/* Pagination Footer matching ProductList style */}
-            <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white border-x border-b border-gray-200">
+            <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white">
                 <Typography variant="body2" color="text.secondary">
                     Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} results
                 </Typography>
@@ -225,7 +235,7 @@ const LogsTable = ({
                     sx={{ border: "none", '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { margin: 0 } }}
                 />
             </div>
-        </Box>
+        </Paper>
     );
 };
 

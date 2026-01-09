@@ -75,7 +75,7 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
         </div>
 
         <div className="flex-1 overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[500px]">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 dark:border-gray-700">
                 <th className="font-medium py-3 pl-1">Action</th>
@@ -104,11 +104,10 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
                       </div>
                     </td>
                     <td
-                      className={`py-3 text-right font-medium ${
-                        activity.quantity > 0
+                      className={`py-3 text-right font-medium ${activity.quantity > 0
                           ? "text-emerald-600"
                           : "text-gray-900 dark:text-white"
-                      }`}
+                        }`}
                     >
                       {activity.quantity > 0 ? "+" : ""}
                       {activity.quantity}

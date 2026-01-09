@@ -75,7 +75,7 @@ export const getDebtHistory = async (companyId, debtId) => {
   const cacheStrategy = getCacheStrategy("DEBTS", "DETAIL");
 
   try {
-    const data = await apiClient.get(`${DEBT_API_URL}/company/${companyId}/debts/${debtId}/history`,
+    const data = await apiClient.get(`${DEBT_API_URL}/${companyId}/debt/${debtId}/history`,
       {
         cache: cacheStrategy,
       }

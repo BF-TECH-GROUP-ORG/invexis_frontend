@@ -26,9 +26,8 @@ const HeatmapCell = ({ value, day, time }) => {
       <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-gray-900 text-white text-xs p-3 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-xl">
         <div className="flex items-center gap-2 mb-2">
           <div
-            className={`w-2 h-2 rounded-full ${
-              value > 40 ? "bg-orange-500" : "bg-gray-500"
-            }`}
+            className={`w-2 h-2 rounded-full ${value > 40 ? "bg-orange-500" : "bg-gray-500"
+              }`}
           ></div>
           <span className="font-bold">
             {day} - {time}
@@ -132,14 +131,21 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
               Revenue vs Expenses
             </p>
           </div>
-          <div className="flex gap-4 text-sm bg-gray-50 dark:bg-gray-800 p-1.5 rounded-lg border border-gray-100 dark:border-gray-700">
+          <div className="flex flex-wrap gap-2 text-sm bg-gray-50 dark:bg-gray-800 p-1.5 rounded-lg border border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-2 px-2">
               <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
               <span className="text-gray-700 dark:text-gray-300 font-medium">
                 Revenue
               </span>
             </div>
-            <div className="flex items-center gap-2 px-2 border-l border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 px-2 border-l border-gray-200 dark:border-gray-700 hidden sm:flex">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                Cost
+              </span>
+            </div>
+            {/* Mobile version without border */}
+            <div className="flex items-center gap-2 px-2 sm:hidden">
               <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
               <span className="text-gray-700 dark:text-gray-300 font-medium">
                 Cost

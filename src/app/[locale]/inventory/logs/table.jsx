@@ -58,8 +58,15 @@ const DataTable = ({
     }, [rows, search]);
 
     return (
-        <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
-            <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 2, px: 0, gap: 2, flexWrap: "wrap" }}>
+        <Paper sx={{
+            width: "100%",
+            borderRadius: "16px",
+            border: "1px solid #e5e7eb",
+            overflow: "hidden",
+            bgcolor: "white",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        }}>
+            <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 2, px: 2, gap: 2, flexWrap: "wrap", borderBottom: "1px solid #eee" }}>
                 <Box sx={{ display: "flex", gap: 2, flexGrow: 1, flexWrap: "wrap" }}>
                     <TextField
                         size="small"
@@ -77,7 +84,7 @@ const DataTable = ({
                             width: 300,
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: '12px',
-                                backgroundColor: '#fff'
+                                backgroundColor: '#f9fafb'
                             }
                         }}
                     />
@@ -96,7 +103,7 @@ const DataTable = ({
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: '12px',
-                                backgroundColor: '#fff'
+                                backgroundColor: '#f9fafb'
                             }
                         }}
                     />
@@ -109,7 +116,7 @@ const DataTable = ({
                             onChange={(e) => setSelectedType(e.target.value)}
                             sx={{
                                 borderRadius: '12px',
-                                backgroundColor: '#fff'
+                                backgroundColor: '#f9fafb'
                             }}
                         >
                             <MenuItem value="">All Types</MenuItem>
@@ -121,8 +128,19 @@ const DataTable = ({
                 </Box>
             </Toolbar>
 
-            <TableContainer component={Paper} sx={{ boxShadow: "none", borderRadius: "16px", border: "1px solid #E5E7EB" }}>
-                <Table stickyHeader>
+            <TableContainer sx={{
+                maxHeight: 800,
+                width: '100%',
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                    height: '6px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '10px',
+                },
+            }}>
+                <Table stickyHeader sx={{ minWidth: 1000 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell sx={{ fontWeight: 600, backgroundColor: "#F9FAFB" }}>Event Type</TableCell>

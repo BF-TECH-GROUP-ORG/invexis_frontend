@@ -104,7 +104,8 @@ export default function ProductTable({
         elevation={0}
         sx={{
           border: "1px solid #e5e7eb",
-          borderRadius: "12px",
+          borderRadius: "16px",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
           overflow: "hidden",
         }}
       >

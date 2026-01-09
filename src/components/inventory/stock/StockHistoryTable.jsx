@@ -48,7 +48,7 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
     setTimeout(() => {
       try {
         refetch && refetch();
-      } catch (e) {}
+      } catch (e) { }
     }, 100);
   }, [initialFilter]);
 
@@ -169,7 +169,7 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3 mb-4">
@@ -257,11 +257,10 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                   Top:{" "}
                   {userMap[stats.topUsers[0].userId]
                     ? userMap[stats.topUsers[0].userId].firstName
-                      ? `${userMap[stats.topUsers[0].userId].firstName} ${
-                          userMap[stats.topUsers[0].userId].lastName || ""
+                      ? `${userMap[stats.topUsers[0].userId].firstName} ${userMap[stats.topUsers[0].userId].lastName || ""
                         }`.trim()
                       : userMap[stats.topUsers[0].userId].name ||
-                        userMap[stats.topUsers[0].userId].email
+                      userMap[stats.topUsers[0].userId].email
                     : stats.topUsers[0].userId}
                 </p>
               )}
@@ -391,10 +390,10 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                 const displayLabel = isIn
                   ? "Stock In"
                   : isOut
-                  ? "Stock Out"
-                  : change.type
-                  ? change.type.replace(/[_-]/g, " ")
-                  : "Change";
+                    ? "Stock Out"
+                    : change.type
+                      ? change.type.replace(/[_-]/g, " ")
+                      : "Change";
                 const qty =
                   typeof change.qty !== "undefined"
                     ? change.qty
@@ -417,9 +416,8 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                 if (change.user && typeof change.user === "object") {
                   if (change.user.name) by = change.user.name;
                   else if (change.user.firstName)
-                    by = `${change.user.firstName} ${
-                      change.user.lastName || ""
-                    }`.trim();
+                    by = `${change.user.firstName} ${change.user.lastName || ""
+                      }`.trim();
                   else by = change.user.id || change.user.name || "System";
                 } else {
                   const id = change.userId || change.user || change.createdBy;
@@ -437,11 +435,10 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                   <TableRow key={change._id || index} hover>
                     <TableCell>
                       <div
-                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                          isIn
+                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isIn
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
-                        }`}
+                          }`}
                       >
                         {isIn ? (
                           <ArrowDownCircle size={14} />
@@ -463,9 +460,8 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                     </TableCell>
                     <TableCell align="center">
                       <span
-                        className={`font-semibold ${
-                          isIn ? "text-green-600" : "text-red-600"
-                        }`}
+                        className={`font-semibold ${isIn ? "text-green-600" : "text-red-600"
+                          }`}
                       >
                         {qtyText}
                       </span>

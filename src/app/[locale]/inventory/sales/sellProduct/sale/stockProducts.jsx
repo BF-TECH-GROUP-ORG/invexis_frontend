@@ -41,14 +41,14 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       transformOrigin={{ vertical: "top", horizontal: "left" }}
-      PaperProps={{ sx: { p: 3, borderRadius: 2, minWidth: 400 } }}
+      PaperProps={{ sx: { p: 3, borderRadius: 2, minWidth: { xs: "300px", sm: "400px" } } }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h6">Filter Products</Typography>
         <IconButton onClick={handleClear} size="small"><CloseIcon /></IconButton>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
+      <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
         <FormControl size="small">
           <InputLabel>Column</InputLabel>
           <Select
@@ -479,8 +479,15 @@ const CurrentInventory = () => {
   const paginatedProducts = filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <section className="bg-white min-h-screen">
-      <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: "none", borderRadius: 0 }}>
+    <section className="bg-white md:p-6 my-2">
+      <Paper sx={{
+        width: "100%",
+        overflow: "hidden",
+        borderRadius: "16px",
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        bgcolor: "white"
+      }}>
         <FilterPopover
           anchorEl={filterAnchorEl}
           onClose={() => setFilterAnchorEl(null)}
@@ -498,7 +505,7 @@ const CurrentInventory = () => {
           bgcolor: "#fff"
         }}>
           {/* Top Row: Title & Search */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
             <Box>
               <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
                 Sales & Inventory
@@ -508,7 +515,7 @@ const CurrentInventory = () => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
               <TextField
                 size="small"
                 placeholder="Search products..."
@@ -518,7 +525,7 @@ const CurrentInventory = () => {
                   startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
                 }}
                 sx={{
-                  width: 320,
+                  width: { xs: "100%", md: 320 },
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "8px",
                     bgcolor: "#f9fafb",
@@ -544,11 +551,12 @@ const CurrentInventory = () => {
           </Box>
 
           {/* Bottom Row: Actions & Selection Info */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
               <Box sx={{
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: 1.5,
                 px: 2,
                 py: 1,
@@ -563,7 +571,7 @@ const CurrentInventory = () => {
               </Box>
 
               {/* Debt Toggle */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: { xs: "center", sm: "flex-start" }, gap: 1.5, ml: { xs: 0, sm: 2 } }}>
                 <Typography variant="body2" fontWeight="600" color="text.primary">Debt Sale</Typography>
                 <button
                   type="button"
@@ -575,14 +583,14 @@ const CurrentInventory = () => {
               </Box>
             </Box>
 
-            <Box sx={{ display: "flex", gap: 1.5 }}>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
               <button
                 disabled={selectedCount === 0}
                 onClick={() => {
                   setTransferMode("shop");
                   setTransferModalOpen(true);
                 }}
-                className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200
+                className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 w-full sm:w-auto
                   ${selectedCount === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
@@ -597,7 +605,7 @@ const CurrentInventory = () => {
                   setTransferMode("company");
                   setTransferModalOpen(true);
                 }}
-                className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200
+                className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 w-full sm:w-auto
                   ${selectedCount === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 shadow-sm"
@@ -609,7 +617,7 @@ const CurrentInventory = () => {
               <button
                 disabled={selectedCount === 0 || sellMutation.isPending}
                 onClick={handleSellSelected}
-                className={`px-6 py-2.5 rounded-lg font-bold text-sm text-white shadow-md transition-all duration-200 flex items-center gap-2
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm text-white shadow-md transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto
                   ${selectedCount === 0 || sellMutation.isPending
                     ? "bg-gray-300 cursor-not-allowed"
                     : "bg-orange-500 hover:bg-orange-600 hover:shadow-lg transform hover:-translate-y-0.5"
@@ -637,17 +645,15 @@ const CurrentInventory = () => {
         {/* Table */}
         <TableContainer
           sx={{
-            maxHeight: "calc(100vh - 300px)",
+            maxHeight: 800,
             width: '100%',
             overflowX: 'auto',
             "&::-webkit-scrollbar": { width: 4, height: 6 },
             "&::-webkit-scrollbar-track": { bgcolor: "#f1f1f1" },
             "&::-webkit-scrollbar-thumb": { bgcolor: "#e5e7eb", borderRadius: 4 },
-            paddingLeft: "8px",
-            paddingRight: "2px"
           }}
         >
-          <Table stickyHeader size="medium">
+          <Table stickyHeader size="medium" sx={{ minWidth: 1000 }}>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Select</TableCell>
@@ -1040,21 +1046,73 @@ const CurrentInventory = () => {
             sx={{ mb: 2 }}
           />
 
-          {/* Payment Method */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Payment Method *</InputLabel>
-            <Select
-              value={paymentMethod}
-              label="Payment Method *"
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value="cash">💵 Cash</MenuItem>
-              <MenuItem value="card">💳 Card</MenuItem>
-              <MenuItem value="mobile">📱 Mobile Money</MenuItem>
-              <MenuItem value="wallet">👛 Wallet</MenuItem>
-              <MenuItem value="bank_transfer">🏦 Bank Transfer</MenuItem>
-            </Select>
-          </FormControl>
+          {/* Payment Method Selection */}
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Payment Method *</Typography>
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5, mb: 2 }}>
+            {[
+              { id: "cash", label: "Cash", icon: "💵" },
+              { id: "mtn", label: "MTN", img: "https://upload.wikimedia.org/wikipedia/commons/9/93/New-mtn-logo.jpg" },
+              { id: "airtel", label: "Airtel", img: "https://download.logo.wine/logo/Airtel_Uganda/Airtel_Uganda-Logo.wine.png" },
+              { id: "mpesa", label: "M-Pesa", img: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png" },
+              { id: "bank_transfer", label: "Bank", icon: "🏦" },
+            ].map((method) => (
+              <Box
+                key={method.id}
+                onClick={() => setPaymentMethod(method.id)}
+                sx={{
+                  border: `2px solid ${paymentMethod === method.id ? "#FF6D00" : "#e0e0e0"}`,
+                  borderRadius: 2,
+                  p: 1.5,
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: paymentMethod === method.id ? "#FFF3E0" : "white",
+                  transition: "all 0.2s ease",
+                  "&:hover": { borderColor: "#FF6D00", bgcolor: "#fff8f0" },
+                  height: 80
+                }}
+              >
+                {method.img ? (
+                  <Box
+                    component="img"
+                    src={method.img}
+                    alt={method.label}
+                    sx={{
+                      height: 32,
+                      width: "auto",
+                      objectFit: "contain",
+                      mb: 0.5,
+                      filter: paymentMethod === method.id ? "none" : "grayscale(100%)",
+                      opacity: paymentMethod === method.id ? 1 : 0.7
+                    }}
+                  />
+                ) : (
+                  <Typography variant="h5" sx={{ mb: 0.5 }}>{method.icon}</Typography>
+                )}
+                <Typography variant="caption" fontWeight={600} color={paymentMethod === method.id ? "#E65100" : "text.secondary"}>
+                  {method.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Conditional Phone Input for Mobile Payments */}
+          {(paymentMethod === "airtel" || paymentMethod === "mtn" || paymentMethod === "mpesa") && (
+            <TextField
+              fullWidth
+              label={`Payment Phone Number (${paymentMethod.toUpperCase()})`}
+              value={customerPhone} // Re-using customer phone for simplicity, or could be a separate state if needed
+              onChange={(e) => {
+                 setCustomerPhone(e.target.value);
+                 setCustomerErrors({ ...customerErrors, customerPhone: "" });
+              }}
+              placeholder="e.g. +250..."
+              sx={{ mb: 2 }}
+              helperText="Phone number to be used for payment request"
+            />
+          )}
 
           {/* Amount Paid Now (Only for Debt) */}
           {isDebt && (

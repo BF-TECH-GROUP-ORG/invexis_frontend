@@ -87,89 +87,109 @@ export default function EcommerceDataTable({
         <Box>{actions}</Box>
       </Box>
 
-      <TableContainer sx={{ width: "100%" }}>
-        <Table size={dense ? "small" : "medium"}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selected.length > 0 && selected.length < visibleRows.length
-                  }
-                  checked={
-                    visibleRows.length > 0 &&
-                    selected.length === visibleRows.length
-                  }
-                  onChange={handleSelectAll}
-                />
-              </TableCell>
-              {columns.map((col) => (
-                <TableCell key={col.id}>{col.label}</TableCell>
-              ))}
-              <TableCell align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {visibleRows.map((row) => (
-              <TableRow
-                key={row[keyField] || JSON.stringify(row)}
-                hover
-                selected={selected.includes(row[keyField])}
-              >
+      <Paper sx={{
+        border: "1px solid #e5e7eb",
+        borderRadius: "16px",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        overflow: "hidden",
+        bgcolor: "white"
+      }}>
+        <TableContainer sx={{
+          width: "100%",
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#e5e7eb',
+            borderRadius: '10px',
+          },
+        }}>
+          <Table size={dense ? "small" : "medium"} sx={{ minWidth: 1000 }}>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={selected.includes(row[keyField])}
-                    onChange={() => toggleRow(row[keyField])}
+                    indeterminate={
+                      selected.length > 0 && selected.length < visibleRows.length
+                    }
+                    checked={
+                      visibleRows.length > 0 &&
+                      selected.length === visibleRows.length
+                    }
+                    onChange={handleSelectAll}
                   />
                 </TableCell>
                 {columns.map((col) => (
-                  <TableCell key={col.id} sx={{ verticalAlign: "middle" }}>
-                    {col.render ? (
-                      col.render(row)
-                    ) : (
-                      <span>{row[col.accessor || col.id]}</span>
-                    )}
-                  </TableCell>
+                  <TableCell key={col.id}>{col.label}</TableCell>
                 ))}
-
-                <TableCell align="center">
-                  <Tooltip title="Actions">
-                    <IconButton size="small">
-                      <HiDotsVertical />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
 
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mt={2}
-      >
-        <Box>
-          <TablePagination
-            component="div"
-            count={filtered.length}
-            page={page}
-            onPageChange={(_, p) => setPage(p)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) =>
-              setRowsPerPage(parseInt(e.target.value, 10))
-            }
-            rowsPerPageOptions={[5, 10, 25]}
-          />
-        </Box>
+            <TableBody>
+              {visibleRows.map((row) => (
+                <TableRow
+                  key={row[keyField] || JSON.stringify(row)}
+                  hover
+                  selected={selected.includes(row[keyField])}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selected.includes(row[keyField])}
+                      onChange={() => toggleRow(row[keyField])}
+                    />
+                  </TableCell>
+                  {columns.map((col) => (
+                    <TableCell key={col.id} sx={{ verticalAlign: "middle" }}>
+                      {col.render ? (
+                        col.render(row)
+                      ) : (
+                        <span>{row[col.accessor || col.id]}</span>
+                      )}
+                    </TableCell>
+                  ))}
 
-        <Box>
-          <Chip label={selected.length ? `${selected.length} selected` : ""} />
+                  <TableCell align="center">
+                    <Tooltip title="Actions">
+                      <IconButton size="small">
+                        <HiDotsVertical />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          px={2}
+          py={1}
+          sx={{ borderTop: "1px solid #e5e7eb", bgcolor: "#fafafa" }}
+        >
+          <Box>
+            <TablePagination
+              component="div"
+              count={filtered.length}
+              page={page}
+              onPageChange={(_, p) => setPage(p)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) =>
+                setRowsPerPage(parseInt(e.target.value, 10))
+              }
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </Box>
+
+          <Box>
+            <Chip label={selected.length ? `${selected.length} selected` : ""} />
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     </Box>
   );
 }

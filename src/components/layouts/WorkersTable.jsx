@@ -48,6 +48,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 export default function WorkersTable() {
+  console.log("Rendering WorkersTable component...");
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
@@ -77,6 +78,9 @@ export default function WorkersTable() {
         setLoading(false);
         return;
       }
+
+      console.log("🔍 Fetching workers for Company ID:", companyId);
+      console.log("🔑 Access Token available:", !!session?.accessToken);
 
       try {
         const data = await getWorkersByCompanyId(companyId);
@@ -338,171 +342,189 @@ export default function WorkersTable() {
       </Box>
 
       {/* 🧾 Table */}
-      <TableContainer>
-        <Table size={dense ? "small" : "medium"}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selected.length > 0 &&
-                    selected.length < filteredWorkers.length
-                  }
-                  checked={
-                    filteredWorkers.length > 0 &&
-                    selected.length === filteredWorkers.length
-                  }
-                  onChange={handleSelectAll}
-                />
-              </TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>National ID </TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Joined Date</TableCell>
-              <TableCell align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {filteredWorkers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                  <Typography color="text.secondary">
-                    {workers.length === 0
-                      ? "No workers found for this company. Check browser console for API details."
-                      : "No workers match your search criteria"}
-                  </Typography>
+      <Paper sx={{
+        border: "1px solid #e5e7eb",
+        borderRadius: "16px",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        overflow: "hidden",
+        bgcolor: "white"
+      }}>
+        <TableContainer sx={{
+          width: '100%',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#e5e7eb',
+            borderRadius: '10px',
+          },
+        }}>
+          <Table size={dense ? "small" : "medium"} sx={{ minWidth: 1000 }}>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={
+                      selected.length > 0 &&
+                      selected.length < filteredWorkers.length
+                    }
+                    checked={
+                      filteredWorkers.length > 0 &&
+                      selected.length === filteredWorkers.length
+                    }
+                    onChange={handleSelectAll}
+                  />
                 </TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>National ID </TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Joined Date</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            ) : (
-              filteredWorkers
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((worker) => (
-                  <TableRow
-                    key={worker.id}
-                    hover
-                    selected={selected.includes(worker.id)}
-                    sx={{
-                      "&:hover": { backgroundColor: "#f4f6f8" },
-                    }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selected.includes(worker.id)}
-                        onChange={() => handleSelectRow(worker.id)}
-                      />
-                    </TableCell>
+            </TableHead>
 
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1.5}>
-                        <Avatar
-                          alt={worker.firstName}
-                          src={`https://ui-avatars.com/api/?name=${worker.firstName}+${worker.lastName}`}
-                          sx={{ width: 36, height: 36 }}
+            <TableBody>
+              {filteredWorkers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                    <Typography color="text.secondary">
+                      {workers.length === 0
+                        ? "No workers found for this company. Check browser console for API details."
+                        : "No workers match your search criteria"}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredWorkers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((worker) => (
+                    <TableRow
+                      key={worker.id}
+                      hover
+                      selected={selected.includes(worker.id)}
+                      sx={{
+                        "&:hover": { backgroundColor: "#f4f6f8" },
+                      }}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selected.includes(worker.id)}
+                          onChange={() => handleSelectRow(worker.id)}
                         />
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight={600}>
-                            {worker.firstName} {worker.lastName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {worker.nationalId}
-                          </Typography>
+                      </TableCell>
+
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1.5}>
+                          <Avatar
+                            alt={worker.firstName}
+                            src={`https://ui-avatars.com/api/?name=${worker.firstName}+${worker.lastName}`}
+                            sx={{ width: 36, height: 36 }}
+                          />
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              {worker.firstName} {worker.lastName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {worker.nationalId}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell>{worker.email}</TableCell>
-                    <TableCell>{worker.phone}</TableCell>
-                    <TableCell>{worker.position}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={worker.role}
-                        size="small"
-                        sx={{
-                          backgroundColor: "#E0F2FE",
-                          color: "#0369A1",
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={worker.status}
-                        size="small"
-                        sx={{
-                          backgroundColor:
-                            worker.status === "active" ? "#E8F5E9" : "#FFEBEE",
-                          color:
-                            worker.status === "active" ? "#2E7D32" : "#C62828",
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>{worker.joinedAt}</TableCell>
-
-                    <TableCell align="center">
-                      <Tooltip title="Actions">
-                        <IconButton
+                      <TableCell>{worker.email}</TableCell>
+                      <TableCell>{worker.phone}</TableCell>
+                      <TableCell>{worker.position}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={worker.role}
                           size="small"
-                          onClick={(e) => handleMenuOpen(e, worker.id)}
-                        >
-                          <HiDotsVertical />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                          sx={{
+                            backgroundColor: "#E0F2FE",
+                            color: "#0369A1",
+                            fontWeight: 600,
+                            textTransform: "capitalize",
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={worker.status}
+                          size="small"
+                          sx={{
+                            backgroundColor:
+                              worker.status === "active" ? "#E8F5E9" : "#FFEBEE",
+                            color:
+                              worker.status === "active" ? "#2E7D32" : "#C62828",
+                            fontWeight: 600,
+                            textTransform: "capitalize",
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{worker.joinedAt}</TableCell>
 
-      {/* ⚙️ Bottom Controls */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        px={2}
-        py={1.5}
-        sx={{ borderTop: "1px solid #e5e7eb", backgroundColor: "#fafafa" }}
-      >
-        <FormControlLabel
-          control={
-            <IOSSwitch
-              checked={dense}
-              onChange={(e) => setDense(e.target.checked)}
-            />
-          }
-          label={
-            <Typography
-              variant="body2"
-              sx={{ color: "text.secondary", fontWeight: 500 }}
-            >
-              Dense padding
-            </Typography>
-          }
-          sx={{
-            "& .MuiFormControlLabel-label": {
-              fontFamily: "Metropolis, sans-serif",
-            },
-          }}
-        />
+                      <TableCell align="center">
+                        <Tooltip title="Actions">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleMenuOpen(e, worker.id)}
+                          >
+                            <HiDotsVertical />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-        <TablePagination
-          component="div"
-          count={filteredWorkers.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-      </Box>
+        {/* ⚙️ Bottom Controls */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          px={2}
+          py={1.5}
+          sx={{ borderTop: "1px solid #e5e7eb", backgroundColor: "#fafafa" }}
+        >
+          <FormControlLabel
+            control={
+              <IOSSwitch
+                checked={dense}
+                onChange={(e) => setDense(e.target.checked)}
+              />
+            }
+            label={
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", fontWeight: 500 }}
+              >
+                Dense padding
+              </Typography>
+            }
+            sx={{
+              "& .MuiFormControlLabel-label": {
+                fontFamily: "Metropolis, sans-serif",
+              },
+            }}
+          />
+
+          <TablePagination
+            component="div"
+            count={filteredWorkers.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
+        </Box>
+      </Paper>
 
       {/* Actions Menu */}
       <Menu

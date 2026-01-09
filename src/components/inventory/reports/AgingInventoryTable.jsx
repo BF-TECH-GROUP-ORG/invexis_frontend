@@ -21,39 +21,41 @@ export default function AgingInventoryTable({ data }) {
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50 border-b">
-          <tr className="text-left text-sm text-gray-600">
-            <th className="pb-3 px-4">Product</th>
-            <th className="pb-3 px-4">Days in Stock</th>
-            <th className="pb-3 px-4">Quantity</th>
-            <th className="pb-3 px-4">Value</th>
-            <th className="pb-3 px-4">Risk Level</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tableData.map((item, index) => (
-            <tr key={index} className="border-b hover:bg-gray-50 transition">
-              <td className="py-3 px-4 font-medium">{item.product}</td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-gray-400" />
-                  <span>{item.days} days</span>
-                </div>
-              </td>
-              <td className="py-3 px-4">{item.quantity}</td>
-              <td className="py-3 px-4 font-semibold">{item.value}</td>
-              <td className="py-3 px-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRiskBadge(item.risk)}`}>
-                  {item.risk === "high" && <AlertTriangle size={12} className="inline mr-1" />}
-                  {item.risk.toUpperCase()}
-                </span>
-              </td>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr className="text-left text-sm text-gray-600">
+              <th className="py-3 px-4 font-semibold">Product</th>
+              <th className="py-3 px-4 font-semibold">Days in Stock</th>
+              <th className="py-3 px-4 font-semibold">Quantity</th>
+              <th className="py-3 px-4 font-semibold">Value</th>
+              <th className="py-3 px-4 font-semibold">Risk Level</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {tableData.map((item, index) => (
+              <tr key={index} className="hover:bg-gray-50 transition">
+                <td className="py-3 px-4 font-medium text-gray-900">{item.product}</td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Clock size={16} className="text-gray-400" />
+                    <span>{item.days} days</span>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-gray-600">{item.quantity}</td>
+                <td className="py-3 px-4 font-semibold text-gray-900">{item.value}</td>
+                <td className="py-3 px-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRiskBadge(item.risk)}`}>
+                    {item.risk === "high" && <AlertTriangle size={12} className="inline mr-1" />}
+                    {item.risk.toUpperCase()}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

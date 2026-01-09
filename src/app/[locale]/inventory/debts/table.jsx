@@ -64,45 +64,42 @@ const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, t }) => (
 // =======================================
 const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
   const { data: session } = useSession();
-  const [paymentMode, setPaymentMode] = useState("amount"); // "amount" or "phone"
   const [amount, setAmount] = useState("");
-  const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
+  const [phoneError, setPhoneError] = useState("");
 
   const handleConfirm = () => {
-    if (paymentMode === "amount") {
-      // Build the repayment payload
-      const repaymentPayload = {
-        companyId: debt.companyId,
-        shopId: debt.shopId,
-        debtId: debt._id,
-        customer: {
-          name: debt.customer.name,
-          phone: debt.customer.phone
-        },
-        amountPaid: parseInt(amount),
-        paymentMethod: paymentMethod,
-        paymentReference: `${paymentMethod}-${Date.now()}`,
-        paidAt: new Date().toISOString(),
-        createdBy: session?.user?._id || "temp-user-id"
-      };
+    // Build the repayment payload
+    const repaymentPayload = {
+      companyId: debt.companyId,
+      shopId: debt.shopId,
+      debtId: debt._id,
+      customer: {
+        name: debt.customer.name,
+        phone: debt.customer.phone
+      },
+      amountPaid: parseInt(amount),
+      paymentMethod: paymentMethod,
+      paymentReference: `${paymentMethod}-${Date.now()}`,
+      paidAt: new Date().toISOString(),
+      createdBy: session?.user?._id || "temp-user-id",
+      paymentPhoneNumber: (paymentMethod === "AIRTEL" || paymentMethod === "MTN" || paymentMethod === "MPESA") ? phone : undefined
+    };
 
-      // Call the mutation with the payload
-      onRepaymentSuccess(repaymentPayload);
-    } else {
-      // Mobile money payment - would need additional integration
-      alert(`MoMo payment request functionality coming soon for ${phone}`);
-    }
+    // Call the mutation with the payload
+    onRepaymentSuccess(repaymentPayload);
 
     // Reset form and close
     onClose();
     setAmount("");
-    setPaymentMode("amount");
     setPaymentMethod("CASH");
+    setPhone("");
   };
 
   const isAmountValid = amount && parseInt(amount) > 0 && parseInt(amount) <= (debt?.balance || 0);
-  const isPhoneValid = phone.length >= 12;
+  const isPhoneRequired = ["AIRTEL", "MTN", "MPESA"].includes(paymentMethod);
+  const isPhoneValid = !isPhoneRequired || (phone && phone.length >= 10);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -116,72 +113,91 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
           Remaining Amount: <strong style={{ color: "#d32f2f" }}>{debt?.balance?.toLocaleString() || 0} FRW</strong>
         </Typography>
 
-        {/* Toggle Buttons */}
-        <ToggleButtonGroup
-          value={paymentMode}
-          exclusive
-          onChange={(e, newMode) => newMode && setPaymentMode(newMode)}
+        <TextField
+          autoFocus
+          label="Amount to Record"
+          type="text"
           fullWidth
+          value={amount}
+          onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">FRW</InputAdornment>,
+          }}
+          helperText={
+            amount && parseInt(amount) > (debt?.balance || 0)
+              ? "⚠️ Amount exceeds remaining debt"
+              : `Maximum: ${debt?.balance?.toLocaleString() || 0} FRW`
+          }
+          error={amount && parseInt(amount) > (debt?.balance || 0)}
           sx={{ mt: 3, mb: 3 }}
-        >
-          <ToggleButton value="amount" sx={{ py: 1.5 }}>
-            <MonetizationOnIcon sx={{ mr: 1 }} />
-            Pay by Amount
-          </ToggleButton>
-          <ToggleButton value="phone" sx={{ py: 1.5 }}>
-            <LocalPhoneIcon sx={{ mr: 1 }} />
-            Pay via Mobile Money
-          </ToggleButton>
-        </ToggleButtonGroup>
+        />
 
-        {/* Dynamic Input Field */}
-        {paymentMode === "amount" ? (
-          <>
-            <TextField
-              autoFocus
-              label="Amount to Record"
-              type="text"
-              fullWidth
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">FRW</InputAdornment>,
+        {/* Payment Method Selection */}
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Payment Method *</Typography>
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5, mb: 2 }}>
+          {[
+            { id: "CASH", label: "Cash", icon: "💵" },
+            { id: "MTN", label: "MTN", img: "https://upload.wikimedia.org/wikipedia/commons/9/93/New-mtn-logo.jpg" },
+            { id: "AIRTEL", label: "Airtel", img: "https://download.logo.wine/logo/Airtel_Uganda/Airtel_Uganda-Logo.wine.png" },
+            { id: "MPESA", label: "M-Pesa", img: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png" },
+            { id: "BANK_TRANSFER", label: "Bank", icon: "🏦" },
+          ].map((method) => (
+            <Box
+              key={method.id}
+              onClick={() => setPaymentMethod(method.id)}
+              sx={{
+                border: `2px solid ${paymentMethod === method.id ? "#FF6D00" : "#e0e0e0"}`,
+                borderRadius: 2,
+                p: 1.5,
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: paymentMethod === method.id ? "#FFF3E0" : "white",
+                transition: "all 0.2s ease",
+                "&:hover": { borderColor: "#FF6D00", bgcolor: "#fff8f0" },
+                height: 80
               }}
-              helperText={
-                amount && parseInt(amount) > (debt?.balance || 0)
-                  ? "⚠️ Amount exceeds remaining debt"
-                  : `Maximum: ${debt?.balance?.toLocaleString() || 0} FRW`
-              }
-              error={amount && parseInt(amount) > (debt?.balance || 0)}
-              sx={{ mt: 1 }}
-            />
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel>Payment Method</InputLabel>
-              <Select
-                value={paymentMethod}
-                label="Payment Method"
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <MenuItem value="CASH">Cash</MenuItem>
-                <MenuItem value="CARD">Card</MenuItem>
-                <MenuItem value="MOBILE_MONEY">Mobile Money</MenuItem>
-                <MenuItem value="BANK_TRANSFER">Bank Transfer</MenuItem>
-                <MenuItem value="OTHER">Other</MenuItem>
-              </Select>
-            </FormControl>
-          </>
-        ) : (
+            >
+              {method.img ? (
+                <Box
+                  component="img"
+                  src={method.img}
+                  alt={method.label}
+                  sx={{
+                    height: 32,
+                    width: "auto",
+                    objectFit: "contain",
+                    mb: 0.5,
+                    filter: paymentMethod === method.id ? "none" : "grayscale(100%)",
+                    opacity: paymentMethod === method.id ? 1 : 0.7
+                  }}
+                />
+              ) : (
+                <Typography variant="h5" sx={{ mb: 0.5 }}>{method.icon}</Typography>
+              )}
+              <Typography variant="caption" fontWeight={600} color={paymentMethod === method.id ? "#E65100" : "text.secondary"}>
+                {method.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Conditional Phone Input for Mobile Payments */}
+        {isPhoneRequired && (
           <TextField
-            autoFocus
-            label="Phone Number"
             fullWidth
+            label={`Payment Phone Number (${paymentMethod})`}
             value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ""))}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">+250</InputAdornment>,
+            onChange={(e) => {
+               setPhone(e.target.value);
+               setPhoneError("");
             }}
-            helperText="Payment request will be sent via MTN MoMo or Airtel Money"
-            sx={{ mt: 1 }}
+            placeholder="e.g. +250..."
+            sx={{ mb: 2 }}
+            helperText="Phone number to be used for payment request"
+            error={!!phoneError}
           />
         )}
       </DialogContent>
@@ -195,11 +211,11 @@ const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
           variant="contained"
           color="success"
           size="large"
-          disabled={paymentMode === "amount" ? !isAmountValid : !isPhoneValid}
+          disabled={!isAmountValid || !isPhoneValid}
           startIcon={<PaymentIcon />}
           sx={{ minWidth: 180 }}
         >
-          {paymentMode === "amount" ? "Record Payment" : "Send MoMo Request"}
+          Record Payment
         </Button>
       </DialogActions>
     </Dialog>
@@ -651,6 +667,8 @@ const DebtsTable = ({
 
   const filteredRows = useMemo(() => {
     let rows = debts;
+    console.log("DebtsTable received debts:", debts?.length);
+    console.log("DebtsTable filters:", { selectedWorkerId, selectedShopId });
 
     if (search) {
       rows = rows.filter(r =>
@@ -666,35 +684,43 @@ const DebtsTable = ({
       rows = rows.filter(r => dayjs(r.dueDate).isBefore(dayjs(endDate).add(1, "day")));
     }
 
-    // Client-side fallback for Worker and Shop filters
-    if (selectedWorkerId) {
-      rows = rows.filter(r => (r.soldBy || r.sold_by) === selectedWorkerId);
-    }
-
-    if (selectedShopId) {
-      rows = rows.filter(r => (r.shopId || r.shop_id) === selectedShopId);
-    }
+    // Client-side filtering removed as backend handles it.
+    // Keeping search and date filters as they are local.
 
     return rows;
   }, [search, startDate, endDate, debts, selectedWorkerId, selectedShopId]);
 
   return (
-    <Paper sx={{ background: "transparent", boxShadow: "none" }}>
+    <Paper sx={{
+      borderRadius: "16px",
+      border: "1px solid #e5e7eb",
+      overflow: "hidden",
+      bgcolor: "white",
+      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+    }}>
       {/* Toolbar */}
-      <Toolbar sx={{ justifyContent: "space-between", py: 2, borderBottom: "1px solid #eee" }}>
+      <Toolbar sx={{
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        alignItems: { xs: "stretch", md: "center" },
+        justifyContent: "space-between",
+        gap: 2,
+        py: 2,
+        borderBottom: "1px solid #eee"
+      }}>
         <TextField
           size="small"
           placeholder={tPage("searchPlaceholder") || "Search debtor or phone..."}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} /> }}
-          sx={{ width: 320, bgcolor: "white", borderRadius: 2 }}
+          sx={{ width: { xs: "100%", md: 320 }, bgcolor: "white", borderRadius: 2 }}
         />
 
         {!isWorker && (
-          <Box sx={{ display: "flex", gap: 2, ml: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, ml: { xs: 0, md: 2 }, width: { xs: "100%", md: "auto" } }}>
             {/* Worker Filter */}
-            <FormControl sx={{ minWidth: 200 }} size="small">
+            <FormControl sx={{ minWidth: 200, width: { xs: "100%", md: "auto" } }} size="small">
               <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
               <Select
                 labelId="worker-filter-label"
@@ -715,7 +741,7 @@ const DebtsTable = ({
             </FormControl>
 
             {/* Shop Filter */}
-            <FormControl sx={{ minWidth: 200 }} size="small">
+            <FormControl sx={{ minWidth: 200, width: { xs: "100%", md: "auto" } }} size="small">
               <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
               <Select
                 labelId="shop-filter-label"
@@ -772,7 +798,7 @@ const DebtsTable = ({
 
       {/* Table */}
       <TableContainer sx={{
-        maxHeight: 650,
+        maxHeight: 800,
         bgcolor: "white",
         width: '100%',
         overflowX: 'auto',
@@ -784,7 +810,7 @@ const DebtsTable = ({
           borderRadius: '10px',
         },
       }}>
-        <Table stickyHeader>
+        <Table stickyHeader sx={{ minWidth: 1000 }}>
           <TableHead>
             <TableRow sx={{ bgcolor: "#e3f2fd" }}>
               <TableCell>{tTable("no") || "No"}</TableCell>

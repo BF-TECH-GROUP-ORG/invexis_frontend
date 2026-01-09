@@ -539,7 +539,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
           borderRadius: 3,
           boxShadow: '0 12px 48px rgba(0,0,0,0.12)',
           background: '#fff',
-          minWidth: 500,
+          minWidth: { xs: "100%", sm: 500 },
           mt: 1,
         }
       }}
@@ -549,7 +549,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
         <IconButton onClick={handleClearFilter} size="small"><CloseIcon /></IconButton>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: { xs: "stretch", sm: "center" } }}>
         <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Column</InputLabel>
           <Select
@@ -951,7 +951,15 @@ const DataTable = ({
   }, [filteredRows, page, rowsPerPage]);
 
   return (
-    <Paper sx={{ width: "100%", overflowY: "auto", boxShadow: "none", background: "transparent" }}>
+    <Paper sx={{
+      width: "100%",
+      overflowY: "auto",
+      borderRadius: "16px",
+      border: "1px solid #e5e7eb",
+      overflow: "hidden",
+      bgcolor: "white",
+      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+    }}>
       <FilterPopover
         anchorEl={filterAnchorEl}
         onClose={handleCloseFilter}
@@ -984,7 +992,7 @@ const DataTable = ({
         bgcolor: "#fff"
       }}>
         {/* Top Row: Title & Search */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 
             <Box>
@@ -997,7 +1005,7 @@ const DataTable = ({
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
             <TextField
               size="small"
               placeholder="Search sales..."
@@ -1007,7 +1015,7 @@ const DataTable = ({
                 startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
               }}
               sx={{
-                width: 320,
+                width: { xs: "100%", md: 320 },
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "8px",
                   bgcolor: "#f9fafb",
@@ -1049,14 +1057,14 @@ const DataTable = ({
         </Box>
 
         {/* Bottom Row: Filters & Date Selector */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { xs: "stretch", md: "center" }, gap: 2, width: { xs: "100%", md: "auto" } }}>
             {!isWorker && (
               <>
                 <Autocomplete
                   size="small"
                   sx={{
-                    minWidth: 250,
+                    minWidth: { xs: "100%", md: 250 },
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px",
                       bgcolor: "#f9fafb",
@@ -1079,7 +1087,7 @@ const DataTable = ({
                 />
 
                 <FormControl variant="outlined" size="small" sx={{
-                  minWidth: 200,
+                  minWidth: { xs: "100%", md: 200 },
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "8px",
                     bgcolor: "#f9fafb",
@@ -1124,7 +1132,7 @@ const DataTable = ({
       </Box>
 
       <TableContainer sx={{
-        maxHeight: 600,
+        maxHeight: 800,
         width: '100%',
         overflowX: 'auto',
         '&::-webkit-scrollbar': {
@@ -1135,7 +1143,7 @@ const DataTable = ({
           borderRadius: '10px',
         },
       }}>
-        <Table stickyHeader>
+        <Table stickyHeader sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
@@ -1496,6 +1504,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
         sx={{
           borderRadius: 3,
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+          border: "1px solid #e5e7eb",
           overflow: "hidden",
           width: '100%',
           overflowX: 'auto',
@@ -1508,7 +1517,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
           },
         }}
       >
-        <Table>
+        <Table sx={{ minWidth: 1000 }}>
           <TableHead>
             <TableRow sx={{ bgcolor: "#FF6D00" }}>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>Select</TableCell>

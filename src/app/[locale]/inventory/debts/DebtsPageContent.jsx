@@ -58,7 +58,8 @@ const DebtsPageContent = () => {
         enabled: !!companyId && !isWorker,
     });
 
-    const shops = shopsData?.data || [];
+    // Handle both array and object response structures from getBranches
+    const shops = Array.isArray(shopsData) ? shopsData : (shopsData?.data || []);
 
     // Filter workers based on selected shop
     const filteredWorkers = useMemo(() => {

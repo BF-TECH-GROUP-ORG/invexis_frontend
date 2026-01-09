@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const ModernLegend = (props) => {
   const { payload } = props;
   return (
-    <div className="flex justify-center gap-6 mt-4">
+    <div className="flex flex-wrap justify-center gap-3 md:gap-6 mt-4">
       {payload.map((entry, index) => (
         <div
           key={`item-${index}`}
@@ -149,9 +149,9 @@ const InventoryMovementSection = ({ data = [] }) => {
               barSize={32}
               fill="#081422" // Dark fill
               radius={[4, 4, 12, 12]} // Bottom rounded for stacked look if needed, or top if separate
-              // Note: If separate stacks, radius should be top.
-              // User asked for "add line shades... make the design look sleek".
-              // Let's overlay a pattern on the dark bar.
+            // Note: If separate stacks, radius should be top.
+            // User asked for "add line shades... make the design look sleek".
+            // Let's overlay a pattern on the dark bar.
             >
               {data.map((entry, index) => (
                 <Rectangle

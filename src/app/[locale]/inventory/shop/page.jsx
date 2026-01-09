@@ -3,7 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 import ShopInventoryPageClient from "./ShopInventoryPageClient";
-import { getShopInventory } from "@/services/shopInventoryService";
+// import { getShopInventory } from "@/services/shopInventoryService";
 
 export default async function ShopInventoryPage() {
     const session = await getServerSession(authOptions);
@@ -19,11 +19,13 @@ export default async function ShopInventoryPage() {
             }
         };
 
-        // Prefetch shop inventory
+        // Prefetching removed to prevent SSR crashes with apiClient.
+        /*
         await queryClient.prefetchQuery({
             queryKey: ['shop-inventory', shopId],
             queryFn: () => getShopInventory({ shopId }, options),
         });
+        */
     }
 
     return (
