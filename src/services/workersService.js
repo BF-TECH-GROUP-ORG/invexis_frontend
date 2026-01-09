@@ -32,19 +32,33 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
         const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
         console.log(`Fetching workers from: ${url}`);
-        const response = await apiClient.get(url, options);
+        
+        // Merge options to include headers if provided
+        const config = {
+            ...options
+        };
+        
+        const response = await apiClient.get(url, config);
         console.log("Workers API Raw Response:", response);
 
+        // Axios response.data contains the actual response body
+        const responseData = response.data || response;
+        
         // Handle different possible response structures
-        if (Array.isArray(response)) return response;
-        if (response.workers && Array.isArray(response.workers)) return response.workers;
-        if (response.data && Array.isArray(response.data)) return response.data;
+        if (Array.isArray(responseData)) return responseData;
+        if (responseData.workers && Array.isArray(responseData.workers)) return responseData.workers;
+        if (responseData.data && Array.isArray(responseData.data)) return responseData.data;
 
-        console.warn("Unexpected workers response structure:", response);
-        return response.workers || [];
+        console.warn("Unexpected workers response structure:", responseData);
+        return Array.isArray(responseData) ? responseData : (responseData.workers || []);
     } catch (error) {
         console.error('Failed to fetch workers by company:', error);
-        return [];
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error;
     }
 };
 
@@ -63,13 +77,16 @@ export const getShopsByCompanyId = async (companyId) => {
         const response = await apiClient.get(url);
         console.log("Shops API Raw Response:", response);
         
+        // Axios response.data contains the actual response body
+        const responseData = response.data || response;
+        
         let shops = [];
-        if (Array.isArray(response)) shops = response;
-        else if (response.shops && Array.isArray(response.shops)) shops = response.shops;
-        else if (response.data && Array.isArray(response.data)) shops = response.data;
+        if (Array.isArray(responseData)) shops = responseData;
+        else if (responseData.shops && Array.isArray(responseData.shops)) shops = responseData.shops;
+        else if (responseData.data && Array.isArray(responseData.data)) shops = responseData.data;
         else {
-             console.warn("Unexpected shops response structure:", response);
-             shops = response.shops || [];
+             console.warn("Unexpected shops response structure:", responseData);
+             shops = Array.isArray(responseData) ? responseData : (responseData.shops || []);
         }
 
         shopsCache[companyId] = shops;
@@ -116,8 +133,11 @@ export const getWorkerById = async (workerId) => {
         const response = await apiClient.get(url);
         console.log("Worker fetched successfully:", response);
 
+        // Axios response.data contains the actual response body
+        const responseData = response.data || response;
+        
         // Return the user data, handling different response structures
-        return response.user || response;
+        return responseData.user || responseData;
     } catch (error) {
         const errorMessage = error.message || 'Unknown error occurred';
         console.error('Failed to fetch worker:', {

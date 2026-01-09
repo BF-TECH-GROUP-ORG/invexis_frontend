@@ -77,7 +77,8 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
     });
 
     // Filter companies based on category matching
-    const companiesList = allCompanies?.data || [];
+    // getAllCompanies returns Axios response, need to extract data property
+    const companiesList = allCompanies?.data?.data || allCompanies?.data || [];
     const companyDetails = currentCompany?.data || currentCompany;
 
     const eligibleCompanies = companiesList.filter(company => {
@@ -242,184 +243,658 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
     const isLoading = loadingCurrentCompany ||
         (mode === 'company' ? (loadingAllCompanies || loadingTargetShops) : loadingCurrentShops);
 
-    const shopsToDisplay = mode === 'shop' ? (currentCompanyShops?.data || []) : (targetCompanyShops?.data || []);
+    // getBranches() returns the array directly, not wrapped in .data
+    const shopsToDisplay = mode === 'shop' ? (currentCompanyShops || []) : (targetCompanyShops || []);
 
     return (
         <>
             <Dialog
                 open={open}
                 onClose={onClose}
-                maxWidth="sm"
+                maxWidth="lg"
                 fullWidth
+                TransitionProps={{
+                    timeout: {
+                        enter: 400,
+                        exit: 300
+                    }
+                }}
                 PaperProps={{
-                    sx: { borderRadius: 3 }
+                    sx: {
+                        borderRadius: { xs: "0px", md: "16px" },
+                        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.1)",
+                        bgcolor: "#FFFFFF",
+                        display: "flex",
+                        flexDirection: { xs: "column", md: "row" },
+                        minHeight: { xs: "auto", md: "600px" },
+                        animation: open ? "slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        "@keyframes slideUp": {
+                            from: {
+                                opacity: 0,
+                                transform: "translateY(30px)"
+                            },
+                            to: {
+                                opacity: 1,
+                                transform: "translateY(0)"
+                            }
+                        },
+                        "@keyframes slideDown": {
+                            from: {
+                                opacity: 1,
+                                transform: "translateY(0)"
+                            },
+                            to: {
+                                opacity: 0,
+                                transform: "translateY(30px)"
+                            }
+                        }
+                    }
                 }}
             >
-                <DialogTitle sx={{ color: "#000", fontWeight: "bold" }}>
-                    {mode === 'company' ? 'Cross-Company Transfer' : 'Intra-Company Transfer'}
-                </DialogTitle>
+                {/* Premium Header - Left Side - Hidden on Mobile */}
+                <Box sx={{
+                    display: { xs: "none", md: "flex" },
+                    background: "linear-gradient(135deg, #1F2937 0%, #111827 100%)",
+                    padding: "40px 32px",
+                    borderRadius: "16px 0 0 16px",
+                    flex: "0 0 35%",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    animation: open ? "slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "@keyframes slideInLeft": {
+                        from: {
+                            opacity: 0,
+                            transform: "translateX(-40px)"
+                        },
+                        to: {
+                            opacity: 1,
+                            transform: "translateX(0)"
+                        }
+                    },
+                    "@keyframes slideOutLeft": {
+                        from: {
+                            opacity: 1,
+                            transform: "translateX(0)"
+                        },
+                        to: {
+                            opacity: 0,
+                            transform: "translateX(-40px)"
+                        }
+                    }
+                }}>
+                    <Box>
+                        <Typography variant="h5" sx={{
+                            color: "white",
+                            fontWeight: 700,
+                            fontSize: "2rem",
+                            letterSpacing: "-0.5px",
+                            mb: 1
+                        }}>
+                            {mode === 'company' ? 'Cross-Company Transfer' : 'Intra-Company Transfer'}
+                        </Typography>
+                        <Typography variant="body2" sx={{
+                            color: "#D1D5DB",
+                            fontWeight: 500,
+                            fontSize: "0.95rem",
+                            lineHeight: 1.6
+                        }}>
+                            {mode === 'company' 
+                                ? 'Transfer products to another company\'s shop'
+                                : 'Redistribute products to another shop in your company'}
+                        </Typography>
+                    </Box>
 
-                <DialogContent sx={{ pt: 3 }}>
-                    {isLoading && !targetCompanyShops ? ( // Show loading only if initial data is loading
-                        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                    {/* Transfer Summary Card - Left Side */}
+                    <Box sx={{
+                        width: "100%",
+                        p: "20px 24px",
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        backdropFilter: "blur(10px)",
+                        animation: open ? "scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both" : "scaleOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        "@keyframes scaleIn": {
+                            from: {
+                                opacity: 0,
+                                transform: "scale(0.95)"
+                            },
+                            to: {
+                                opacity: 1,
+                                transform: "scale(1)"
+                            }
+                        },
+                        "@keyframes scaleOut": {
+                            from: {
+                                opacity: 1,
+                                transform: "scale(1)"
+                            },
+                            to: {
+                                opacity: 0,
+                                transform: "scale(0.95)"
+                            }
+                        }
+                    }}>
+                        <Typography variant="caption" sx={{
+                            color: "#D1D5DB",
+                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            display: "block",
+                            mb: 1
+                        }}>
+                            Total Transfer Value
+                        </Typography>
+                        <Typography variant="h4" sx={{
+                            color: "#FBBF24",
+                            fontWeight: 800,
+                            fontSize: "1.875rem",
+                            mb: 1
+                        }}>
+                            {Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW
+                        </Typography>
+                        <Typography variant="caption" sx={{
+                            color: "#9CA3AF",
+                            display: "block"
+                        }}>
+                            {Object.keys(selectedItems).length} product{Object.keys(selectedItems).length !== 1 ? 's' : ''} selected
+                        </Typography>
+                    </Box>
+                </Box>
+
+                <DialogContent sx={{ 
+                    pt: { xs: 2, md: 4 }, 
+                    pb: { xs: 20, md: 24 }, 
+                    px: { xs: 2, md: 4 }, 
+                    flex: 1, 
+                    overflow: "auto", 
+                    position: "relative",
+                    width: { xs: "100%", md: "auto" },
+                    animation: open ? "slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "@keyframes slideInRight": {
+                        from: {
+                            opacity: 0,
+                            transform: "translateX(40px)"
+                        },
+                        to: {
+                            opacity: 1,
+                            transform: "translateX(0)"
+                        }
+                    },
+                    "@keyframes slideOutRight": {
+                        from: {
+                            opacity: 1,
+                            transform: "translateX(0)"
+                        },
+                        to: {
+                            opacity: 0,
+                            transform: "translateX(40px)"
+                        }
+                    }
+                }}>
+                    {isLoading && !targetCompanyShops ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
                             <CircularProgress />
                         </Box>
                     ) : (
                         <>
-                            <Box sx={{ mb: 3, p: 2, borderRadius: 2 }}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Products to Transfer:
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {Object.values(selectedItems).length} items selected
-                                </Typography>
-                            </Box>
-
                             {validationError && (
-                                <Alert severity="error" sx={{ mb: 2 }}>
+                                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
                                     {validationError}
                                 </Alert>
                             )}
 
                             {/* Target Company Selection (Only for Cross-Company) */}
                             {mode === 'company' && (
-                                <FormControl fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Target Company</InputLabel>
+                                <Box sx={{ 
+                                    mb: 3,
+                                    animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                    "@keyframes fadeInUp": {
+                                        from: {
+                                            opacity: 0,
+                                            transform: "translateY(20px)"
+                                        },
+                                        to: {
+                                            opacity: 1,
+                                            transform: "translateY(0)"
+                                        }
+                                    },
+                                    "@keyframes fadeOutDown": {
+                                        from: {
+                                            opacity: 1,
+                                            transform: "translateY(0)"
+                                        },
+                                        to: {
+                                            opacity: 0,
+                                            transform: "translateY(20px)"
+                                        }
+                                    }
+                                }}>
+                                    <Typography variant="body2" sx={{
+                                        color: "#111827",
+                                        fontWeight: 600,
+                                        mb: 1.2,
+                                        fontSize: "0.95rem"
+                                    }}>
+                                        Target Company <span style={{ color: "#FF6D00" }}>*</span>
+                                    </Typography>
+                                    <FormControl fullWidth>
+                                        <Select
+                                            value={targetCompany}
+                                            onChange={(e) => {
+                                                setTargetCompany(e.target.value);
+                                                setTargetShop("");
+                                                setValidationError("");
+                                            }}
+                                            sx={{
+                                                borderRadius: "10px",
+                                                "& .MuiOutlinedInput-root": {
+                                                    "& fieldset": {
+                                                        borderColor: "#E5E7EB",
+                                                        borderWidth: "1.5px"
+                                                    },
+                                                    "&:hover fieldset": {
+                                                        borderColor: "#D1D5DB"
+                                                    },
+                                                    "&.Mui-focused fieldset": {
+                                                        borderColor: "#FF6D00",
+                                                        borderWidth: "2px"
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            {eligibleCompanies.length === 0 ? (
+                                                <MenuItem disabled value="">
+                                                    No eligible companies found
+                                                </MenuItem>
+                                            ) : (
+                                                eligibleCompanies.map((company) => (
+                                                    <MenuItem key={company.id || company._id} value={company.id || company._id}>
+                                                        {company.name || company.companyName}
+                                                    </MenuItem>
+                                                ))
+                                            )}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
+                            )}
+
+                            {/* Target Shop Selection */}
+                            <Box sx={{ 
+                                mb: 3,
+                                animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                "@keyframes fadeInUp": {
+                                    from: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    },
+                                    to: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    }
+                                },
+                                "@keyframes fadeOutDown": {
+                                    from: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    },
+                                    to: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    }
+                                }
+                            }}>
+                                <Typography variant="body2" sx={{
+                                    color: "#111827",
+                                    fontWeight: 600,
+                                    mb: 1.2,
+                                    fontSize: "0.95rem"
+                                }}>
+                                    Target Shop <span style={{ color: "#FF6D00" }}>*</span>
+                                </Typography>
+                                <FormControl fullWidth disabled={mode === 'company' && !targetCompany}>
                                     <Select
-                                        value={targetCompany}
-                                        label="Target Company"
+                                        value={targetShop}
                                         onChange={(e) => {
-                                            setTargetCompany(e.target.value);
-                                            setTargetShop(""); // Reset shop when company changes
+                                            setTargetShop(e.target.value);
                                             setValidationError("");
                                         }}
+                                        sx={{
+                                            borderRadius: "10px",
+                                            "& .MuiOutlinedInput-root": {
+                                                "& fieldset": {
+                                                    borderColor: "#E5E7EB",
+                                                    borderWidth: "1.5px"
+                                                },
+                                                "&:hover fieldset": {
+                                                    borderColor: "#D1D5DB"
+                                                },
+                                                "&.Mui-focused fieldset": {
+                                                    borderColor: "#FF6D00",
+                                                    borderWidth: "2px"
+                                                }
+                                            }
+                                        }}
                                     >
-                                        {eligibleCompanies.length === 0 ? (
+                                        {shopsToDisplay.length === 0 ? (
                                             <MenuItem disabled value="">
-                                                No eligible companies found
+                                                {mode === 'company' && !targetCompany
+                                                    ? "Select a company first"
+                                                    : "No shops found"}
                                             </MenuItem>
                                         ) : (
-                                            eligibleCompanies.map((company) => (
-                                                <MenuItem key={company.id || company._id} value={company.id || company._id}>
-                                                    {company.name || company.companyName}
-                                                </MenuItem>
-                                            ))
+                                            shopsToDisplay
+                                                .filter(shop => shop.id !== currentShopId && shop._id !== currentShopId)
+                                                .map((shop) => (
+                                                    <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
+                                                        {shop.name || shop.shopName || "Unnamed Shop"}
+                                                    </MenuItem>
+                                                ))
                                         )}
                                     </Select>
                                 </FormControl>
-                            )}
+                            </Box>
 
-                            {/* Target Shop Selection (Required for both, but depends on company selection for Cross-Company) */}
-                            <FormControl fullWidth sx={{ mb: 2 }} disabled={mode === 'company' && !targetCompany}>
-                                <InputLabel>Target Shop</InputLabel>
-                                <Select
-                                    value={targetShop}
-                                    label="Target Shop"
+                            {/* Reason Field */}
+                            <Box sx={{ 
+                                mb: 3,
+                                animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                "@keyframes fadeInUp": {
+                                    from: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    },
+                                    to: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    }
+                                },
+                                "@keyframes fadeOutDown": {
+                                    from: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    },
+                                    to: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    }
+                                }
+                            }}>
+                                <Typography variant="body2" sx={{
+                                    color: "#111827",
+                                    fontWeight: 600,
+                                    mb: 1.2,
+                                    fontSize: "0.95rem"
+                                }}>
+                                    Reason <span style={{ color: "#FF6D00" }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="e.g., Monthly redistribution, Stock balancing"
+                                    value={reason}
                                     onChange={(e) => {
-                                        setTargetShop(e.target.value);
+                                        setReason(e.target.value);
                                         setValidationError("");
                                     }}
-                                >
-                                    {shopsToDisplay.length === 0 ? (
-                                        <MenuItem disabled value="">
-                                            {mode === 'company' && !targetCompany
-                                                ? "Select a company first"
-                                                : "No shops found"}
-                                        </MenuItem>
-                                    ) : (
-                                        shopsToDisplay
-                                            .filter(shop => shop.id !== currentShopId && shop._id !== currentShopId) // Exclude current shop
-                                            .map((shop) => (
-                                                <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
-                                                    {shop.name || shop.shopName || "Unnamed Shop"}
-                                                </MenuItem>
-                                            ))
-                                    )}
-                                </Select>
-                            </FormControl>
-
-                            <TextField
-                                fullWidth
-                                label="Reason"
-                                value={reason}
-                                onChange={(e) => {
-                                    setReason(e.target.value);
-                                    setValidationError("");
-                                }}
-                                placeholder="e.g., Monthly redistribution"
-                                sx={{ mb: 2 }}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Notes (Optional)"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                multiline
-                                rows={3}
-                            />
-
-                            {/* Debt Transfer Toggle & Amount */}
-                            <Box sx={{ mt: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
-                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: isDebt ? 2 : 0 }}>
-                                    <Typography variant="subtitle2" fontWeight="bold">
-                                        Mark as Debt Transfer?
-                                    </Typography>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsDebt(!isDebt)}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${isDebt ? 'bg-orange-500' : 'bg-gray-300'}`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ${isDebt ? 'translate-x-6' : 'translate-x-1'}`}
-                                        />
-                                    </button>
-                                </Box>
-
-                                {isDebt && (
-                                    <>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            Total Transfer Value: <strong>{Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW</strong>
-                                        </Typography>
-                                        <TextField
-                                            fullWidth
-                                            label="Initial Payment Amount (FRW)"
-                                            type="number"
-                                            value={amountPaidNow}
-                                            onChange={(e) => {
-                                                const val = parseFloat(e.target.value);
-                                                const total = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
-                                                if (val > total) {
-                                                    // Prevent entering more than total
-                                                    return;
-                                                }
-                                                setAmountPaidNow(e.target.value);
-                                            }}
-                                            InputProps={{
-                                                inputProps: { min: 0 }
-                                            }}
-                                            helperText={`Remaining Debt: ${(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) - (parseFloat(amountPaidNow) || 0)).toLocaleString()} FRW`}
-                                        />
-                                    </>
-                                )}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            bgcolor: "#FFFFFF",
+                                            borderRadius: "10px",
+                                            fontWeight: 500,
+                                            fontSize: "0.95rem",
+                                            "& fieldset": {
+                                                borderColor: "#E5E7EB",
+                                                borderWidth: "1.5px"
+                                            },
+                                            "&:hover fieldset": {
+                                                borderColor: "#D1D5DB"
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: "#FF6D00",
+                                                borderWidth: "2px"
+                                            }
+                                        },
+                                        "& .MuiOutlinedInput-input": {
+                                            padding: "12px 16px",
+                                            color: "#111827"
+                                        }
+                                    }}
+                                />
                             </Box>
+
+                            {/* Notes Field */}
+                            <Box sx={{ 
+                                mb: 4,
+                                animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.45s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                "@keyframes fadeInUp": {
+                                    from: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    },
+                                    to: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    }
+                                },
+                                "@keyframes fadeOutDown": {
+                                    from: {
+                                        opacity: 1,
+                                        transform: "translateY(0)"
+                                    },
+                                    to: {
+                                        opacity: 0,
+                                        transform: "translateY(20px)"
+                                    }
+                                }
+                            }}>
+                                <Typography variant="body2" sx={{
+                                    color: "#111827",
+                                    fontWeight: 600,
+                                    mb: 1.2,
+                                    fontSize: "0.95rem"
+                                }}>
+                                    Additional Notes (Optional)
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Add any additional details about this transfer..."
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    multiline
+                                    rows={3}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            bgcolor: "#FFFFFF",
+                                            borderRadius: "10px",
+                                            fontWeight: 500,
+                                            "& fieldset": {
+                                                borderColor: "#E5E7EB",
+                                                borderWidth: "1.5px"
+                                            },
+                                            "&:hover fieldset": {
+                                                borderColor: "#D1D5DB"
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: "#FF6D00",
+                                                borderWidth: "2px"
+                                            }
+                                        },
+                                        "& .MuiOutlinedInput-input": {
+                                            padding: "12px 16px",
+                                            color: "#111827"
+                                        }
+                                    }}
+                                />
+                            </Box>
+
+                            {/* Debt Transfer Toggle - Only for Cross-Company Mode */}
+                            {mode === 'company' && (
+                                <Box sx={{ 
+                                    mb: 4, 
+                                    p: "16px 20px", 
+                                    bgcolor: "#F3E8FF", 
+                                    borderRadius: "10px", 
+                                    border: "1.5px solid #E9D5FF",
+                                    animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.55s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                    "@keyframes fadeInUp": {
+                                        from: {
+                                            opacity: 0,
+                                            transform: "translateY(20px)"
+                                        },
+                                        to: {
+                                            opacity: 1,
+                                            transform: "translateY(0)"
+                                        }
+                                    },
+                                    "@keyframes fadeOutDown": {
+                                        from: {
+                                            opacity: 1,
+                                            transform: "translateY(0)"
+                                        },
+                                        to: {
+                                            opacity: 0,
+                                            transform: "translateY(20px)"
+                                        }
+                                    }
+                                }}>
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: isDebt ? 2 : 0 }}>
+                                        <Box>
+                                            <Typography variant="body2" sx={{
+                                                color: "#111827",
+                                                fontWeight: 600,
+                                                fontSize: "0.95rem"
+                                            }}>
+                                                Mark as Debt Transfer
+                                            </Typography>
+                                            <Typography variant="caption" sx={{
+                                                color: "#7C3AED",
+                                                fontSize: "0.8rem"
+                                            }}>
+                                                The receiving company will owe payment
+                                            </Typography>
+                                        </Box>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDebt(!isDebt)}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isDebt ? "bg-orange-500" : "bg-gray-200"}`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ${isDebt ? "translate-x-6" : "translate-x-1"}`} />
+                                        </button>
+                                    </Box>
+
+                                    {isDebt && (
+                                        <>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 500 }}>
+                                                Total Transfer Value: <strong style={{ color: "#E65100" }}>{Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW</strong>
+                                            </Typography>
+                                            <TextField
+                                                fullWidth
+                                                label="Initial Payment Amount (FRW)"
+                                                type="number"
+                                                value={amountPaidNow}
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    const total = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
+                                                    if (val > total) {
+                                                        return;
+                                                    }
+                                                    setAmountPaidNow(e.target.value);
+                                                }}
+                                                inputProps={{ min: 0 }}
+                                                helperText={`Remaining Debt: ${(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) - (parseFloat(amountPaidNow) || 0)).toLocaleString()} FRW`}
+                                                sx={{
+                                                    "& .MuiOutlinedInput-root": {
+                                                        bgcolor: "#FFFFFF",
+                                                        borderRadius: "8px",
+                                                        "& fieldset": {
+                                                            borderColor: "#E9D5FF"
+                                                        },
+                                                        "&:hover fieldset": {
+                                                            borderColor: "#DDD6FE"
+                                                        },
+                                                        "&.Mui-focused fieldset": {
+                                                            borderColor: "#7C3AED"
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                </Box>
+                            )}
                         </>
                     )}
                 </DialogContent>
 
-                <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={onClose} color="inherit">
+                {/* Premium Footer - Responsive */}
+                <Box sx={{
+                    borderTop: "1px solid #E5E7EB",
+                    padding: { xs: "16px", md: "20px 28px" },
+                    bgcolor: "#F9FAFB",
+                    borderRadius: { xs: "0", md: "0 0 16px 16px" },
+                    display: "flex",
+                    gap: "12px",
+                    justifyContent: "flex-end",
+                    position: { xs: "relative", md: "absolute" },
+                    bottom: { xs: "auto", md: 0 },
+                    right: { xs: "auto", md: 0 },
+                    left: { xs: "auto", md: "35%" },
+                    width: { xs: "100%", md: "auto" }
+                }}>
+                    <Button
+                        onClick={onClose}
+                        sx={{
+                            color: "#6B7280",
+                            fontWeight: 600,
+                            fontSize: "0.95rem",
+                            textTransform: "none",
+                            px: "24px",
+                            py: "10px",
+                            borderRadius: "8px",
+                            border: "1.5px solid #E5E7EB",
+                            bgcolor: "#FFFFFF",
+                            transition: "all 0.2s ease",
+                            "&:hover": {
+                                bgcolor: "#F3F4F6",
+                                borderColor: "#D1D5DB",
+                                color: "#374151"
+                            }
+                        }}
+                    >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         variant="contained"
-                        color="primary"
                         disabled={isLoading || transferMutation.isPending || sellMutation.isPending}
+                        sx={{
+                            bgcolor: "#FF6D00",
+                            color: "white",
+                            fontWeight: 700,
+                            fontSize: "0.95rem",
+                            textTransform: "none",
+                            px: "32px",
+                            py: "10px",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(255, 109, 0, 0.3)",
+                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                            "&:hover": {
+                                bgcolor: "#E65100",
+                                boxShadow: "0 8px 20px rgba(255, 109, 0, 0.4)",
+                                transform: "translateY(-2px)"
+                            },
+                            "&:disabled": {
+                                bgcolor: "#D1D5DB",
+                                color: "#F3F4F6",
+                                boxShadow: "none",
+                                cursor: "not-allowed"
+                            }
+                        }}
                     >
                         {transferMutation.isPending || sellMutation.isPending ? "Processing..." : "Confirm Transfer"}
                     </Button>
-                </DialogActions>
+                </Box>
             </Dialog>
 
             <TransferSuccessModal

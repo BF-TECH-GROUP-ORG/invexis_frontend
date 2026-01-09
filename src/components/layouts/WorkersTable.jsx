@@ -1,54 +1,19 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Card,
-  CardHeader,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Avatar,
-  IconButton,
-  Tooltip,
-  Typography,
-  Chip,
-  Box,
-  Checkbox,
-  TextField,
-  FormControlLabel,
-  Switch,
-  TablePagination,
-  Select,
-  MenuItem,
-  InputAdornment,
-  Menu,
-  ListItemIcon,
-  ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-  Skeleton,
-} from "@mui/material";
+import { Card, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, IconButton, Tooltip, Typography, Chip, Box, Checkbox, TextField, FormControlLabel, Switch, TablePagination, Select, MenuItem, InputAdornment, Menu, ListItemIcon, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
 import { HiDotsVertical, HiSearch, HiPencil, HiTrash } from "react-icons/hi";
 import IOSSwitch from "../shared/IosSwitch";
 import UsersPageHeader from "./UsersPageHeader";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import {
-  getWorkersByCompanyId,
-  deleteWorker,
-} from "../../services/workersService";
+import { getWorkersByCompanyId, deleteWorker } from "../../services/workersService";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 
+
+
 export default function WorkersTable() {
-  console.log("Rendering WorkersTable component...");
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
@@ -68,7 +33,7 @@ export default function WorkersTable() {
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-  console.log(session?.accessToken)
+
   useEffect(() => {
     const fetchWorkers = async () => {
       // Only fetch if companyId is available
@@ -79,12 +44,8 @@ export default function WorkersTable() {
         return;
       }
 
-      console.log("🔍 Fetching workers for Company ID:", companyId);
-      console.log("🔑 Access Token available:", !!session?.accessToken);
-
       try {
-        const data = await getWorkersByCompanyId(companyId);
-        console.log(companyId)
+        const data = await getWorkersByCompanyId(companyId , session?.accessToken);
         console.log(data)
 
         if (data && Array.isArray(data)) {
@@ -105,9 +66,7 @@ export default function WorkersTable() {
               status: worker.status || "active",
               gender: worker.gender || "N/A",
               dateOfBirth: worker.dateOfBirth || null,
-              joinedAt: worker.createdAt
-                ? new Date(worker.createdAt).toLocaleDateString()
-                : "N/A",
+              joinedAt: worker.createdAt ? new Date(worker.createdAt).toLocaleDateString() : "N/A",
               address: worker.address || {},
               emergencyContact: worker.emergencyContact || {},
             };
@@ -124,7 +83,7 @@ export default function WorkersTable() {
         console.error("Error details:", {
           message: error.message,
           response: error.response,
-          stack: error.stack,
+          stack: error.stack
         });
         setWorkers([]);
       } finally {
@@ -133,6 +92,7 @@ export default function WorkersTable() {
       }
     };
 
+    fetchWorkers();
     fetchWorkers();
   }, [companyId, session]); // Re-fetch when companyId or session changes
 
@@ -169,25 +129,24 @@ export default function WorkersTable() {
 
     setDeleting(true);
     console.log("Session object:", session);
-    console.log("Session object:", session);
+    console.log("Token to be sent:", session?.user?.token);
     try {
-      if (!session?.accessToken) {
+      if (!session?.user?.token) {
         // console.error("No token found in session!");
         // You might want to show an error or return here
       }
-      await deleteWorker(selectedWorkerId, companyId);
+      await deleteWorker(selectedWorkerId, companyId, session?.accessToken);
       // Refresh list
-      const updatedWorkers = workers.filter((w) => w.id !== selectedWorkerId);
+      const updatedWorkers = workers.filter(w => w.id !== selectedWorkerId);
       setWorkers(updatedWorkers);
-      router.refresh(); // Ensure server side is also aware
       setDeleteDialogOpen(false);
       setSelectedWorkerId(null);
     } catch (error) {
       console.error("Failed to delete worker:", error);
       // console.log(session?.user)
-      console.log("Access token:", session?.accessToken);
-      console.log("Company ID:", companyId);
-      console.log("Worker ID:", selectedWorkerId);
+      console.log('Access token:', session?.accessToken)
+      console.log('Company ID:', companyId)
+      console.log('Worker ID:', selectedWorkerId) 
 
       // Optionally show error snackbar here
     } finally {
@@ -234,7 +193,7 @@ export default function WorkersTable() {
   };
 
   const handleAddUser = () => {
-    router.push(`/${locale}/inventory/workers/add-worker`);
+    router.push(`/${locale}/inventory/workers/add-worker`)
   };
 
   // Show loading state
@@ -242,41 +201,9 @@ export default function WorkersTable() {
     return (
       <div>
         <UsersPageHeader onAddUser={handleAddUser} />
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          px={2.5}
-          py={1.5}
-          gap={2}
-        >
-          <Skeleton variant="rectangular" width={300} height={40} sx={{ borderRadius: 1 }} />
-          <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: 1 }} />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <Typography>Loading workers...</Typography>
         </Box>
-        <TableContainer>
-          <Table size={dense ? "small" : "medium"}>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-                  <TableCell key={i}>
-                    <Skeleton variant="text" width="80%" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <TableRow key={i}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((j) => (
-                    <TableCell key={j}>
-                      <Skeleton variant="text" width="100%" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
       </div>
     );
   }
@@ -286,15 +213,8 @@ export default function WorkersTable() {
     return (
       <div>
         <UsersPageHeader onAddUser={handleAddUser} />
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="400px"
-        >
-          <Typography color="error">
-            Unable to load company information. Please log in again.
-          </Typography>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <Typography color="error">Unable to load company information. Please log in again.</Typography>
         </Box>
       </div>
     );
@@ -342,189 +262,166 @@ export default function WorkersTable() {
       </Box>
 
       {/* 🧾 Table */}
-      <Paper sx={{
-        border: "1px solid #e5e7eb",
-        borderRadius: "16px",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-        overflow: "hidden",
-        bgcolor: "white"
-      }}>
-        <TableContainer sx={{
-          width: '100%',
-          overflowX: 'auto',
-          '&::-webkit-scrollbar': {
-            height: '6px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#e5e7eb',
-            borderRadius: '10px',
-          },
-        }}>
-          <Table size={dense ? "small" : "medium"} sx={{ minWidth: 1000 }}>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    indeterminate={
-                      selected.length > 0 &&
-                      selected.length < filteredWorkers.length
-                    }
-                    checked={
-                      filteredWorkers.length > 0 &&
-                      selected.length === filteredWorkers.length
-                    }
-                    onChange={handleSelectAll}
-                  />
+      <TableContainer>
+        <Table size={dense ? "small" : "medium"}>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={
+                    selected.length > 0 &&
+                    selected.length < filteredWorkers.length
+                  }
+                  checked={
+                    filteredWorkers.length > 0 &&
+                    selected.length === filteredWorkers.length
+                  }
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>National ID </TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Joined Date</TableCell>
+              <TableCell align="center">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {filteredWorkers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">
+                    {workers.length === 0
+                      ? "No workers found for this company. Check browser console for API details."
+                      : "No workers match your search criteria"}
+                  </Typography>
                 </TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>National ID </TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Joined Date</TableCell>
-                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            </TableHead>
+            ) : (
+              filteredWorkers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((worker) => (
+                  <TableRow
+                    key={worker.id}
+                    hover
+                    selected={selected.includes(worker.id)}
+                    sx={{
+                      "&:hover": { backgroundColor: "#f4f6f8" },
+                    }}
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selected.includes(worker.id)}
+                        onChange={() => handleSelectRow(worker.id)}
+                      />
+                    </TableCell>
 
-            <TableBody>
-              {filteredWorkers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      {workers.length === 0
-                        ? "No workers found for this company. Check browser console for API details."
-                        : "No workers match your search criteria"}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredWorkers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((worker) => (
-                    <TableRow
-                      key={worker.id}
-                      hover
-                      selected={selected.includes(worker.id)}
-                      sx={{
-                        "&:hover": { backgroundColor: "#f4f6f8" },
-                      }}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selected.includes(worker.id)}
-                          onChange={() => handleSelectRow(worker.id)}
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={1.5}>
+                        <Avatar
+                          alt={worker.firstName}
+                          src={`https://ui-avatars.com/api/?name=${worker.firstName}+${worker.lastName}`}
+                          sx={{ width: 36, height: 36 }}
                         />
-                      </TableCell>
-
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={1.5}>
-                          <Avatar
-                            alt={worker.firstName}
-                            src={`https://ui-avatars.com/api/?name=${worker.firstName}+${worker.lastName}`}
-                            sx={{ width: 36, height: 36 }}
-                          />
-                          <Box>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                              {worker.firstName} {worker.lastName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {worker.nationalId}
-                            </Typography>
-                          </Box>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            {worker.firstName} {worker.lastName}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {worker.nationalId}
+                          </Typography>
                         </Box>
-                      </TableCell>
+                      </Box>
+                    </TableCell>
 
-                      <TableCell>{worker.email}</TableCell>
-                      <TableCell>{worker.phone}</TableCell>
-                      <TableCell>{worker.position}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={worker.role}
-                          size="small"
-                          sx={{
-                            backgroundColor: "#E0F2FE",
-                            color: "#0369A1",
-                            fontWeight: 600,
-                            textTransform: "capitalize",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={worker.status}
-                          size="small"
-                          sx={{
-                            backgroundColor:
-                              worker.status === "active" ? "#E8F5E9" : "#FFEBEE",
-                            color:
-                              worker.status === "active" ? "#2E7D32" : "#C62828",
-                            fontWeight: 600,
-                            textTransform: "capitalize",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{worker.joinedAt}</TableCell>
+                    <TableCell>{worker.email}</TableCell>
+                    <TableCell>{worker.phone}</TableCell>
+                    <TableCell>{worker.position}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={worker.role}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#E0F2FE",
+                          color: "#0369A1",
+                          fontWeight: 600,
+                          textTransform: 'capitalize'
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={worker.status}
+                        size="small"
+                        sx={{
+                          backgroundColor: worker.status === 'active' ? "#E8F5E9" : "#FFEBEE",
+                          color: worker.status === 'active' ? "#2E7D32" : "#C62828",
+                          fontWeight: 600,
+                          textTransform: 'capitalize'
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{worker.joinedAt}</TableCell>
 
-                      <TableCell align="center">
-                        <Tooltip title="Actions">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleMenuOpen(e, worker.id)}
-                          >
-                            <HiDotsVertical />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    <TableCell align="center">
+                      <Tooltip title="Actions">
+                        <IconButton size="small" onClick={(e) => handleMenuOpen(e, worker.id)}>
+                          <HiDotsVertical />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-        {/* ⚙️ Bottom Controls */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          px={2}
-          py={1.5}
-          sx={{ borderTop: "1px solid #e5e7eb", backgroundColor: "#fafafa" }}
-        >
-          <FormControlLabel
-            control={
-              <IOSSwitch
-                checked={dense}
-                onChange={(e) => setDense(e.target.checked)}
-              />
-            }
-            label={
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", fontWeight: 500 }}
-              >
-                Dense padding
-              </Typography>
-            }
-            sx={{
-              "& .MuiFormControlLabel-label": {
-                fontFamily: "Metropolis, sans-serif",
-              },
-            }}
-          />
+      {/* ⚙️ Bottom Controls */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        px={2}
+        py={1.5}
+        sx={{ borderTop: "1px solid #e5e7eb", backgroundColor: "#fafafa" }}
+      >
+        <FormControlLabel
+          control={
+            <IOSSwitch
+              checked={dense}
+              onChange={(e) => setDense(e.target.checked)}
+            />
+          }
+          label={
+            <Typography
+              variant="body2"
+              sx={{ color: "text.secondary", fontWeight: 500 }}
+            >
+              Dense padding
+            </Typography>
+          }
+          sx={{
+            "& .MuiFormControlLabel-label": {
+              fontFamily: "Metropolis, sans-serif",
+            },
+          }}
+        />
 
-          <TablePagination
-            component="div"
-            count={filteredWorkers.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
-          />
-        </Box>
-      </Paper>
+        <TablePagination
+          component="div"
+          count={filteredWorkers.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </Box>
 
       {/* Actions Menu */}
       <Menu
@@ -534,25 +431,25 @@ export default function WorkersTable() {
         PaperProps={{
           elevation: 0,
           sx: {
-            overflow: "visible",
-            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+            overflow: 'visible',
+            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
             mt: 1.5,
-            "&:before": {
+            '&:before': {
               content: '""',
-              display: "block",
-              position: "absolute",
+              display: 'block',
+              position: 'absolute',
               top: 0,
               right: 14,
               width: 10,
               height: 10,
-              bgcolor: "background.paper",
-              transform: "translateY(-50%) rotate(45deg)",
+              bgcolor: 'background.paper',
+              transform: 'translateY(-50%) rotate(45deg)',
               zIndex: 0,
             },
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
@@ -560,7 +457,7 @@ export default function WorkersTable() {
           </ListItemIcon>
           <ListItemText>Edit</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{ color: "error.main" }}>
+        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <ListItemIcon>
             <HiTrash fontSize="small" color="error" />
           </ListItemIcon>
@@ -575,32 +472,23 @@ export default function WorkersTable() {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Delete Worker?"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">
+          {"Delete Worker?"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this worker? This action cannot be
-            undone.
+            Are you sure you want to delete this worker? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleDeleteCancel}
-            disabled={deleting}
-            sx={{ color: "text.secondary" }}
-          >
+          <Button onClick={handleDeleteCancel} disabled={deleting} sx={{ color: 'text.secondary' }}>
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
-            autoFocus
-            disabled={deleting}
-          >
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" autoFocus disabled={deleting}>
             {deleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </div >
   );
 }

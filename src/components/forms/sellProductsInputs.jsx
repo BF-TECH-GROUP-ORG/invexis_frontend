@@ -6,8 +6,10 @@ import { Button } from "../shared/button";
 import SaleNotificationModal from "../shared/saleComfPop";
 import jsPDF from "jspdf";
 import { singleProductFetch, SellProduct } from "@/services/salesService";
+import PaymentMethodSelector from "./PaymentMethodSelector";
+import { SALES_PAYMENT_METHODS } from "@/constants/paymentMethods";
 
-const paymentMethods = ["cash", "card", "mobile", "wallet", "bank_transfer"];
+const paymentMethods = Object.keys(SALES_PAYMENT_METHODS);
 
 import { useSession } from "next-auth/react";
 
@@ -21,6 +23,7 @@ const SellProductsInputs = ({ id }) => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentPhone, setPaymentPhone] = useState("");
   const [discount, setDiscount] = useState(""); // Item-level discount
   const [printReceipt, setPrintReceipt] = useState(false);
   const [isDebt, setIsDebt] = useState(false); // Toggle for debt/regular sale
@@ -124,6 +127,14 @@ const SellProductsInputs = ({ id }) => {
       }
     });
 
+    // Validate payment phone for mobile methods
+    if (["mtn", "airtel", "mpesa"].includes(paymentMethod)) {
+      if (!paymentPhone || paymentPhone.length < 10) {
+        valid = false;
+        newErrors.paymentPhone = "Valid payment phone number required for this method";
+      }
+    }
+
     // Extra validation for required backend fields
     // if (!companyId || !shopId || !soldBy) {
     //   showModal("error", "Missing shop or user data. Please log in again.");
@@ -179,6 +190,7 @@ const SellProductsInputs = ({ id }) => {
 
       paymentMethod,
       paymentId: Date.now().toString(), // Added as requested
+      paymentPhoneNumber: (["mtn", "airtel", "mpesa"].includes(paymentMethod) && paymentPhone) ? paymentPhone : undefined,
       totalAmount: totalAfterDiscount,
       discountAmount: itemDiscount,
     };
@@ -198,12 +210,16 @@ const SellProductsInputs = ({ id }) => {
         doc.text(`Customer: ${customerName}`, 20, 40);
         doc.text(`Phone: ${customerPhone}`, 20, 50);
         doc.text(`Product: ${productName}`, 20, 60);
-        doc.text(`Qty: ${quantity} × $${unitPrice.toFixed(2)}`, 20, 70);
-        doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, 80);
-        if (itemDiscount > 0) doc.text(`Discount: -$${itemDiscount.toFixed(2)}`, 20, 90);
-        doc.text(`Total: $${totalAfterDiscount.toFixed(2)}`, 20, itemDiscount > 0 ? 100 : 90);
-        doc.text(`Payment: ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1).replace("_", " ")}`, 20, itemDiscount > 0 ? 110 : 100);
-        doc.text("Thank you!", 105, itemDiscount > 0 ? 130 : 120, { align: "center" });
+        doc.text(`Qty: ${quantity} × FRW${unitPrice.toLocaleString()}`, 20, 70);
+        doc.text(`Subtotal: FRW${subtotal.toLocaleString()}`, 20, 80);
+        if (itemDiscount > 0) doc.text(`Discount: -FRW${itemDiscount.toLocaleString()}`, 20, 90);
+        doc.text(`Total: FRW${totalAfterDiscount.toLocaleString()}`, 20, itemDiscount > 0 ? 100 : 90);
+        const methodLabel = SALES_PAYMENT_METHODS[paymentMethod]?.label || paymentMethod;
+        doc.text(`Payment: ${methodLabel}`, 20, itemDiscount > 0 ? 110 : 100);
+        if (["mtn", "airtel", "mpesa"].includes(paymentMethod) && paymentPhone) {
+          doc.text(`Payment Phone: ${paymentPhone}`, 20, itemDiscount > 0 ? 120 : 110);
+        }
+        doc.text("Thank you!", 105, itemDiscount > 0 ? 140 : 130, { align: "center" });
 
         const pdfUrl = doc.output("bloburl");
         const win = window.open(pdfUrl);
@@ -220,6 +236,7 @@ const SellProductsInputs = ({ id }) => {
       setCustomerEmail("");
       setDiscount("");
       setPaymentMethod("cash");
+      setPaymentPhone("");
       setPrintReceipt(false);
       setErrors({});
     } catch (err) {
@@ -266,14 +283,71 @@ const SellProductsInputs = ({ id }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Payment Method <span className="text-red-500">*</span></label>
-            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className={selectClass}>
-              {paymentMethods.map((method) => (
-                <option key={method} value={method}>
-                  {method.charAt(0).toUpperCase() + method.slice(1).replace("_", " ")}
-                </option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Payment Method <span className="text-red-500">*</span></label>
+            <div className="grid grid-cols-5 gap-2">
+              {paymentMethods.map((method) => {
+                const methodConfig = SALES_PAYMENT_METHODS[method];
+                return (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setPaymentMethod(method)}
+                    className={`p-3 rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-200 ${
+                      paymentMethod === method
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-300 bg-white hover:border-orange-400"
+                    }`}
+                  >
+                    {methodConfig.image ? (
+                      <img
+                        src={methodConfig.image}
+                        alt={methodConfig.label}
+                        className={`h-6 w-auto object-contain mb-1 transition-all duration-200 ${
+                          paymentMethod === method ? "opacity-100" : "opacity-60"
+                        }`}
+                        style={{
+                          filter: paymentMethod === method ? "none" : "grayscale(100%)"
+                        }}
+                      />
+                    ) : (
+                      <span className="text-lg mb-1">{methodConfig.icon}</span>
+                    )}
+                    <span
+                      className={`text-xs font-semibold text-center transition-colors duration-200 ${
+                        paymentMethod === method
+                          ? "text-orange-700"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {methodConfig.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Conditional Phone Input for Mobile Payments */}
+            {["mtn", "airtel", "mpesa"].includes(paymentMethod) && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Phone Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="e.g. +250788123456"
+                  value={paymentPhone}
+                  onChange={(e) => setPaymentPhone(e.target.value)}
+                  className={`${inputClass} ${
+                    paymentPhone && paymentPhone.length < 10
+                      ? "border-red-500 focus:ring-red-400"
+                      : ""
+                  }`}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter the phone number to be used for {SALES_PAYMENT_METHODS[paymentMethod]?.label} payment
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
