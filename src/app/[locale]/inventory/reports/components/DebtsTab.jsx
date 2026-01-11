@@ -5,7 +5,9 @@ import ReportTable from './ReportTable';
 import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PeopleIcon from '@mui/icons-material/People';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import WarningIcon from '@mui/icons-material/Warning';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import TimerIcon from '@mui/icons-material/Timer';
 import debtsService from '@/services/debts';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
@@ -154,16 +156,17 @@ const DebtsTab = () => {
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%' }}>
-                <Grid container spacing={{ xs: 0, sm: 3 }} sx={{ mb: 4, width: '100%', m: 0 }}>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Outstanding"
                             value={`${(kpis.totalOutstanding || 0).toLocaleString()} FRW`}
                             icon={AccountBalanceIcon}
                             color="#FF6D00"
+                            index={0}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Overdue Amount"
                             value={`${(kpis.overdueAmount || 0).toLocaleString()} FRW`}
@@ -171,22 +174,25 @@ const DebtsTab = () => {
                             color="#EF4444"
                             trend="down"
                             trendValue="Critical"
+                            index={1}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Active Debtors"
                             value={kpis.debtorsCount || 0}
                             icon={PeopleIcon}
                             color="#3B82F6"
+                            index={2}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Avg Debt Age"
                             value={`${kpis.avgDebtAge || 0} Days`}
                             icon={TimerIcon}
                             color="#8B5CF6"
+                            index={3}
                         />
                     </Grid>
                 </Grid>

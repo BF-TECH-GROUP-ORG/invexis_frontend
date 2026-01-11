@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Grid, Box, CircularProgress, Paper, Typography,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    IconButton, Collapse, Fade, Menu, MenuItem, Button, TextField, Divider
+    IconButton, Collapse, Fade, Menu, MenuItem, Button, Box, Grid, Paper, TableContainer, Table, TableBody, TableCell, TableHead, TableRow, TextField, CircularProgress, Typography, Divider, Stack
 } from '@mui/material';
+import { motion } from 'framer-motion';
+import {
+    TrendingUp,
+    TrendingDown,
+    DollarSign,
+    CreditCard,
+    RefreshCw,
+    BarChart3
+} from 'lucide-react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
+import BusinessOverviewChart from './BusinessOverviewChart';
 
 const GeneralTab = ({ dateRange }) => {
     const { data: session } = useSession();
@@ -129,32 +137,94 @@ const GeneralTab = ({ dateRange }) => {
                 </Typography>
 
                 {/* Top KPIs */}
-                <Grid container spacing={0} sx={{ mb: 3 }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
                     {[
-                        { title: "Total Revenue", value: "$1,250,890", color: "#ea580c" },
-                        { title: "Total Costs", value: "$745,300", color: "#ea580c" },
-                        { title: "Net Profit", value: "$505,590", color: "#ea580c" },
-                        { title: "Outstanding Debts", value: "$132,800", color: "#ea580c" },
-                        { title: "Total Return", value: "$398,820", color: "#ea580c" }
+                        { title: "Total Revenue", value: "$1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
+                        { title: "Total Costs", value: "$745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
+                        { title: "Net Profit", value: "$505,590", Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
+                        { title: "Outstanding Debts", value: "$132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
+                        { title: "Total Return", value: "$398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
-                        <Grid item xs={12} sm={6} md={2.4} key={i}>
-                            <Paper elevation={0} sx={{ p: 2, display: "flex", alignItems: "center", gap: 2, border: "1px solid #e5e7eb", borderRadius: 0 }}>
-                                <Box sx={{ width: 40, height: 40, bgcolor: kpi.color, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "1.2rem" }}>$</Box>
-                                <Box>
-                                    <Typography variant="caption" fontWeight="700" color="text.secondary" sx={{ display: "block", lineHeight: 1 }}>{kpi.title}</Typography>
-                                    <Typography variant="h6" fontWeight="800" sx={{ color: "#111827" }}>{kpi.value}</Typography>
-                                </Box>
-                            </Paper>
+                        <Grid item xs={1} key={i}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                style={{ height: "100%" }}
+                            >
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        p: 3,
+                                        width: "100%",
+                                        height: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        border: "2px solid #e5e7eb",
+                                        borderRadius: 0,
+                                        bgcolor: "white",
+                                        transition: "all 0.3s ease",
+                                        boxShadow: "none",
+                                        "&:hover": {
+                                            borderColor: kpi.color,
+                                            transform: "translateY(-4px)",
+                                            boxShadow: "none"
+                                        }
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography
+                                            variant="caption"
+                                            fontWeight="600"
+                                            color="text.secondary"
+                                            sx={{
+                                                display: "block",
+                                                mb: 0.5,
+                                                textTransform: "uppercase",
+                                                letterSpacing: "0.5px"
+                                            }}
+                                        >
+                                            {kpi.title}
+                                        </Typography>
+
+                                        <Typography
+                                            variant="h5"
+                                            fontWeight="800"
+                                            sx={{ color: "#111827" }}
+                                        >
+                                            {kpi.value}
+                                        </Typography>
+                                    </Box>
+
+                                    <Box
+                                        sx={{
+                                            p: 1.5,
+                                            borderRadius: "12px",
+                                            bgcolor: kpi.bgColor,
+                                            color: kpi.color,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center"
+                                        }}
+                                    >
+                                        <kpi.Icon size={24} />
+                                    </Box>
+                                </Paper>
+                            </motion.div>
                         </Grid>
                     ))}
                 </Grid>
 
+                {/* Business Overview Chart */}
+                <BusinessOverviewChart />
+
                 {/* Hierarchical Table */}
-                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: 0, overflowX: 'auto' }}>
+                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
                     <Table size="small">
                         <TableHead>
                             {/* Main Headers */}
-                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #444", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
                                         {selectedDate} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
@@ -174,7 +244,7 @@ const GeneralTab = ({ dateRange }) => {
                                 <TableCell align="center" colSpan={2}>Profit</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
-                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #444", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
                                 <TableCell align="center">Initial Stock</TableCell>
                                 <TableCell align="center">Remaining</TableCell>
@@ -231,7 +301,7 @@ const GeneralTab = ({ dateRange }) => {
                                                 </TableRow>
                                             ))}
                                             {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#ea580c", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
                                                 <TableCell colSpan={3} sx={{ pl: 2 }}>{shop.name} Subtotal</TableCell>
                                                 <TableCell align="center">{shop.subtotal.initial}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.remaining}</TableCell>
@@ -254,7 +324,7 @@ const GeneralTab = ({ dateRange }) => {
                                     <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
 
                                     {/* Grand Total Row */}
-                                    <TableRow sx={{ bgcolor: "#b3afabff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                    <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
                                         <TableCell colSpan={3} sx={{ pl: 2 }}>Total</TableCell>
                                         <TableCell align="center">{day.total.initial}</TableCell>
                                         <TableCell align="center">{day.total.remaining}</TableCell>
@@ -336,7 +406,7 @@ const GeneralTab = ({ dateRange }) => {
                 </Menu>
 
                 {/* Recommendation Section */}
-                <Box sx={{ mt: 4, p: 3, bgcolor: "white", border: "1px solid #e5e7eb", borderRadius: 0 }}>
+                <Box sx={{ mt: 4, p: 3, bgcolor: "white", border: "1px solid #e5e7eb", borderRadius: 0, boxShadow: "none" }}>
                     <Typography variant="body2" sx={{ color: "#374151", fontWeight: "500" }}>
                         <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>Recommendation:</Box> Focus on reducing pending payments to improve cash flow and consider strategies to increase net profit margins consistently.
                     </Typography>

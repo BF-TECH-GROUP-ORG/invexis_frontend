@@ -45,13 +45,13 @@ const ReportTable = ({
             elevation={0}
             sx={{
                 width: '100%',
-                borderRadius: { xs: 0, sm: "20px" },
+                borderRadius: 0,
                 border: "1px solid #e5e7eb",
                 borderLeft: { xs: "none", sm: "1px solid #e5e7eb" },
                 borderRight: { xs: "none", sm: "1px solid #e5e7eb" },
                 overflow: "hidden",
                 bgcolor: "white",
-                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)"
+                boxShadow: "none"
             }}
         >
             <Box sx={{
@@ -92,7 +92,7 @@ const ReportTable = ({
                 },
                 '&::-webkit-scrollbar-thumb': {
                     backgroundColor: '#e5e7eb',
-                    borderRadius: '10px',
+                    borderRadius: 0,
                 },
             }}>
                 <Table stickyHeader size="medium" sx={{ minWidth: 800, width: '100%' }}>

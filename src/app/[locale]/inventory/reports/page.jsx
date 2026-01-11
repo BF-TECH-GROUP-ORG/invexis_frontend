@@ -50,7 +50,7 @@ const ReportsPage = () => {
         <Box sx={{
             width: '100%',
             minHeight: '100vh',
-            bgcolor: "#f9fafb"
+            bgcolor: "#ffffff"
         }}>
             {/* Header Section */}
             <Box sx={{
@@ -72,7 +72,7 @@ const ReportsPage = () => {
                         System-Wide Reports & Analytics
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 600 }}>
-                        Consolidated insights across all your business operations to keep you informed and empowered.
+                        Consolidated insights across all your business operations
                     </Typography>
                 </Box>
 
@@ -138,8 +138,8 @@ const ReportsPage = () => {
                             textTransform: "none",
                             borderRadius: "10px",
                             px: 3,
-                            boxShadow: "0 4px 14px 0 rgba(255, 109, 0, 0.39)",
-                            "&:hover": { bgcolor: "#E65100", boxShadow: "0 6px 20px rgba(255, 109, 0, 0.23)" }
+                            boxShadow: "none",
+                            "&:hover": { bgcolor: "#E65100", boxShadow: "none" }
                         }}
                     >
                         Export
@@ -153,10 +153,11 @@ const ReportsPage = () => {
                 sx={{
                     mb: 4,
                     bgcolor: "white",
-                    borderRadius: { xs: 0, sm: "16px" },
+                    borderRadius: 0,
                     border: "1px solid #e5e7eb",
                     borderLeft: { xs: "none", sm: "1px solid #e5e7eb" },
                     borderRight: { xs: "none", sm: "1px solid #e5e7eb" },
+                    boxShadow: "none",
                     overflow: "hidden"
                 }}
             >

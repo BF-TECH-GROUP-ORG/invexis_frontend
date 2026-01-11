@@ -6,6 +6,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
@@ -84,38 +85,42 @@ const SalesTab = ({ dateRange }) => {
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%' }}>
-                <Grid container spacing={{ xs: 0, sm: 3 }} sx={{ mb: 4, width: '100%', m: 0 }}>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Revenue"
                             value={`${parseFloat(stats?.totalDailySales || 0).toLocaleString()} FRW`}
                             icon={AttachMoneyIcon}
                             color="#FF6D00"
                             trend="up"
+                            index={0}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Net Profit"
                             value={`${parseFloat(stats?.totalDailyProfit || 0).toLocaleString()} FRW`}
                             icon={TrendingUpIcon}
                             color="#10B981"
+                            index={1}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Orders"
                             value={stats?.totalOrders || 0}
                             icon={ShoppingCartIcon}
                             color="#3B82F6"
+                            index={2}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Avg Order Value"
                             value={stats?.totalOrders > 0 ? `${(parseFloat(stats.totalDailySales) / stats.totalOrders).toLocaleString(undefined, { maximumFractionDigits: 0 })} FRW` : "0 FRW"}
                             icon={ReceiptLongIcon}
                             color="#8B5CF6"
+                            index={3}
                         />
                     </Grid>
                 </Grid>
