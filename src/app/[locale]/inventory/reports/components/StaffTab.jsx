@@ -112,33 +112,36 @@ const StaffTab = ({ dateRange }) => {
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%' }}>
-                <Grid container spacing={{ xs: 0, sm: 3 }} sx={{ mb: 4, width: '100%', m: 0 }}>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Staff"
                             value={staffPerformance.length}
                             icon={GroupIcon}
                             color="#111827"
+                            index={0}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Active Branches"
                             value={shopPerformance.length}
                             icon={StoreIcon}
                             color="#FF6D00"
+                            index={1}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Top Performer"
                             value={topPerformer?.employeeName || "N/A"}
                             subValue={topPerformer ? `${parseFloat(topPerformer.totalSales).toLocaleString()} FRW` : ""}
                             icon={StarIcon}
                             color="#F59E0B"
+                            index={2}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Avg Rev/Staff"
                             value={staffPerformance.length > 0
@@ -146,6 +149,7 @@ const StaffTab = ({ dateRange }) => {
                                 : "0 FRW"}
                             icon={TrendingUpIcon}
                             color="#10B981"
+                            index={3}
                         />
                     </Grid>
                 </Grid>

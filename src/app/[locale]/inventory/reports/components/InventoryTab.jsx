@@ -87,24 +87,26 @@ const InventoryTab = () => {
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%' }}>
-                <Grid container spacing={{ xs: 0, sm: 3 }} sx={{ mb: 4, width: '100%', m: 0 }}>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Stock Value"
                             value={`${(summary?.totalValue || 0).toLocaleString()} FRW`}
                             icon={MonetizationOnIcon}
                             color="#FF6D00"
+                            index={0}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Total Items"
                             value={summary?.totalItems || 0}
                             icon={Inventory2Icon}
                             color="#3B82F6"
+                            index={1}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Low Stock Items"
                             value={summary?.lowStockCount || 0}
@@ -112,9 +114,10 @@ const InventoryTab = () => {
                             color="#F59E0B"
                             trend="down"
                             trendValue="Action Needed"
+                            index={2}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Out of Stock"
                             value={summary?.outOfStockCount || 0}
@@ -122,6 +125,7 @@ const InventoryTab = () => {
                             color="#EF4444"
                             trend="down"
                             trendValue="Critical"
+                            index={3}
                         />
                     </Grid>
                 </Grid>

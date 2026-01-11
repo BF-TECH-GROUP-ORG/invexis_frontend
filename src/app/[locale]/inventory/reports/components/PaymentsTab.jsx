@@ -96,37 +96,41 @@ const PaymentsTab = ({ dateRange }) => {
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%' }}>
-                <Grid container spacing={{ xs: 0, sm: 3 }} sx={{ mb: 4, width: '100%', m: 0 }}>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                    <Grid item xs={12} sm={6} md={3}>
                         <ReportKPI
                             title="Total Received"
                             value={`${totalReceived.toLocaleString()} FRW`}
                             icon={AccountBalanceWalletIcon}
                             color="#10B981"
+                            index={0}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Pending Payments"
                             value="450,000 FRW"
                             icon={AccessTimeIcon}
                             color="#F59E0B"
+                            index={1}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Failed Payments"
                             value="120,000 FRW"
                             icon={CancelIcon}
                             color="#EF4444"
+                            index={2}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} lg={3} sx={{ mb: { xs: 2, sm: 0 } }}>
+                    <Grid item xs={1}>
                         <ReportKPI
                             title="Top Method"
                             value={paymentStats.length > 0 ? paymentStats.sort((a, b) => b.totalAmount - a.totalAmount)[0]?.method?.toUpperCase() : "N/A"}
                             icon={PieChartIcon}
                             color="#3B82F6"
+                            index={3}
                         />
                     </Grid>
                 </Grid>
