@@ -7,7 +7,7 @@ import {
   Menu, MenuItem, ListItemIcon, ListItemText, Dialog,
   DialogTitle, DialogContent, DialogActions, Button, Popover,
   ToggleButton, ToggleButtonGroup, InputAdornment, Select,
-  FormControl, InputLabel
+  FormControl, InputLabel, TablePagination, Chip, Avatar, Stack
 } from "@mui/material";
 
 // Icons
@@ -369,6 +369,19 @@ const DebtsTable = ({
     pendingPayload: null
   });
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   // Repayment mutation with Optimistic Updates
   const repaymentMutation = useMutation({
     mutationFn: recordRepayment,
@@ -631,96 +644,150 @@ const DebtsTable = ({
     return rows;
   }, [search, startDate, endDate, debts, selectedWorkerId, selectedShopId]);
 
+  const paginatedRows = useMemo(() => {
+    return filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  }, [filteredRows, page, rowsPerPage]);
+
   return (
     <Paper sx={{
+      width: "100%",
+      overflowY: "auto",
       borderRadius: "16px",
       border: "1px solid #e5e7eb",
       overflow: "hidden",
       bgcolor: "white",
       boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
     }}>
-      {/* Toolbar */}
-      <Toolbar sx={{
+      {/* Consolidated Header */}
+      <Box sx={{
+        p: 3,
+        borderBottom: "1px solid #e5e7eb",
         display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        alignItems: { xs: "stretch", md: "center" },
-        justifyContent: "space-between",
-        gap: 2,
-        py: 2,
-        borderBottom: "1px solid #eee"
+        flexDirection: "column",
+        gap: 3,
+        bgcolor: "#fff"
       }}>
-        <TextField
-          size="small"
-          placeholder={tPage("searchPlaceholder") || "Search debtor or phone..."}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} /> }}
-          sx={{ width: { xs: "100%", md: 320 }, bgcolor: "white", borderRadius: 2 }}
-        />
-
-        {!isWorker && (
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, ml: { xs: 0, md: 2 }, width: { xs: "100%", md: "auto" } }}>
-            {/* Worker Filter */}
-            <FormControl sx={{ minWidth: 200, width: { xs: "100%", md: "auto" } }} size="small">
-              <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
-              <Select
-                labelId="worker-filter-label"
-                value={selectedWorkerId}
-                label="Filter by Worker"
-                onChange={(e) => setSelectedWorkerId(e.target.value)}
-                sx={{ bgcolor: "white", borderRadius: 2 }}
-              >
-                <MenuItem value="">
-                  <em>All Workers</em>
-                </MenuItem>
-                {workers.map((worker) => (
-                  <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
-                    {worker.name || worker.email}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Shop Filter */}
-            <FormControl sx={{ minWidth: 200, width: { xs: "100%", md: "auto" } }} size="small">
-              <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
-              <Select
-                labelId="shop-filter-label"
-                value={selectedShopId}
-                label="Filter by Shop"
-                onChange={(e) => setSelectedShopId(e.target.value)}
-                sx={{ bgcolor: "white", borderRadius: 2 }}
-              >
-                <MenuItem value="">
-                  <em>All Shops</em>
-                </MenuItem>
-                {shops.map((shop) => (
-                  <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
-                    {shop.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+        {/* Top Row: Title & Search */}
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box>
+              <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
+                {tPage("title") || "Debts Management"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {tPage("subtitle") || "Track and manage customer debts and repayments."}
+              </Typography>
+            </Box>
           </Box>
-        )}
 
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <IconButton onClick={handleOpenFilter}>
-            <FilterAltRoundedIcon />
-            <Typography variant="caption" sx={{ ml: 0.5, fontWeight: "bold" }}>Filter</Typography>
-          </IconButton>
-
-          <IconButton onClick={handleExportMenuOpen}>
-            <CloudDownloadRoundedIcon />
-            <Typography variant="caption" sx={{ ml: 0.5, fontWeight: "bold" }}>Download</Typography>
-          </IconButton>
-
-          <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
-            <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
-            <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
-          </Menu>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
+            <TextField
+              size="small"
+              placeholder={tPage("searchPlaceholder") || "Search debtor or phone..."}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+              }}
+              sx={{
+                width: { xs: "100%", md: 320 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#f9fafb",
+                  "& fieldset": { borderColor: "#e5e7eb" },
+                  "&:hover fieldset": { borderColor: "#d1d5db" },
+                  "&.Mui-focused fieldset": { borderColor: "#FF6D00" }
+                }
+              }}
+            />
+            <IconButton
+              onClick={handleOpenFilter}
+              sx={{
+                bgcolor: (startDate || endDate) ? "#FFF3E0" : "#f3f4f6",
+                color: (startDate || endDate) ? "#FF6D00" : "#4b5563",
+                borderRadius: "8px",
+                p: 1,
+                "&:hover": { bgcolor: (startDate || endDate) ? "#FFE0B2" : "#e5e7eb" }
+              }}
+            >
+              <FilterAltRoundedIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleExportMenuOpen}
+              sx={{
+                bgcolor: "#f3f4f6",
+                color: "#4b5563",
+                borderRadius: "8px",
+                p: 1,
+                "&:hover": { bgcolor: "#e5e7eb" }
+              }}
+            >
+              <CloudDownloadRoundedIcon />
+            </IconButton>
+            <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
+              <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
+              <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
+            </Menu>
+          </Box>
         </Box>
-      </Toolbar>
+
+        {/* Bottom Row: Filters */}
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
+          {!isWorker && (
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { xs: "stretch", md: "center" }, gap: 2, width: { xs: "100%", md: "auto" } }}>
+              <FormControl variant="outlined" size="small" sx={{
+                minWidth: { xs: "100%", md: 200 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#f9fafb",
+                }
+              }}>
+                <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
+                <Select
+                  labelId="worker-filter-label"
+                  value={selectedWorkerId}
+                  label="Filter by Worker"
+                  onChange={(e) => setSelectedWorkerId(e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>All Workers</em>
+                  </MenuItem>
+                  {workers.map((worker) => (
+                    <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
+                      {worker.name || worker.email}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl variant="outlined" size="small" sx={{
+                minWidth: { xs: "100%", md: 200 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#f9fafb",
+                }
+              }}>
+                <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
+                <Select
+                  labelId="shop-filter-label"
+                  value={selectedShopId}
+                  label="Filter by Shop"
+                  onChange={(e) => setSelectedShopId(e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>All Shops</em>
+                  </MenuItem>
+                  {shops.map((shop) => (
+                    <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
+                      {shop.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+        </Box>
+      </Box>
 
       {/* Filter Popover */}
       <Popover open={Boolean(filterAnchor)} anchorEl={filterAnchor} onClose={handleCloseFilter}
@@ -740,7 +807,6 @@ const DebtsTable = ({
       {/* Table */}
       <TableContainer sx={{
         maxHeight: 800,
-        bgcolor: "white",
         width: '100%',
         overflowX: 'auto',
         '&::-webkit-scrollbar': {
@@ -753,21 +819,21 @@ const DebtsTable = ({
       }}>
         <Table stickyHeader sx={{ minWidth: 1000 }}>
           <TableHead>
-            <TableRow sx={{ bgcolor: "#e3f2fd" }}>
-              <TableCell>{tTable("no") || "No"}</TableCell>
-              <TableCell>{tTable("debtorName") || "Debtor Name"}</TableCell>
-              <TableCell>{tTable("contact") || "Contact"}</TableCell>
-              <TableCell>Shop</TableCell>
-              <TableCell align="right">{tTable("totalDebt") || "Total Debt"}</TableCell>
-              <TableCell align="right">{tTable("amountPaid") || "Paid"}</TableCell>
-              <TableCell align="right">{tTable("remainingDebt") || "Remaining"}</TableCell>
-              <TableCell>{tTable("dueDate") || "Due Date"}</TableCell>
-              <TableCell>{tTable("isDebtCleared") || "Status"}</TableCell>
-              <TableCell>{tTable("action") || "Actions"}</TableCell>
+            <TableRow>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("no") || "No"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("debtorName") || "Debtor Name"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("contact") || "Contact"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Shop</TableCell>
+              <TableCell align="right" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("totalDebt") || "Total Debt"}</TableCell>
+              <TableCell align="right" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("amountPaid") || "Paid"}</TableCell>
+              <TableCell align="right" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("remainingDebt") || "Remaining"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("dueDate") || "Due Date"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("isDebtCleared") || "Status"}</TableCell>
+              <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("action") || "Actions"}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRows.map((debt) => {
+            {paginatedRows.map((debt) => {
               const debtorName = debt.customer?.name || debt.knownUser?.customerName || "Unknown";
               const debtorPhone = debt.customer?.phone || debt.knownUser?.customerPhone || "N/A";
               const debtId = debt._id || debt.saleId || "N/A";
@@ -778,32 +844,83 @@ const DebtsTable = ({
               const amountPaidNow = parseFloat(debt.amountPaidNow || 0);
 
               return (
-                <TableRow key={debtId} hover>
-                  <TableCell>{displayId}</TableCell>
-                  <TableCell>{debtorName}</TableCell>
-                  <TableCell>{debtorPhone}</TableCell>
-                  <TableCell>{shopMap[debt.shopId] || debt.shopId || "N/A"}</TableCell>
-                  <TableCell align="right">{totalAmount.toLocaleString()} FRW</TableCell>
-                  <TableCell align="right">{amountPaidNow.toLocaleString()} FRW</TableCell>
-                  <TableCell align="right" sx={{ color: balance > 0 ? "#d32f2f" : "green", fontWeight: "bold" }}>
-                    {balance.toLocaleString()} FRW
-                  </TableCell>
-                  <TableCell>{debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}</TableCell>
+                <TableRow
+                  key={debtId}
+                  hover
+                  sx={{
+                    "&:hover": { backgroundColor: "#f9fafb" },
+                    transition: "all 0.2s ease",
+                  }}
+                >
                   <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded text-sm font-bold ${status === 'PAID'
-                        ? 'bg-green-200 text-green-700 rounded-xl'
-                        : status === 'CANCELLED'
-                          ? 'bg-red-200 text-red-700 rounded-xl'
-                          : status === 'PARTIALLY_PAID'
-                            ? 'bg-yellow-200 text-yellow-700 rounded-xl'
-                            : 'bg-red-200 text-red-700 rounded-xl'
-                        }`}
-                    >
-                      {status.replace('_', ' ')}
-                    </span>
+                    <Typography variant="body2" fontWeight="600" color="primary">
+                      #{displayId}
+                    </Typography>
                   </TableCell>
                   <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Avatar
+                        variant="rounded"
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          bgcolor: "orange.50",
+                          color: "orange.500",
+                          fontSize: "0.875rem"
+                        }}
+                      >
+                        {debtorName.charAt(0)}
+                      </Avatar>
+                      <Typography variant="body2" fontWeight="500">
+                        {debtorName}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {debtorPhone}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {shopMap[debt.shopId] || debt.shopId || "N/A"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" fontWeight="600">
+                      {totalAmount.toLocaleString()} FRW
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" color="success.main">
+                      {amountPaidNow.toLocaleString()} FRW
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" sx={{ color: balance > 0 ? "error.main" : "success.main", fontWeight: "700" }}>
+                      {balance.toLocaleString()} FRW
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {status === 'PAID' && (
+                      <Chip label="Paid" size="small" sx={{ bgcolor: "#ECFDF5", color: "#059669", fontWeight: 600, fontSize: "0.75rem" }} />
+                    )}
+                    {status === 'CANCELLED' && (
+                      <Chip label="Cancelled" size="small" sx={{ bgcolor: "#FEF2F2", color: "#DC2626", fontWeight: 600, fontSize: "0.75rem" }} />
+                    )}
+                    {status === 'PARTIALLY_PAID' && (
+                      <Chip label="Partial" size="small" sx={{ bgcolor: "#FEF3C7", color: "#D97706", fontWeight: 600, fontSize: "0.75rem" }} />
+                    )}
+                    {(status === 'PENDING' || !['PAID', 'CANCELLED', 'PARTIALLY_PAID'].includes(status)) && (
+                      <Chip label="Pending" size="small" sx={{ bgcolor: "#EFF6FF", color: "#2563EB", fontWeight: 600, fontSize: "0.75rem" }} />
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
                     <DebtActionsMenu
                       debt={{
                         ...debt,
@@ -822,6 +939,33 @@ const DebtsTable = ({
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white border-x border-b border-gray-200">
+        <Typography variant="body2" color="text.secondary">
+          Showing {filteredRows.length > 0 ? page * rowsPerPage + 1 : 0} to {Math.min((page + 1) * rowsPerPage, filteredRows.length)} of {filteredRows.length} results
+        </Typography>
+        <TablePagination
+          component="div"
+          count={filteredRows.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 15]}
+          sx={{
+            border: "none",
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+              margin: 0,
+              display: { xs: 'none', sm: 'block' }
+            },
+            '.MuiTablePagination-toolbar': {
+              minHeight: 'auto',
+              padding: 0
+            }
+          }}
+        />
+      </div>
 
       {/* Success Snackbar */}
       <Snackbar

@@ -1198,6 +1198,7 @@ const DataTable = ({
       </Box>
 
       <TableContainer sx={{
+        
         maxHeight: 800,
         width: '100%',
         overflowX: 'auto',

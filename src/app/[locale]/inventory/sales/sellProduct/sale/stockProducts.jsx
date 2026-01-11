@@ -713,17 +713,19 @@ const CurrentInventory = () => {
               overflowX: 'auto',
             }}
           >
-            <Table stickyHeader size="medium" sx={{ minWidth: { xs: 800, md: 1000 } }}>
-            <TableHead>
+                      
+            <Table   stickyHeader size="medium" sx={{ paddingX:"15px",  minWidth: { xs: 800, md: 1000 } }}>
+            <TableHead >
               <TableRow>
+                <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>No</TableCell>
                 <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Select</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Product</TableCell>
+                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}  >Product</TableCell>
                 <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>SKU</TableCell>
                 <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Category</TableCell>
                 <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Stock</TableCell>
                 <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Min Price (FRW)</TableCell>
                 <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Selling Price (FRW)</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Quantity</TableCell>
+                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }} >Quantity</TableCell>
                 <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -746,6 +748,7 @@ const CurrentInventory = () => {
                 paginatedProducts.map((product) => {
                   const isSelected = !!selectedItems[product.id];
                   const item = selectedItems[product.id];
+                  const index = paginatedProducts.indexOf(product);
 
                   return (
                     <TableRow
@@ -753,6 +756,7 @@ const CurrentInventory = () => {
                       hover
                       onClick={() => handleCheckboxChange(product)}
                       sx={{
+                        
                         backgroundColor: isSelected ? "#FFF3E0" : "white",
                         "&:hover": { backgroundColor: isSelected ? "#FFE0B2" : "#f4f6f8" },
                         transition: "all 0.2s ease",
@@ -760,6 +764,10 @@ const CurrentInventory = () => {
                         opacity: product.Quantity === 0 ? 0.5 : 1
                       }}
                     >
+                      {/* No */}
+                      <TableCell  padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                      <span className="font-bold text-orange-500">#{index + 1}</span> 
+                      </TableCell>  
                       {/* Checkbox */}
                       <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                         <input
