@@ -131,13 +131,13 @@ const GeneralTab = ({ dateRange }) => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 0 }}>
-                <Typography variant="h5" align="left" fontWeight="700" sx={{ mb: 2, mt: 2, color: "#111827" }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+                <Typography variant="h5" align="left" fontWeight="700" sx={{ mb: 2, mt: 0, color: "#111827" }}>
                     General Business Report – Full Overview
                 </Typography>
 
                 {/* Top KPIs */}
-                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4 }}>
                     {[
                         { title: "Total Revenue", value: "$1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
                         { title: "Total Costs", value: "$745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },

@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Box, CircularProgress, Typography, Fade } from '@mui/material';
+import {
+    Grid, Box, CircularProgress, Typography, Fade, Paper, TableContainer, Table,
+    TableHead, TableBody, TableCell, TableRow, Menu, MenuItem, Divider
+} from '@mui/material';
 import ReportKPI from './ReportKPI';
-import ReportTable from './ReportTable';
 import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PeopleIcon from '@mui/icons-material/People';
 import WarningIcon from '@mui/icons-material/Warning';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import TimerIcon from '@mui/icons-material/Timer';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import debtsService from '@/services/debts';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
@@ -21,7 +25,11 @@ const DebtsTab = () => {
         debtorsCount: 0,
         avgDebtAge: 0
     });
-    const [debtors, setDebtors] = useState([]);
+    const [reportData, setReportData] = useState([]);
+    const [selectedDate, setSelectedDate] = useState('02/15/2022');
+    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [dateAnchor, setDateAnchor] = useState(null);
+    const [branchAnchor, setBranchAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
 
@@ -30,57 +38,152 @@ const DebtsTab = () => {
             setLoading(true);
             setTimeout(() => {
                 const mockDebts = [
-                    { id: 1, customer: { name: 'Jean Pierre', phone: '0788123456' }, balance: 450000, dueDate: dayjs().subtract(5, 'day').toISOString(), createdAt: dayjs().subtract(45, 'day').toISOString() },
-                    { id: 2, customer: { name: 'Sarah M.', phone: '0788654321' }, balance: 120000, dueDate: dayjs().add(10, 'day').toISOString(), createdAt: dayjs().subtract(20, 'day').toISOString() },
-                    { id: 3, customer: { name: 'Kigali Heights Corp', phone: '0788000111' }, balance: 2500000, dueDate: dayjs().subtract(35, 'day').toISOString(), createdAt: dayjs().subtract(60, 'day').toISOString() },
-                    { id: 4, customer: { name: 'Emmanuel R.', phone: '0788222333' }, balance: 85000, dueDate: dayjs().add(2, 'day').toISOString(), createdAt: dayjs().subtract(15, 'day').toISOString() },
-                    { id: 5, customer: { name: 'Marie Claire', phone: '0788444555' }, balance: 320000, dueDate: dayjs().subtract(12, 'day').toISOString(), createdAt: dayjs().subtract(40, 'day').toISOString() },
-                    { id: 6, customer: { name: 'Tech Solutions Ltd', phone: '0788777888' }, balance: 1500000, dueDate: dayjs().add(15, 'day').toISOString(), createdAt: dayjs().subtract(10, 'day').toISOString() },
+                    {
+                        date: '02/15/2022',
+                        branches: [
+                            {
+                                name: 'North Branch',
+                                debts: [
+                                    {
+                                        invoiceNo: 'INV-2022-001',
+                                        customer: { name: 'Jean Pierre', phone: '0788123456' },
+                                        original: 500000,
+                                        paid: 50000,
+                                        balance: 450000,
+                                        lastPaid: '02/10/2022',
+                                        dueDate: dayjs().subtract(5, 'day').format('MM/DD/YYYY'),
+                                        age: 45,
+                                        status: 'Overdue',
+                                        saleDate: '01/01/2022',
+                                        recordedBy: 'Alice'
+                                    },
+                                    {
+                                        invoiceNo: 'INV-2022-002',
+                                        customer: { name: 'Sarah M.', phone: '0788654321' },
+                                        original: 120000,
+                                        paid: 0,
+                                        balance: 120000,
+                                        lastPaid: '-',
+                                        dueDate: dayjs().add(10, 'day').format('MM/DD/YYYY'),
+                                        age: 20,
+                                        status: 'Pending',
+                                        saleDate: '01/26/2022',
+                                        recordedBy: 'Bob'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'South Branch',
+                                debts: [
+                                    {
+                                        invoiceNo: 'INV-2022-003',
+                                        customer: { name: 'Kigali Heights Corp', phone: '0788000111' },
+                                        original: 2500000,
+                                        paid: 0,
+                                        balance: 2500000,
+                                        lastPaid: '-',
+                                        dueDate: dayjs().subtract(35, 'day').format('MM/DD/YYYY'),
+                                        age: 60,
+                                        status: 'Overdue',
+                                        saleDate: '12/16/2021',
+                                        recordedBy: 'Charlie'
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        date: '02/14/2022',
+                        branches: [
+                            {
+                                name: 'North Branch',
+                                debts: [
+                                    {
+                                        invoiceNo: 'INV-2022-004',
+                                        customer: { name: 'Emmanuel R.', phone: '0788222333' },
+                                        original: 85000,
+                                        paid: 0,
+                                        balance: 85000,
+                                        lastPaid: '-',
+                                        dueDate: dayjs().add(2, 'day').format('MM/DD/YYYY'),
+                                        age: 15,
+                                        status: 'Pending',
+                                        saleDate: '01/30/2022',
+                                        recordedBy: 'Alice'
+                                    },
+                                    {
+                                        invoiceNo: 'INV-2022-005',
+                                        customer: { name: 'Marie Claire', phone: '0788444555' },
+                                        original: 350000,
+                                        paid: 30000,
+                                        balance: 320000,
+                                        lastPaid: '02/05/2022',
+                                        dueDate: dayjs().subtract(12, 'day').format('MM/DD/YYYY'),
+                                        age: 40,
+                                        status: 'Overdue',
+                                        saleDate: '01/05/2022',
+                                        recordedBy: 'Bob'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'South Branch',
+                                debts: [
+                                    {
+                                        invoiceNo: 'INV-2022-006',
+                                        customer: { name: 'Tech Solutions Ltd', phone: '0788777888' },
+                                        original: 1500000,
+                                        paid: 0,
+                                        balance: 1500000,
+                                        lastPaid: '-',
+                                        dueDate: dayjs().add(15, 'day').format('MM/DD/YYYY'),
+                                        age: 10,
+                                        status: 'Pending',
+                                        saleDate: '02/05/2022',
+                                        recordedBy: 'Charlie'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 ];
 
-                let total = 0;
-                let overdue = 0;
-                let uniqueDebtors = new Set();
-                let totalAgeDays = 0;
-                let activeDebtsCount = 0;
+                // Calculate KPIs
+                let total = 0, overdue = 0, uniqueDebtors = new Set(), totalAge = 0, debtCount = 0;
 
-                const processedDebts = mockDebts.map(debt => {
-                    const balance = parseFloat(debt.balance || 0);
-                    const isOverdue = dayjs().isAfter(dayjs(debt.dueDate));
+                mockDebts.forEach(day => {
+                    day.branches.forEach(branch => {
+                        branch.debts.forEach(debt => {
+                            total += debt.balance;
+                            debtCount++;
+                            uniqueDebtors.add(debt.customer.phone);
+                            totalAge += debt.age;
+                            if (debt.status === 'Overdue') overdue += debt.balance;
+                        });
+                    });
+                });
 
-                    if (balance > 0) {
-                        total += balance;
-                        uniqueDebtors.add(debt.customer?.phone || debt.customer?.name);
-                        activeDebtsCount++;
-
-                        if (isOverdue) {
-                            overdue += balance;
-                        }
-
-                        const age = dayjs().diff(dayjs(debt.createdAt), 'day');
-                        totalAgeDays += age;
-                    }
-
-                    return {
-                        ...debt,
-                        isOverdue
-                    };
+                // Filter by selected branch
+                let filteredData = mockDebts.map(day => {
+                    if (selectedBranch === 'None') return { ...day, branches: [] };
+                    if (selectedBranch === 'All') return day;
+                    const filteredBranches = day.branches.filter(branch => branch.name === selectedBranch);
+                    return { ...day, branches: filteredBranches };
                 });
 
                 setKpis({
                     totalOutstanding: total,
                     overdueAmount: overdue,
                     debtorsCount: uniqueDebtors.size,
-                    avgDebtAge: activeDebtsCount > 0 ? Math.round(totalAgeDays / activeDebtsCount) : 0
+                    avgDebtAge: debtCount > 0 ? Math.round(totalAge / debtCount) : 0
                 });
 
-                setDebtors(processedDebts);
+                setReportData(filteredData);
                 setLoading(false);
             }, 800);
         };
-
         fetchData();
-    }, [companyId]);
+    }, [companyId, selectedBranch, selectedDate]);
 
     if (loading) {
         return (
@@ -90,77 +193,36 @@ const DebtsTab = () => {
         );
     }
 
-    const columns = [
-        {
-            field: 'customer',
-            label: 'Debtor',
-            render: (row) => (
-                <Typography variant="body2" fontWeight="700" sx={{ color: "#374151" }}>
-                    {row.customer?.name || "Unknown"}
-                </Typography>
-            )
-        },
-        {
-            field: 'balance',
-            label: 'Remaining Balance',
-            align: 'right',
-            render: (row) => (
-                <Typography variant="body2" fontWeight="800" sx={{ color: "#DC2626" }}>
-                    {parseFloat(row.balance).toLocaleString()} FRW
-                </Typography>
-            )
-        },
-        {
-            field: 'dueDate',
-            label: 'Due Date',
-            render: (row) => dayjs(row.dueDate).format('MMM DD, YYYY')
-        },
-        {
-            field: 'status',
-            label: 'Risk Level',
-            align: 'right',
-            render: (row) => {
-                const daysOverdue = dayjs().diff(dayjs(row.dueDate), 'day');
-                let color = "#10B981";
-                let text = "Low Risk";
-                let bgcolor = "#F0FDF4";
-                let border = "#DCFCE7";
+    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
 
-                if (daysOverdue > 30) {
-                    color = "#DC2626";
-                    text = "High Risk";
-                    bgcolor = "#FEF2F2";
-                    border = "#FEE2E2";
-                } else if (daysOverdue > 0) {
-                    color = "#D97706";
-                    text = "Overdue";
-                    bgcolor = "#FFFBEB";
-                    border = "#FEF3C7";
-                }
+    const handleDateClick = (event) => setDateAnchor(event.currentTarget);
+    const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
+    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); };
 
-                return (
-                    <Box component="span" sx={{
-                        px: 1.5, py: 0.5, borderRadius: "20px",
-                        bgcolor: bgcolor,
-                        color: color,
-                        fontWeight: '700', fontSize: '0.7rem',
-                        border: `1px solid ${border}`
-                    }}>
-                        {text}
-                    </Box>
-                );
-            }
-        }
-    ];
+    const handleBranchSelect = (branch) => {
+        setSelectedBranch(branch);
+        handleClose();
+    };
+
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+        handleClose();
+    };
+
+    const getStatusColor = (status) => {
+        if (status === 'Overdue') return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' };
+        return { color: '#10B981', bg: '#F0FDF4', border: '#DCFCE7' };
+    };
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%' }}>
-                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+                {/* Top KPIs */}
+                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Total Outstanding"
-                            value={`${(kpis.totalOutstanding || 0).toLocaleString()} FRW`}
+                            value={formatCurrency(kpis?.totalOutstanding || 0)}
                             icon={AccountBalanceIcon}
                             color="#FF6D00"
                             index={0}
@@ -169,7 +231,7 @@ const DebtsTab = () => {
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Overdue Amount"
-                            value={`${(kpis.overdueAmount || 0).toLocaleString()} FRW`}
+                            value={formatCurrency(kpis?.overdueAmount || 0)}
                             icon={WarningIcon}
                             color="#EF4444"
                             trend="down"
@@ -180,7 +242,7 @@ const DebtsTab = () => {
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Active Debtors"
-                            value={kpis.debtorsCount || 0}
+                            value={kpis?.debtorsCount || 0}
                             icon={PeopleIcon}
                             color="#3B82F6"
                             index={2}
@@ -189,7 +251,7 @@ const DebtsTab = () => {
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Avg Debt Age"
-                            value={`${kpis.avgDebtAge || 0} Days`}
+                            value={`${kpis?.avgDebtAge || 0} Days`}
                             icon={TimerIcon}
                             color="#8B5CF6"
                             index={3}
@@ -197,15 +259,126 @@ const DebtsTab = () => {
                     </Grid>
                 </Grid>
 
-                <Box sx={{ width: '100%', mb: 4 }}>
-                    <ReportTable
-                        title="Outstanding Debts"
-                        columns={columns}
-                        data={debtors}
-                        onExport={() => console.log("Export Debts")}
-                        onPrint={() => console.log("Print Debts")}
-                    />
-                </Box>
+                {/* Hierarchical Table */}
+                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none" }}>
+                    <Table size="small">
+                        <TableHead>
+                            {/* Main Headers */}
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
+                                        {selectedDate} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
+                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center">Invoice No</TableCell>
+                                <TableCell align="center" colSpan={2}>Customer Info</TableCell>
+                                <TableCell align="center" colSpan={3}>Debt Amount</TableCell>
+                                <TableCell align="center" colSpan={2}>Payment Info</TableCell>
+                                <TableCell align="center">Status</TableCell>
+                                <TableCell align="center" colSpan={3}>Tracking</TableCell>
+                            </TableRow>
+                            {/* Sub Headers */}
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
+                                <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
+                                <TableCell align="center">Name</TableCell>
+                                <TableCell align="center">Phone</TableCell>
+                                <TableCell align="center">Original</TableCell>
+                                <TableCell align="center">Paid</TableCell>
+                                <TableCell align="center">Balance</TableCell>
+                                <TableCell align="center">Last Paid</TableCell>
+                                <TableCell align="center">Due Date</TableCell>
+                                <TableCell align="center">Age(D)</TableCell>
+                                <TableCell align="center">Sale Date</TableCell>
+                                <TableCell align="center">Recorded By</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {reportData.map((day, dIdx) => (
+                                <React.Fragment key={dIdx}>
+                                    {/* Date Row */}
+                                    <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.85rem", fontWeight: "700", py: 1 } }}>
+                                        <TableCell sx={{ borderRight: "1px solid #e5e7eb" }}>{day.date}</TableCell>
+                                        <TableCell colSpan={12} />
+                                    </TableRow>
+                                    {day.branches.map((branch, bIdx) => (
+                                        <React.Fragment key={bIdx}>
+                                            {/* Branch Header Row */}
+                                            <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
+                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
+                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{branch.name}</TableCell>
+                                                <TableCell colSpan={11} />
+                                            </TableRow>
+                                            {branch.debts.map((debt, pIdx) => {
+                                                const statusColor = getStatusColor(debt.status);
+                                                return (
+                                                    <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
+                                                        <TableCell />
+                                                        <TableCell />
+                                                        <TableCell align="center" sx={{ fontWeight: "600" }}>{debt.invoiceNo}</TableCell>
+                                                        <TableCell sx={{ pl: 2, fontWeight: "600" }}>{debt.customer.name}</TableCell>
+                                                        <TableCell align="center">{debt.customer.phone}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(debt.original)}</TableCell>
+                                                        <TableCell align="center" sx={{ color: "#10B981", fontWeight: "600" }}>{formatCurrency(debt.paid)}</TableCell>
+                                                        <TableCell align="center" sx={{ color: "#EF4444", fontWeight: "700" }}>{formatCurrency(debt.balance)}</TableCell>
+                                                        <TableCell align="center">{debt.lastPaid}</TableCell>
+                                                        <TableCell align="center" sx={{ color: "#D97706", fontWeight: "600" }}>{debt.dueDate}</TableCell>
+                                                        <TableCell align="center">{debt.age}</TableCell>
+                                                        <TableCell align="center">{debt.saleDate}</TableCell>
+                                                        <TableCell align="center">{debt.recordedBy}</TableCell>
+                                                        <TableCell align="center" sx={{ borderRight: "none" }}>
+                                                            <Box sx={{
+                                                                px: 1, py: 0.3, borderRadius: "12px",
+                                                                bgcolor: statusColor.bg,
+                                                                color: statusColor.color,
+                                                                fontWeight: '700', fontSize: '0.65rem',
+                                                                border: `1px solid ${statusColor.border}`
+                                                            }}>
+                                                                {debt.status}
+                                                            </Box>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                            {/* Spacer Row */}
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
+                                        </React.Fragment>
+                                    ))}
+                                </React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                {/* Date Selection Menu */}
+                <Menu
+                    anchorEl={dateAnchor}
+                    open={Boolean(dateAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleDateSelect('02/15/2022')}>02/15/2022</MenuItem>
+                    <MenuItem onClick={() => handleDateSelect('02/14/2022')}>02/14/2022</MenuItem>
+                </Menu>
+
+                {/* Branch Selection Menu */}
+                <Menu
+                    anchorEl={branchAnchor}
+                    open={Boolean(branchAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                </Menu>
             </Box>
         </Fade>
     );

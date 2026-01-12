@@ -111,8 +111,8 @@ const StaffTab = ({ dateRange }) => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%' }}>
-                <Grid container spacing={3} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4, width: 'calc(100% + 24px)', ml: -1.5 }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Total Staff"

@@ -23,70 +23,102 @@ const ReportKPI = ({
             <Paper
                 elevation={0}
                 sx={{
-                    p: 3,
-                    borderRadius: "16px",
-                    border: "2px solid #e5e7eb",
+                    p: 2.5,
+                    borderRadius: "12px",
+                    border: "1px solid #e5e7eb",
                     bgcolor: "white",
                     height: "100%",
                     display: "flex",
-                    alignItems: "center",
+                    flexDirection: "column",
                     justifyContent: "space-between",
                     transition: "all 0.3s ease",
-                    boxShadow: "none",
+                    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.05)",
                     "&:hover": {
-                        transform: "translateY(-4px)",
                         borderColor: color,
-                        boxShadow: "none"
+                        boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
+                        transform: "translateY(-2px)"
                     }
                 }}
             >
-                <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight="600" sx={{ textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.75rem", display: "block", mb: 0.5 }}>
+                {/* Header Section: Title + Icon */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+                    <Typography 
+                        variant="caption" 
+                        color="text.secondary" 
+                        fontWeight="600" 
+                        sx={{ 
+                            textTransform: "uppercase", 
+                            letterSpacing: "0.3px", 
+                            fontSize: "0.7rem",
+                            color: "#6b7280"
+                        }}
+                    >
                         {title}
                     </Typography>
-                    <Typography variant="h4" fontWeight="800" sx={{ color: "#111827" }}>
-                        {value}
-                    </Typography>
 
-                    {(subValue || trendValue) && (
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
-                            {trend && (
-                                <Box sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    color: trend === 'up' ? "success.main" : trend === 'down' ? "error.main" : "text.secondary",
-                                    bgcolor: trend === 'up' ? "success.lighter" : trend === 'down' ? "error.lighter" : "grey.100",
-                                    px: 1,
-                                    py: 0.25,
-                                    borderRadius: "6px"
-                                }}>
-                                    {trend === 'up' ? <TrendingUp size={14} style={{ marginRight: 4 }} /> :
-                                        trend === 'down' ? <TrendingDown size={14} style={{ marginRight: 4 }} /> : null}
-                                    <Typography variant="caption" fontWeight="700">
-                                        {trendValue}
-                                    </Typography>
-                                </Box>
-                            )}
-                            {subValue && (
-                                <Typography variant="caption" color="text.secondary" fontWeight="500">
-                                    {subValue}
-                                </Typography>
-                            )}
-                        </Stack>
+                    {Icon && (
+                        <Box sx={{
+                            p: 1,
+                            borderRadius: "8px",
+                            bgcolor: `${color}12`, // 12% opacity
+                            color: color,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            minWidth: "36px",
+                            minHeight: "36px"
+                        }}>
+                            <Icon sx={{ fontSize: "20px" }} />
+                        </Box>
                     )}
                 </Box>
 
-                {Icon && (
-                    <Box sx={{
-                        p: 1.5,
-                        borderRadius: "12px",
-                        bgcolor: `${color}15`, // 15% opacity
-                        color: color,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                    }}>
-                        <Icon size={24} />
+                {/* Value Section */}
+                <Box sx={{ mb: 1 }}>
+                    <Typography 
+                        variant="h6" 
+                        fontWeight="800" 
+                        sx={{ 
+                            color: "#111827",
+                            fontSize: "1.35rem",
+                            lineHeight: "1.2"
+                        }}
+                    >
+                        {value}
+                    </Typography>
+                </Box>
+
+                {/* Trend/SubValue Section */}
+                {(subValue || trendValue) && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        {trend && (
+                            <Box sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                color: trend === 'up' ? "#10b981" : trend === 'down' ? "#ef4444" : "#6b7280",
+                                bgcolor: trend === 'up' ? "#f0fdf4" : trend === 'down' ? "#fef2f2" : "#f3f4f6",
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: "6px",
+                                fontSize: "0.75rem",
+                                fontWeight: "700"
+                            }}>
+                                {trend === 'up' ? <TrendingUp size={12} /> :
+                                    trend === 'down' ? <TrendingDown size={12} /> : null}
+                                {trendValue}
+                            </Box>
+                        )}
+                        {subValue && (
+                            <Typography 
+                                variant="caption" 
+                                color="text.secondary" 
+                                fontWeight="500"
+                                sx={{ fontSize: "0.75rem" }}
+                            >
+                                {subValue}
+                            </Typography>
+                        )}
                     </Box>
                 )}
             </Paper>
