@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import {
     Grid, Box, CircularProgress, Typography, Fade, Paper, TableContainer, Table,
-    TableHead, TableBody, TableCell, TableRow, Menu, MenuItem, Divider
+    TableHead, TableBody, TableCell, TableRow, Menu, MenuItem, Divider, Button, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import ReportKPI from './ReportKPI';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -13,6 +15,9 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const PaymentsTab = ({ dateRange }) => {
     const { data: session } = useSession();
@@ -24,14 +29,19 @@ const PaymentsTab = ({ dateRange }) => {
         failedAmount: 0,
         avgPaymentSize: 0
     });
+    const [reportView, setReportView] = useState('daily'); // 'daily', 'weekly', 'monthly', 'yearly'
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedMonth, setSelectedMonth] = useState(dayjs());
+    const [selectedYear, setSelectedYear] = useState(dayjs());
 
     // Header Selection State
-    const [selectedDate, setSelectedDate] = useState('02/15/2022');
     const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedActor, setSelectedActor] = useState('All');
 
     // Menu Anchors
     const [dateAnchor, setDateAnchor] = useState(null);
     const [branchAnchor, setBranchAnchor] = useState(null);
+    const [actorAnchor, setActorAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
 
@@ -161,6 +171,16 @@ const PaymentsTab = ({ dateRange }) => {
                     if (selectedBranch === 'All') return day;
                     const filteredBranches = day.branches.filter(b => b.name === selectedBranch);
                     return { ...day, branches: filteredBranches };
+                }).map(day => {
+                    // Filter by actor (receivedBy)
+                    if (selectedActor === 'All') return day;
+                    return {
+                        ...day,
+                        branches: day.branches.map(b => ({
+                            ...b,
+                            payments: b.payments.filter(p => p.receivedBy === selectedActor)
+                        }))
+                    };
                 });
 
                 setReportData(filteredData);
@@ -169,7 +189,7 @@ const PaymentsTab = ({ dateRange }) => {
         };
 
         fetchData();
-    }, [companyId, dateRange, selectedBranch, selectedDate]);
+    }, [companyId, dateRange, selectedBranch, selectedDate, reportView, selectedMonth, selectedYear, selectedActor]);
 
     if (loading) {
         return (
@@ -183,10 +203,16 @@ const PaymentsTab = ({ dateRange }) => {
 
     const handleDateClick = (event) => setDateAnchor(event.currentTarget);
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
-    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); };
+    const handleActorClick = (event) => setActorAnchor(event.currentTarget);
+    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); setActorAnchor(null); };
 
     const handleBranchSelect = (branch) => {
         setSelectedBranch(branch);
+        handleClose();
+    };
+
+    const handleActorSelect = (actor) => {
+        setSelectedActor(actor);
         handleClose();
     };
 
@@ -203,7 +229,122 @@ const PaymentsTab = ({ dateRange }) => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+                {/* Header with Title, Toggle, and Date Picker */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
+                    <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
+                        Payments Report
+                    </Typography>
+
+                    {/* Report View Toggle and Date Picker Container */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <ToggleButtonGroup
+                            value={reportView}
+                            exclusive
+                            onChange={(event, newView) => {
+                                if (newView !== null) setReportView(newView);
+                            }}
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    textTransform: 'none',
+                                    fontWeight: '600',
+                                    fontSize: '0.85rem',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: '6px',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#6B7280',
+                                    '&.Mui-selected': {
+                                        bgcolor: '#FF6D00',
+                                        color: 'white',
+                                        borderColor: '#FF6D00',
+                                        '&:hover': {
+                                            bgcolor: '#E55D00'
+                                        }
+                                    },
+                                    '&:hover': {
+                                        bgcolor: '#f3f4f6'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="daily">Daily</ToggleButton>
+                            <ToggleButton value="weekly">Weekly</ToggleButton>
+                            <ToggleButton value="monthly">Monthly</ToggleButton>
+                            <ToggleButton value="yearly">Yearly</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        {/* Date Picker based on view */}
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            {reportView === 'daily' && (
+                                <DatePicker
+                                    label="Select Date"
+                                    value={selectedDate}
+                                    onChange={(newValue) => setSelectedDate(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {(reportView === 'weekly' || reportView === 'monthly') && (
+                                <DatePicker
+                                    views={['year', 'month']}
+                                    label="Select Month"
+                                    value={selectedMonth}
+                                    onChange={(newValue) => setSelectedMonth(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {reportView === 'yearly' && (
+                                <DatePicker
+                                    views={['year']}
+                                    label="Select Year"
+                                    value={selectedYear}
+                                    onChange={(newValue) => setSelectedYear(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 110,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                        </LocalizationProvider>
+                    </Box>
+                </Box>
+
                 {/* Top KPIs */}
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
@@ -252,12 +393,17 @@ const PaymentsTab = ({ dateRange }) => {
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
-                                        {selectedDate} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedDate.format('MM/DD/YYYY')} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
                                         {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleActorClick}>
+                                        {selectedActor === 'All' ? 'Received By' : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center" colSpan={2}>Customer Info</TableCell>
@@ -268,7 +414,7 @@ const PaymentsTab = ({ dateRange }) => {
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
-                                <TableCell colSpan={2} sx={{ borderRight: "1px solid #444" }} />
+                                <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
                                 <TableCell align="center">Name</TableCell>
                                 <TableCell align="center">Phone</TableCell>
                                 <TableCell align="center">-</TableCell>
@@ -276,7 +422,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 <TableCell align="center">Method</TableCell>
                                 <TableCell align="center">-</TableCell>
                                 <TableCell align="center">Sale/Debt Ref</TableCell>
-                                <TableCell align="center">Received By</TableCell>
+                                <TableCell align="center">Status</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>Time</TableCell>
                             </TableRow>
                         </TableHead>
@@ -294,7 +440,7 @@ const PaymentsTab = ({ dateRange }) => {
                                             <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
                                                 <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
                                                 <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{branch.name}</TableCell>
-                                                <TableCell colSpan={10} />
+                                                <TableCell colSpan={9} />
                                             </TableRow>
                                             {branch.payments.map((payment, pIdx) => {
                                                 const statusColor = getStatusColor(payment.status);
@@ -302,6 +448,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                     <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
                                                         <TableCell />
                                                         <TableCell />
+                                                        <TableCell sx={{ pl: 2, fontWeight: "600" }}>{payment.receivedBy}</TableCell>
                                                         <TableCell sx={{ pl: 2, fontWeight: "600" }}>{payment.customer.name}</TableCell>
                                                         <TableCell align="center">{payment.customer.phone}</TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: "600" }}>{payment.invoiceNo}</TableCell>
@@ -319,13 +466,13 @@ const PaymentsTab = ({ dateRange }) => {
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.saleDebtRef}</TableCell>
-                                                        <TableCell align="center">{payment.receivedBy}</TableCell>
-                                                        <TableCell align="center" sx={{ borderRight: "none" }}>{payment.time}</TableCell>
+                                                        <TableCell align="center">{payment.time}</TableCell>
+                                                        <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
                                                     </TableRow>
                                                 );
                                             })}
                                             {/* Spacer Row */}
-                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={12} sx={{ border: "none" }} /></TableRow>
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
@@ -357,6 +504,22 @@ const PaymentsTab = ({ dateRange }) => {
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                </Menu>
+
+                {/* Actor Selection Menu */}
+                <Menu
+                    anchorEl={actorAnchor}
+                    open={Boolean(actorAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleActorSelect('All')}>All</MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleActorSelect('Alice')}>Alice</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Bob')}>Bob</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Charlie')}>Charlie</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Diana')}>Diana</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Eve')}>Eve</MenuItem>
                 </Menu>
             </Box>
         </Fade>

@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { Fade, Menu, MenuItem, Box, Grid, Paper, TableContainer, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Divider } from '@mui/material';
+import { Fade, Menu, MenuItem, Box, Grid, Paper, TableContainer, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Divider, Button, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
@@ -9,17 +11,26 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 
 const SalesTab = ({ dateRange }) => {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
     const [stats, setStats] = useState(null);
-    const [selectedDate, setSelectedDate] = useState('02/15/2022');
+    const [reportView, setReportView] = useState('daily'); // 'daily', 'weekly', 'monthly', 'yearly'
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedMonth, setSelectedMonth] = useState(dayjs());
+    const [selectedYear, setSelectedYear] = useState(dayjs());
     const [selectedBranch, setSelectedBranch] = useState('All');
     const [filterByKPI, setFilterByKPI] = useState(null);
+    const [selectedActor, setSelectedActor] = useState('All');
     const [dateAnchor, setDateAnchor] = useState(null);
     const [branchAnchor, setBranchAnchor] = useState(null);
+    const [actorAnchor, setActorAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
 
@@ -129,6 +140,16 @@ const SalesTab = ({ dateRange }) => {
                     if (selectedBranch === 'All') return day;
                     const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
                     return { ...day, shops: filteredShops };
+                }).map(day => {
+                    // Filter by actor (soldBy)
+                    if (selectedActor === 'All') return day;
+                    return {
+                        ...day,
+                        shops: day.shops.map(s => ({
+                            ...s,
+                            sales: s.sales.filter(sale => sale.tracking.soldBy === selectedActor)
+                        }))
+                    };
                 });
 
                 setStats(mockStats);
@@ -137,7 +158,7 @@ const SalesTab = ({ dateRange }) => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, selectedDate, dateRange]);
+    }, [companyId, selectedBranch, selectedDate, reportView, selectedMonth, selectedYear, dateRange, selectedActor]);
 
     if (loading) {
         return (
@@ -151,10 +172,16 @@ const SalesTab = ({ dateRange }) => {
 
     const handleDateClick = (event) => setDateAnchor(event.currentTarget);
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
-    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); };
+    const handleActorClick = (event) => setActorAnchor(event.currentTarget);
+    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); setActorAnchor(null); };
 
     const handleBranchSelect = (branch) => {
         setSelectedBranch(branch);
+        handleClose();
+    };
+
+    const handleActorSelect = (actor) => {
+        setSelectedActor(actor);
         handleClose();
     };
 
@@ -169,7 +196,122 @@ const SalesTab = ({ dateRange }) => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+                {/* Header with Title, Toggle, and Date Picker */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
+                    <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
+                        Sales Report
+                    </Typography>
+
+                    {/* Report View Toggle and Date Picker Container */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <ToggleButtonGroup
+                            value={reportView}
+                            exclusive
+                            onChange={(event, newView) => {
+                                if (newView !== null) setReportView(newView);
+                            }}
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    textTransform: 'none',
+                                    fontWeight: '600',
+                                    fontSize: '0.85rem',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: '6px',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#6B7280',
+                                    '&.Mui-selected': {
+                                        bgcolor: '#FF6D00',
+                                        color: 'white',
+                                        borderColor: '#FF6D00',
+                                        '&:hover': {
+                                            bgcolor: '#E55D00'
+                                        }
+                                    },
+                                    '&:hover': {
+                                        bgcolor: '#f3f4f6'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="daily">Daily</ToggleButton>
+                            <ToggleButton value="weekly">Weekly</ToggleButton>
+                            <ToggleButton value="monthly">Monthly</ToggleButton>
+                            <ToggleButton value="yearly">Yearly</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        {/* Date Picker based on view */}
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            {reportView === 'daily' && (
+                                <DatePicker
+                                    label="Select Date"
+                                    value={selectedDate}
+                                    onChange={(newValue) => setSelectedDate(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {(reportView === 'weekly' || reportView === 'monthly') && (
+                                <DatePicker
+                                    views={['year', 'month']}
+                                    label="Select Month"
+                                    value={selectedMonth}
+                                    onChange={(newValue) => setSelectedMonth(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {reportView === 'yearly' && (
+                                <DatePicker
+                                    views={['year']}
+                                    label="Select Year"
+                                    value={selectedYear}
+                                    onChange={(newValue) => setSelectedYear(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 110,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                        </LocalizationProvider>
+                    </Box>
+                </Box>
+
                 {/* Top 5 KPIs */}
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4 }}>
                     {/* KPI 1: Total Sales Revenue */}
@@ -264,12 +406,17 @@ const SalesTab = ({ dateRange }) => {
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
-                                        {selectedDate} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedDate.format('MM/DD/YYYY')} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
                                         {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleActorClick}>
+                                        {selectedActor === 'All' ? 'Sold By' : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">Invoice No</TableCell>

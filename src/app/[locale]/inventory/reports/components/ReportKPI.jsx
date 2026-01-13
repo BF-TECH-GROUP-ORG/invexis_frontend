@@ -22,6 +22,7 @@ const ReportKPI = ({
         >
             <Paper
                 elevation={0}
+                data-kpi-card
                 sx={{
                     p: 2.5,
                     borderRadius: "12px",
@@ -46,6 +47,7 @@ const ReportKPI = ({
                         variant="caption" 
                         color="text.secondary" 
                         fontWeight="600" 
+                        data-kpi-title
                         sx={{ 
                             textTransform: "uppercase", 
                             letterSpacing: "0.3px", 
@@ -77,7 +79,8 @@ const ReportKPI = ({
                 <Box sx={{ mb: 1 }}>
                     <Typography 
                         variant="h6" 
-                        fontWeight="800" 
+                        fontWeight="800"
+                        data-kpi-value
                         sx={{ 
                             color: "#111827",
                             fontSize: "1.35rem",
