@@ -1,20 +1,33 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { Grid, Box, CircularProgress, Avatar, Typography, Fade } from '@mui/material';
+import { Grid, Box, CircularProgress, Typography, Fade, Paper, TableContainer, Table, TableHead, TableBody, TableCell, TableRow, Button, ToggleButton, ToggleButtonGroup, Menu, MenuItem, Divider } from '@mui/material';
 import ReportKPI from './ReportKPI';
-import ReportTable from './ReportTable';
 import GroupIcon from '@mui/icons-material/Group';
 import StoreIcon from '@mui/icons-material/Store';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const StaffTab = ({ dateRange }) => {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
-    const [staffPerformance, setStaffPerformance] = useState([]);
-    const [shopPerformance, setShopPerformance] = useState([]);
+    const [staffData, setStaffData] = useState([]);
+    const [branchData, setBranchData] = useState([]);
+    const [reportView, setReportView] = useState('daily');
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedMonth, setSelectedMonth] = useState(dayjs());
+    const [selectedYear, setSelectedYear] = useState(dayjs());
+    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedActor, setSelectedActor] = useState('All');
+    const [branchAnchor, setBranchAnchor] = useState(null);
+    const [actorAnchor, setActorAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
 
@@ -22,29 +35,39 @@ const StaffTab = ({ dateRange }) => {
         const fetchData = async () => {
             setLoading(true);
             setTimeout(() => {
-                const mockStaff = [
-                    { employeeName: 'Jean Pierre', orderCount: 145, totalSales: 12500000 },
-                    { employeeName: 'Sarah Smith', orderCount: 132, totalSales: 11200000 },
-                    { employeeName: 'Emmanuel R.', orderCount: 98, totalSales: 8400000 },
-                    { employeeName: 'Marie Claire', orderCount: 85, totalSales: 7200000 },
-                    { employeeName: 'John Doe', orderCount: 72, totalSales: 5600000 },
+                const mockStaffData = [
+                    { staffName: 'Jean Pierre', role: 'Sales Manager', branch: 'North Branch', transactions: 145, revenue: 12500000, status: 'Active' },
+                    { staffName: 'Sarah Smith', role: 'Sales Associate', branch: 'North Branch', transactions: 132, revenue: 11200000, status: 'Active' },
+                    { staffName: 'Emmanuel R.', role: 'Sales Associate', branch: 'South Branch', transactions: 98, revenue: 8400000, status: 'Active' },
+                    { staffName: 'Marie Claire', role: 'Cashier', branch: 'South Branch', transactions: 85, revenue: 7200000, status: 'Active' },
+                    { staffName: 'Alice', role: 'Sales Manager', branch: 'North Branch', transactions: 120, revenue: 10800000, status: 'Active' },
+                    { staffName: 'Bob', role: 'Sales Associate', branch: 'North Branch', transactions: 95, revenue: 8500000, status: 'Active' },
                 ];
 
-                const mockShops = [
-                    { shopName: 'Kigali Heights', orderCount: 450, totalRevenue: 35000000 },
-                    { shopName: 'Downtown Branch', orderCount: 380, totalRevenue: 28000000 },
-                    { shopName: 'Nyarutarama Store', orderCount: 220, totalRevenue: 15000000 },
-                    { shopName: 'Gikondo Depot', orderCount: 180, totalRevenue: 12000000 },
+                const mockBranchData = [
+                    { branchName: 'North Branch', location: 'Kigali Downtown', transactions: 492, revenue: 42800000, avgTransaction: 87000, staffCount: 4, status: 'Performing' },
+                    { branchName: 'South Branch', location: 'Kigali Heights', transactions: 283, revenue: 24600000, avgTransaction: 86900, staffCount: 3, status: 'Performing' },
                 ];
 
-                setStaffPerformance(mockStaff);
-                setShopPerformance(mockShops);
+                // Filter by branch
+                let filteredStaff = mockStaffData;
+                if (selectedBranch !== 'All') {
+                    filteredStaff = mockStaffData.filter(s => s.branch === selectedBranch);
+                }
+
+                // Filter by actor (staff member)
+                if (selectedActor !== 'All') {
+                    filteredStaff = filteredStaff.filter(s => s.staffName === selectedActor);
+                }
+
+                setStaffData(filteredStaff);
+                setBranchData(mockBranchData);
                 setLoading(false);
             }, 800);
         };
 
         fetchData();
-    }, [companyId, dateRange]);
+    }, [companyId, dateRange, reportView, selectedDate, selectedMonth, selectedYear, selectedBranch, selectedActor]);
 
     if (loading) {
         return (
@@ -54,122 +77,329 @@ const StaffTab = ({ dateRange }) => {
         );
     }
 
-    const staffColumns = [
-        {
-            field: 'name',
-            label: 'Staff Member',
-            render: (row) => (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: "#FF6D00", fontSize: "0.9rem", fontWeight: "700" }}>
-                        {row.employeeName?.charAt(0) || "U"}
-                    </Avatar>
-                    <Typography variant="body2" fontWeight="700" sx={{ color: "#374151" }}>
-                        {row.employeeName || "Unknown"}
-                    </Typography>
-                </Box>
-            )
-        },
-        {
-            field: 'orderCount', label: 'Transactions', align: 'right', render: (row) => (
-                <Typography variant="body2" fontWeight="600">{row.orderCount}</Typography>
-            )
-        },
-        {
-            field: 'totalSales', label: 'Revenue Generated', align: 'right', render: (row) => (
-                <Typography variant="body2" fontWeight="800" sx={{ color: "#111827" }}>
-                    {parseFloat(row.totalSales).toLocaleString()} FRW
-                </Typography>
-            )
-        }
-    ];
+    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
 
-    const shopColumns = [
-        {
-            field: 'shopName', label: 'Branch Name', render: (row) => (
-                <Typography variant="body2" fontWeight="700" sx={{ color: "#374151" }}>
-                    {row.shopName}
-                </Typography>
-            )
-        },
-        {
-            field: 'orderCount', label: 'Transactions', align: 'right', render: (row) => (
-                <Typography variant="body2" fontWeight="600">{row.orderCount}</Typography>
-            )
-        },
-        {
-            field: 'totalRevenue', label: 'Total Revenue', align: 'right', render: (row) => (
-                <Typography variant="body2" fontWeight="800" sx={{ color: "#111827" }}>
-                    {parseFloat(row.totalRevenue).toLocaleString()} FRW
-                </Typography>
-            )
-        }
-    ];
+    const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
+    const handleActorClick = (event) => setActorAnchor(event.currentTarget);
+    const handleClose = () => { setBranchAnchor(null); setActorAnchor(null); };
 
-    const topPerformer = staffPerformance.length > 0
-        ? staffPerformance.reduce((prev, current) => (parseFloat(prev.totalSales) > parseFloat(current.totalSales)) ? prev : current)
-        : null;
+    const handleBranchSelect = (branch) => {
+        setSelectedBranch(branch);
+        handleClose();
+    };
+
+    const handleActorSelect = (actor) => {
+        setSelectedActor(actor);
+        handleClose();
+    };
+
+    const totalRevenue = staffData.reduce((sum, s) => sum + s.revenue, 0);
+    const totalTransactions = staffData.reduce((sum, s) => sum + s.transactions, 0);
+    const avgPerTransaction = totalTransactions > 0 ? Math.round(totalRevenue / totalTransactions) : 0;
+    const topPerformer = staffData.length > 0 ? staffData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev) : null;
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 3 }}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+                {/* Header with Title, Toggle, and Date Picker */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
+                    <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
+                        Staff Report
+                    </Typography>
+
+                    {/* Report View Toggle and Date Picker Container */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <ToggleButtonGroup
+                            value={reportView}
+                            exclusive
+                            onChange={(event, newView) => {
+                                if (newView !== null) setReportView(newView);
+                            }}
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    textTransform: 'none',
+                                    fontWeight: '600',
+                                    fontSize: '0.85rem',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: '6px',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#6B7280',
+                                    '&.Mui-selected': {
+                                        bgcolor: '#FF6D00',
+                                        color: 'white',
+                                        borderColor: '#FF6D00',
+                                        '&:hover': {
+                                            bgcolor: '#E55D00'
+                                        }
+                                    },
+                                    '&:hover': {
+                                        bgcolor: '#f3f4f6'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="daily">Daily</ToggleButton>
+                            <ToggleButton value="weekly">Weekly</ToggleButton>
+                            <ToggleButton value="monthly">Monthly</ToggleButton>
+                            <ToggleButton value="yearly">Yearly</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        {/* Date Picker based on view */}
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            {reportView === 'daily' && (
+                                <DatePicker
+                                    label="Select Date"
+                                    value={selectedDate}
+                                    onChange={(newValue) => setSelectedDate(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {(reportView === 'weekly' || reportView === 'monthly') && (
+                                <DatePicker
+                                    views={['year', 'month']}
+                                    label="Select Month"
+                                    value={selectedMonth}
+                                    onChange={(newValue) => setSelectedMonth(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 130,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                            {reportView === 'yearly' && (
+                                <DatePicker
+                                    views={['year']}
+                                    label="Select Year"
+                                    value={selectedYear}
+                                    onChange={(newValue) => setSelectedYear(newValue)}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            sx: {
+                                                width: 110,
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: '6px',
+                                                    '& fieldset': {
+                                                        borderColor: '#e5e7eb'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            )}
+                        </LocalizationProvider>
+                    </Box>
+                </Box>
+
+                {/* Top KPIs */}
+                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>Staff Metrics</Typography>
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
                         <ReportKPI
                             title="Total Staff"
-                            value={staffPerformance.length}
+                            value={staffData.length}
                             icon={GroupIcon}
-                            color="#111827"
+                            color="#FF6D00"
                             index={0}
                         />
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Active Branches"
-                            value={shopPerformance.length}
-                            icon={StoreIcon}
-                            color="#FF6D00"
+                            title="Active Staff Today"
+                            value={staffData.filter(s => s.status === 'Active').length}
+                            icon={StarIcon}
+                            color="#10B981"
                             index={1}
                         />
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Top Performer"
-                            value={topPerformer?.employeeName || "N/A"}
-                            subValue={topPerformer ? `${parseFloat(topPerformer.totalSales).toLocaleString()} FRW` : ""}
-                            icon={StarIcon}
-                            color="#F59E0B"
+                            title="Top Performing Staff"
+                            value={topPerformer?.staffName || "N/A"}
+                            subValue={topPerformer ? formatCurrency(topPerformer.revenue) : ""}
+                            icon={TrendingUpIcon}
+                            color="#3B82F6"
                             index={2}
                         />
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Avg Rev/Staff"
-                            value={staffPerformance.length > 0
-                                ? `${(staffPerformance.reduce((sum, s) => sum + parseFloat(s.totalSales), 0) / staffPerformance.length).toLocaleString(undefined, { maximumFractionDigits: 0 })} FRW`
-                                : "0 FRW"}
-                            icon={TrendingUpIcon}
-                            color="#10B981"
+                            title="Lowest Activity Staff"
+                            value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : "N/A"}
+                            icon={GroupIcon}
+                            color="#F59E0B"
                             index={3}
                         />
                     </Grid>
                 </Grid>
 
-                <Box sx={{ width: '100%', mb: 4 }}>
-                    <ReportTable
-                        title="Staff Performance"
-                        columns={staffColumns}
-                        data={staffPerformance}
-                        onExport={() => console.log("Export Staff")}
-                    />
-                </Box>
-                <Box sx={{ width: '100%', mb: 4 }}>
-                    <ReportTable
-                        title="Branch Performance"
-                        columns={shopColumns}
-                        data={shopPerformance}
-                        onExport={() => console.log("Export Branches")}
-                    />
-                </Box>
+                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>Branch Metrics</Typography>
+                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
+                    <Grid item xs={1}>
+                        <ReportKPI
+                            title="Total Branches"
+                            value={branchData.length}
+                            icon={StoreIcon}
+                            color="#FF6D00"
+                            index={4}
+                        />
+                    </Grid>
+                    <Grid item xs={1}>
+                        <ReportKPI
+                            title="Most Active Branch"
+                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : "N/A"}
+                            icon={TrendingUpIcon}
+                            color="#10B981"
+                            index={5}
+                        />
+                    </Grid>
+                    <Grid item xs={1}>
+                        <ReportKPI
+                            title="Highest Revenue Branch"
+                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : "N/A"}
+                            subValue={branchData.length > 0 ? formatCurrency(branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).revenue) : ""}
+                            icon={StarIcon}
+                            color="#8B5CF6"
+                            index={6}
+                        />
+                    </Grid>
+                    <Grid item xs={1}>
+                        <ReportKPI
+                            title="Underperforming Branches"
+                            value={branchData.filter(b => b.transactions < 300).length}
+                            icon={GroupIcon}
+                            color="#EF4444"
+                            index={7}
+                        />
+                    </Grid>
+                </Grid>
+
+                {/* Branch Performance Table */}
+                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", mb: 4 }}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
+                                <TableCell align="center">BRANCH NAME</TableCell>
+                                <TableCell align="center">LOCATION</TableCell>
+                                <TableCell align="center">TRANSACTIONS</TableCell>
+                                <TableCell align="center">REVENUE (FRW)</TableCell>
+                                <TableCell align="center">AVG / TRANSACTION</TableCell>
+                                <TableCell align="center">ACTIVE STAFF</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>STATUS</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {branchData.map((branch, idx) => (
+                                <TableRow key={idx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 1 } }}>
+                                    <TableCell sx={{ fontWeight: "700", color: "#111827" }}>{branch.branchName}</TableCell>
+                                    <TableCell align="center">{branch.location}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600" }}>{branch.transactions}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600", color: "#10B981" }}>{formatCurrency(branch.revenue)}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600" }}>{formatCurrency(branch.avgTransaction)}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600" }}>{branch.staffCount}</TableCell>
+                                    <TableCell align="center" sx={{ borderRight: "none" }}>
+                                        <Box sx={{ px: 1, py: 0.5, borderRadius: "8px", bgcolor: "#ECFDF5", color: "#10B981", fontWeight: "600", fontSize: "0.75rem" }}>
+                                            {branch.status}
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                {/* Staff Performance Table */}
+                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none" }}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
+                                <TableCell align="center">STAFF MEMBER</TableCell>
+                                <TableCell align="center">ROLE</TableCell>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
+                                        BRANCH <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center">TRANSACTIONS</TableCell>
+                                <TableCell align="center">REVENUE (FRW)</TableCell>
+                                <TableCell align="center">AVG / TRANSACTION</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>STATUS</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {staffData.map((staff, idx) => (
+                                <TableRow key={idx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 1 } }}>
+                                    <TableCell sx={{ fontWeight: "700", color: "#111827" }}>{staff.staffName}</TableCell>
+                                    <TableCell align="center">{staff.role}</TableCell>
+                                    <TableCell align="center">{staff.branch}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600" }}>{staff.transactions}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600", color: "#10B981" }}>{formatCurrency(staff.revenue)}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: "600" }}>{formatCurrency(Math.round(staff.revenue / staff.transactions))}</TableCell>
+                                    <TableCell align="center" sx={{ borderRight: "none" }}>
+                                        <Box sx={{ px: 1, py: 0.5, borderRadius: "8px", bgcolor: "#ECFDF5", color: "#10B981", fontWeight: "600", fontSize: "0.75rem" }}>
+                                            {staff.status}
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                {/* Branch Selection Menu */}
+                <Menu
+                    anchorEl={branchAnchor}
+                    open={Boolean(branchAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                </Menu>
+
+                {/* Actor Selection Menu */}
+                <Menu
+                    anchorEl={actorAnchor}
+                    open={Boolean(actorAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleActorSelect('All')}>All Staff</MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleActorSelect('Jean Pierre')}>Jean Pierre</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Sarah Smith')}>Sarah Smith</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Emmanuel R.')}>Emmanuel R.</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Marie Claire')}>Marie Claire</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Alice')}>Alice</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Bob')}>Bob</MenuItem>
+                </Menu>
             </Box>
         </Fade>
     );
