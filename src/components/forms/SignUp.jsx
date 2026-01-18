@@ -9,7 +9,6 @@ import AuthService from "@/services/AuthService";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
-import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 
 export default function SignUp() {
   const router = useRouter();
@@ -27,24 +26,10 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [showTermsPopup, setShowTermsPopup] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
-  const handleTermsClick = () => {
-    if (!acceptTerms) setShowTermsPopup(true);
-    else setAcceptTerms(false);
-  };
-
-  const handleAgree = () => {
-    setAcceptTerms(true);
-    setShowTermsPopup(false);
-  };
-
-  const handleClosePopup = () => setShowTermsPopup(false);
 
   const locale = useLocale();
 
@@ -53,11 +38,6 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!acceptTerms) {
-      setError("You must accept the Terms & Privacy Policy to continue.");
-      return;
-    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
@@ -105,9 +85,6 @@ export default function SignUp() {
               label: "Already have an account? Login",
             },
           ]}
-          showTerms={true}
-          acceptedTerms={acceptTerms}
-          onAcceptTerms={handleTermsClick}
           fields={[
             {
               label: "First Name",
@@ -161,13 +138,6 @@ export default function SignUp() {
           ]}
         />
       </div>
-
-      {/* Terms Popup */}
-      <TermsAndPrivacyPopup
-        open={showTermsPopup}
-        onAgree={handleAgree}
-        onClose={handleClosePopup}
-      />
     </div>
   );
 }

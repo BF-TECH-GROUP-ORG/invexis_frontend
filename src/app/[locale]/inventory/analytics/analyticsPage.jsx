@@ -6,8 +6,15 @@ import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
 import { StatsCard } from '@/components/shared/StatsCard';
 import Skeleton from '@/components/shared/Skeleton';
-import SalesPerformance from '@/components/visuals/sales/salesPerformance';
-import ShopEmployeeReports from '@/components/visuals/reports/ShopEmployeeReports';
+import dynamic from 'next/dynamic';
+const SalesPerformance = dynamic(() => import('@/components/visuals/sales/salesPerformance'), {
+    loading: () => <div className="h-[400px] w-full bg-gray-50 animate-pulse rounded-3xl border border-gray-100" />,
+    ssr: false
+});
+const ShopEmployeeReports = dynamic(() => import('@/components/visuals/reports/ShopEmployeeReports'), {
+    loading: () => <div className="h-[400px] w-full bg-gray-50 animate-pulse rounded-3xl border border-gray-100" />,
+    ssr: false
+});
 import AnalyticsService from '@/services/analyticsService';
 import { getBranches } from '@/services/branches';
 import { getWorkersByCompanyId } from '@/services/workersService';
@@ -79,6 +86,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getDashboardSummary(params, options),
         staleTime: 60 * 1000, // 1 minute
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 2. Sales Revenue
@@ -87,6 +95,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getRevenueReport(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 3. Profitability
@@ -95,6 +104,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getProfitabilityReport(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 4. Top Products
@@ -103,6 +113,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getTopProducts(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 5. Inventory Health
@@ -111,6 +122,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getInventoryHealth(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     const { data: movementRes, isLoading: movementLoading } = useQuery({
@@ -118,6 +130,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getStockMovement(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 6. Payment Methods (Categories)
@@ -126,6 +139,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getPaymentMethodStats(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 7. Customer Stats
@@ -134,6 +148,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getNewCustomerStats(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     const { data: activeUsersRes, isLoading: activeUsersLoading } = useQuery({
@@ -141,6 +156,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getActiveUsers(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     const { data: topCustomersRes, isLoading: topCustomersLoading } = useQuery({
@@ -148,6 +164,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getTopCustomers(params, options),
         staleTime: 5 * 60 * 1000,
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // 8. Shop & Employee Performance
@@ -156,6 +173,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getShopPerformance(params, options),
         staleTime: 10 * 60 * 1000, // 10 minutes
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     const { data: employeeRes, isLoading: employeeLoading } = useQuery({
@@ -163,6 +181,7 @@ const AnalyticsPage = () => {
         queryFn: () => AnalyticsService.getEmployeePerformance(params, options),
         staleTime: 10 * 60 * 1000, // 10 minutes
         retry: false,
+        enabled: !!session?.accessToken,
     });
 
     // Fetch Shops and Workers for name mapping

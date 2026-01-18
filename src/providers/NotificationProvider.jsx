@@ -51,9 +51,9 @@ export default function NotificationProvider({ children }) {
   }, []);
 
   const showNotification = useCallback(
-    ({ message, severity = "info", duration = 10000 }) => {
+    ({ message, severity = "info", duration = 10000, icon = null }) => {
       const id = Date.now();
-      setNotification({ id, message, severity, duration });
+      setNotification({ id, message, severity, duration, icon });
 
       if (duration > 0) {
         setTimeout(() => {
@@ -139,7 +139,7 @@ export default function NotificationProvider({ children }) {
   const theme = notification ? getTheme(notification.severity) : {};
 
   return (
-    <NotificationContext.Provider value={{ showNotification }}>
+    <NotificationContext.Provider value={{ showNotification, hideNotification: handleClose }}>
       {children}
       <AnimatePresence>
         {notification && (
@@ -183,18 +183,43 @@ export default function NotificationProvider({ children }) {
                   gap: "16px",
                 }}
               >
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.6)",
-                    borderRadius: "50%",
-                    padding: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {getIcon(notification.severity)}
-                </div>
+                {notification.icon ? (
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "white",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)"
+                    }}
+                  >
+                    <img
+                      src={notification.icon}
+                      alt="Notification Icon"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      background: "rgba(255,255,255,0.6)",
+                      borderRadius: "50%",
+                      padding: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {getIcon(notification.severity)}
+                  </div>
+                )}
 
                 <div style={{ flex: 1, paddingTop: "4px" }}>
                   <p

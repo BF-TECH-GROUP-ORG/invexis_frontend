@@ -8,6 +8,7 @@ export const getBranches = async (companyId, options = {}) => {
     console.log(`Fetching branches from: ${url} with companyId:`, companyId);
     const response = await apiClient.get(url, {
       params: { companyId },
+      cache: { ttl: 5 * 60 * 1000 },
       ...options,
     });
     console.log("Branches API Raw Response:", response);
@@ -16,7 +17,7 @@ export const getBranches = async (companyId, options = {}) => {
     // Axios wraps the response in response.data
     // Backend returns: {success: true, data: Array(...), pagination: {...}}
     const apiResponse = response.data;
-    
+
     // Check if we have the nested data structure
     if (apiResponse && typeof apiResponse === 'object') {
       // Case 1: Standard API response with data property containing array
@@ -24,13 +25,13 @@ export const getBranches = async (companyId, options = {}) => {
         console.log("✓ Extracting from response.data.data - found array with", apiResponse.data.length, "items");
         return apiResponse.data;
       }
-      
+
       // Case 2: Direct array in response (shouldn't happen with this API)
       if (Array.isArray(apiResponse)) {
         console.log("✓ Response is direct array with", apiResponse.length, "items");
         return apiResponse;
       }
-      
+
       // Case 3: Array directly (edge case)
       if (apiResponse.length !== undefined && apiResponse.length >= 0) {
         console.log("✓ Response detected as array with", apiResponse.length, "items");

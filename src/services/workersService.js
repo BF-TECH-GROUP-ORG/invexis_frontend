@@ -32,18 +32,21 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
         const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
         console.log(`Fetching workers from: ${url}`);
-        
+
         // Merge options to include headers if provided
         const config = {
             ...options
         };
-        
-        const response = await apiClient.get(url, config);
+
+        const response = await apiClient.get(url, {
+            ...config,
+            cache: { ttl: 5 * 60 * 1000 }
+        });
         console.log("Workers API Raw Response:", response);
 
         // Axios response.data contains the actual response body
         const responseData = response.data || response;
-        
+
         // Handle different possible response structures
         if (Array.isArray(responseData)) return responseData;
         if (responseData.workers && Array.isArray(responseData.workers)) return responseData.workers;
@@ -76,17 +79,17 @@ export const getShopsByCompanyId = async (companyId) => {
         console.log(`Fetching shops from: ${url}`);
         const response = await apiClient.get(url);
         console.log("Shops API Raw Response:", response);
-        
+
         // Axios response.data contains the actual response body
         const responseData = response.data || response;
-        
+
         let shops = [];
         if (Array.isArray(responseData)) shops = responseData;
         else if (responseData.shops && Array.isArray(responseData.shops)) shops = responseData.shops;
         else if (responseData.data && Array.isArray(responseData.data)) shops = responseData.data;
         else {
-             console.warn("Unexpected shops response structure:", responseData);
-             shops = Array.isArray(responseData) ? responseData : (responseData.shops || []);
+            console.warn("Unexpected shops response structure:", responseData);
+            shops = Array.isArray(responseData) ? responseData : (responseData.shops || []);
         }
 
         shopsCache[companyId] = shops;
@@ -135,7 +138,7 @@ export const getWorkerById = async (workerId) => {
 
         // Axios response.data contains the actual response body
         const responseData = response.data || response;
-        
+
         // Return the user data, handling different response structures
         return responseData.user || responseData;
     } catch (error) {

@@ -10,7 +10,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
-import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
 const LoginPage = () => {
@@ -23,24 +22,9 @@ const LoginPage = () => {
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [showTermsPopup, setShowTermsPopup] = useState(false);
-
-  // Show popup before allowing checkbox tick
-  const handleTermsClick = () => {
-    if (!acceptTerms) setShowTermsPopup(true);
-    else setAcceptTerms(false); // untick if already checked
-  };
-
-  const handleAgree = () => {
-    setAcceptTerms(true);
-    setShowTermsPopup(false);
-  };
-
-  const handleClosePopup = () => setShowTermsPopup(false);
 
   // Handle redirect if already authenticated (via bypass mode)
   useEffect(() => {
@@ -59,11 +43,6 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!acceptTerms) {
-      setError("You must accept the Terms & Privacy Policy to continue.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -115,15 +94,6 @@ const LoginPage = () => {
             isLoading={submitting}
             error={error}
             oauthOptions={["otp"]}
-            extraLinks={[
-              {
-                href: `/${locale}/auth/signup`,
-                label: t("signup.noAccount"),
-              },
-            ]}
-            showTerms={true}
-            acceptedTerms={acceptTerms}
-            onAcceptTerms={handleTermsClick}
             fields={[
               {
                 label: tForm("email"),
@@ -165,13 +135,6 @@ const LoginPage = () => {
           />
         </div>
       </div>
-
-      {/* Terms & Privacy Popup */}
-      <TermsAndPrivacyPopup
-        open={showTermsPopup}
-        onAgree={handleAgree}
-        onClose={handleClosePopup}
-      />
     </div>
   );
 };

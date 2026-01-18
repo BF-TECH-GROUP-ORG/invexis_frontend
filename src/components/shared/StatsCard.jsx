@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Maximize2, Minimize2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import Skeleton from "@/components/shared/Skeleton";
 
 const CustomTooltip = ({ active, payload, label, locale = 'en-RW' }) => {
@@ -52,7 +52,7 @@ const Sparkline = ({ data, color, locale }) => (
     </div>
 );
 
-export const StatsCard = ({
+export const StatsCard = memo(({
     title,
     value,
     trend,
@@ -162,4 +162,4 @@ export const StatsCard = ({
             )}
         </motion.div>
     );
-};
+});

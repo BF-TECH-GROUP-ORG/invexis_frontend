@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "firebase": "^12.8.0",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.14.0",

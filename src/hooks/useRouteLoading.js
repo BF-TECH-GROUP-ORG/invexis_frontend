@@ -9,14 +9,9 @@ export default function useRouteLoading() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
-    setIsNavigating(true);
-
-    // Minimum 300ms loading to prevent flash for fast loads
-    const timer = setTimeout(() => {
-      setIsNavigating(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
+    // When pathname/searchParams update, the router transition is complete.
+    // Set isNavigating to false immediately to show content and avoid flashes.
+    setIsNavigating(false);
   }, [pathname, searchParams]);
 
   return { isNavigating };
