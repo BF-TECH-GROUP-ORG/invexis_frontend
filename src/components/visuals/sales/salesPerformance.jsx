@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { memo } from 'react';
 import {
     LineChart,
     Line,
@@ -97,34 +97,16 @@ const SalesPerformance = ({
 }) => {
     // ... (rest of the component logic remains same until return)
 
-
-    // Helper to assign colors to categories if missing - using inventory theme colors
     const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
     const processedCategoryData = safeCategoryData.map((item, index) => ({
         ...item,
         color: item.color || THEME_COLORS[index % THEME_COLORS.length]
     }));
-    console.log('fetched analytics for sales', processedCategoryData);
 
-    // Ensure other data props are arrays
     const safeSalesData = Array.isArray(salesData) ? salesData : [];
     const safeTopProductsData = Array.isArray(topProductsData) ? topProductsData : [];
     const safeStockData = Array.isArray(stockData) ? stockData : [];
     const safeProfitabilityData = Array.isArray(profitabilityData) ? profitabilityData : [];
-
-    console.log('🎨 SalesPerformance Component Props:');
-    console.log('- salesData:', salesData);
-    console.log('- profitabilityData:', profitabilityData);
-    console.log('- categoryData:', categoryData);
-    console.log('- topProductsData:', topProductsData);
-    console.log('- stockData:', stockData);
-    console.log('- loading:', loading);
-    console.log('🎨 Safe Arrays:');
-    console.log('- safeSalesData:', safeSalesData);
-    console.log('- safeProfitabilityData:', safeProfitabilityData);
-    console.log('- processedCategoryData:', processedCategoryData);
-    console.log('- safeTopProductsData:', safeTopProductsData);
-    console.log('- safeStockData:', safeStockData);
 
     if (loading) {
         return (
@@ -527,6 +509,6 @@ const SalesPerformance = ({
     );
 };
 
-export default SalesPerformance;
+export default memo(SalesPerformance);
 
 

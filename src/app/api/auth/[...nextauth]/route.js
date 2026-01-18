@@ -84,9 +84,8 @@ export const authOptions = {
             return {
               id: userPayload._id ?? userPayload.id ?? userPayload.username,
               name:
-                `${userPayload.firstName ?? ""} ${
-                  userPayload.lastName ?? ""
-                }`.trim() ||
+                `${userPayload.firstName ?? ""} ${userPayload.lastName ?? ""
+                  }`.trim() ||
                 userPayload.username ||
                 userPayload.email,
               email: userPayload.email,
@@ -138,6 +137,16 @@ export const authOptions = {
           }
 
           const { accessToken, user } = data;
+
+          // Restrict roles: customer and super_admin varieties cannot login here
+          const restrictedRoles = ["customer", "super_admin", "super-admin", "super admin"];
+          if (restrictedRoles.includes(user.role?.toLowerCase())) {
+            if (process.env.NODE_ENV === "development") {
+              console.warn(`[NextAuth] Access denied for restricted role: ${user.role}`);
+            }
+            throw new Error("Access denied: Your role does not have permission to login here.");
+          }
+
           const setCookie = res.headers.get("set-cookie");
 
           return {

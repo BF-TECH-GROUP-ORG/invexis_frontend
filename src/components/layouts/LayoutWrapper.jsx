@@ -11,6 +11,7 @@ import ProtectedRoute from "@/lib/ProtectedRoute";
 import GlobalLoader from "@/components/shared/GlobalLoader";
 import { useLoading } from "@/contexts/LoadingContext";
 import useRouteLoading from "@/hooks/useRouteLoading";
+import useNotifications from "@/hooks/useNotifications";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
 
@@ -20,6 +21,7 @@ export default function LayoutWrapper({ children }) {
   const { user, status } = useAuth();
   const { isLoading: globalLoading, loadingText } = useLoading();
   const { isNavigating } = useRouteLoading();
+  useNotifications();
   const pathname = usePathname();
 
   // Track previous path to detect transition from Auth -> App
@@ -47,11 +49,19 @@ export default function LayoutWrapper({ children }) {
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem("sidebar-expanded");
-    if (saved !== null) setExpanded(saved === "true");
+    // 1. Initial State: Sidebar starts OPEN as requested
+    setExpanded(true);
+
+    // 2. Auto-close after 3 seconds
+    const timer = setTimeout(() => {
+      setExpanded(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    // Persist only when it's not the initial mount or if we want to save user's manual changes
     localStorage.setItem("sidebar-expanded", String(expanded));
   }, [expanded]);
 
@@ -64,9 +74,11 @@ export default function LayoutWrapper({ children }) {
   // pathname moved to top
 
 
-  if (!mounted) {
-    return <GlobalLoader visible={true} text="Loading..." />;
-  }
+  // Hydration safety: render nothing or simple skeleton for initial pass
+  // BUT avoid full screen loader if we want it to feel fast
+  // We'll just skip the loader and render the layout structure immediately 
+  // since most parts are CSR anyway.
+
 
   // Show loader during navigation or global loading
   const showLoader = globalLoading || isNavigating;
@@ -150,7 +162,7 @@ export default function LayoutWrapper({ children }) {
   // 3. Navigation FROM Auth pages -> Full Screen (prevents transition to inner loader)
   // 4. Other Navigation -> Inner Content Loader
 
-  const showFullScreenLoader = !mounted || status === "loading" || globalLoading || (isNavigating && isComingFromAuth);
+  const showFullScreenLoader = globalLoading || (isNavigating && isComingFromAuth);
 
   // If logged in but on auth page (redirecting), show Full Screen
   const isAuthRoute = /^\/[a-z]{2}\/auth\//.test(pathname || "");
@@ -164,20 +176,9 @@ export default function LayoutWrapper({ children }) {
         <GlobalLoader visible={true} text={loadingText || "Loading..."} />
       ) : (
         <DashboardLayout expanded={expanded} setExpanded={setExpanded}>
-          {/* Layout-level protection */}
-          {showLoader ? (
-            // Inner loader for standard in-app navigation (Dashboard -> Sales)
-            <div className="h-full w-full flex items-center justify-center min-h-[50vh]">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-5 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-                <p className="text-sm font-medium text-gray-500">Loading...</p>
-              </div>
-            </div>
-          ) : (
-            <ProtectedRoute>
-              {children}
-            </ProtectedRoute>
-          )}
+          <ProtectedRoute>
+            {children}
+          </ProtectedRoute>
           {isDev && <DevBypassToggle />}
         </DashboardLayout>
       )}

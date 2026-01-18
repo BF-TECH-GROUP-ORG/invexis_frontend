@@ -149,4 +149,4 @@ const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], l
     );
 };
 
-export default ShopEmployeeReports;
+export default React.memo(ShopEmployeeReports);

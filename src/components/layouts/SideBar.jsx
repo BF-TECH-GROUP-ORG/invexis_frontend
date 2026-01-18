@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
 import {
   LayoutDashboard,
@@ -22,9 +23,13 @@ import {
   LogOut,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useLoading } from "@/contexts/LoadingContext";
 import { useNotification } from "@/providers/NotificationProvider";
+import AnalyticsService from "@/services/analyticsService";
+import { getSalesHistory } from "@/services/salesService";
+import { getWorkersByCompanyId } from "@/services/workersService";
+import { getBranches } from "@/services/branches";
+import dayjs from "dayjs";
 
 /* STATIC NAV ITEMS */
 const navItems = [
@@ -38,14 +43,16 @@ const navItems = [
   {
     title: "Notifications",
     icon: <Bell size={22} />,
-    path: "/inventory/notifications",
-    prefetch: true,
+    children: [
+      { title: "Inbox", path: "/inventory/notifications", prefetch: true },
+      // { title: "Settings", path: "/inventory/notifications/settings", prefetch: true },
+    ],
   },
   {
     title: "Reports",
     icon: <FileSpreadsheet size={22} />,
     path: "/inventory/reports",
-    roles: ["manager", "company_admin"],
+    roles: ["worker", "company_admin"],
     prefetch: true,
   },
 
@@ -62,13 +69,13 @@ const navItems = [
   {
     title: "Inventory",
     icon: <Package size={22} />,
-    roles: ["manager", "company_admin"],
+    roles: ["worker", "company_admin"],
     children: [
       { title: "Overview", path: "/inventory/Overview", prefetch: true },
-      { title: "Products", path: "/inventory/products", prefetch: true },
       { title: "Categories", path: "/inventory/categories", prefetch: true },
-      { title: "Reports", path: "/inventory/report", prefetch: true },
-      { title: "Stock settings", path: "/inventory/stock", prefetch: true },
+      { title: "Products", path: "/inventory/products", prefetch: true },
+      { title: "Transfers", path: "/inventory/transfer", prefetch: true },
+      { title: "Stock Ops", path: "/inventory/stock", prefetch: true },
 
     ],
   },
@@ -140,6 +147,12 @@ export default function SideBar({
   const router = useRouter();
   const { setLoading, setLoadingText } = useLoading();
   const { showNotification } = useNotification();
+  const queryClient = useQueryClient();
+
+  const { data: session } = useSession();
+  const user = session?.user;
+  const userRole = user?.role;
+  const assignedDepartments = user?.assignedDepartments || [];
 
   const [expandedInternal, setExpandedInternal] = useState(true);
   const [openMenus, setOpenMenus] = useState([]);
@@ -151,6 +164,7 @@ export default function SideBar({
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const timeoutRef = useRef(null);
+  const prefetchTimeoutRef = useRef(null);
 
   const cleanTimeout = () => {
     if (timeoutRef.current) {
@@ -196,20 +210,87 @@ export default function SideBar({
     [pathname, locale]
   );
 
-  /* hover prefetch */
+  const prefetchData = useCallback((item) => {
+    if (!item.path || !session?.accessToken) return;
+
+    const companyObj = session.user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+    const userId = session.user?._id || session.user?.id;
+
+    if (!companyId) return;
+
+    const options = {
+      headers: { Authorization: `Bearer ${session.accessToken}` }
+    };
+
+    // Prefetch based on path
+    if (item.path.includes("/analytics")) {
+      const end = dayjs();
+      const params = {
+        startDate: end.subtract(7, 'day').format('YYYY-MM-DD'),
+        endDate: end.format('YYYY-MM-DD'),
+        interval: 'day'
+      };
+      queryClient.prefetchQuery({
+        queryKey: ['analytics', 'summary', params],
+        queryFn: () => AnalyticsService.getDashboardSummary(params, options)
+      });
+    } else if (item.path.includes("/sales/history")) {
+      queryClient.prefetchQuery({
+        queryKey: ["salesHistory", companyId, userId, ""],
+        queryFn: () => getSalesHistory(companyId, { soldBy: userId, shopId: "" }, options)
+      });
+    } else if (item.path.includes("/workers/list")) {
+      queryClient.prefetchQuery({
+        queryKey: ["workers", companyId],
+        queryFn: () => getWorkersByCompanyId(companyId, options)
+      });
+    } else if (item.path.includes("/companies")) {
+      queryClient.prefetchQuery({
+        queryKey: ["shops", companyId],
+        queryFn: () => getBranches(companyId, options)
+      });
+    }
+  }, [queryClient, session]);
+
+  /* hover prefetch with debounce to prevent sluggishness */
   const handleHoverEnter = useCallback(
     (e, item) => {
       cleanTimeout();
+
+      // Debounce prefetching (only fire if user hovers for > 80ms)
+      if (prefetchTimeoutRef.current) clearTimeout(prefetchTimeoutRef.current);
+
+      prefetchTimeoutRef.current = setTimeout(() => {
+        // 1. Prefetch Route (Next.js)
+        if (item.path && !isActive(item.path)) {
+          router.prefetch(`/${locale}${item.path}`);
+        }
+
+        // 2. Prefetch Data (React Query)
+        prefetchData(item);
+
+        // Prefetch routes for first few children to be ready, but DON'T fetch data yet
+        if (item.children) {
+          item.children.slice(0, 4).forEach(child => {
+            if (child.path && !isActive(child.path)) {
+              router.prefetch(`/${locale}${child.path}`);
+            }
+          });
+        }
+      }, 200);
+
       if (!expanded) {
         const rect = e.currentTarget.getBoundingClientRect();
         setHoverItem(item);
         setHoverPosition({ top: rect.top });
       }
     },
-    [expanded]
+    [expanded, locale, router, prefetchData]
   );
 
   const handleHoverLeave = () => {
+    if (prefetchTimeoutRef.current) clearTimeout(prefetchTimeoutRef.current);
     if (!expanded) {
       timeoutRef.current = setTimeout(() => {
         setHoverItem(null);
@@ -251,10 +332,7 @@ export default function SideBar({
     }
   };
 
-  const { data: session } = useSession();
-  const user = session?.user;
-  const userRole = user?.role;
-  const assignedDepartments = user?.assignedDepartments || [];
+
 
   const visibleFor = (item) => {
     if (!item) return false;
@@ -586,7 +664,7 @@ export default function SideBar({
           {/* OVERVIEW */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "hidden"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-4 ${expanded ? "" : "hidden"
                 }`}
             >
               Overview
@@ -604,6 +682,7 @@ export default function SideBar({
                   <Link
                     href={`/${locale}${item.path}`}
                     prefetch={item.prefetch}
+                    onMouseEnter={() => prefetchData(item)}
                     className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
                       ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                       : "text-gray-700 hover:bg-orange-50"
@@ -619,7 +698,7 @@ export default function SideBar({
           {/* MANAGEMENT */}
           <section className="">
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-5 ${expanded ? "" : "hidden"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-3 ${expanded ? "" : "hidden"
                 }`}
             >
               Management
@@ -644,6 +723,7 @@ export default function SideBar({
                       <Link
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
+                        onMouseEnter={() => prefetchData(item)}
                         className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
                           ? "bg-gray-100 font-bold border-l-5 border-orange-500 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
@@ -698,6 +778,7 @@ export default function SideBar({
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
+                                    onMouseEnter={() => prefetchData(child)}
                                     className={`block px-3 py-2 text-sm  transition ${isActive(child.path)
                                       ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                       : "text-gray-600 hover:bg-gray-100"
@@ -717,17 +798,17 @@ export default function SideBar({
         </nav>
 
         {/* LOGOUT SECTION */}
-        <div className={`border-t border-gray-100 p-3 ${expanded ? "mb-0" : "mb-2"}`}>
+        <div className={`border-t border-gray-100 py-2 m-3 ${expanded ? "mb-0" : "mb-0"}`}>
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-3 bg-orange-300 rounded-xl transition-colors group ${expanded
-              ? "justify-start text-gray-700 hover:bg-orange-50 hover:text-white"
-              : "justify-center text-gray-700 hover:bg-orange-50 hover:text-white"
+            className={`w-full flex items-center gap-3 px-3 py-2 bg-black rounded-lg transition-colors group ${expanded
+              ? "justify-start text-orange-500 hover:bg-black hover:text-white"
+              : "justify-center text-orange-500 hover:bg-black hover:text-white"
               }`}
             title={!expanded ? "Logout" : ""}
           >
-            <LogOut size={22} className="shrink-0 group-hover:stroke-red-600" />
-            {expanded && <span className="font-medium group-hover:text-red-600">Logout</span>}
+            <LogOut size={22} className="shrink-0 group-hover:stroke-orange-500" />
+            {expanded && <span className="font-medium group-hover:text-orange-500">Logout</span>}
           </button>
         </div>
 
@@ -772,6 +853,7 @@ export default function SideBar({
               <Link
                 href={`/${locale}${hoverItem.path}`}
                 prefetch={hoverItem.prefetch}
+                onMouseEnter={() => prefetchData(hoverItem)}
                 onClick={() => setHoverItem(null)}
                 className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all ${isActive(hoverItem.path)
                   ? "bg-orange-500 text-white font-bold shadow-md"
@@ -793,6 +875,7 @@ export default function SideBar({
                       key={child.title}
                       href={`/${locale}${child.path}`}
                       prefetch={child.prefetch}
+                      onMouseEnter={() => prefetchData(child)}
                       onClick={() => setHoverItem(null)}
                       className={`block px-3 py-2 text-sm rounded-lg transition-all ${isActive(child.path)
                         ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold"

@@ -5,26 +5,64 @@ import Image from "next/image";
 import { IconButton, InputAdornment, LinearProgress } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
-import TermsAndPrivacyPopup from "@/components/layouts/TermsAndPrivacyPopup";
 
 import AuthService from "@/services/AuthService";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 
-// ... inside component
 export default function SuperAdminRegister() {
   const router = useRouter();
   const locale = useLocale();
   const localizedPath = (p) => `/${locale}${p.startsWith("/") ? p : "/" + p}`;
-  // ...
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    dateOfBirth: "",
+    nationalId: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+    },
+    emergencyContact: {
+      name: "",
+      phone: "",
+    },
+    preferences: {
+      language: "en",
+    },
+  });
+
+  const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (field, value) => {
+    const keys = field.split(".");
+    if (keys.length === 2) {
+      setFormData((prev) => ({
+        ...prev,
+        [keys[0]]: { ...prev[keys[0]], [keys[1]]: value },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleNext = () => setStep((prev) => prev + 1);
+  const handleBack = () => setStep((prev) => prev - 1);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!acceptTerms) {
-      setError("You must accept the Terms & Privacy Policy to continue.");
-      return;
-    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
@@ -34,7 +72,6 @@ export default function SuperAdminRegister() {
     setSubmitting(true);
     try {
       await AuthService.register(formData);
-      // alert("Super Admin registered successfully!"); // Optional
       router.push(localizedPath("/auth/login"));
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -228,9 +265,6 @@ export default function SuperAdminRegister() {
             submitIcon={<HiArrowRight />}
             isLoading={submitting}
             error={error}
-            showTerms={step === steps.length}
-            acceptedTerms={acceptTerms}
-            onAcceptTerms={handleTermsClick}
             fields={steps[step - 1].fields}
           />
 
@@ -245,13 +279,6 @@ export default function SuperAdminRegister() {
           )}
         </div>
       </div>
-
-      {/* Terms & Privacy Popup */}
-      <TermsAndPrivacyPopup
-        open={showTermsPopup}
-        onAgree={handleAgree}
-        onClose={handleClosePopup}
-      />
     </div>
   );
 }

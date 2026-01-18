@@ -84,9 +84,6 @@ export default function FormWrapper({
   isLoading = false,
   error = null,
   success = null,
-  showTerms = false,
-  onAcceptTerms = () => { },
-  acceptedTerms = false,
 }) {
   const t = useTranslations("form");
   const locale = useLocale();
@@ -171,41 +168,6 @@ export default function FormWrapper({
             </div>
           );
         })}
-
-        {/* Terms & Conditions Checkbox */}
-        {showTerms && (
-          <div className="col-span-1 md:col-span-2">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={acceptedTerms}
-                  onChange={(e) => onAcceptTerms(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label={
-                <span className="text-sm text-gray-600 font-metropolis">
-                  {t("agreeTo")}{" "}
-                  <Link
-                    href={`/${locale}/terms`}
-                    className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
-                  >
-                    {t("termsOfService")}
-                  </Link>{" "}
-                  {t("and")}{" "}
-                  <Link
-                    href={`/${locale}/privacy`}
-                    className="text-blue-600 dark:text-blue-800 hover:underline font-metropolis"
-                  >
-                    {t("privacyPolicy")}
-                  </Link>
-                  .
-                </span>
-              }
-              sx={{ mt: 1 }}
-            />
-          </div>
-        )}
 
         {/* Submit Button */}
         <div className="col-span-1 md:col-span-2">

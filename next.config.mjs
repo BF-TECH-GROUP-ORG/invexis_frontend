@@ -3,7 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // ===== PERFORMANCE OPTIMIZATIONS =====
-  
+
   // Optimize images for faster loading and smaller payloads
   images: {
     remotePatterns: [
@@ -44,20 +44,20 @@ const nextConfig = {
       '@emotion/styled',
       '@emotion/react',
     ],
-    
+
     // Optimize CSS modules to reduce CSS-in-JS overhead
-    optimizeCss: true,
-    
-    // Enable React strict mode for safer component lifecycle
-    reactStrictMode: true,
-    
+    optimizeCss: false,
+
     // Parallel routes for independent page segments (faster route transitions)
     parallelRoutesFallbacks: true,
   },
 
+  // Enable React strict mode for safer component lifecycle
+  reactStrictMode: true,
+
   // Build optimization settings
   swcMinify: true, // Use SWC for faster minification than Terser
-  
+
   // Disable static generation warnings for non-SSG pages
   staticPageGenerationTimeout: 120,
 
@@ -73,29 +73,24 @@ const nextConfig = {
     config.resolve = {
       ...config.resolve,
       // Use faster module resolution
-      mainFields: isServer 
-        ? ['main', 'module'] 
+      mainFields: isServer
+        ? ['main', 'module']
         : ['module', 'main'],
       // Reduce filesystem calls during resolution
       cacheWithContext: true,
     };
 
-    // Optimize React to reduce bundle size
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      react$: 'react/dist/react.min.js',
-      'react-dom$': 'react-dom/dist/react-dom.min.js',
-    };
+
 
     return config;
   },
 
   // Reduce initial page load time
   compress: true,
-  
+
   // Optimize HTTP/2 Server Push
   poweredByHeader: false, // Remove X-Powered-By header to save bytes
-  
+
   // Disable sourcemaps in production for faster builds (enable only if needed)
   productionBrowserSourceMaps: false,
 };
