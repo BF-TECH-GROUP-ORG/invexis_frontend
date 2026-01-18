@@ -68,11 +68,19 @@ const DebtDetailPage = () => {
 
     const debt = historyData?.debt;
 
+    // robustly calculate total paid
+    const totalPaid = historyData?.paymentSummary?.totalPaidAmount
+        ?? debt?.amountPaidNow
+        ?? debt?.repayments?.reduce((acc, curr) => acc + (curr.amountPaid || 0), 0)
+        ?? 0;
+
     // Fetch shop details
+    const debtShopId = typeof debt?.shopId === 'object' ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
+
     const { data: shop } = useQuery({
-        queryKey: ["shop", debt?.shopId],
-        queryFn: () => getShopById(debt?.shopId),
-        enabled: !!debt?.shopId,
+        queryKey: ["shop", debtShopId],
+        queryFn: () => getShopById(debtShopId),
+        enabled: !!debtShopId,
     });
 
     // Mutations with Optimistic Updates
@@ -211,7 +219,7 @@ const DebtDetailPage = () => {
 
             <Grid container spacing={3}>
                 {/* Left Column: Debt Info */}
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12}>
                     <Card sx={{ mb: 3, borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
                         <CardContent sx={{ p: 3 }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -253,7 +261,9 @@ const DebtDetailPage = () => {
                                         </Box>
                                         <Box>
                                             <Typography variant="caption" color="text.secondary">Shop</Typography>
-                                            <Typography variant="body1" fontWeight="medium">{shop?.name || debt.shopId}</Typography>
+                                            <Typography variant="body1" fontWeight="medium">
+                                                {shop?.name || (typeof debt.shopId === 'object' ? debt.shopId.name : debt.shopId)}
+                                            </Typography>
                                         </Box>
                                     </Stack>
                                 </Grid>
@@ -350,8 +360,8 @@ const DebtDetailPage = () => {
                 </Grid>
 
                 {/* Right Column: Summary & Actions */}
-                <Grid item xs={12} md={4}>
-                    <div className="ring mb-5 ring-red-100 p-4 rounded-lg">
+                <Grid item xs={12} md={6}>
+                    <div className="ring ring-red-100 p-4 rounded-lg h-full w-full">
                         <CardContent sx={{ p: 3 }}>
                             <Typography variant="h6" gutterBottom sx={{ opacity: 0.8 }} color="#000">Payment Summary</Typography>
                             <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)", mb: 2 }} />
@@ -363,7 +373,7 @@ const DebtDetailPage = () => {
                                 </Box>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                     <Typography sx={{ opacity: 0.8 }} color="#000">Total Paid:</Typography>
-                                    <Typography fontWeight="bold" color="#4caf50">{historyData.paymentSummary?.totalPaidAmount?.toLocaleString()} FRW</Typography>
+                                    <Typography fontWeight="bold" color="#4caf50">{totalPaid.toLocaleString()} FRW</Typography>
                                 </Box>
                                 <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
                                 <Box sx={{ display: "flex", justifyContent: "space-between", pt: 1 }}>
@@ -375,9 +385,11 @@ const DebtDetailPage = () => {
                             </Stack>
                         </CardContent>
                     </div>
+                </Grid>
 
+                <Grid item xs={12} md={6}>
                     {/* Actions */}
-                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", height: '100%', width: '100%' }}>
                         <CardContent sx={{ p: 3 }}>
                             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Actions</Typography>
                             <Stack spacing={2}>

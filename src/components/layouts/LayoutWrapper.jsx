@@ -1,7 +1,7 @@
 "use client";
 
 import useAuth from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 import SideBar from "@/components/layouts/SideBar";
 import TopNavBar from "@/components/layouts/NavBar";
@@ -16,9 +16,19 @@ const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
 
 export default function LayoutWrapper({ children }) {
   // Use NextAuth session for auth
+  // Use NextAuth session for auth
   const { user, status } = useAuth();
-  const { isLoading: globalLoading } = useLoading();
+  const { isLoading: globalLoading, loadingText } = useLoading();
   const { isNavigating } = useRouteLoading();
+  const pathname = usePathname();
+
+  // Track previous path to detect transition from Auth -> App
+  const prevPathRef = useRef(pathname);
+  useEffect(() => {
+    prevPathRef.current = pathname;
+  }, [pathname]);
+
+  const isComingFromAuth = prevPathRef.current?.includes("/auth/");
 
   // authToken not stored in client-side storage; NextAuth session contains tokens
   // Consider runtime localStorage toggle for bypass (DEV_BYPASS_AUTH) as well
@@ -51,7 +61,8 @@ export default function LayoutWrapper({ children }) {
     setMounted(true);
   }, []);
 
-  const pathname = usePathname();
+  // pathname moved to top
+
 
   if (!mounted) {
     return <GlobalLoader visible={true} text="Loading..." />;
@@ -59,6 +70,10 @@ export default function LayoutWrapper({ children }) {
 
   // Show loader during navigation or global loading
   const showLoader = globalLoading || isNavigating;
+
+  // Determine if we are explicitly logging out
+  // If so, we want to show the full screen loader, NOT the dashboard layout
+  const isLoggingOut = globalLoading && loadingText?.toLowerCase().includes("logging out");
 
   // If the current route is an error page, not-found, or unauthorized, render standalone
   const isErrorOrStandalonePage =
@@ -69,9 +84,9 @@ export default function LayoutWrapper({ children }) {
   if (isErrorOrStandalonePage) {
     return (
       <>
-        <GlobalLoader visible={showLoader} text="Loading..." />
+        <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />
         {!showLoader && (
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
             {children}
             {/* <DevBypassToggle /> */}
           </div>
@@ -101,9 +116,9 @@ export default function LayoutWrapper({ children }) {
   if (!isLoggedIn && isPublicRoute) {
     return (
       <>
-        <GlobalLoader visible={showLoader} text="Loading..." />
+        <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />
         {!showLoader && (
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-white">
             {children}
             {isDev && <DevBypassToggle />}
           </div>
@@ -116,9 +131,9 @@ export default function LayoutWrapper({ children }) {
   if (!isLoggedIn) {
     return (
       <>
-        <GlobalLoader visible={showLoader} text="Loading..." />
+        <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />
         {!showLoader && (
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-white">
             {children}
             {isDev && <DevBypassToggle />}
           </div>
@@ -127,15 +142,42 @@ export default function LayoutWrapper({ children }) {
     );
   }
 
+  // prevPathRef logic moved to top
+
+  // Clean loader logic:
+  // 1. Initial Mount or Auth Loading -> Full Screen
+  // 2. Global Loading (Logout/Login actions) -> Full Screen
+  // 3. Navigation FROM Auth pages -> Full Screen (prevents transition to inner loader)
+  // 4. Other Navigation -> Inner Content Loader
+
+  const showFullScreenLoader = !mounted || status === "loading" || globalLoading || (isNavigating && isComingFromAuth);
+
+  // If logged in but on auth page (redirecting), show Full Screen
+  const isAuthRoute = /^\/[a-z]{2}\/auth\//.test(pathname || "");
+  if (isLoggedIn && isAuthRoute) {
+    return <GlobalLoader visible={true} text="Loading..." />;
+  }
+
   return (
     <>
-      <GlobalLoader visible={showLoader} text="Loading..." />
-      {!showLoader && (
-        <DashboardLayout>
-          {/* Layout-level protection: only require authenticated session; per-route RBAC enforced in middleware */}
-          <ProtectedRoute>
-            {children}
-          </ProtectedRoute>
+      {showFullScreenLoader ? (
+        <GlobalLoader visible={true} text={loadingText || "Loading..."} />
+      ) : (
+        <DashboardLayout expanded={expanded} setExpanded={setExpanded}>
+          {/* Layout-level protection */}
+          {showLoader ? (
+            // Inner loader for standard in-app navigation (Dashboard -> Sales)
+            <div className="h-full w-full flex items-center justify-center min-h-[50vh]">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-5 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+                <p className="text-sm font-medium text-gray-500">Loading...</p>
+              </div>
+            </div>
+          ) : (
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
+          )}
           {isDev && <DevBypassToggle />}
         </DashboardLayout>
       )}

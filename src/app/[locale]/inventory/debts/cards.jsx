@@ -1,98 +1,78 @@
-// src/components/debts/DebtCards.jsx
 "use client";
 
-import { motion } from "framer-motion";
-import { Scale, ShieldCheck, CalendarClock, BadgeCheck, Maximize2, Minimize2 } from "lucide-react";
+import { Scale, ShieldCheck, CalendarClock, BadgeCheck } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { StatsCard } from "@/components/shared/StatsCard";
+import { useLocale } from "next-intl";
 
-const DebtCardItem = ({ title, rawValue, Icon, color, bgColor, index, isCurrency }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+// Removing local CardItem and Sparkline as we use the shared StatsCard
 
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat("en-RW", {
-      style: "currency",
-      currency: "RWF",
-      maximumFractionDigits: 0,
-    }).format(amount);
 
-  const formatCompactNumber = (number) => {
-    return new Intl.NumberFormat("en-RW", {
-      notation: "compact",
-      compactDisplay: "short",
-      maximumFractionDigits: 1,
-    }).format(number);
-  };
-
-  const displayValue = isExpanded
-    ? (isCurrency ? formatCurrency(rawValue) : rawValue)
-    : (isCurrency ? formatCompactNumber(rawValue) : rawValue);
-
-  const showToggle = isCurrency && rawValue >= 1000;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      transition={{ delay: index * 0.1 }}
-      className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-colors hover:shadow-md"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-[#6b7280] font-medium mb-1">
-            {title}
-          </p>
-          <div className="flex items-center gap-2 h-8">
-            <motion.p
-              key={isExpanded ? "expanded" : "compact"}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="text-2xl font-bold font-jetbrains text-[#081422]"
-            >
-              {displayValue}
-            </motion.p>
-            {showToggle && (
-              <motion.button
-                whileHover={{ scale: 1.1, backgroundColor: "#f3f4f6" }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md"
-                title={isExpanded ? "Show compact view" : "Show precise view"}
-              >
-                {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-              </motion.button>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="p-3 rounded-xl shrink-0"
-          style={{ backgroundColor: bgColor }}
-        >
-          <Icon size={24} style={{ color: color }} />
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-export default function DebtCards({ debts = [] }) {
+const DebtCards = ({ debts = [], isLoading = false }) => {
   const t = useTranslations("debtsPage");
 
-  const stats = {
-    totalAmount: debts.reduce((s, d) => s + parseFloat(d.totalAmount || 0), 0),
-    totalRemaining: debts.reduce((s, d) => s + parseFloat(d.balance || 0), 0),
-    paidCount: debts.filter(d => (d.status || "").toUpperCase() === "PAID").length,
-    totalDebts: debts.length,
-  };
+  const stats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      return d.toDateString();
+    }).reverse();
+
+    const debtsArray = Array.isArray(debts) ? debts : [];
+
+    const getDailyStats = (dateStr) => {
+      const dayDebts = debtsArray.filter(debt => new Date(debt.createdAt).toDateString() === dateStr);
+
+      const totalAmount = dayDebts.reduce((sum, debt) => sum + (parseFloat(debt.totalAmount) || 0), 0);
+      const paidCount = dayDebts.filter(debt => (debt.status || "").toUpperCase() === "PAID").length;
+      const totalRemaining = dayDebts.reduce((sum, debt) => sum + (parseFloat(debt.balance) || 0), 0);
+      const totalDebts = dayDebts.length;
+
+      return { totalAmount, paidCount, totalRemaining, totalDebts };
+    };
+
+    const history = last7Days.map(dateStr => ({
+      date: dateStr,
+      ...getDailyStats(dateStr)
+    }));
+
+    const totalStats = {
+      totalAmount: debtsArray.reduce((s, d) => s + parseFloat(d.totalAmount || 0), 0),
+      totalRemaining: debtsArray.reduce((s, d) => s + parseFloat(d.balance || 0), 0),
+      paidCount: debtsArray.filter(d => (d.status || "").toUpperCase() === "PAID").length,
+      totalDebts: debtsArray.length,
+    };
+
+    const todayStats = history[history.length - 1];
+    const yesterdayStats = history[history.length - 2] || { totalAmount: 0, paidCount: 0, totalRemaining: 0, totalDebts: 0 };
+
+    const calculateTrend = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    return {
+      totals: totalStats,
+      history,
+      trends: {
+        amount: calculateTrend(todayStats.totalAmount, yesterdayStats.totalAmount), // Trend of DAILY creation
+        remaining: calculateTrend(todayStats.totalRemaining, yesterdayStats.totalRemaining),
+        paid: calculateTrend(todayStats.paidCount, yesterdayStats.paidCount),
+        count: calculateTrend(todayStats.totalDebts, yesterdayStats.totalDebts),
+      }
+    };
+  }, [debts]);
 
   const cards = [
     {
       title: t("totalDebts"),
-      rawValue: stats.totalAmount,
+      value: stats.totals.totalAmount,
+      trend: stats.trends.amount,
+      history: stats.history.map(h => ({ value: h.totalAmount, name: h.date })),
       Icon: Scale,
       color: "#8b5cf6",
       bgColor: "#f3e8ff",
@@ -101,7 +81,9 @@ export default function DebtCards({ debts = [] }) {
     },
     {
       title: t("clearedDebts"),
-      rawValue: stats.paidCount,
+      value: stats.totals.paidCount,
+      trend: stats.trends.paid,
+      history: stats.history.map(h => ({ value: h.paidCount, name: h.date })),
       Icon: ShieldCheck,
       color: "#10b981",
       bgColor: "#ecfdf5",
@@ -110,7 +92,9 @@ export default function DebtCards({ debts = [] }) {
     },
     {
       title: t("upcomingPayments"),
-      rawValue: stats.totalRemaining,
+      value: stats.totals.totalRemaining,
+      trend: stats.trends.remaining,
+      history: stats.history.map(h => ({ value: h.totalRemaining, name: h.date })),
       Icon: CalendarClock,
       color: "#3b82f6",
       bgColor: "#eff6ff",
@@ -119,7 +103,9 @@ export default function DebtCards({ debts = [] }) {
     },
     {
       title: t("verifiedDebtors"),
-      rawValue: stats.totalDebts,
+      value: stats.totals.totalDebts,
+      trend: stats.trends.count,
+      history: stats.history.map(h => ({ value: h.totalDebts, name: h.date })),
       Icon: BadgeCheck,
       color: "#ef4444",
       bgColor: "#fee2e2",
@@ -128,15 +114,33 @@ export default function DebtCards({ debts = [] }) {
     },
   ];
 
+  const locale = useLocale();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {cards.map(({ key, ...card }, index) => (
-        <DebtCardItem
-          key={key}
-          {...card}
-          index={index}
-        />
-      ))}
+      {isLoading ? (
+        [1, 2, 3, 4].map((i) => (
+          <StatsCard key={i} isLoading={true} />
+        ))
+      ) : (
+        cards.map((card, index) => (
+          <StatsCard
+            key={card.key}
+            title={card.title}
+            value={card.value}
+            trend={card.trend}
+            history={card.history}
+            icon={card.Icon}
+            color={card.color}
+            bgColor={card.bgColor}
+            isCurrency={card.isCurrency}
+            index={index}
+            locale={locale}
+          />
+        ))
+      )}
     </div>
   );
 }
+
+export default DebtCards;

@@ -4,7 +4,6 @@ import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, IconButton, Typography, TextField, Box, Menu, MenuItem, ListItemIcon, ListItemText, Popover, Select, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogActions, Button, Alert, CircularProgress, Checkbox, Autocomplete, TablePagination, Chip, Avatar, Stack
 } from "@mui/material";
-import { useLocale } from "next-intl";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import CloudDownloadRoundedIcon from "@mui/icons-material/CloudDownloadRounded";
@@ -16,7 +15,9 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 import { deleteSale, getSingleSale, createReturn } from "@/services/salesService";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -682,9 +683,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
 // Main DataTable Component
 // ----------------------------------------------------------------------
 
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
-import { useSession } from "next-auth/react";
 
 const DataTable = ({
   salesData,
@@ -1198,7 +1197,7 @@ const DataTable = ({
       </Box>
 
       <TableContainer sx={{
-        
+
         maxHeight: 800,
         width: '100%',
         overflowX: 'auto',

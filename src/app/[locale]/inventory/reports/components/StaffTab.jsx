@@ -20,10 +20,6 @@ const StaffTab = ({ dateRange }) => {
     const [loading, setLoading] = useState(true);
     const [staffData, setStaffData] = useState([]);
     const [branchData, setBranchData] = useState([]);
-    const [reportView, setReportView] = useState('daily');
-    const [selectedDate, setSelectedDate] = useState(dayjs());
-    const [selectedMonth, setSelectedMonth] = useState(dayjs());
-    const [selectedYear, setSelectedYear] = useState(dayjs());
     const [selectedBranch, setSelectedBranch] = useState('All');
     const [selectedActor, setSelectedActor] = useState('All');
     const [branchAnchor, setBranchAnchor] = useState(null);
@@ -67,7 +63,7 @@ const StaffTab = ({ dateRange }) => {
         };
 
         fetchData();
-    }, [companyId, dateRange, reportView, selectedDate, selectedMonth, selectedYear, selectedBranch, selectedActor]);
+    }, [companyId, dateRange, selectedBranch, selectedActor]);
 
     if (loading) {
         return (
@@ -100,120 +96,13 @@ const StaffTab = ({ dateRange }) => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
                 {/* Header with Title, Toggle, and Date Picker */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
                         Staff Report
                     </Typography>
 
-                    {/* Report View Toggle and Date Picker Container */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <ToggleButtonGroup
-                            value={reportView}
-                            exclusive
-                            onChange={(event, newView) => {
-                                if (newView !== null) setReportView(newView);
-                            }}
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    textTransform: 'none',
-                                    fontWeight: '600',
-                                    fontSize: '0.85rem',
-                                    px: 1.5,
-                                    py: 0.5,
-                                    borderRadius: '6px',
-                                    border: '1px solid #e5e7eb',
-                                    color: '#6B7280',
-                                    '&.Mui-selected': {
-                                        bgcolor: '#FF6D00',
-                                        color: 'white',
-                                        borderColor: '#FF6D00',
-                                        '&:hover': {
-                                            bgcolor: '#E55D00'
-                                        }
-                                    },
-                                    '&:hover': {
-                                        bgcolor: '#f3f4f6'
-                                    }
-                                }
-                            }}
-                        >
-                            <ToggleButton value="daily">Daily</ToggleButton>
-                            <ToggleButton value="weekly">Weekly</ToggleButton>
-                            <ToggleButton value="monthly">Monthly</ToggleButton>
-                            <ToggleButton value="yearly">Yearly</ToggleButton>
-                        </ToggleButtonGroup>
-
-                        {/* Date Picker based on view */}
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            {reportView === 'daily' && (
-                                <DatePicker
-                                    label="Select Date"
-                                    value={selectedDate}
-                                    onChange={(newValue) => setSelectedDate(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {(reportView === 'weekly' || reportView === 'monthly') && (
-                                <DatePicker
-                                    views={['year', 'month']}
-                                    label="Select Month"
-                                    value={selectedMonth}
-                                    onChange={(newValue) => setSelectedMonth(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {reportView === 'yearly' && (
-                                <DatePicker
-                                    views={['year']}
-                                    label="Select Year"
-                                    value={selectedYear}
-                                    onChange={(newValue) => setSelectedYear(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 110,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                        </LocalizationProvider>
-                    </Box>
                 </Box>
 
                 {/* Top KPIs */}
