@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense, lazy } from 'react';
 import {
     Box,
     Typography,
@@ -17,7 +17,10 @@ import {
     DialogActions,
     RadioGroup,
     FormControlLabel,
-    Radio
+    Radio,
+    Skeleton,
+    ToggleButton,
+    ToggleButtonGroup,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -26,16 +29,27 @@ import DownloadIcon from '@mui/icons-material/Download';
 import PrintIcon from '@mui/icons-material/Print';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import InventoryTab from './components/InventoryTab';
-import SalesTab from './components/SalesTab';
-import DebtsTab from './components/DebtsTab';
-import PaymentsTab from './components/PaymentsTab';
-import StaffTab from './components/StaffTab';
-import GeneralTab from './components/GeneralTab';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 
-// Error Boundary Component
+// OPTIMIZATION: Lazy load tab components to reduce initial page load time
+// This defers compilation of heavy tab components until they're actually needed
+const InventoryTab = lazy(() => import('./components/InventoryTab'));
+const SalesTab = lazy(() => import('./components/SalesTab'));
+const DebtsTab = lazy(() => import('./components/DebtsTab'));
+const PaymentsTab = lazy(() => import('./components/PaymentsTab'));
+const StaffTab = lazy(() => import('./components/StaffTab'));
+const GeneralTab = lazy(() => import('./components/GeneralTab'));
+
+// Tab loading skeleton for better UX during component load
+const TabSkeleton = () => (
+    <Box sx={{ p: 3 }}>
+        <Skeleton variant="rectangular" height={400} sx={{ mb: 2 }} />
+        <Skeleton variant="rectangular" height={300} />
+    </Box>
+);
+
+// Error Boundary Component to prevent entire page crash
 class ErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
@@ -70,6 +84,27 @@ const ReportsPage = () => {
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [exportScope, setExportScope] = useState('current'); // 'current' or 'all'
     const [exportAnchorEl, setExportAnchorEl] = useState(null);
+    const [reportView, setReportView] = useState('daily');
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+
+    // Sync dateRange with reportView and selectedDate
+    React.useEffect(() => {
+        let start, end;
+        if (reportView === 'daily') {
+            start = selectedDate.startOf('day');
+            end = selectedDate.endOf('day');
+        } else if (reportView === 'weekly') {
+            start = selectedDate.startOf('week');
+            end = selectedDate.endOf('week');
+        } else if (reportView === 'monthly') {
+            start = selectedDate.startOf('month');
+            end = selectedDate.endOf('month');
+        } else if (reportView === 'yearly') {
+            start = selectedDate.startOf('year');
+            end = selectedDate.endOf('year');
+        }
+        setDateRange({ startDate: start, endDate: end });
+    }, [reportView, selectedDate]);
 
     const tabNames = ['General Overview', 'Inventory Analysis', 'Sales Performance', 'Debts & Credit', 'Payment Methods', 'Staff & Branches'];
     const tabRefs = useRef({});
@@ -332,7 +367,7 @@ const ReportsPage = () => {
         <Box sx={{
             width: '100%',
             minHeight: '100vh',
-            bgcolor: "#ffffff"
+            // bgcolor: "#ffffff"
         }}>
             {/* Header Section */}
             <Box sx={{
@@ -362,8 +397,91 @@ const ReportsPage = () => {
                     display: "flex",
                     gap: 2,
                     width: { xs: "100%", sm: "auto" },
-                    flexWrap: "wrap"
+                    flexWrap: "wrap",
+                    alignItems: "center"
                 }}>
+                    {/* Centralized Date Pickers and View Toggles */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <ToggleButtonGroup
+                            value={reportView}
+                            exclusive
+                            onChange={(event, newView) => {
+                                if (newView !== null) setReportView(newView);
+                            }}
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    textTransform: 'none',
+                                    fontWeight: '600',
+                                    fontSize: '0.9rem',
+                                    px: 2.5,
+                                    py: 0.75,
+                                    borderRadius: '8px',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#6B7280',
+                                    '&.Mui-selected': {
+                                        bgcolor: '#FF6D00',
+                                        color: 'white',
+                                        borderColor: '#FF6D00',
+                                        '&:hover': {
+                                            bgcolor: '#E55D00'
+                                        }
+                                    },
+                                    '&:hover': {
+                                        bgcolor: '#f3f4f6'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="daily">Daily</ToggleButton>
+                            <ToggleButton value="weekly">Weekly</ToggleButton>
+                            <ToggleButton value="monthly">Monthly</ToggleButton>
+                            <ToggleButton value="yearly">Yearly</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DatePicker
+                                label="Select Date"
+                                value={selectedDate}
+                                onChange={(newValue) => setSelectedDate(newValue)}
+                                views={
+                                    reportView === 'daily' ? ['year', 'month', 'day'] :
+                                        reportView === 'weekly' ? ['year', 'month', 'day'] :
+                                            reportView === 'monthly' ? ['year', 'month'] :
+                                                ['year']
+                                }
+                                slotProps={{
+                                    textField: {
+                                        size: 'small',
+                                        sx: {
+                                            width: 180,
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '24px',
+                                                fontWeight: '700',
+                                                fontSize: '1.1rem',
+                                                '& fieldset': {
+                                                    borderColor: '#e5e7eb',
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: '#d1d5db',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#FF6D00',
+                                                }
+                                            },
+                                            '& .MuiInputLabel-root': {
+                                                color: '#6B7280',
+                                                fontWeight: '500',
+                                                '&.Mui-focused': {
+                                                    color: '#FF6D00',
+                                                }
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
+                        </LocalizationProvider>
+                    </Box>
+
                     {/* Export Dropdown Button */}
                     <Button
                         variant="contained"
@@ -451,26 +569,39 @@ const ReportsPage = () => {
                 </Tabs>
             </Paper>
 
-            {/* Tab Content */}
+            {/* Tab Content - Using Suspense boundaries for lazy-loaded components */}
             <Box sx={{ width: '100%', px: { xs: 0, sm: 0 } }}>
                 <ErrorBoundary>
+                    {/* Lazy load each tab to reduce initial page size and compile time */}
                     <Box ref={(el) => (tabRefs.current[0] = el)} sx={{ display: currentTab === 0 ? 'block' : 'none' }}>
-                        <GeneralTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <GeneralTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[1] = el)} sx={{ display: currentTab === 1 ? 'block' : 'none' }}>
-                        <InventoryTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <InventoryTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[2] = el)} sx={{ display: currentTab === 2 ? 'block' : 'none' }}>
-                        <SalesTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <SalesTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[3] = el)} sx={{ display: currentTab === 3 ? 'block' : 'none' }}>
-                        <DebtsTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <DebtsTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[4] = el)} sx={{ display: currentTab === 4 ? 'block' : 'none' }}>
-                        <PaymentsTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <PaymentsTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
-                        <StaffTab dateRange={dateRange} />
+                        <Suspense fallback={<TabSkeleton />}>
+                            <StaffTab dateRange={dateRange} />
+                        </Suspense>
                     </Box>
                 </ErrorBoundary>
             </Box>

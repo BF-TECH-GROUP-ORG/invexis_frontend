@@ -8,43 +8,28 @@ import { motion } from 'framer-motion';
 import {
     TrendingUp,
     TrendingDown,
-    DollarSign,
-    CreditCard,
-    RefreshCw,
-    BarChart3,
-    Inventory2,
-    AlertTriangle,
+    Warehouse,
     Package,
     ArrowDownRight
 } from 'lucide-react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
-import ReportKPI from './ReportKPI';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
-import WarningIcon from '@mui/icons-material/Warning';
-import ProductionQuantityLimitsIcon from '@mui/icons-material/ProductionQuantityLimits';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
-const InventoryTab = () => {
+const InventoryTab = ({ dateRange }) => {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
     const [summary, setSummary] = useState(null);
-    const [reportView, setReportView] = useState('daily'); // 'daily', 'weekly', 'monthly', 'yearly'
-    const [selectedDate, setSelectedDate] = useState(dayjs());
-    const [selectedMonth, setSelectedMonth] = useState(dayjs());
-    const [selectedYear, setSelectedYear] = useState(dayjs());
 
     // Header Selection State
     const [selectedBranch, setSelectedBranch] = useState('All');
 
     // Menu Anchors
-    const [dateAnchor, setDateAnchor] = useState(null);
     const [branchAnchor, setBranchAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
@@ -116,7 +101,7 @@ const InventoryTab = () => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, selectedDate, reportView, selectedMonth, selectedYear]);
+    }, [companyId, selectedBranch, dateRange]);
 
     if (loading) {
         return (
@@ -128,182 +113,103 @@ const InventoryTab = () => {
 
     const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
 
-    const handleDateClick = (event) => setDateAnchor(event.currentTarget);
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
-    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); };
+    const handleClose = () => { setBranchAnchor(null); };
 
     const handleBranchSelect = (branch) => {
         setSelectedBranch(branch);
         handleClose();
     };
 
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
-        handleClose();
-    };
+
+
+    const kpiCards = [
+        {
+            title: "Total Stock Value",
+            value: formatCurrency(summary?.totalValue || 0),
+            icon: TrendingUp,
+            color: "#FF6D00",
+        },
+        {
+            title: "Total Items",
+            value: summary?.totalItems || 0,
+            icon: Warehouse,
+            color: "#0059ffff",
+        },
+        {
+            title: "Low Stock Items",
+            value: summary?.lowStockCount || 0,
+            icon: TrendingDown,
+            color: "#F59E0B",
+            trend: "down",
+            trendValue: "Action Needed",
+        },
+        {
+            title: "Out of Stock",
+            value: summary?.outOfStockCount || 0,
+            icon: Package,
+            color: "#EF4444",
+            trend: "down",
+            trendValue: "Critical",
+        },
+    ];
+
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
                 {/* Header with Title, Toggle, Date Picker, and Export Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
                         Inventory Report
                     </Typography>
 
-                    {/* Report View Toggle and Date Picker Container */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <ToggleButtonGroup
-                            value={reportView}
-                            exclusive
-                            onChange={(event, newView) => {
-                                if (newView !== null) setReportView(newView);
-                            }}
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    textTransform: 'none',
-                                    fontWeight: '600',
-                                    fontSize: '0.85rem',
-                                    px: 1.5,
-                                    py: 0.5,
-                                    borderRadius: '6px',
-                                    border: '1px solid #e5e7eb',
-                                    color: '#6B7280',
-                                    '&.Mui-selected': {
-                                        bgcolor: '#FF6D00',
-                                        color: 'white',
-                                        borderColor: '#FF6D00',
-                                        '&:hover': {
-                                            bgcolor: '#E55D00'
-                                        }
-                                    },
-                                    '&:hover': {
-                                        bgcolor: '#f3f4f6'
-                                    }
-                                }
-                            }}
-                        >
-                            <ToggleButton value="daily">Daily</ToggleButton>
-                            <ToggleButton value="weekly">Weekly</ToggleButton>
-                            <ToggleButton value="monthly">Monthly</ToggleButton>
-                            <ToggleButton value="yearly">Yearly</ToggleButton>
-                        </ToggleButtonGroup>
-
-                        {/* Date Picker based on view */}
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            {reportView === 'daily' && (
-                                <DatePicker
-                                    label="Select Date"
-                                    value={selectedDate}
-                                    onChange={(newValue) => setSelectedDate(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {(reportView === 'weekly' || reportView === 'monthly') && (
-                                <DatePicker
-                                    views={['year', 'month']}
-                                    label="Select Month"
-                                    value={selectedMonth}
-                                    onChange={(newValue) => setSelectedMonth(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {reportView === 'yearly' && (
-                                <DatePicker
-                                    views={['year']}
-                                    label="Select Year"
-                                    value={selectedYear}
-                                    onChange={(newValue) => setSelectedYear(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 110,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                        </LocalizationProvider>
-                    </Box>
 
                 </Box>
 
                 {/* Top KPIs */}
-                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Total Stock Value"
-                            value={formatCurrency(summary?.totalValue || 0)}
-                            icon={MonetizationOnIcon}
-                            color="#FF6D00"
-                            index={0}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Total Items"
-                            value={summary?.totalItems || 0}
-                            icon={Inventory2Icon}
-                            color="#3B82F6"
-                            index={1}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Low Stock Items"
-                            value={summary?.lowStockCount || 0}
-                            icon={WarningIcon}
-                            color="#F59E0B"
-                            trend="down"
-                            trendValue="Action Needed"
-                            index={2}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Out of Stock"
-                            value={summary?.outOfStockCount || 0}
-                            icon={ProductionQuantityLimitsIcon}
-                            color="#EF4444"
-                            trend="down"
-                            trendValue="Critical"
-                            index={3}
-                        />
-                    </Grid>
-                </Grid>
+
+
+                <div className="w-full py-4">
+                    <div className="w-full grid grid-cols-4 gap-3">
+                        {kpiCards.map((card, index) => (
+                            <div
+                                key={index}
+                                style={{ "--hover-color": card.color }}
+                                className="
+                    group
+                    border-2 border-gray-300
+                    flex justify-between px-4 py-6
+                    rounded-2xl
+                    transition-all duration-300 ease-in-out
+                    hover:border-[var(--hover-color)]
+                "
+                            >
+                                <div>
+                                    <h2 className="text-md text-gray-600 font-semibold">
+                                        {card.title}
+                                    </h2>
+                                    <p className="text-xl font-bold">
+                                        {card.value}
+                                    </p>
+                                </div>
+
+                                <div
+                                    className="p-2 rounded-lg w-12 h-12 flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: `${card.color}20`,
+                                        color: card.color
+                                    }}
+                                >
+                                    <card.icon size={24} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+
+
 
                 {/* Hierarchical Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
@@ -312,9 +218,11 @@ const InventoryTab = () => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
-                                        {selectedDate.format('MM/DD/YYYY')} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
-                                    </Box>
+                                    {dateRange.startDate ? (
+                                        `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
+                                    ) : (
+                                        'Date'
+                                    )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
@@ -404,16 +312,6 @@ const InventoryTab = () => {
                     </Table>
                 </TableContainer>
 
-                {/* Date Selection Menu */}
-                <Menu
-                    anchorEl={dateAnchor}
-                    open={Boolean(dateAnchor)}
-                    onClose={handleClose}
-                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
-                >
-                    <MenuItem onClick={() => handleDateSelect('02/15/2022')}>02/15/2022</MenuItem>
-                    <MenuItem onClick={() => handleDateSelect('02/14/2022')}>02/14/2022</MenuItem>
-                </Menu>
 
                 {/* Branch Selection Menu */}
                 <Menu

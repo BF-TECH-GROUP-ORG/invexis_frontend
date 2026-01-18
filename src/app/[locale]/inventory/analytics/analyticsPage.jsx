@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from 'react';
-import { Store, Users, Boxes, CircleX } from 'lucide-react';
+import { Store, Users, Boxes, CircleX, TrendingUp, Undo2, Percent, Coins } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from "next-auth/react";
+import { useLocale } from "next-intl";
+import { StatsCard } from '@/components/shared/StatsCard';
 import Skeleton from '@/components/shared/Skeleton';
 import SalesPerformance from '@/components/visuals/sales/salesPerformance';
-import CustomerReports from '@/components/visuals/reports/CustomerReports';
 import ShopEmployeeReports from '@/components/visuals/reports/ShopEmployeeReports';
 import AnalyticsService from '@/services/analyticsService';
 import { getBranches } from '@/services/branches';
@@ -15,6 +16,7 @@ import dayjs from 'dayjs';
 const AnalyticsPage = () => {
     const [timeRange, setTimeRange] = useState('7d');
     const [selectedDate, setSelectedDate] = useState(dayjs());
+    const locale = useLocale();
     const { data: session } = useSession();
     const user = session?.user;
     const companyObj = user?.companies?.[0];
@@ -111,6 +113,13 @@ const AnalyticsPage = () => {
         retry: false,
     });
 
+    const { data: movementRes, isLoading: movementLoading } = useQuery({
+        queryKey: ['analytics', 'movement', params],
+        queryFn: () => AnalyticsService.getStockMovement(params, options),
+        staleTime: 5 * 60 * 1000,
+        retry: false,
+    });
+
     // 6. Payment Methods (Categories)
     const { data: categoriesRes, isLoading: categoriesLoading } = useQuery({
         queryKey: ['analytics', 'paymentMethods', params],
@@ -169,7 +178,7 @@ const AnalyticsPage = () => {
         enabled: !!companyId,
     });
 
-    const loading = summaryLoading || salesLoading || profitabilityLoading || productsLoading || inventoryLoading || categoriesLoading || acquisitionLoading || activeUsersLoading || topCustomersLoading || shopLoading || employeeLoading;
+    const loading = summaryLoading || salesLoading || profitabilityLoading || productsLoading || inventoryLoading || movementLoading || categoriesLoading || acquisitionLoading || activeUsersLoading || topCustomersLoading || shopLoading || employeeLoading;
 
     // --- Data Transformation ---
 
@@ -185,6 +194,7 @@ const AnalyticsPage = () => {
 
     const salesPerformance = rawSales.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
+        date: item.date,
         current: parseFloat(item.revenue) || 0,
         previous: 0
     }));
@@ -198,6 +208,7 @@ const AnalyticsPage = () => {
 
     const profitabilityData = rawProfitability.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
+        date: item.date,
         revenue: parseFloat(item.revenue) || 0,
         cost: parseFloat(item.cost) || 0,
         profit: parseFloat(item.profit) || 0,
@@ -249,36 +260,49 @@ const AnalyticsPage = () => {
         };
     });
 
-    // Inventory Health
-    const inventoryHealth = inventoryRes?.data || inventoryRes || [];
-    console.log('📦 Inventory Health:', inventoryHealth);
-
-    // Customer Stats
-    const customerAcquisition = acquisitionRes?.data || acquisitionRes || [];
-    const activeUsers = activeUsersRes?.data || activeUsersRes || [];
-    const topCustomers = topCustomersRes?.data || topCustomersRes || [];
-
+    // Inventory Movement (Real data for the chart)
+    const rawMovement = movementRes?.data || movementRes || [];
+    const stockMovement = rawMovement.map(item => ({
+        name: dayjs(item.date).format('DD/MM'),
+        in: parseFloat(item.stockIn) || 0,
+        out: parseFloat(item.stockOut) || 0,
+        net: parseFloat(item.netFlow) || 0
+    }));
 
     const headerCards = [
         {
-            title: "Total Daily Sales",
-            value: summary.totalDailySales || 0,
-            icon: <Store size={45} className="text-purple-500 bg-purple-50 p-3 rounded-xl" />
+            title: "Total Sales",
+            value: parseFloat(summary.totalDailySales) || 0,
+            icon: Coins,
+            color: "#8b5cf6",
+            bgColor: "#f3e8ff",
+            isCurrency: true,
+            history: salesPerformance.map(s => ({ value: s.current, name: s.date }))
         },
         {
-            title: "Total Daily Profit",
-            value: summary.totalDailyProfit || 0,
-            icon: <Users size={45} className="text-green-500 bg-green-50 p-3 rounded-xl" />
+            title: "Total Profit",
+            value: parseFloat(summary.totalDailyProfit) || 0,
+            icon: TrendingUp,
+            color: "#10b981",
+            bgColor: "#ecfdf5",
+            isCurrency: true,
+            history: profitabilityData.map(p => ({ value: p.profit, name: p.date }))
         },
         {
-            title: "Total Returned Products",
-            value: summary.totalReturnedProducts || 0,
-            icon: <Boxes size={45} className="text-blue-500 bg-blue-50 p-3 rounded-xl" />
+            title: "Total Orders",
+            value: parseInt(summary.totalOrders) || 0,
+            icon: Store,
+            color: "#ea580c",
+            bgColor: "#fff7ed",
+            history: rawSales.map(s => ({ value: parseInt(s.orderCount) || 0, name: s.date }))
         },
         {
-            title: "Total Number of Discounts",
-            value: summary.totalDiscounts || 0,
-            icon: <CircleX size={45} className="text-red-500 bg-red-50 p-3 rounded-xl" />
+            title: "Top Product",
+            value: topProducts.length > 0 ? topProducts[0].quantity : 0,
+            icon: Boxes,
+            color: "#3b82f6",
+            bgColor: "#eff6ff",
+            history: topProducts.slice(0, 5).map(p => ({ value: p.quantity, name: p.name }))
         },
     ];
 
@@ -293,24 +317,19 @@ const AnalyticsPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {headerCards.map((card, index) => (
-                    <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-gray-500 text-sm">{card.title}</h2>
-                                <p className="text-sm text-gray-500">{card.discription}</p>
-                            </div>
-                            <div>
-                                <span className=""> {card.icon}</span>
-                            </div>
-                        </div>
-                        <h3 className="text-2xl font-bold">
-                            {loading ? (
-                                <Skeleton className="h-8 w-24 mt-1" />
-                            ) : (
-                                card.value
-                            )}
-                        </h3>
-                    </div>
+                    <StatsCard
+                        key={index}
+                        title={card.title}
+                        value={card.value}
+                        icon={card.icon}
+                        color={card.color}
+                        bgColor={card.bgColor}
+                        isCurrency={card.isCurrency}
+                        history={card.history}
+                        isLoading={loading}
+                        index={index}
+                        locale={locale}
+                    />
                 ))}
             </div>
 
@@ -323,17 +342,10 @@ const AnalyticsPage = () => {
                     salesData={salesPerformance}
                     categoryData={categories}
                     topProductsData={topProducts}
-                    stockData={inventoryHealth}
+                    stockData={stockMovement}
                     profitabilityData={profitabilityData}
                     loading={loading}
                 />
-
-                {/* <CustomerReports
-                    acquisitionData={customerAcquisition}
-                    activeUsersData={activeUsers}
-                    topCustomersData={topCustomers}
-                    loading={loading}
-                />  */}
 
                 <ShopEmployeeReports
                     shopPerformance={shopPerformance}

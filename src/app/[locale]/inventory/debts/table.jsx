@@ -883,7 +883,11 @@ const DebtsTable = ({
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
-                      {shopMap[debt.shopId] || debt.shopId || "N/A"}
+                      {(() => {
+                        const sId = typeof debt.shopId === 'object' && debt.shopId ? (debt.shopId._id || debt.shopId.id) : debt.shopId;
+                        const sName = typeof debt.shopId === 'object' && debt.shopId?.name ? debt.shopId.name : null;
+                        return shopMap[sId] || sName || sId || "N/A";
+                      })()}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

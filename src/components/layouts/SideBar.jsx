@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,8 +19,12 @@ import {
   MoreVertical,
   X,
   Bell,
+  LogOut,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useLoading } from "@/contexts/LoadingContext";
+import { useNotification } from "@/providers/NotificationProvider";
 
 /* STATIC NAV ITEMS */
 const navItems = [
@@ -133,15 +137,27 @@ export default function SideBar({
 }) {
   const pathname = usePathname();
   const locale = useLocale();
+  const router = useRouter();
+  const { setLoading, setLoadingText } = useLoading();
+  const { showNotification } = useNotification();
 
   const [expandedInternal, setExpandedInternal] = useState(true);
   const [openMenus, setOpenMenus] = useState([]);
-  const [hoverMenu, setHoverMenu] = useState(null);
+  const [hoverItem, setHoverItem] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ top: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const [moreModalOpen, setMoreModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const timeoutRef = useRef(null);
+
+  const cleanTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
 
   // Detect theme
   useEffect(() => {
@@ -183,16 +199,23 @@ export default function SideBar({
   /* hover prefetch */
   const handleHoverEnter = useCallback(
     (e, item) => {
-      if (!expanded && item.children) {
+      cleanTimeout();
+      if (!expanded) {
         const rect = e.currentTarget.getBoundingClientRect();
-        setHoverMenu(item.title);
-        setHoverPosition({ top: rect.top + window.scrollY });
+        setHoverItem(item);
+        setHoverPosition({ top: rect.top });
       }
     },
     [expanded]
   );
 
-  const handleHoverLeave = () => !expanded && setHoverMenu(null);
+  const handleHoverLeave = () => {
+    if (!expanded) {
+      timeoutRef.current = setTimeout(() => {
+        setHoverItem(null);
+      }, 300);
+    }
+  };
 
   /* Auto-open active parent */
   useEffect(() => {
@@ -206,6 +229,27 @@ export default function SideBar({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      setLoadingText("Logging out...");
+      setLoading(true);
+
+      // Sign out from NextAuth
+      await signOut({ redirect: false });
+
+      router.push(`/${locale}/auth/login`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      showNotification({
+        severity: "error",
+        message: "Logout failed. Please try again.",
+      });
+    } finally {
+      // Don't turn off loading here, let the redirect page handle it or it clears on unmount
+      // preventing flicker
+    }
+  };
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -286,6 +330,28 @@ export default function SideBar({
 
   return (
     <>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e5e7eb;
+          border-radius: 10px;
+          transition: background 0.2s;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #374151;
+        }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+          background: #fdba74; /* orange-300 */
+        }
+        .dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+          background: #ea580c; /* orange-600 */
+        }
+      `}</style>
       {/* MOBILE VIEW */}
       {isMobile ? (
         <>
@@ -490,11 +556,11 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed inset-y-0  left-0 z-30 bg-white border-r transition-all duration-300 ${expanded ? "w-64" : "w-16"
+        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 flex flex-col ${expanded ? "w-64" : "w-16"
           }`}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-4 py-4 border-b">
+        <div className="flex items-center justify-between px-4 h-16 border-b">
           {expanded ? (
             // Only burger icon when expanded
             <button
@@ -516,11 +582,11 @@ export default function SideBar({
         </div>
 
         {/* NAVIGATION */}
-        <nav className={`flex-1 overflow-y-auto  py-4 pb-20 space-y-6 ${expanded ? "px-3" : "px-2"}`}>
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 custom-scrollbar ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "hidden"
                 }`}
             >
               Overview
@@ -530,25 +596,30 @@ export default function SideBar({
               .slice(0, 3)
               .filter(visibleFor)
               .map((item) => (
-                <Link
+                <div
                   key={item.title}
-                  href={`/${locale}${item.path}`}
-                  prefetch={item.prefetch}
-                  className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
-                    ? "bg-orange-50  border-l-2 border-orange-500 text-orange-500"
-                    : "text-gray-700 hover:bg-orange-50"
-                    }`}
+                  onMouseEnter={(e) => handleHoverEnter(e, item)}
+                  onMouseLeave={handleHoverLeave}
                 >
-                  {item.icon}
-                  {expanded && <span>{item.title}</span>}
-                </Link>
+                  <Link
+                    href={`/${locale}${item.path}`}
+                    prefetch={item.prefetch}
+                    className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
+                      ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                      : "text-gray-700 hover:bg-orange-50"
+                      }`}
+                  >
+                    {item.icon}
+                    {expanded && <span>{item.title}</span>}
+                  </Link>
+                </div>
               ))}
           </section>
 
           {/* MANAGEMENT */}
           <section className="">
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-2 ${expanded ? "" : "opacity-0"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-5 ${expanded ? "" : "hidden"
                 }`}
             >
               Management
@@ -574,7 +645,7 @@ export default function SideBar({
                         href={`/${locale}${item.path}`}
                         prefetch={item.prefetch}
                         className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
-                          ? "bg-orange-50  border-l-2 border-orange-500 text-orange-500"
+                          ? "bg-gray-100 font-bold border-l-5 border-orange-500 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
@@ -597,7 +668,7 @@ export default function SideBar({
                               )
                             }
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                              ? " bg-gray-200 rounded-xl text-black font-bold"
+                              ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                               : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
@@ -621,14 +692,14 @@ export default function SideBar({
                           {expanded &&
                             item.children &&
                             openMenus.includes(item.title) && (
-                              <div className="ml-10 mt-2  border-l px-3">
+                              <div className="ml-10 mt-2">
                                 {item.children.filter(visibleFor).map((child) => (
                                   <Link
                                     key={child.title}
                                     href={`/${locale}${child.path}`}
                                     prefetch={child.prefetch}
                                     className={`block px-3 py-2 text-sm  transition ${isActive(child.path)
-                                      ? "bg-gray-200 rounded-lg text-black font-bold"
+                                      ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                       : "text-gray-600 hover:bg-gray-100"
                                       }`}
                                   >
@@ -644,6 +715,21 @@ export default function SideBar({
               })}
           </section>
         </nav>
+
+        {/* LOGOUT SECTION */}
+        <div className={`border-t border-gray-100 p-3 ${expanded ? "mb-0" : "mb-2"}`}>
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center gap-3 px-3 py-3 bg-orange-300 rounded-xl transition-colors group ${expanded
+              ? "justify-start text-gray-700 hover:bg-orange-50 hover:text-white"
+              : "justify-center text-gray-700 hover:bg-orange-50 hover:text-white"
+              }`}
+            title={!expanded ? "Logout" : ""}
+          >
+            <LogOut size={22} className="shrink-0 group-hover:stroke-red-600" />
+            {expanded && <span className="font-medium group-hover:text-red-600">Logout</span>}
+          </button>
+        </div>
 
         {/* TOGGLE BUTTON - Bottom Right */}
         <button
@@ -665,37 +751,64 @@ export default function SideBar({
             />
           </svg>
         </button>
-      </aside>
+      </aside >
 
       {/* HOVER MENU */}
-      {hoverMenu &&
+      {hoverItem && mounted &&
         createPortal(
           <div
-            style={{ top: hoverPosition.top, left: 80 }}
-            className="fixed w-56 bg-white rounded-lg shadow-xl border py-3 z-50"
+            style={{
+              top: hoverPosition.top,
+              left: 64,
+              opacity: hoverItem ? 1 : 0,
+              transform: hoverItem ? 'translateX(0)' : 'translateX(-10px)'
+            }}
+            className="fixed w-56 bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-700 py-2 z-50 transition-all duration-200 animate-in fade-in slide-in-from-left-2"
+            onMouseEnter={cleanTimeout}
+            onMouseLeave={handleHoverLeave}
           >
-            <div className="px-4 pb-2 border-b font-semibold text-gray-800">
-              {hoverMenu}
-            </div>
+            {/* Header/Main Link */}
+            {!hoverItem.children ? (
+              <Link
+                href={`/${locale}${hoverItem.path}`}
+                prefetch={hoverItem.prefetch}
+                onClick={() => setHoverItem(null)}
+                className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all ${isActive(hoverItem.path)
+                  ? "bg-orange-500 text-white font-bold shadow-md"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-600 dark:hover:text-orange-400"
+                  }`}
+              >
+                <span className="text-sm">{hoverItem.title}</span>
+              </Link>
+            ) : (
+              <>
+                <div className="px-4 py-2 mb-1 border-b border-gray-50 dark:border-gray-700 font-bold text-gray-900 dark:text-white text-sm flex items-center justify-between">
+                  {hoverItem.title}
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
+                </div>
 
-            <div className="mt-2">
-              {navItems
-                .find((i) => i.title === hoverMenu)
-                ?.children?.filter(visibleFor)
-                .map((child) => (
-                  <Link
-                    key={child.title}
-                    href={`/${locale}${child.path}`}
-                    prefetch={child.prefetch}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {child.title}
-                  </Link>
-                ))}
-            </div>
+                <div className="space-y-0.5 px-2">
+                  {hoverItem.children.filter(visibleFor).map((child) => (
+                    <Link
+                      key={child.title}
+                      href={`/${locale}${child.path}`}
+                      prefetch={child.prefetch}
+                      onClick={() => setHoverItem(null)}
+                      className={`block px-3 py-2 text-sm rounded-lg transition-all ${isActive(child.path)
+                        ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                    >
+                      {child.title}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
           </div>,
           document.body
-        )}
+        )
+      }
     </>
   );
 }

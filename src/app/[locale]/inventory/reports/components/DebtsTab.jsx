@@ -21,7 +21,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-const DebtsTab = () => {
+const DebtsTab = ({ dateRange }) => {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [kpis, setKpis] = useState({
@@ -31,12 +31,7 @@ const DebtsTab = () => {
         avgDebtAge: 0
     });
     const [reportData, setReportData] = useState([]);
-    const [reportView, setReportView] = useState('daily'); // 'daily', 'weekly', 'monthly', 'yearly'
-    const [selectedDate, setSelectedDate] = useState(dayjs());
-    const [selectedMonth, setSelectedMonth] = useState(dayjs());
-    const [selectedYear, setSelectedYear] = useState(dayjs());
     const [selectedBranch, setSelectedBranch] = useState('All');
-    const [dateAnchor, setDateAnchor] = useState(null);
     const [branchAnchor, setBranchAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
@@ -191,7 +186,7 @@ const DebtsTab = () => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, selectedDate, reportView, selectedMonth, selectedYear]);
+    }, [companyId, selectedBranch, dateRange]);
 
     if (loading) {
         return (
@@ -203,19 +198,14 @@ const DebtsTab = () => {
 
     const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
 
-    const handleDateClick = (event) => setDateAnchor(event.currentTarget);
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
-    const handleClose = () => { setDateAnchor(null); setBranchAnchor(null); };
+    const handleClose = () => { setBranchAnchor(null); };
 
     const handleBranchSelect = (branch) => {
         setSelectedBranch(branch);
         handleClose();
     };
 
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
-        handleClose();
-    };
 
     const getStatusColor = (status) => {
         if (status === 'Overdue') return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' };
@@ -224,165 +214,68 @@ const DebtsTab = () => {
 
     return (
         <Fade in={true} timeout={800}>
-            <Box sx={{ width: '100%', bgcolor: "#f9fafb"}}>
+            <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
                 {/* Header with Title, Toggle, Date Picker, and Export Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
                         Debts Report
                     </Typography>
 
-                    {/* Report View Toggle and Date Picker Container */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <ToggleButtonGroup
-                            value={reportView}
-                            exclusive
-                            onChange={(event, newView) => {
-                                if (newView !== null) setReportView(newView);
-                            }}
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    textTransform: 'none',
-                                    fontWeight: '600',
-                                    fontSize: '0.85rem',
-                                    px: 1.5,
-                                    py: 0.5,
-                                    borderRadius: '6px',
-                                    border: '1px solid #e5e7eb',
-                                    color: '#6B7280',
-                                    '&.Mui-selected': {
-                                        bgcolor: '#FF6D00',
-                                        color: 'white',
-                                        borderColor: '#FF6D00',
-                                        '&:hover': {
-                                            bgcolor: '#E55D00'
-                                        }
-                                    },
-                                    '&:hover': {
-                                        bgcolor: '#f3f4f6'
-                                    }
-                                }
-                            }}
-                        >
-                            <ToggleButton value="daily">Daily</ToggleButton>
-                            <ToggleButton value="weekly">Weekly</ToggleButton>
-                            <ToggleButton value="monthly">Monthly</ToggleButton>
-                            <ToggleButton value="yearly">Yearly</ToggleButton>
-                        </ToggleButtonGroup>
-
-                        {/* Date Picker based on view */}
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            {reportView === 'daily' && (
-                                <DatePicker
-                                    label="Select Date"
-                                    value={selectedDate}
-                                    onChange={(newValue) => setSelectedDate(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {(reportView === 'weekly' || reportView === 'monthly') && (
-                                <DatePicker
-                                    views={['year', 'month']}
-                                    label="Select Month"
-                                    value={selectedMonth}
-                                    onChange={(newValue) => setSelectedMonth(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 130,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                            {reportView === 'yearly' && (
-                                <DatePicker
-                                    views={['year']}
-                                    label="Select Year"
-                                    value={selectedYear}
-                                    onChange={(newValue) => setSelectedYear(newValue)}
-                                    slotProps={{
-                                        textField: {
-                                            size: 'small',
-                                            sx: {
-                                                width: 110,
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: '6px',
-                                                    '& fieldset': {
-                                                        borderColor: '#e5e7eb'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                        </LocalizationProvider>
-                    </Box>
 
 
                 </Box>
 
                 {/* Top KPIs */}
-                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Total Outstanding"
-                            value={formatCurrency(kpis?.totalOutstanding || 0)}
-                            icon={AccountBalanceIcon}
-                            color="#FF6D00"
-                            index={0}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Overdue Amount"
-                            value={formatCurrency(kpis?.overdueAmount || 0)}
-                            icon={WarningIcon}
-                            color="#EF4444"
-                            trend="down"
-                            trendValue="Critical"
-                            index={1}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Active Debtors"
-                            value={kpis?.debtorsCount || 0}
-                            icon={PeopleIcon}
-                            color="#3B82F6"
-                            index={2}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <ReportKPI
-                            title="Avg Debt Age"
-                            value={`${kpis?.avgDebtAge || 0} Days`}
-                            icon={TimerIcon}
-                            color="#8B5CF6"
-                            index={3}
-                        />
-                    </Grid>
-                </Grid>
+                <div style={{
+                    width: '100%',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '16px',
+                    marginBottom: '32px'
+                }}
+                    className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                >
+                    <ReportKPI
+                        title="Total Outstanding"
+                        value={(() => {
+                            const val = kpis?.totalOutstanding || 0;
+                            if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
+                            if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
+                            return formatCurrency(val);
+                        })()}
+                        fullValue={formatCurrency(kpis?.totalOutstanding || 0)}
+                        icon={AccountBalanceIcon}
+                        color="#FF6D00"
+                        index={0}
+                    />
+                    <ReportKPI
+                        title="Overdue Amount"
+                        value={(() => {
+                            const val = kpis?.overdueAmount || 0;
+                            if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
+                            if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
+                            return formatCurrency(val);
+                        })()}
+                        fullValue={formatCurrency(kpis?.overdueAmount || 0)}
+                        icon={WarningIcon}
+                        color="#EF4444"
+                        index={1}
+                    />
+                    <ReportKPI
+                        title="Active Debtors"
+                        value={kpis?.debtorsCount || 0}
+                        icon={PeopleIcon}
+                        color="#3B82F6"
+                        index={2}
+                    />
+                    <ReportKPI
+                        title="Avg Debt Age"
+                        value={`${kpis?.avgDebtAge || 0} Days`}
+                        icon={TimerIcon}
+                        color="#8B5CF6"
+                        index={3}
+                    />
+                </div>
 
                 {/* Hierarchical Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none" }}>
@@ -391,9 +284,11 @@ const DebtsTab = () => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleDateClick}>
-                                        {selectedDate.format('MM/DD/YYYY')} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
-                                    </Box>
+                                    {dateRange.startDate ? (
+                                        `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
+                                    ) : (
+                                        'Date'
+                                    )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
@@ -480,16 +375,6 @@ const DebtsTab = () => {
                     </Table>
                 </TableContainer>
 
-                {/* Date Selection Menu */}
-                <Menu
-                    anchorEl={dateAnchor}
-                    open={Boolean(dateAnchor)}
-                    onClose={handleClose}
-                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
-                >
-                    <MenuItem onClick={() => handleDateSelect('02/15/2022')}>02/15/2022</MenuItem>
-                    <MenuItem onClick={() => handleDateSelect('02/14/2022')}>02/14/2022</MenuItem>
-                </Menu>
 
                 {/* Branch Selection Menu */}
                 <Menu

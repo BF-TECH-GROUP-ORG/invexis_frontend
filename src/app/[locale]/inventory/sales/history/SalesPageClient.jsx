@@ -96,7 +96,7 @@ const SalesPageClient = () => {
 
     return (
         <>
-            <section className="w-full inline-grid">
+            <section className="w-full">
                 <div className="space-y-6 w-full">
                     <SalesCards sales={sales} isLoading={isSalesLoading} />
                     <div className="space-y-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

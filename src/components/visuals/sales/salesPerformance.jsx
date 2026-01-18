@@ -441,50 +441,85 @@ const SalesPerformance = ({
                 </div>
             </div>
 
-            <div className=" gap-6">
-                {/* --- (D) Stock In vs Stock Out --- */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 ">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800">Inventory Stastics</h2>
-                            <p className="text-sm text-gray-500">Inbound vs Outbound inventory</p>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm">
-                            <div className="flex items-center">
-                                <div className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
-                                <span className="text-gray-600">Stock In</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-3 h-3 rounded-full bg-orange-500 mr-2"></div>
-                                <span className="text-gray-600">Stock Out</span>
-                            </div>
-                        </div>
+            {/* --- (D) Inventory Statistics --- */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-300">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">Inventory Statistics</h2>
+                        <p className="text-sm text-gray-500">
+                            Inbound <span className="text-emerald-500 font-medium">Stock In</span> vs Outbound <span className="text-orange-400 font-medium">Stock Out</span>
+                        </p>
                     </div>
-                    <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={safeStockData} barGap={8}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    cursor={{ fill: '#f8fafc' }}
-                                />
-                                <Bar dataKey="in" fill="#10b981" radius={[10, 10, 0, 0]} barSize={80} />
-                                <Bar dataKey="out" fill="#f97316" radius={[10, 10, 0, 0]} barSize={80} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                </div>
+                <div className="h-[400px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={safeStockData} margin={{ top: 20, right: 0, bottom: 20, left: 0 }}>
+                            <defs>
+                                <linearGradient id="stockInGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                                    <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+                                </linearGradient>
+                                <linearGradient id="stockOutGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#f97316" stopOpacity={1} />
+                                    <stop offset="100%" stopColor="#ea580c" stopOpacity={0.8} />
+                                </linearGradient>
+                            </defs>
+
+                            <CartesianGrid
+                                stroke="#e2e8f0"
+                                strokeDasharray="4 4"
+                                vertical={false}
+                                strokeOpacity={0.6}
+                            />
+
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                                dy={15}
+                                padding={{ left: 0, right: 0 }}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                                tickFormatter={(val) => (val >= 1000 ? `${val / 1000}k` : val)}
+                                domain={[0, 'auto']}
+                                dx={-10}
+                            />
+
+                            <Tooltip
+                                content={<CustomTooltip />}
+                                cursor={{ fill: "rgba(241, 245, 249, 0.4)" }}
+                            />
+                            <Legend content={<ModernLegend />} />
+
+                            <Bar
+                                dataKey="in"
+                                name="Stock In"
+                                barSize={36}
+                                fill="url(#stockInGradient)"
+                                radius={[12, 12, 0, 0]}
+                            />
+                            <Bar
+                                dataKey="out"
+                                name="Stock Out"
+                                barSize={36}
+                                fill="url(#stockOutGradient)"
+                                radius={[12, 12, 0, 0]}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="net"
+                                name="Net Flow"
+                                stroke="#081422"
+                                strokeWidth={4}
+                                dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#081422" }}
+                                activeDot={{ r: 8, strokeWidth: 0, fill: "#081422" }}
+                            />
+                        </ComposedChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 

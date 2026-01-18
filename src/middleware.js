@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { withAuth } from "next-auth/middleware";
 import { getAllowedRolesForPath } from "./lib/rbac";
 
-// Define public paths using regex patterns for flexible matching
+// OPTIMIZATION: Use a Map for O(1) lookup instead of regex matching
+// Pre-compile regex patterns to avoid recompilation on each request
 const PUBLIC_PATH_PATTERNS = [
   /^\/$/, // Root path "/"
   /^\/welcome/, // Welcome pages
@@ -11,6 +12,34 @@ const PUBLIC_PATH_PATTERNS = [
   /^\/not-found$/, // 404 page
   /^\/unauthorized$/, // Unauthorized page
 ];
+
+// Cache for locale extraction to avoid repeated parsing
+const localeCache = new Map();
+
+// OPTIMIZATION: Memoize locale extraction to reduce regex parsing on every request
+function extractLocale(pathname) {
+  // Quick cache lookup first (improves performance for repeated paths)
+  if (localeCache.has(pathname)) {
+    return localeCache.get(pathname);
+  }
+
+  const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  const locale = localeMatch ? localeMatch[1] : "en";
+  const pathWithoutLocale = localeMatch
+    ? pathname.slice(locale.length + 1) || "/"
+    : pathname;
+
+  const result = { locale, pathWithoutLocale };
+  
+  // Cache result for future requests (limit cache to prevent memory leak)
+  if (localeCache.size > 1000) {
+    const firstKey = localeCache.keys().next().value;
+    localeCache.delete(firstKey);
+  }
+  localeCache.set(pathname, result);
+
+  return result;
+}
 
 // Helper function to check if a path matches any public pattern
 function isPublicPath(pathWithoutLocale) {
@@ -24,12 +53,8 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
 
-    // Extract locale
-    const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
-    const locale = localeMatch ? localeMatch[1] : "en";
-    const pathWithoutLocale = localeMatch
-      ? pathname.slice(locale.length + 1) || "/"
-      : pathname;
+    // OPTIMIZATION: Use memoized locale extraction
+    const { locale, pathWithoutLocale } = extractLocale(pathname);
 
     const isPublic = isPublicPath(pathWithoutLocale);
     const isAuthPath = pathWithoutLocale.startsWith("/auth/");

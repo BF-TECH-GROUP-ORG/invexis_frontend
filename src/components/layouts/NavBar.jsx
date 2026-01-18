@@ -86,12 +86,12 @@ export default function TopNavBar({ expanded = true }) {
       {/* ======= TOP NAVBAR ======= */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 transition-all duration-300 ease-in-out
-          ${expanded ? "md:left-64" : "md:left-20"}
+          ${expanded ? "md:left-64" : "md:left-16"}
         `}
       >
         {/* Left Section - Logo (Visible on mobile or if needed) */}
         <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
-          <span className="font-bold text-lg text-gray-950 whitespace-nowrap">
+          <span className="font-bold text-xl text-gray-950 whitespace-nowrap">
             INVEX<span className="text-orange-500 font-extrabold">IX</span>
           </span>
         </div>
