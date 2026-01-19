@@ -39,7 +39,6 @@ export default function TransferList() {
     const [activeFilters, setActiveFilters] = useState({
         search: "",
         direction: "all",
-        status: "all",
         type: "all",
         shop: "all",
         worker: "all",
@@ -100,14 +99,23 @@ export default function TransferList() {
                     page: page + 1,
                     limit: rowsPerPage,
                     search: activeFilters.search || undefined,
-                    status: activeFilters.status !== "all" ? activeFilters.status : undefined,
                     transferType: activeFilters.type !== "all" ? activeFilters.type : undefined,
-                    destinationShopId: activeFilters.shop !== "all" ? activeFilters.shop : undefined,
                     performedBy: activeFilters.worker !== "all" ? activeFilters.worker : undefined,
                     startDate: activeFilters.startDate || undefined,
                     endDate: activeFilters.endDate || undefined,
-                    direction: activeFilters.direction !== "all" ? activeFilters.direction : undefined
                 };
+
+                // Logic for direction and shop filters
+                if (activeFilters.shop !== "all") {
+                    if (activeFilters.direction === "outbound") {
+                        params.sourceShopId = activeFilters.shop;
+                    } else {
+                        // Default to destination for inbound or "all" (to show what's arriving)
+                        params.destinationShopId = activeFilters.shop;
+                    }
+                } else if (activeFilters.direction !== "all") {
+                    params.direction = activeFilters.direction;
+                }
 
                 const response = await InventoryService.getTransfers(companyId, params, options);
 
@@ -132,8 +140,18 @@ export default function TransferList() {
         return transfers.map(item => {
             const sId = item.sourceShopId || item.shopId;
             const dId = item.destinationShopId || item.destShopId;
-            // Extremely robust worker ID detection
-            const uId = (typeof item.performedBy === 'string' ? item.performedBy : (item.performedBy?._id || item.performedBy?.id || item.performedBy?.userId)) || item.userId || item.workerId;
+
+            // Robust worker ID detection to handle both new and legacy formats
+            let uId = null;
+            if (item.performedBy) {
+                if (typeof item.performedBy === 'string') {
+                    uId = item.performedBy;
+                } else {
+                    uId = item.performedBy.userId || item.performedBy._id || item.performedBy.id;
+                }
+            }
+            // Fallbacks
+            if (!uId) uId = item.userId || item.workerId;
 
             const sourceShop = shops.find(s => s._id === sId || s.id === sId);
             const destShop = shops.find(s => s._id === dId || s.id === dId);
@@ -143,13 +161,10 @@ export default function TransferList() {
             const companyNameLabel = item.transferType === 'intra_company' ? "Us" : (companyInfo?.name || "Us");
             const targetCompany = item.toCompanyId ? allCompanies.find(c => c._id === item.toCompanyId || c.id === item.toCompanyId) : null;
 
-            // Robust worker name resolution matching Sales module patterns
-            const resolvedWorkerName = worker?.fullName ||
-                (worker?.firstName ? `${worker.firstName} ${worker.lastName || ""}`.trim() : worker?.name) ||
-                // Fallback to object properties if worker not found in list
-                (typeof item.performedBy === 'object' ? (item.performedBy?.fullName || item.performedBy?.name) : null) ||
-                item.workerName ||
-                "System";
+            // Build worker name from firstName and lastName
+            const resolvedWorkerName = worker
+                ? `${worker.firstName} ${worker.lastName}`.trim()
+                : "N/A";
 
             return {
                 ...item,

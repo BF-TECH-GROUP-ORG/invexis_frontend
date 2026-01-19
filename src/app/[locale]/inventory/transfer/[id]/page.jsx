@@ -66,6 +66,7 @@ export default function TransferDetailPage() {
 
                 // Fetch transfer details, shops, workers and company in parallel for mapping
                 const [transferData, shopsData, workersData, orgData, allCompaniesData] = await Promise.all([
+
                     InventoryService.getTransferById(companyId, transferId, options),
                     getAllShops(companyId, options),
                     getWorkersByCompanyId(companyId, options),
@@ -84,8 +85,8 @@ export default function TransferDetailPage() {
                 if (transferData) {
                     const sId = transferData.sourceShopId || transferData.shopId;
                     const dId = transferData.destinationShopId || transferData.destShopId;
-                    // Extremely robust worker ID detection
-                    const uId = (typeof transferData.performedBy === 'string' ? transferData.performedBy : (transferData.performedBy?._id || transferData.performedBy?.id || transferData.performedBy?.userId)) || transferData.userId || transferData.workerId;
+                    // Extract worker ID from performedBy.userId
+                    const uId = transferData.performedBy?.userId;
 
                     const sourceShop = shops?.find(s => s._id === sId || s.id === sId);
                     const destShop = shops?.find(s => s._id === dId || s.id === dId);
@@ -94,13 +95,10 @@ export default function TransferDetailPage() {
                     const companyNameLabel = transferData.transferType === 'intra_company' ? "Us" : (orgData?.data?.name || orgData?.name || "Us");
                     const targetCompany = transferData.toCompanyId ? extractedAllCompanies.find(c => c._id === transferData.toCompanyId || c.id === transferData.toCompanyId) : null;
 
-                    // Robust worker name resolution matching Sales module patterns
-                    const resolvedWorkerName = worker?.fullName ||
-                        (worker?.firstName ? `${worker.firstName} ${worker.lastName || ""}`.trim() : worker?.name) ||
-                        // Fallback to object properties if worker not found in list
-                        (typeof transferData.performedBy === 'object' ? (transferData.performedBy?.fullName || transferData.performedBy?.name) : null) ||
-                        transferData.workerName ||
-                        "System";
+                    // Build worker name from firstName and lastName
+                    const resolvedWorkerName = worker
+                        ? `${worker.firstName} ${worker.lastName}`.trim()
+                        : "N/A";
 
                     setTransfer({
                         ...transferData,
