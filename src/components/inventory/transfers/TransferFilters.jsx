@@ -36,7 +36,6 @@ export default function TransferFilters({
     const [filters, setFilters] = useState({
         direction: "all",
         type: "all",
-        status: "all",
         shop: "all",
         worker: "all",
         startDate: "",
@@ -60,7 +59,6 @@ export default function TransferFilters({
         const reset = {
             direction: "all",
             type: "all",
-            status: "all",
             shop: "all",
             worker: "all",
             startDate: "",
@@ -140,18 +138,7 @@ export default function TransferFilters({
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small">
-                        <Select
-                            value={filters.status}
-                            onChange={(e) => handleFilterChange("status", e.target.value)}
-                            sx={{ borderRadius: "12px", bgcolor: "#f9fafb" }}
-                        >
-                            <MenuItem value="all">All Status</MenuItem>
-                            <MenuItem value="completed">Completed</MenuItem>
-                            <MenuItem value="pending">Pending</MenuItem>
-                            <MenuItem value="cancelled">Cancelled</MenuItem>
-                        </Select>
-                    </FormControl>
+
 
                     <Button
                         variant="outlined"

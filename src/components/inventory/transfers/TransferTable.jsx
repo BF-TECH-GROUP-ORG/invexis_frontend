@@ -187,7 +187,7 @@ export default function TransferTable({
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body2" fontWeight={600} color="#374151">
-                                            {item.workerName || "System Admin"}
+                                            {item.workerName || "N/A"}
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
