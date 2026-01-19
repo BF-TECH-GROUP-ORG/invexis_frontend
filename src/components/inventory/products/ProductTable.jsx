@@ -130,9 +130,7 @@ export default function ProductTable({
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 Image
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                SKU
-              </TableCell>
+
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 Category
               </TableCell>
@@ -149,10 +147,19 @@ export default function ProductTable({
                 Stock
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Status
+                Unit Price
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 Total Value
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                L.Threshold
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Stock Status
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
+                Status
               </TableCell>
               <TableCell
                 align="center"
@@ -172,11 +179,13 @@ export default function ProductTable({
                   </TableCell>
                   <TableCell><Skeleton variant="text" width={150} /></TableCell>
                   <TableCell><Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1 }} /></TableCell>
-                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
                   <TableCell><Skeleton variant="text" width={100} /></TableCell>
                   <TableCell><Skeleton variant="text" width={100} /></TableCell>
                   <TableCell><Skeleton variant="text" width={120} /></TableCell>
                   <TableCell align="center"><Skeleton variant="text" width={40} sx={{ mx: "auto" }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell align="center"><Skeleton variant="text" width={30} sx={{ mx: "auto" }} /></TableCell>
                   <TableCell><Skeleton variant="text" width={80} /></TableCell>
                   <TableCell><Skeleton variant="text" width={80} /></TableCell>
                   <TableCell align="center"><Skeleton variant="circular" width={30} height={30} sx={{ mx: "auto" }} /></TableCell>
@@ -184,6 +193,19 @@ export default function ProductTable({
               ))
             ) : (
               rows.map((product) => {
+                // Debug: Log product data to see actual structure
+                if (product.name === "Officia dolorem quo") {
+                  console.log("Product Data Debug:", {
+                    name: product.name,
+                    pricing: product.pricing,
+                    pricingId: product.pricingId,
+                    basePrice: product.basePrice,
+                    price: product.price,
+                    unitPrice: product.unitPrice,
+                    UnitPrice: product.UnitPrice,
+                  });
+                }
+
                 const id = product._id || product.id;
                 const name = product.name || product.ProductName || "Unnamed";
                 const category =
@@ -191,14 +213,23 @@ export default function ProductTable({
                   product.categoryId?.name ||
                   product.Category ||
                   "Uncategorized";
+
+                // Extract basePrice - try all possible paths
                 const basePrice =
-                  product.pricing?.basePrice ??
-                  product.pricingId?.basePrice ??
-                  product.price ??
-                  product.UnitPrice ??
+                  product.pricing?.basePrice ||
+                  product.pricingId?.basePrice ||
+                  product.basePrice ||
+                  product.price ||
+                  product.UnitPrice ||
+                  product.unitPrice ||
+                  product.cost ||
                   0;
+
                 const salePrice =
-                  product.pricing?.salePrice ?? product.pricingId?.salePrice ?? 0;
+                  product.pricing?.salePrice ??
+                  product.pricingId?.salePrice ??
+                  product.salePrice ??
+                  0;
 
                 // Use sale price if available and lower than base price
                 const effectivePrice =
@@ -227,6 +258,14 @@ export default function ProductTable({
 
                 // Calculate total value (effectivePrice * stock)
                 const totalValue = effectivePrice * stock;
+
+                // Extract low stock threshold
+                const lowStockThreshold =
+                  product.stock?.lowStockThreshold ||
+                  product.lowStockThreshold ||
+                  product.stock?.threshold ||
+                  product.threshold ||
+                  20; // Default threshold
 
                 return (
                   <TableRow
@@ -261,7 +300,7 @@ export default function ProductTable({
 
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
-                        <div className="relative w-14 h-14 flex-shrink-0">
+                        <div className="relative w-14 h-14 shrink-0">
                           {product.media?.images?.[0]?.url ||
                             product.images?.[0]?.url ? (
                             <Avatar
@@ -290,11 +329,7 @@ export default function ProductTable({
                       </Box>
                     </TableCell>
 
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {product.identifiers?.sku || product.sku || "N/A"}
-                      </Typography>
-                    </TableCell>
+
 
                     <TableCell>
                       <Chip
@@ -332,24 +367,21 @@ export default function ProductTable({
                     </TableCell>
 
                     <TableCell>
-                      <Chip
-                        label={
-                          status === "active"
-                            ? "Active"
-                            : status === "inactive"
-                              ? "Inactive"
-                              : status
-                        }
-                        size="small"
-                        sx={{
-                          backgroundColor:
-                            status === "active" ? "#E8F5E9" : "#FFEBEE",
-                          color: status === "active" ? "#2E7D32" : "#C62828",
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                          fontSize: "0.75rem",
-                        }}
-                      />
+                      <Typography
+                        variant="body2"
+                        fontWeight={500}
+                        color="text.primary"
+                      >
+                        {Number(effectivePrice).toLocaleString("en-US", {
+                          style: "currency",
+                          currency:
+                            product.pricing?.currency ||
+                            product.pricingId?.currency ||
+                            "RWF",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </Typography>
                     </TableCell>
 
                     <TableCell>
@@ -368,6 +400,50 @@ export default function ProductTable({
                           maximumFractionDigits: 0,
                         })}
                       </Typography>
+                    </TableCell>
+
+                    <TableCell align="center">
+                      <Typography
+                        variant="body2"
+                        fontWeight={500}
+                        color={stock < lowStockThreshold ? "error.main" : "text.primary"}
+                      >
+                        {lowStockThreshold}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        label={stock < lowStockThreshold ? "Low Stock" : "Stable"}
+                        size="small"
+                        sx={{
+                          backgroundColor: stock < lowStockThreshold ? "#FEF2F2" : "#ECFDF5",
+                          color: stock < lowStockThreshold ? "#991B1B" : "#065F46",
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        label={
+                          status === "active"
+                            ? "Active"
+                            : status === "inactive"
+                              ? "Inactive"
+                              : status
+                        }
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            status === "active" ? "#E8F5E9" : "#FFEBEE",
+                          color: status === "active" ? "#2E7D32" : "#C62828",
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                          fontSize: "0.75rem",
+                        }}
+                      />
                     </TableCell>
 
                     <TableCell align="center">

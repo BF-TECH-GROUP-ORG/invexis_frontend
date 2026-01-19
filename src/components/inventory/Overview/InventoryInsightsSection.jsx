@@ -63,7 +63,7 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
               {entry.name}:
             </span>
             <span className="font-bold text-gray-900 dark:text-white">
-              ${entry.value.toLocaleString()}
+              {entry.value.toLocaleString()} RWF
             </span>
           </div>
         ))}
@@ -196,7 +196,7 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-                tickFormatter={(value) => `$${value / 1000}k`}
+                tickFormatter={(value) => `${value / 1000}k RWF`}
               />
               <Tooltip content={<CustomAreaTooltip />} />
 

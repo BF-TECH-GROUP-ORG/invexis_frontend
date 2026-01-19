@@ -18,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
           <span className="text-gray-600 dark:text-gray-300">Total Value:</span>
           <span className="font-bold text-gray-900 dark:text-white">
-            ${payload[0].value.toLocaleString()}
+            {payload[0].value.toLocaleString()} RWF
           </span>
         </div>
       </div>
@@ -91,7 +91,7 @@ const InventoryValueTrendSection = ({ data = [] }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-              tickFormatter={(val) => `$${val / 1000}k`}
+              tickFormatter={(val) => `${val / 1000}k RWF`}
             />
             <Tooltip
               content={<CustomTooltip />}

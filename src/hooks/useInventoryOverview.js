@@ -179,10 +179,14 @@ const useInventoryOverview = (companyId) => {
       // Value distribution by shop
       const valueDistributionByShop = (
         overviewData?.inventoryValueDistribution?.byShop || []
-      ).map((s) => ({
-        name: s.shopName || s.name || "Unknown",
-        value: Number(s.value ?? 0),
-      }));
+      ).map((s) => {
+        const shopId = s.shopId || s.id || s._id;
+        return {
+          name: s.shopName || s.name || shopId || "Unknown",
+          shopId: shopId,
+          value: Number(s.value ?? 0),
+        };
+      });
 
       // Value distribution by status
       const valueDistributionByStatus = (

@@ -64,7 +64,7 @@ export default function ProductStats({ stats }) {
       {statCards.map((card, index) => {
         const Icon = card.Icon;
         const displayValue = card.isCurrency
-          ? `$${formatValue(card.value, isCompact)}`
+          ? `${formatValue(card.value, isCompact)} RWF`
           : card.value.toLocaleString();
 
         return (

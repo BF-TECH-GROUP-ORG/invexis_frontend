@@ -202,10 +202,19 @@ export default function ProductList() {
       const basePrice =
         product.pricing?.basePrice ||
         product.pricingId?.basePrice ||
+        product.basePrice ||
         product.price ||
+        product.unitPrice ||
+        product.UnitPrice ||
+        product.cost ||
         0;
+      
       const salePrice =
-        product.pricing?.salePrice || product.pricingId?.salePrice || 0;
+        product.pricing?.salePrice || 
+        product.pricingId?.salePrice || 
+        product.salePrice ||
+        0;
+      
       const effectivePrice =
         salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
 
@@ -227,10 +236,10 @@ export default function ProductList() {
           : ""
         }`,
         product.category?.name || product.categoryId?.name || "N/A",
-        `Qty: ${stock}\nPrice: $${effectivePrice.toLocaleString()}${discount > 0 ? `\nDisc: ${discount}%` : ""
+        `Qty: ${stock}\nPrice: ${Number(effectivePrice).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}${discount > 0 ? `\nDisc: ${discount}%` : ""
         }`,
         status,
-        `$${totalValue.toLocaleString()}`,
+        `${Number(totalValue).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
       ];
       tableRows.push(rowData);
     }
@@ -306,17 +315,33 @@ export default function ProductList() {
       return qty > 0 && qty < threshold;
     }).length,
     totalValue: products.reduce((sum, p) => {
+      // Extract basePrice with all fallback paths
       const basePrice =
-        p.pricing?.basePrice ?? p.pricingId?.basePrice ?? p.price ?? 0;
-      const salePrice = p.pricing?.salePrice ?? p.pricingId?.salePrice ?? 0;
+        p.pricing?.basePrice ||
+        p.pricingId?.basePrice ||
+        p.basePrice ||
+        p.price ||
+        p.unitPrice ||
+        p.UnitPrice ||
+        p.cost ||
+        0;
+      
+      const salePrice = 
+        p.pricing?.salePrice ?? 
+        p.pricingId?.salePrice ?? 
+        p.salePrice ??
+        0;
+      
       const effectivePrice =
         salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+      
       const qty =
         p.stock?.total ??
         p.stock?.available ??
         p.inventory?.quantity ??
         p.stock ??
         0;
+      
       return sum + effectivePrice * qty;
     }, 0),
   };

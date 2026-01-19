@@ -188,7 +188,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
-                    +${(Number(product.profit) || 0).toLocaleString()}
+                    +{(Number(product.profit) || 0).toLocaleString()} RWF
                   </div>
                   <div className="text-xs text-gray-400 font-medium">
                     Profit

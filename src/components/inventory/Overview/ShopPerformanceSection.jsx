@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -9,6 +9,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { getAllShops } from "@/services/shopService";
+import { useSession } from "next-auth/react";
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -32,8 +34,8 @@ const CustomTooltip = ({ active, payload, label }) => {
               </span>
             </div>
             <span className="font-bold text-gray-900 dark:text-white font-mono">
-              {entry.name === "Gross Profit" ? "$" : ""}
               {entry.value.toLocaleString()}
+              {entry.name === "Gross Profit" ? " RWF" : ""}
             </span>
           </div>
         ))}
@@ -66,14 +68,61 @@ const ModernLegend = (props) => {
 };
 
 const ShopPerformanceSection = ({ data = [] }) => {
-  // Normalize shop performance to chart-friendly shape
-  const chartData = (data || []).map((s) => ({
-    name: s.shopName || s.shopId || s.name || "Shop",
-    profit: Number(s.grossProfit ?? s.revenue ?? 0),
-    value: Number(s.inventoryValue ?? 0),
-    turnover: Number(s.stockTurnoverRate ?? s.turnover ?? 0),
-    stockoutRate: Number(s.stockoutRate ?? 0),
-  }));
+  const { data: session } = useSession();
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Extract companyId from session
+  const companyId = useMemo(() => {
+    const companyObj = session?.user?.companies?.[0];
+    return typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
+  }, [session]);
+
+  // Fetch shops data
+  useEffect(() => {
+    const fetchShops = async () => {
+      if (!companyId) return;
+      try {
+        const shopsList = await getAllShops(companyId);
+        setShops(shopsList || []);
+      } catch (error) {
+        console.error("Failed to fetch shops:", error);
+        setShops([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShops();
+  }, [companyId]);
+
+  // Create a map of shop ID to shop name for quick lookup
+  const shopNameMap = useMemo(() => {
+    const map = {};
+    shops.forEach((shop) => {
+      if (shop._id || shop.id) {
+        map[shop._id || shop.id] = shop.name || shop.shopName || "Shop";
+      }
+    });
+    return map;
+  }, [shops]);
+
+  // Normalize shop performance to chart-friendly shape with real shop names
+  const chartData = useMemo(() => {
+    return (data || []).map((s) => {
+      // Try to get shop name from the map using shopId, or use fallback
+      const shopId = s.shopId || s.id;
+      const shopName = shopId ? shopNameMap[shopId] : null;
+
+      return {
+        name: shopName || s.shopName || shopId || s.name || "Shop",
+        profit: Number(s.grossProfit ?? s.revenue ?? 0),
+        value: Number(s.inventoryValue ?? 0),
+        turnover: Number(s.stockTurnoverRate ?? s.turnover ?? 0),
+        stockoutRate: Number(s.stockoutRate ?? 0),
+      };
+    });
+  }, [data, shopNameMap]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
@@ -144,7 +193,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-              tickFormatter={(val) => `$${val / 1000}k`}
+              tickFormatter={(val) => `${val / 1000}k RWF`}
             />
             <YAxis
               yAxisId="right"
@@ -152,7 +201,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-              tickFormatter={(val) => `$${val / 1000}k`}
+              tickFormatter={(val) => `${val / 1000}k RWF`}
             />
             <Tooltip
               content={<CustomTooltip />}
