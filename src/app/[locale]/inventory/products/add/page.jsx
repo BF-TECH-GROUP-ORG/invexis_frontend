@@ -151,7 +151,7 @@ export default function AddProductPage() {
           salePrice: salePrice,
           listPrice: listPrice,
           cost: costPrice,
-          currency: formData.pricing?.currency || "USD",
+          currency: formData.pricing?.currency || "RWF",
         },
         inventory: {
           trackQuantity:

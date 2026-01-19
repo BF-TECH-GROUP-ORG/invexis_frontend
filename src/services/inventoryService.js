@@ -145,9 +145,37 @@ const MOCK_ACTIVITIES = [
   },
 ];
 
+const INVENTORY_BASE = "/inventory/v1";
+
 // --- SERVICE IMPLEMENTATION ---
 
 const InventoryService = {
+  /**
+   * Get paginated transfers for a company
+   */
+  getTransfers: async (companyId, params = {}, options = {}) => {
+    if (!companyId) return { data: [], pagination: {} };
+
+    // axios handles query params automatically if passed in config
+    return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers`, {
+      params,
+      cache: { noStore: true },
+      ...options
+    });
+  },
+
+  /**
+   * Get detailed data for a single transfer
+   */
+  getTransferById: async (companyId, transferId, options = {}) => {
+    if (!companyId || !transferId) return null;
+
+    return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers/${transferId}`, {
+      cache: { noStore: true },
+      ...options
+    });
+  },
+
   /**
    * Get high-level inventory summary KPI data
    */

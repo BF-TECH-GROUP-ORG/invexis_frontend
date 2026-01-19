@@ -39,7 +39,7 @@ export default function DashboardLayout({ children, expanded: controlledExpanded
 
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 flex-1 pt-20 px-4 md:px-8 pb-24 md:pb-8 min-h-screen ${expanded ? "ml-0 md:ml-64" : "ml-0 md:ml-16"
+        className={`transition-all duration-300 flex-1 pt-20 px-4 md:px-8 pb-24 md:pb-8 min-h-screen ${expanded ? "ml-0 md:ml-[280px]" : "ml-0 md:ml-[72px]"
           }`}
       >
         {children}

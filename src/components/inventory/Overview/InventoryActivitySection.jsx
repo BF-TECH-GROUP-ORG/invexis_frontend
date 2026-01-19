@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   History,
@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { getProducts } from "@/services/productsService";
 
 const PAGE_SIZE = 5;
 
@@ -43,8 +45,46 @@ const ActivityBadge = ({ type }) => {
 };
 
 const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
+  const { data: session } = useSession();
   const [actPage, setActPage] = useState(0);
   const [prodPage, setProdPage] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Extract companyId from session
+  const companyId = useMemo(() => {
+    const companyObj = session?.user?.companies?.[0];
+    return typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
+  }, [session]);
+
+  // Fetch products data
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!companyId) return;
+      try {
+        const productsList = await getProducts(companyId);
+        setProducts(productsList || []);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [companyId]);
+
+  // Create a map of product ID to product name for quick lookup
+  const productNameMap = useMemo(() => {
+    const map = {};
+    products.forEach((product) => {
+      if (product._id || product.id) {
+        map[product._id || product.id] = product.name || product.productName || "Product";
+      }
+    });
+    return map;
+  }, [products]);
 
   const actPages = Math.ceil((activities?.length || 0) / PAGE_SIZE) || 1;
   const prodPages = Math.ceil((recentProducts?.length || 0) / PAGE_SIZE) || 1;
@@ -86,37 +126,45 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
             </thead>
             <tbody className="text-sm">
               {actSlice.length > 0 ? (
-                actSlice.map((activity) => (
-                  <tr
-                    key={activity.id}
-                    className="group hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-                  >
-                    <td className="py-3 pl-1">
-                      <ActivityBadge type={activity.type} />
-                    </td>
-                    <td className="py-3 font-medium text-gray-900 dark:text-white">
-                      {activity.item}
-                      <div className="text-xs text-gray-400 mt-1">
-                        {activity.shop ? `${activity.shop} · ` : ""}
-                        {activity.performedBy
-                          ? `By ${activity.performedBy}`
-                          : ""}
-                      </div>
-                    </td>
-                    <td
-                      className={`py-3 text-right font-medium ${activity.quantity > 0
-                          ? "text-emerald-600"
-                          : "text-gray-900 dark:text-white"
-                        }`}
+                actSlice.map((activity) => {
+                  // Get real product name from the map or use the original item
+                  const productId = activity.productId || activity.id;
+                  const displayProductName = productId && productNameMap[productId] 
+                    ? productNameMap[productId]
+                    : activity.item || activity.productName || "Unknown Product";
+
+                  return (
+                    <tr
+                      key={activity.id}
+                      className="group hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
                     >
-                      {activity.quantity > 0 ? "+" : ""}
-                      {activity.quantity}
-                    </td>
-                    <td className="py-3 text-right text-gray-500 text-xs">
-                      {activity.time}
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-3 pl-1">
+                        <ActivityBadge type={activity.type} />
+                      </td>
+                      <td className="py-3 font-medium text-gray-900 dark:text-white">
+                        {displayProductName}
+                        <div className="text-xs text-gray-400 mt-1">
+                          {activity.shop ? `${activity.shop} · ` : ""}
+                          {activity.performedBy
+                            ? `By ${activity.performedBy}`
+                            : ""}
+                        </div>
+                      </td>
+                      <td
+                        className={`py-3 text-right font-medium ${activity.quantity > 0
+                            ? "text-emerald-600"
+                            : "text-gray-900 dark:text-white"
+                          }`}
+                      >
+                        {activity.quantity > 0 ? "+" : ""}
+                        {activity.quantity}
+                      </td>
+                      <td className="py-3 text-right text-gray-500 text-xs">
+                        {activity.time}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-gray-500">

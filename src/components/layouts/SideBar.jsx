@@ -525,7 +525,7 @@ export default function SideBar({
               <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slideUp max-h-[80vh] overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b bg-linear-to-r from-orange-50 to-white">
-                  <h2 className="text-lg font-bold text-gray-800">
+                  <h2 className="text-lg font-bold text-gray-800 ">
                     Management
                   </h2>
                   <button
@@ -634,29 +634,36 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 flex flex-col ${expanded ? "w-64" : "w-16"
+        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${expanded ? "w-[280px]" : "w-[72px]"
           }`}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-4 h-16 border-b">
-          {expanded ? (
-            // Only burger icon when expanded
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <Menu size={22} />
-            </button>
-          ) : (
-            // Logo when collapsed
-            <div className="flex items-center justify-center w-full">
+        <div className="flex items-center px-4 h-16 border-b overflow-hidden">
+          <div className={`flex items-center transition-all duration-300 ease-in-out ${expanded ? "w-full justify-between" : "w-full justify-center"}`}>
+            {expanded ? (
+              <div className="flex items-center gap-2 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
+                <img
+                  src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
+                  alt="Invexis"
+                  className="h-8 w-auto object-contain"
+                />
+              </div>
+            ) : (
               <img
                 src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
                 alt="Invexis"
                 className="h-8 w-8 object-contain transition-all duration-300"
               />
-            </div>
-          )}
+            )}
+            {expanded && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+              >
+                <Menu size={22} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* NAVIGATION */}
@@ -664,7 +671,7 @@ export default function SideBar({
           {/* OVERVIEW */}
           <section>
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-4 ${expanded ? "" : "hidden"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-4 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
                 }`}
             >
               Overview
@@ -688,8 +695,12 @@ export default function SideBar({
                       : "text-gray-700 hover:bg-orange-50"
                       }`}
                   >
-                    {item.icon}
-                    {expanded && <span>{item.title}</span>}
+                    <div className="flex items-center justify-center shrink-0 w-6">
+                      {item.icon}
+                    </div>
+                    <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                      {item.title}
+                    </span>
                   </Link>
                 </div>
               ))}
@@ -698,7 +709,7 @@ export default function SideBar({
           {/* MANAGEMENT */}
           <section className="">
             <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-3 ${expanded ? "" : "hidden"
+              className={`text-xs font-semibold text-gray-500 uppercase mb-3 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
                 }`}
             >
               Management
@@ -729,8 +740,12 @@ export default function SideBar({
                           : "text-gray-700 hover:bg-orange-50"
                           }`}
                       >
-                        {item.icon}
-                        {expanded && <span>{item.title}</span>}
+                        <div className="flex items-center justify-center shrink-0 w-6">
+                          {item.icon}
+                        </div>
+                        <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                          {item.title}
+                        </span>
                       </Link>
                     )}
 
@@ -752,43 +767,40 @@ export default function SideBar({
                               : "text-gray-700 hover:bg-orange-50"
                               }`}
                           >
-                            <div className="flex items-center gap-3">
-                              {item.icon}
-                              {expanded && <span>{item.title}</span>}
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="flex items-center justify-center shrink-0 w-6">
+                                {item.icon}
+                              </div>
+                              <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                                {item.title}
+                              </span>
                             </div>
 
-                            {expanded && (
-                              <ChevronDown
-                                size={18}
-                                className={`${openMenus.includes(item.title)
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
-                              />
-                            )}
+                            <ChevronDown
+                              size={18}
+                              className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`}
+                            />
                           </div>
 
                           {/* Children → FIXED WITH SAFE CHECK */}
-                          {expanded &&
-                            item.children &&
-                            openMenus.includes(item.title) && (
-                              <div className="ml-10 mt-2">
-                                {item.children.filter(visibleFor).map((child) => (
-                                  <Link
-                                    key={child.title}
-                                    href={`/${locale}${child.path}`}
-                                    prefetch={child.prefetch}
-                                    onMouseEnter={() => prefetchData(child)}
-                                    className={`block px-3 py-2 text-sm  transition ${isActive(child.path)
-                                      ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
-                                      : "text-gray-600 hover:bg-gray-100"
-                                      }`}
-                                  >
-                                    {child.title}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
+                          {expanded && item.children && (
+                            <div className={`ml-10 mt-1 transition-all duration-300 ease-in-out overflow-hidden ${openMenus.includes(item.title) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                              {item.children.filter(visibleFor).map((child) => (
+                                <Link
+                                  key={child.title}
+                                  href={`/${locale}${child.path}`}
+                                  prefetch={child.prefetch}
+                                  onMouseEnter={() => prefetchData(child)}
+                                  className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                    ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                    }`}
+                                >
+                                  {child.title}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
                         </>
                       )}
                   </div>
@@ -807,8 +819,12 @@ export default function SideBar({
               }`}
             title={!expanded ? "Logout" : ""}
           >
-            <LogOut size={22} className="shrink-0 group-hover:stroke-orange-500" />
-            {expanded && <span className="font-medium group-hover:text-orange-500">Logout</span>}
+            <div className="flex items-center justify-center shrink-0 w-6">
+              <LogOut size={22} className="shrink-0 group-hover:stroke-orange-500" />
+            </div>
+            <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden font-medium group-hover:text-orange-500 ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+              Logout
+            </span>
           </button>
         </div>
 
@@ -840,7 +856,7 @@ export default function SideBar({
           <div
             style={{
               top: hoverPosition.top,
-              left: 64,
+              left: 72,
               opacity: hoverItem ? 1 : 0,
               transform: hoverItem ? 'translateX(0)' : 'translateX(-10px)'
             }}

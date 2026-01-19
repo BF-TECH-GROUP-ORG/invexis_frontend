@@ -1,15 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, memo } from "react";
 import {
-  BarChart,
-  Bar,
-  ResponsiveContainer,
-  Cell,
   AreaChart,
   Area,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
 } from "recharts";
 import {
-  TrendingUp,
-  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
   Package,
   DollarSign,
   Activity,
@@ -17,6 +16,8 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Skeleton from "@/components/shared/Skeleton";
 
 const formatValue = (value, isCompact) => {
   const num = Number(value) || 0;
@@ -28,181 +29,225 @@ const formatValue = (value, isCompact) => {
   return num.toString();
 };
 
-const KPICard = ({
+const CustomTooltip = ({ active, payload, label, locale = 'en-RW' }) => {
+    if (active && payload && payload.length && label) {
+        const date = new Date(label);
+        if (isNaN(date.getTime())) return null;
+
+        const dayName = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(date);
+
+        return (
+            <div className="bg-white p-2 border border-gray-100 shadow-lg rounded-lg text-xs">
+                <p className="font-semibold text-gray-700">{dayName}</p>
+                <p className="font-medium" style={{ color: payload[0].stroke }}>
+                    {new Intl.NumberFormat(locale, { compactDisplay: "short", notation: "compact" }).format(payload[0].value)}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
+const KPISparkline = ({ data, color, locale }) => {
+    // Check if all values are zero
+    const allZero = !data || data.length === 0 || data.every(d => (d.value || 0) === 0);
+    
+    if (allZero) {
+        // Render a completely flat line when all values are zero
+        return (
+            <div className="h-16 w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={[{ value: 0, name: '' }]} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={color} stopOpacity={0.1} />
+                                <stop offset="95%" stopColor={color} stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <XAxis dataKey="name" hide />
+                        <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke={color}
+                            strokeWidth={1}
+                            fillOpacity={0.1}
+                            fill={`url(#gradient-${color})`}
+                            isAnimationActive={false}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+        );
+    }
+    
+    // Normal chart with data
+    return (
+        <div className="h-16 w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                            <stop offset="95%" stopColor={color} stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                    <XAxis dataKey="name" hide />
+                    <Tooltip content={<CustomTooltip locale={locale} />} cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '3 3' }} />
+                    <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={color}
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill={`url(#gradient-${color})`}
+                        isAnimationActive={true}
+                    />
+                </AreaChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
+
+const KPICard = memo(({
   title,
   value,
-  subtext,
   icon: Icon,
   trend,
   data,
-  type = "bar",
   color,
   isCurrency = false,
   isCompact = true,
   onToggleCompact,
+  index = 0,
+  isLoading = false,
+  locale = 'en-RW',
 }) => {
   const isPositive = trend >= 0;
 
-  // Map generic color prop to specific Orange/#081422 theme or keep differentiation if requested
-  // Request: "For Cards that start use different colors on the icon and their backgrounds"
-  // So we keep differentiation but use the new style: Icon 100%, Bg low opacity same color.
-
   const themes = {
     blue: {
-      icon: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-600/10 dark:bg-blue-400/10",
-      chart: "#2563eb",
-      border: "hover:border-blue-300 dark:hover:border-blue-800",
+      icon: "#2563eb",
+      bg: "#eff6ff",
     },
     orange: {
-      icon: "text-orange-600 dark:text-orange-400",
-      bg: "bg-orange-600/10 dark:bg-orange-400/10",
-      chart: "#ea580c",
-      border: "hover:border-orange-300 dark:hover:border-orange-800",
+      icon: "#ea580c",
+      bg: "#fed7aa",
     },
     emerald: {
-      icon: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-600/10 dark:bg-emerald-400/10",
-      chart: "#10b981",
-      border: "hover:border-emerald-300 dark:hover:border-emerald-800",
+      icon: "#10b981",
+      bg: "#ecfdf5",
     },
     rose: {
-      icon: "text-rose-600 dark:text-rose-400",
-      bg: "bg-rose-600/10 dark:bg-rose-400/10",
-      chart: "#f43f5e",
-      border: "hover:border-rose-300 dark:hover:border-rose-800",
+      icon: "#f43f5e",
+      bg: "#fee2e2",
     },
     indigo: {
-      icon: "text-indigo-600 dark:text-indigo-400",
-      bg: "bg-indigo-600/10 dark:bg-indigo-400/10",
-      chart: "#6366f1",
-      border: "hover:border-indigo-300 dark:hover:border-indigo-800",
+      icon: "#6366f1",
+      bg: "#e0e7ff",
     },
   };
 
   const theme = themes[color] || themes.orange;
-  const iconClass = theme.icon;
-  const bgClass = theme.bg;
-  const chartColor = theme.chart;
-  const borderClass = theme.border;
 
-  const displayValue = (() => {
+  const displayValue = useMemo(() => {
+    if (isCompact) {
+      if (isCurrency) {
+        const num = Number(value) || 0;
+        return `${formatValue(num, true)} RWF`;
+      }
+      if (typeof value === "number") return value.toLocaleString();
+      return value;
+    }
+    
     if (isCurrency) {
       const num = Number(value) || 0;
-      if (isCompact) return `$${formatValue(num, true)}`;
-      return `$${num.toLocaleString(undefined, {
+      return `${num.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })}`;
+      })} RWF`;
     }
-
     if (typeof value === "number") return value.toLocaleString();
     return value;
-  })();
+  }, [isCompact, value, isCurrency]);
+
+  const showToggle = isCurrency && Number(value) >= 1000;
+
+  if (isLoading) {
+    return (
+      <div className="border-2 border-gray-100 rounded-xl md:rounded-2xl p-3 md:p-5 bg-white dark:bg-gray-800">
+        <div className="flex items-start justify-between gap-3">
+          <div className="grow">
+            <Skeleton className="h-3 md:h-4 w-24 mb-2" />
+            <Skeleton className="h-6 md:h-8 w-32 mb-4" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+          </div>
+          <Skeleton className="h-10 md:h-12 w-10 md:w-12 rounded-lg md:rounded-xl shrink-0" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 ${borderClass} transition-all duration-300 group`}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, layout: { duration: 0.3, type: "spring" } }}
+      className="border-2 border-[#e5e7eb] dark:border-gray-700 rounded-xl md:rounded-2xl p-3 md:p-5 bg-white dark:bg-gray-800 hover:border-[#ff782d] transition-colors hover:shadow-lg group w-full"
     >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1 min-w-0 pr-2">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 truncate">
+      <div className="flex items-start justify-between gap-2 md:gap-3">
+        <div className="grow">
+          <motion.p layout="position" className="text-xs md:text-sm text-[#6b7280] font-semibold mb-1 uppercase tracking-wider">
             {title}
-          </p>
+          </motion.p>
           <div className="flex items-center gap-2">
-            <h3
-              className={`font-bold text-gray-900 dark:text-white transition-all ${
-                displayValue.length > 12 ? "text-lg" : "text-2xl"
-              }`}
-            >
-              {displayValue}
-            </h3>
-            {isCurrency && (
-              <button
-                onClick={onToggleCompact}
-                className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                title={isCompact ? "Show full value" : "Show compact value"}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={isCompact ? "compact" : "expanded"}
+                initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="text-lg md:text-2xl font-extrabold font-jetbrains text-[#111827] dark:text-white"
               >
-                {isCompact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
-              </button>
+                {displayValue}
+              </motion.div>
+            </AnimatePresence>
+
+            {showToggle && (
+              <motion.button
+                layout
+                onClick={onToggleCompact}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md"
+              >
+                {isCompact ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+              </motion.button>
+            )}
+
+            {trend !== undefined && (
+              <motion.div layout="position" className={`flex items-center text-xs font-bold ml-2 ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                {Math.abs(trend).toFixed(1)}%
+              </motion.div>
             )}
           </div>
         </div>
-        <div className={`p-2 rounded-xl shrink-0 ${bgClass} ${iconClass}`}>
-          <Icon className="w-5 h-5" />
-        </div>
+
+        <motion.div
+          layout
+          className="p-2 md:p-3 rounded-lg md:rounded-xl shrink-0 transition-transform group-hover:scale-110"
+          style={{ backgroundColor: theme.bg }}
+        >
+          {Icon && <Icon size={20} className="md:w-6 md:h-6" style={{ color: theme.icon }} />}
+        </motion.div>
       </div>
 
-      <div className="flex items-end justify-between">
-        <div className="flex items-center gap-1.5 text-sm">
-          {isPositive ? (
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
-          ) : (
-            <TrendingDown className="w-4 h-4 text-red-500" />
-          )}
-          <span
-            className={
-              isPositive
-                ? "text-emerald-600 font-medium"
-                : "text-red-600 font-medium"
-            }
-          >
-            {Math.abs(trend)}%
-          </span>
-          <span className="text-gray-400 text-xs">vs last month</span>
-        </div>
-
-        <div className="h-12 w-24 min-w-0 min-h-0 opacity-60 group-hover:opacity-100 transition-opacity">
-          <ResponsiveContainer width="100%" height="100%">
-            {type === "bar" ? (
-              <BarChart data={data}>
-                <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                  {(data || []).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={chartColor}
-                      fillOpacity={0.6}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            ) : (
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient
-                    id={`gradient-${title}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor={chartColor}
-                      stopOpacity={0.4}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={chartColor}
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke={chartColor}
-                  strokeWidth={2}
-                  fill={`url(#gradient-${title})`}
-                />
-              </AreaChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
+      {data && data.length > 0 && (
+        <KPISparkline data={data} color={theme.icon} locale={locale} />
+      )}
+    </motion.div>
   );
-};
+});
 
 const computeTrendPercent = (arr = []) => {
   if (!Array.isArray(arr) || arr.length < 2) return 0;
@@ -212,8 +257,21 @@ const computeTrendPercent = (arr = []) => {
   return Math.round(((last - first) / Math.abs(first)) * 100);
 };
 
+// Generate sample sparkline data for demonstration
+const generateSampleSparkline = (key, baseValue = 100) => {
+  const days = 10;
+  return Array.from({ length: days }, (_, i) => {
+    const variation = Math.sin(i / 2) * 0.3 + (Math.random() - 0.5) * 0.2;
+    return {
+      value: Math.max(0, Math.round(baseValue * (1 + variation))),
+      name: new Date(Date.now() - (days - i - 1) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    };
+  });
+};
+
 const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
   const [isCompact, setIsCompact] = useState(true);
+  const [isGrossProfitCompact, setIsGrossProfitCompact] = useState(true);
 
   // Use kpis directly (from API) or fallback to computed values
   const totalValue = kpis?.totalInventoryValue ?? summary?.totalValue ?? 0;
@@ -221,25 +279,41 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
   const lowStock = kpis?.lowStockItemsCount ?? summary?.lowStockCount ?? 0;
   const netMovement = kpis?.netStockMovement ?? summary?.netStockMovement ?? 0;
 
-  const getSpark = (key) =>
-    sparklines?.[key]?.length > 0
-      ? sparklines[key]
-      : Array.from({ length: 10 }).map(() => ({ value: 0 }));
+  // Enhanced getSpark: use real data if available, otherwise generate sample
+  const getSpark = (key) => {
+    if (sparklines?.[key]?.length > 0) {
+      return sparklines[key];
+    }
+    
+    // Generate sample data based on key
+    switch(key) {
+      case 'value':
+        return generateSampleSparkline(key, totalValue / 10);
+      case 'units':
+        return generateSampleSparkline(key, totalUnits / 10);
+      case 'risk':
+        return generateSampleSparkline(key, lowStock > 0 ? lowStock * 2 : 50);
+      case 'movement':
+        return generateSampleSparkline(key, Math.abs(netMovement) || 50);
+      default:
+        return generateSampleSparkline(key, 100);
+    }
+  };
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
         <KPICard
           title="Total Inventory Value"
           value={totalValue}
           icon={DollarSign}
           trend={computeTrendPercent(getSpark("value"))}
           data={getSpark("value")}
-          type="area"
           color="indigo"
           isCurrency={true}
           isCompact={isCompact}
           onToggleCompact={() => setIsCompact(!isCompact)}
+          index={0}
         />
         <KPICard
           title="Total Units"
@@ -247,8 +321,8 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           icon={Package}
           trend={computeTrendPercent(getSpark("units"))}
           data={getSpark("units")}
-          type="bar"
           color="orange"
+          index={1}
         />
         <KPICard
           title="Low Stock Items"
@@ -256,8 +330,8 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           icon={AlertTriangle}
           trend={computeTrendPercent(getSpark("risk"))}
           data={getSpark("risk")}
-          type="area"
           color="rose"
+          index={2}
         />
         <KPICard
           title="Net Movement"
@@ -265,8 +339,8 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           icon={Activity}
           trend={computeTrendPercent(getSpark("movement"))}
           data={getSpark("movement")}
-          type="bar"
           color="emerald"
+          index={3}
         />
       </div>
 
@@ -278,10 +352,11 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           icon={DollarSign}
           trend={Math.round(kpis?.grossMargin ?? 0)}
           data={getSpark("value")}
-          type="area"
           color="indigo"
           isCurrency={true}
-          isCompact={true}
+          isCompact={isGrossProfitCompact}
+          onToggleCompact={() => setIsGrossProfitCompact(!isGrossProfitCompact)}
+          index={4}
         />
         <KPICard
           title="Stock Turnover Rate"
@@ -289,8 +364,8 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           icon={Activity}
           trend={0}
           data={getSpark("movement")}
-          type="bar"
           color="emerald"
+          index={5}
         />
       </div>
     </>

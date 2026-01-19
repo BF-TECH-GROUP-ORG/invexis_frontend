@@ -44,7 +44,7 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="percentage">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount ($)</option>
+                  <option value="fixed">Fixed Amount (RWF)</option>
                 </select>
               </div>
 
@@ -107,7 +107,7 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
                 <p className="text-xs text-gray-600">
                   {discount.type === 'percentage' 
                     ? `${discount.value}% off` 
-                    : `$${parseFloat(discount.value || 0).toFixed(2)} off`}
+                    : `${parseFloat(discount.value || 0).toFixed(0)} RWF off`}
                 </p>
               </div>
             )}

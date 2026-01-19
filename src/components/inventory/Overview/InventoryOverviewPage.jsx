@@ -5,12 +5,10 @@ import { useSession } from "next-auth/react";
 import useInventoryOverview from "@/hooks/useInventoryOverview";
 import InventoryHeader from "./InventoryHeader";
 import InventoryKPISection from "./InventoryKPISection";
-import InventorySnapshotPanel from "./InventorySnapshotPanel";
 import InventoryDistributionSection from "./InventoryDistributionSection";
 import InventoryMovementSection from "./InventoryMovementSection";
 import InventoryInsightsSection from "./InventoryInsightsSection";
 import ProductRiskSection from "./ProductRiskSection";
-// import InventoryHealthSection from "./InventoryHealthSection"; // Stacked Bar
 import InventoryValueTrendSection from "./InventoryValueTrendSection";
 import ShopPerformanceSection from "./ShopPerformanceSection";
 import InventoryActivitySection from "./InventoryActivitySection";
@@ -95,7 +93,7 @@ const InventoryOverviewPage = () => {
 
   return (
     <div className="font-sans">
-      <div className="max-w-[1600px] mx-auto space-y-6">
+      <div id="inventory-overview-content" className="max-w-[1600px] mx-auto space-y-6">
         <InventoryHeader
           onRefresh={refetch}
           lastUpdated={
@@ -103,10 +101,6 @@ const InventoryOverviewPage = () => {
             data?.summaryComputed?.lastUpdated ||
             new Date()
           }
-        />
-        <InventorySnapshotPanel
-          snapshot={data?.summary || {}}
-          kpis={data?.kpis || {}}
         />
         <InventoryKPISection
           summary={data}

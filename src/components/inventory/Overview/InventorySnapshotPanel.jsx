@@ -56,13 +56,13 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
               {snapshot.totalInventoryValue
-                ? `$${Number(snapshot.totalInventoryValue).toLocaleString()}`
+                ? `${Number(snapshot.totalInventoryValue).toLocaleString()} RWF`
                 : "—"}
             </p>
             <p className="text-xs text-gray-400 mt-1">
               Avg Unit Cost:{" "}
               {snapshot.averageUnitCost
-                ? `$${Number(snapshot.averageUnitCost).toLocaleString()}`
+                ? `${Number(snapshot.averageUnitCost).toLocaleString()} RWF`
                 : "—"}
             </p>
           </div>

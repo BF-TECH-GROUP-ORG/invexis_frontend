@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { getProducts } from "@/services/productsService";
+import { getAllShops } from "@/services/shopService";
+import { useSession } from "next-auth/react";
 
 const CustomTooltip = ({ active, payload, coordinate, total }) => {
   if (active && payload && payload.length) {
@@ -119,7 +121,7 @@ const CustomLegend = ({ data = [], total }) => {
 
       {tip.visible && (
         <div
-          className="absolute z-[100] pointer-events-none bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-xl text-xs whitespace-nowrap"
+          className="absolute z-100 pointer-events-none bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-xl text-xs whitespace-nowrap"
           style={{
             left: tip.x,
             top: tip.y,
@@ -148,6 +150,46 @@ const InventoryDistributionSection = ({
   totalValue,
   companyId,
 }) => {
+  const { data: session } = useSession();
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Extract companyId from session if not provided
+  const finalCompanyId = useMemo(() => {
+    if (companyId) return companyId;
+    const companyObj = session?.user?.companies?.[0];
+    return typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
+  }, [companyId, session]);
+
+  // Fetch shops data
+  useEffect(() => {
+    const fetchShops = async () => {
+      if (!finalCompanyId) return;
+      try {
+        const shopsList = await getAllShops(finalCompanyId);
+        setShops(shopsList || []);
+      } catch (error) {
+        console.error("Failed to fetch shops:", error);
+        setShops([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShops();
+  }, [finalCompanyId]);
+
+  // Create a map of shop ID to shop name for quick lookup
+  const shopNameMap = useMemo(() => {
+    const map = {};
+    shops.forEach((shop) => {
+      if (shop._id || shop.id) {
+        map[shop._id || shop.id] = shop.name || shop.shopName || "Shop";
+      }
+    });
+    return map;
+  }, [shops]);
+
   const themeColors = useMemo(
     () => ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"],
     []
@@ -159,15 +201,15 @@ const InventoryDistributionSection = ({
   const formatCurrency = (value, isCompact = true) => {
     const num = Number(value) || 0;
     if (!isCompact) {
-      return `$${num.toLocaleString(undefined, {
+      return `${num.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })}`;
+      })} RWF`;
     }
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(1)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
-    if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
-    return `$${num.toString()}`;
+    if (num >= 1e9) return `${(num / 1e9).toFixed(1)}B RWF`;
+    if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M RWF`;
+    if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K RWF`;
+    return `${num.toString()} RWF`;
   };
 
   const totalProducts = useMemo(() => {
@@ -196,30 +238,47 @@ const InventoryDistributionSection = ({
           ? valueByStatus
           : valueData || [];
 
-  const valueDataBuffered = (selectedValueData || []).map((d, i) => ({
-    ...d,
-    fill: d.fill || themeColors[i % themeColors.length],
-    name:
-      d.name ||
-      d.categoryName ||
-      d.shopName ||
-      d.status ||
-      d.categoryId ||
-      d.shopId ||
-      `Slice ${i + 1}`,
-    value: Number(d.value || d.amount || 0),
-  }));
+  const valueDataBuffered = useMemo(() => {
+    return (selectedValueData || []).map((d, i) => {
+      // Get shop name if this is a shop entry
+      let displayName = d.name;
+      if (valueView === "shop") {
+        // The shopId is explicitly stored
+        const shopId = d.shopId;
+        
+        // Try to get mapped shop name first
+        if (shopId && shopNameMap[shopId]) {
+          displayName = shopNameMap[shopId];
+        } else {
+          // If no mapped name, keep the shopId (which is stored in name field from hook)
+          displayName = shopId || d.name;
+        }
+      }
+
+      return {
+        ...d,
+        fill: d.fill || themeColors[i % themeColors.length],
+        name:
+          displayName ||
+          d.categoryName ||
+          d.status ||
+          d.categoryId ||
+          `Slice ${i + 1}`,
+        value: Number(d.value || d.amount || 0),
+      };
+    });
+  }, [selectedValueData, valueView, shopNameMap, themeColors]);
 
   return (
-    <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
       {/* Status Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col xl:flex-row items-center gap-6">
-        <div className="flex-1 w-full min-w-0 h-[300px] relative">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center gap-4 md:gap-6">
+        <div className="w-full min-w-0 h-[250px] md:h-[300px] relative">
           <div className="absolute top-0 left-0 z-10">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight">
               Inventory Status
             </h3>
-            <p className="text-xs text-gray-500">Breakdown by stock level</p>
+            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Breakdown by stock level</p>
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -227,11 +286,11 @@ const InventoryDistributionSection = ({
                 data={statusDataBuffered}
                 cx="50%"
                 cy="55%"
-                innerRadius={70}
-                outerRadius={100}
-                paddingAngle={5}
+                innerRadius={45}
+                outerRadius={75}
+                paddingAngle={4}
                 dataKey="value"
-                cornerRadius={6}
+                cornerRadius={5}
                 stroke="none"
               >
                 {statusDataBuffered.map((entry, index) => (
@@ -246,51 +305,51 @@ const InventoryDistributionSection = ({
           </ResponsiveContainer>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-8">
             <div className="flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white leading-none">
+              <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-none">
                 {totalProducts.toLocaleString()}
               </span>
-              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
+              <span className="text-[8px] md:text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
                 Products
               </span>
             </div>
           </div>
         </div>
-        <div className="flex-1 w-full flex items-center justify-center">
+        <div className="w-full md:flex-1 md:w-auto flex items-center justify-center">
           <CustomLegend data={statusDataBuffered} total={totalProducts} />
         </div>
       </div>
 
       {/* Value Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col xl:flex-row items-stretch gap-6">
-        <div className="flex-1 w-full min-w-0 h-[300px] relative">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center gap-4 md:gap-6">
+        <div className="w-full min-w-0 h-[250px] md:h-[300px] relative">
           <div className="absolute top-0 left-0 z-10">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight">
               Value Distribution
             </h3>
-            <div className="flex flex-wrap gap-1 mt-1.5">
+            <div className="flex flex-wrap gap-1 md:gap-2 mt-1.5">
               <button
                 onClick={() => setValueView("category")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "category"
+                className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "category"
                     ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
                 Category
               </button>
               <button
                 onClick={() => setValueView("shop")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "shop"
+                className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "shop"
                     ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
                 Shop
               </button>
               <button
                 onClick={() => setValueView("status")}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${valueView === "status"
+                className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "status"
                     ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
                 Status
@@ -304,11 +363,11 @@ const InventoryDistributionSection = ({
                 data={valueDataBuffered}
                 cx="50%"
                 cy="55%"
-                innerRadius={70}
-                outerRadius={100}
-                paddingAngle={5}
+                innerRadius={45}
+                outerRadius={75}
+                paddingAngle={4}
                 dataKey="value"
-                cornerRadius={6}
+                cornerRadius={5}
                 stroke="none"
               >
                 {valueDataBuffered.map((entry, index) => (
@@ -321,18 +380,18 @@ const InventoryDistributionSection = ({
               />
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-12">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-8">
             <div className="flex flex-col items-center justify-center">
-              <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">
+              <span className="text-base md:text-xl font-bold text-gray-900 dark:text-white leading-none">
                 {formatCurrency(totalValue, true)}
               </span>
-              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
+              <span className="text-[8px] md:text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
                 Total Value
               </span>
             </div>
           </div>
         </div>
-        <div className="flex-1 w-full flex items-center justify-center">
+        <div className="w-full md:flex-1 md:w-auto flex items-center justify-center">
           <CustomLegend data={valueDataBuffered} total={totalValue} />
         </div>
       </div>
