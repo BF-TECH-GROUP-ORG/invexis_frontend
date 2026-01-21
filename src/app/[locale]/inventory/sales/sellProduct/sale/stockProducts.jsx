@@ -8,10 +8,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@/components/shared/button";
 import { Package } from "lucide-react";
-import { useState, useMemo } from "react";
-import { getAllProducts } from "@/services/salesService";
+import { useState, useMemo, useCallback } from "react";
+import { getAllProducts, getCustomers } from "@/services/salesService";
 import { SellProduct } from "@/services/salesService";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import TransferModal from "./TransferModal";
@@ -22,6 +22,7 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 // Filter Popover (Category & Price)
 const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
   const [tempFilter, setTempFilter] = useState(currentFilter);
+  const t = useTranslations('sellProduct.filter');
 
   const handleApply = () => {
     onApply(tempFilter);
@@ -44,40 +45,40 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
       PaperProps={{ sx: { p: 3, borderRadius: 2, minWidth: { xs: "300px", sm: "400px" } } }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h6">Filter Products</Typography>
+        <Typography variant="h6">{t('title')}</Typography>
         <IconButton onClick={handleClear} size="small"><CloseIcon /></IconButton>
       </Box>
 
       <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
         <FormControl size="small">
-          <InputLabel>Column</InputLabel>
+          <InputLabel>{t('column')}</InputLabel>
           <Select
             value={tempFilter.column}
-            label="Column"
+            label={t('column')}
             onChange={(e) => setTempFilter({ ...tempFilter, column: e.target.value, value: "" })}
           >
-            <MenuItem value="Category">Category</MenuItem>
-            <MenuItem value="Price">Price (FRW)</MenuItem>
+            <MenuItem value="Category">{t('columns.category')}</MenuItem>
+            <MenuItem value="Price">{t('columns.price')}</MenuItem>
           </Select>
         </FormControl>
 
         {tempFilter.column === "Price" ? (
           <>
             <FormControl size="small">
-              <InputLabel>Operator</InputLabel>
+              <InputLabel>{t('operator')}</InputLabel>
               <Select
                 value={tempFilter.operator}
-                label="Operator"
+                label={t('operator')}
                 onChange={(e) => setTempFilter({ ...tempFilter, operator: e.target.value })}
               >
-                <MenuItem value=">">Greater than</MenuItem>
-                <MenuItem value="<">Less than</MenuItem>
-                <MenuItem value="==">Equals</MenuItem>
+                <MenuItem value=">">{t('operators.greaterThan')}</MenuItem>
+                <MenuItem value="<">{t('operators.lessThan')}</MenuItem>
+                <MenuItem value="==">{t('operators.equals')}</MenuItem>
               </Select>
             </FormControl>
             <TextField
               size="small"
-              label="Amount"
+              label={t('amount')}
               type="number"
               value={tempFilter.value}
               onChange={(e) => setTempFilter({ ...tempFilter, value: e.target.value })}
@@ -86,7 +87,7 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
         ) : (
           <TextField
             size="small"
-            label="Search in Category"
+            label={t('searchInCategory')}
             value={tempFilter.value}
             onChange={(e) => setTempFilter({ ...tempFilter, value: e.target.value })}
             placeholder="e.g. Electronics"
@@ -94,128 +95,138 @@ const FilterPopover = ({ anchorEl, onClose, onApply, currentFilter }) => {
         )}
 
         <Box sx={{ display: "flex", gap: 1, mt: "auto" }}>
-          <Button variant="outlined" onClick={onClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleApply}>Apply Filter</Button>
+          <Button variant="outlined" onClick={onClose}>{t('cancel')}</Button>
+          <Button variant="contained" onClick={handleApply}>{t('apply')}</Button>
         </Box>
       </Box>
     </Popover>
   );
 };
 
-const SuccessModal = ({ open, onClose }) => (
-  <Dialog
-    open={open}
-    onClose={onClose}
-    TransitionProps={{
-      timeout: {
-        enter: 400,
-        exit: 300
-      }
-    }}
-    PaperProps={{
-      sx: {
-        borderRadius: 4,
-        p: 2,
-        minWidth: 400,
-        textAlign: "center",
-        animation: open ? "popIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "popOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        "@keyframes popIn": {
-          from: {
-            opacity: 0,
-            transform: "scale(0.8) translateY(-20px)"
+const SuccessModal = ({ open, onClose }) => {
+  const t = useTranslations('sellProduct.modals.success');
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      TransitionProps={{
+        timeout: {
+          enter: 400,
+          exit: 300
+        }
+      }}
+      PaperProps={{
+        sx: {
+          borderRadius: 4,
+          p: 2,
+          minWidth: 400,
+          textAlign: "center",
+          animation: open ? "popIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)" : "popOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "@keyframes popIn": {
+            from: {
+              opacity: 0,
+              transform: "scale(0.8) translateY(-20px)"
+            },
+            to: {
+              opacity: 1,
+              transform: "scale(1) translateY(0)"
+            }
           },
-          to: {
-            opacity: 1,
-            transform: "scale(1) translateY(0)"
-          }
-        },
-        "@keyframes popOut": {
-          from: {
-            opacity: 1,
-            transform: "scale(1) translateY(0)"
-          },
-          to: {
-            opacity: 0,
-            transform: "scale(0.8) translateY(-20px)"
+          "@keyframes popOut": {
+            from: {
+              opacity: 1,
+              transform: "scale(1) translateY(0)"
+            },
+            to: {
+              opacity: 0,
+              transform: "scale(0.8) translateY(-20px)"
+            }
           }
         }
-      }
-    }}
-  >
-    <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, py: 4 }}>
-      <Box sx={{
-        width: 80,
-        height: 80,
-        borderRadius: "50%",
-        bgcolor: "#ecfdf5",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        mb: 1,
-        animation: open ? "bounceIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both" : "bounceOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        "@keyframes bounceIn": {
-          "0%": {
-            opacity: 0,
-            transform: "scale(0.3)"
+      }}
+    >
+      <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, py: 4 }}>
+        <Box sx={{
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          bgcolor: "#ecfdf5",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mb: 1,
+          animation: open ? "bounceIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both" : "bounceOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "@keyframes bounceIn": {
+            "0%": {
+              opacity: 0,
+              transform: "scale(0.3)"
+            },
+            "50%": {
+              opacity: 1,
+              transform: "scale(1.05)"
+            },
+            "100%": {
+              opacity: 1,
+              transform: "scale(1)"
+            }
           },
-          "50%": {
-            opacity: 1,
-            transform: "scale(1.05)"
-          },
-          "100%": {
-            opacity: 1,
-            transform: "scale(1)"
+          "@keyframes bounceOut": {
+            "0%": {
+              opacity: 1,
+              transform: "scale(1)"
+            },
+            "50%": {
+              opacity: 1,
+              transform: "scale(1.05)"
+            },
+            "100%": {
+              opacity: 0,
+              transform: "scale(0.3)"
+            }
           }
-        },
-        "@keyframes bounceOut": {
-          "0%": {
-            opacity: 1,
-            transform: "scale(1)"
-          },
-          "50%": {
-            opacity: 1,
-            transform: "scale(1.05)"
-          },
-          "100%": {
-            opacity: 0,
-            transform: "scale(0.3)"
-          }
-        }
-      }}>
-        <CheckCircle size={48} className="text-emerald-500" />
-      </Box>
-      <Typography variant="h5" fontWeight="bold" color="#081422">
-        Sale Completed!
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300 }}>
-        The transaction has been successfully recorded in the system.
-      </Typography>
-    </DialogContent>
-    <DialogActions sx={{ justifyContent: "center", pb: 4 }}>
-      <MuiButton
-        variant="contained"
-        onClick={onClose}
-        sx={{
-          bgcolor: "#081422",
-          color: "white",
-          px: 6,
-          py: 1.5,
-          borderRadius: 3,
-          textTransform: "none",
-          fontWeight: 600,
-          "&:hover": { bgcolor: "#2a2a2a" }
-        }}
-      >
-        Done
-      </MuiButton>
-    </DialogActions>
-  </Dialog>
-);
+        }}>
+          <CheckCircle size={48} className="text-emerald-500" />
+        </Box>
+        <Typography variant="h5" fontWeight="bold" color="#081422">
+          {t('title')}
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300 }}>
+          {t('message')}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: "center", pb: 4 }}>
+        <MuiButton
+          variant="contained"
+          onClick={onClose}
+          sx={{
+            bgcolor: "#081422",
+            color: "white",
+            px: 6,
+            py: 1.5,
+            borderRadius: 3,
+            textTransform: "none",
+            fontWeight: 600,
+            "&:hover": { bgcolor: "#2a2a2a" }
+          }}
+        >
+          {t('done')}
+        </MuiButton>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 // Main Component with Multi-Product Sales
 const CurrentInventory = () => {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations('sellProduct');
+  const tAlerts = useTranslations('sellProduct.alerts');
+  const tActions = useTranslations('sellProduct.actions');
+  const tStatus = useTranslations('sellProduct.status');
+  const tTable = useTranslations('sellProduct.table');
+  const tPrice = useTranslations('sellProduct.modals.price');
+  const tCustomer = useTranslations('sellProduct.modals.customer');
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
@@ -244,6 +255,7 @@ const CurrentInventory = () => {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [amountPaidNow, setAmountPaidNow] = useState(0);
   const [customerErrors, setCustomerErrors] = useState({});
+  const [filteredCustomers, setFilteredCustomers] = useState([]); // For live search results
 
   // Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -270,6 +282,14 @@ const CurrentInventory = () => {
     enabled: !!companyId,
   });
 
+  // Fetch customers
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers", companyId],
+    queryFn: getCustomers,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!companyId,
+  });
+
   // Sell mutation
   const sellMutation = useMutation({
     mutationFn: ({ payload, isDebt }) => SellProduct(payload, isDebt),
@@ -280,7 +300,8 @@ const CurrentInventory = () => {
     },
     onError: (error) => {
       console.error("Sale failed:", error);
-      alert(`Sale failed: ${error.response?.data?.message || error.message}`);
+      const errMsg = error.response?.data?.message || error.message;
+      alert(tAlerts('saleFailed', { error: errMsg }));
     }
   });
 
@@ -331,7 +352,7 @@ const CurrentInventory = () => {
 
     // Don't allow selection of out-of-stock products
     if (!selectedItems[productId] && product.Quantity === 0) {
-      alert(`Cannot sell "${product.ProductName}" - Out of stock!`);
+      alert(tAlerts('outOfStock', { name: product.ProductName }));
       return;
     }
 
@@ -433,7 +454,7 @@ const CurrentInventory = () => {
     const minPrice = product.Price;
 
     if (isNaN(price) || price < minPrice) {
-      setPriceError(`Price cannot be less than ${minPrice} FRW`);
+      setPriceError(tPrice('error', { min: minPrice }));
       return;
     }
 
@@ -450,6 +471,7 @@ const CurrentInventory = () => {
 
   // Handle sell button - opens customer modal
   const handleSellSelected = () => {
+    console.log("Opening customer modal. Customers available:", customers.length, customers);
     setCustomerModal(true);
   };
 
@@ -459,17 +481,17 @@ const CurrentInventory = () => {
     const totalSaleAmount = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
 
     if (!customerName.trim()) {
-      errors.customerName = "Customer name is required";
+      errors.customerName = tCustomer('errors.nameRequired');
     }
 
     if (!customerPhone.trim()) {
-      errors.customerPhone = "Phone number is required";
+      errors.customerPhone = tCustomer('errors.phoneRequired');
     } else if (!/^[0-9+\-\s]{10,20}$/.test(customerPhone.trim())) {
-      errors.customerPhone = "Invalid phone format";
+      errors.customerPhone = tCustomer('errors.phoneInvalid');
     }
 
     if (isDebt && parseFloat(amountPaidNow) > totalSaleAmount) {
-      errors.amountPaidNow = "Amount paid cannot exceed the total selling price";
+      errors.amountPaidNow = tCustomer('errors.paymentExceedsTotal');
     }
 
     setCustomerErrors(errors);
@@ -530,6 +552,49 @@ const CurrentInventory = () => {
     setCustomerErrors({});
   };
 
+  // Matched Customer Logic
+  const [matchedCustomer, setMatchedCustomer] = useState(null);
+
+  // Optimized phone change handler with useCallback - prevents re-creation on every render
+  const handlePhoneChange = useCallback((e) => {
+    const phone = e.target.value;
+    setCustomerPhone(phone);
+    setCustomerErrors(prev => ({ ...prev, customerPhone: "" }));
+
+    // Clear matched customer and name whenever user types in phone field
+    setMatchedCustomer(null);
+
+    // Live search: filter customers that contain the phone number (real-time)
+    if (phone.trim().length > 0) {
+      const matches = customers.filter(c =>
+        c.customerPhone && c.customerPhone.toString().includes(phone.trim())
+      );
+      console.log("Phone input:", phone, "Customers available:", customers.length, "Matches found:", matches.length);
+      setFilteredCustomers(matches);
+    } else {
+      setFilteredCustomers([]);
+    }
+  }, [customers]); // Only recreate when customers list changes
+
+  // Optimized customer selection handler
+  const handleSelectCustomer = useCallback((customer) => {
+    // Auto-fill customer info when selected from recommendations
+    setCustomerPhone(customer.customerPhone);
+    setCustomerName(customer.customerName);
+    setCustomerEmail(customer.customerEmail || "");
+    setMatchedCustomer(customer);
+    setFilteredCustomers([]); // Hide recommendations after selection
+  }, []); // No dependencies needed
+
+  // Optimized clear matched customer handler
+  const handleClearMatchedCustomer = useCallback(() => {
+    setMatchedCustomer(null);
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerEmail("");
+    setFilteredCustomers([]);
+  }, []);
+
   const selectedCount = Object.keys(selectedItems).length;
 
   const paginatedProducts = filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -537,7 +602,7 @@ const CurrentInventory = () => {
   return (
     <section>
       <Paper sx={{
-        
+
         overflow: "hidden",
         borderRadius: { xs: "0px", md: "16px" },
         border: { xs: "none", md: "1px solid #e5e7eb" },
@@ -564,17 +629,17 @@ const CurrentInventory = () => {
           <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
             <Box>
               <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
-                Sales & Inventory
+                {t('title')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Manage products, track stock, and process sales efficiently.
+                {t('subtitle')}
               </Typography>
             </Box>
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
               <TextField
                 size="small"
-                placeholder="Search products..."
+                placeholder={t('placeholders.search')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 InputProps={{
@@ -622,13 +687,13 @@ const CurrentInventory = () => {
               }}>
                 <ShoppingCartIcon sx={{ color: selectedCount > 0 ? "#FF6D00" : "#9ca3af", fontSize: 20 }} />
                 <Typography variant="subtitle2" fontWeight="600" color={selectedCount > 0 ? "#E65100" : "#6b7280"}>
-                  {selectedCount} Selected
+                  {tStatus('selected', { count: selectedCount })}
                 </Typography>
               </Box>
 
               {/* Debt Toggle */}
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: { xs: "center", sm: "flex-start" }, gap: 1.5, ml: { xs: 0, sm: 2 } }}>
-                <Typography variant="body2" fontWeight="600" color="text.primary">Debt Sale</Typography>
+                <Typography variant="body2" fontWeight="600" color="text.primary">{tStatus('debtSale')}</Typography>
                 <button
                   type="button"
                   onClick={() => setIsDebt(!isDebt)}
@@ -652,7 +717,7 @@ const CurrentInventory = () => {
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
                   }`}
               >
-                Transfer to Shop
+                {tActions('transferToShop')}
               </button>
 
               <button
@@ -667,7 +732,7 @@ const CurrentInventory = () => {
                     : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 shadow-sm"
                   }`}
               >
-                Transfer to Company
+                {tActions('transferToCompany')}
               </button>
 
               <button
@@ -680,7 +745,7 @@ const CurrentInventory = () => {
                   }`}
               >
                 <ShoppingCartIcon fontSize="small" />
-                {sellMutation.isPending ? "Processing..." : "COMPLETE SALE"}
+                {sellMutation.isPending ? tActions('processing') : tActions('completeSale')}
               </button>
             </Box>
           </Box>
@@ -713,235 +778,235 @@ const CurrentInventory = () => {
               overflowX: 'auto',
             }}
           >
-                      
-            <Table   stickyHeader size="medium" sx={{ paddingX:"15px",  minWidth: { xs: 800, md: 1000 } }}>
-            <TableHead >
-              <TableRow>
-                <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>No</TableCell>
-                <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Select</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}  >Product</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>SKU</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Category</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Stock</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Min Price (FRW)</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Selling Price (FRW)</TableCell>
-                <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }} >Quantity</TableCell>
-                <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
 
-            <TableBody>
-              {loading ? (
+            <Table stickyHeader size="medium" sx={{ paddingX: "15px", minWidth: { xs: 800, md: 1000 } }}>
+              <TableHead >
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 10 }}>
-                    <CircularProgress />
-                    <Typography sx={{ mt: 2 }}>Loading inventory...</Typography>
-                  </TableCell>
+                  <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('no')}</TableCell>
+                  <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('select')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}  >{tTable('product')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('sku')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('category')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('stock')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('minPrice')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('sellingPrice')}</TableCell>
+                  <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }} >{tTable('quantity')}</TableCell>
+                  <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('actions')}</TableCell>
                 </TableRow>
-              ) : filteredProducts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 10, color: "gray" }}>
-                    <Typography variant="h6">No products found</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedProducts.map((product) => {
-                  const isSelected = !!selectedItems[product.id];
-                  const item = selectedItems[product.id];
-                  const index = paginatedProducts.indexOf(product);
+              </TableHead>
 
-                  return (
-                    <TableRow
-                      key={product.id}
-                      hover
-                      onClick={() => handleCheckboxChange(product)}
-                      sx={{
-                        
-                        backgroundColor: isSelected ? "#FFF3E0" : "white",
-                        "&:hover": { backgroundColor: isSelected ? "#FFE0B2" : "#f4f6f8" },
-                        transition: "all 0.2s ease",
-                        cursor: product.Quantity === 0 ? "not-allowed" : "pointer",
-                        opacity: product.Quantity === 0 ? 0.5 : 1
-                      }}
-                    >
-                      {/* No */}
-                      <TableCell  padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                      <span className="font-bold text-orange-500">#{index + 1}</span> 
-                      </TableCell>  
-                      {/* Checkbox */}
-                      <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleCheckboxChange(product)}
-                          className="w-5 h-5 cursor-pointer accent-orange-500"
-                        />
-                      </TableCell>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 10 }}>
+                      <CircularProgress />
+                      <Typography sx={{ mt: 2 }}>{tTable('loading')}</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredProducts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 10, color: "gray" }}>
+                      <Typography variant="h6">No products found</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedProducts.map((product) => {
+                    const isSelected = !!selectedItems[product.id];
+                    const item = selectedItems[product.id];
+                    const index = paginatedProducts.indexOf(product);
 
-                      {/* Product */}
-                      <TableCell>
-                        <Box display="flex" alignItems="center" gap={2}>
-                          <Avatar
-                            variant="rounded"
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              bgcolor: "orange.50",
-                              color: "orange.500",
-                            }}
-                          >
-                            <Package size={20} />
-                          </Avatar>
-                          <Box minWidth={0}>
-                            <Typography
-                              variant="body2"
-                              fontWeight={isSelected ? 600 : 500}
-                              color="text.primary"
-                              noWrap
+                    return (
+                      <TableRow
+                        key={product.id}
+                        hover
+                        onClick={() => handleCheckboxChange(product)}
+                        sx={{
+
+                          backgroundColor: isSelected ? "#FFF3E0" : "white",
+                          "&:hover": { backgroundColor: isSelected ? "#FFE0B2" : "#f4f6f8" },
+                          transition: "all 0.2s ease",
+                          cursor: product.Quantity === 0 ? "not-allowed" : "pointer",
+                          opacity: product.Quantity === 0 ? 0.5 : 1
+                        }}
+                      >
+                        {/* No */}
+                        <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                          <span className="font-bold text-orange-500">#{index + 1}</span>
+                        </TableCell>
+                        {/* Checkbox */}
+                        <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleCheckboxChange(product)}
+                            className="w-5 h-5 cursor-pointer accent-orange-500"
+                          />
+                        </TableCell>
+
+                        {/* Product */}
+                        <TableCell>
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <Avatar
+                              variant="rounded"
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: "orange.50",
+                                color: "orange.500",
+                              }}
                             >
-                              {product.ProductName}
-                            </Typography>
+                              <Package size={20} />
+                            </Avatar>
+                            <Box minWidth={0}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={isSelected ? 600 : 500}
+                                color="text.primary"
+                                noWrap
+                              >
+                                {product.ProductName}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      </TableCell>
+                        </TableCell>
 
-                      {/* SKU */}
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {product.ProductId}
-                        </Typography>
-                      </TableCell>
+                        {/* SKU */}
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {product.ProductId}
+                          </Typography>
+                        </TableCell>
 
-                      {/* Category */}
-                      <TableCell>
-                        <Chip
-                          label={product.Category}
-                          size="small"
-                          sx={{
-                            backgroundColor: "#E0F2FE",
-                            color: "#0369A1",
-                            fontWeight: 600,
-                            fontSize: "0.75rem",
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* Stock */}
-                      <TableCell>
-                        <Chip
-                          label={product.Quantity}
-                          size="small"
-                          sx={{
-                            backgroundColor: product.Quantity < 10 ? "#FFEBEE" : product.Quantity < 30 ? "#FFF3E0" : "#E8F5E9",
-                            color: product.Quantity < 10 ? "#C62828" : product.Quantity < 30 ? "#E65100" : "#2E7D32",
-                            fontWeight: 600,
-                            fontSize: "0.75rem",
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* Min Price */}
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {product.Price.toLocaleString()}
-                        </Typography>
-                      </TableCell>
-
-                      {/* Selling Price */}
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600} color="#FF6D00">
-                          {isSelected ? item.price.toLocaleString() : "-"}
-                        </Typography>
-                      </TableCell>
-
-                      {/* Quantity Controls */}
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <IconButton
+                        {/* Category */}
+                        <TableCell>
+                          <Chip
+                            label={product.Category}
                             size="small"
-                            disabled={!isSelected}
-                            onClick={() => handleQuantityChange(product.id, (item?.qty || 1) - 1)}
                             sx={{
-                              bgcolor: isSelected ? "#FF6D00" : "#eee",
-                              color: isSelected ? "white" : "#999",
-                              width: 24,
-                              height: 24,
-                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
+                              backgroundColor: "#E0F2FE",
+                              color: "#0369A1",
+                              fontWeight: 600,
+                              fontSize: "0.75rem",
                             }}
-                          >
-                            <span style={{ fontSize: '18px', lineHeight: 0 }}>-</span>
-                          </IconButton>
-                          <TextField
+                          />
+                        </TableCell>
+
+                        {/* Stock */}
+                        <TableCell>
+                          <Chip
+                            label={product.Quantity}
                             size="small"
-                            type="number"
-                            value={isSelected ? item.qty : 1}
-                            onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                            onBlur={() => handleQuantityBlur(product.id)}
-                            disabled={!isSelected}
                             sx={{
-                              width: 50,
-                              "& .MuiOutlinedInput-root": {
-                                height: 32,
-                                borderRadius: "8px",
+                              backgroundColor: product.Quantity < 10 ? "#FFEBEE" : product.Quantity < 30 ? "#FFF3E0" : "#E8F5E9",
+                              color: product.Quantity < 10 ? "#C62828" : product.Quantity < 30 ? "#E65100" : "#2E7D32",
+                              fontWeight: 600,
+                              fontSize: "0.75rem",
+                            }}
+                          />
+                        </TableCell>
+
+                        {/* Min Price */}
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {product.Price.toLocaleString()}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Selling Price */}
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={600} color="#FF6D00">
+                            {isSelected ? item.price.toLocaleString() : "-"}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Quantity Controls */}
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <IconButton
+                              size="small"
+                              disabled={!isSelected}
+                              onClick={() => handleQuantityChange(product.id, (item?.qty || 1) - 1)}
+                              sx={{
+                                bgcolor: isSelected ? "#FF6D00" : "#eee",
+                                color: isSelected ? "white" : "#999",
+                                width: 24,
+                                height: 24,
+                                "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
+                              }}
+                            >
+                              <span style={{ fontSize: '18px', lineHeight: 0 }}>-</span>
+                            </IconButton>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={isSelected ? item.qty : 1}
+                              onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                              onBlur={() => handleQuantityBlur(product.id)}
+                              disabled={!isSelected}
+                              sx={{
+                                width: 50,
+                                "& .MuiOutlinedInput-root": {
+                                  height: 32,
+                                  borderRadius: "8px",
+                                },
+                                "& input": {
+                                  textAlign: "center",
+                                  fontWeight: "bold",
+                                  fontSize: "0.875rem",
+                                  padding: "4px 0"
+                                }
+                              }}
+                              inputProps={{ min: 1 }}
+                            />
+                            <IconButton
+                              size="small"
+                              disabled={!isSelected}
+                              onClick={() => handleQuantityChange(product.id, (item?.qty || 1) + 1)}
+                              sx={{
+                                bgcolor: isSelected ? "#FF6D00" : "#eee",
+                                color: isSelected ? "white" : "#999",
+                                width: 24,
+                                height: 24,
+                                "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
+                              }}
+                            >
+                              <span style={{ fontSize: '18px', lineHeight: 0 }}>+</span>
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+
+                        {/* Set Price Button */}
+                        <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                          <MuiButton
+                            variant="outlined"
+                            size="small"
+                            disabled={!isSelected}
+                            onClick={() => handleOpenPriceModal(product)}
+                            sx={{
+                              borderColor: "#FF6D00",
+                              color: "#FF6D00",
+                              fontWeight: 600,
+                              borderRadius: "8px",
+                              textTransform: "none",
+                              "&:hover": {
+                                borderColor: "#E65100",
+                                bgcolor: "#FFF3E0"
                               },
-                              "& input": {
-                                textAlign: "center",
-                                fontWeight: "bold",
-                                fontSize: "0.875rem",
-                                padding: "4px 0"
+                              "&:disabled": {
+                                borderColor: "#ddd",
+                                color: "#999"
                               }
                             }}
-                            inputProps={{ min: 1 }}
-                          />
-                          <IconButton
-                            size="small"
-                            disabled={!isSelected}
-                            onClick={() => handleQuantityChange(product.id, (item?.qty || 1) + 1)}
-                            sx={{
-                              bgcolor: isSelected ? "#FF6D00" : "#eee",
-                              color: isSelected ? "white" : "#999",
-                              width: 24,
-                              height: 24,
-                              "&:hover": { bgcolor: isSelected ? "#E65100" : "#eee" },
-                            }}
                           >
-                            <span style={{ fontSize: '18px', lineHeight: 0 }}>+</span>
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-
-                      {/* Set Price Button */}
-                      <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                        <MuiButton
-                          variant="outlined"
-                          size="small"
-                          disabled={!isSelected}
-                          onClick={() => handleOpenPriceModal(product)}
-                          sx={{
-                            borderColor: "#FF6D00",
-                            color: "#FF6D00",
-                            fontWeight: 600,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                            "&:hover": {
-                              borderColor: "#E65100",
-                              bgcolor: "#FFF3E0"
-                            },
-                            "&:disabled": {
-                              borderColor: "#ddd",
-                              color: "#999"
-                            }
-                          }}
-                        >
-                          Set Price
-                        </MuiButton>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                            Set Price
+                          </MuiButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
           </TableContainer>
         </Box>
 
@@ -1009,19 +1074,19 @@ const CurrentInventory = () => {
           fontWeight: "bold",
           fontSize: "1.25rem"
         }}>
-          Set Price - {priceModal.product?.ProductName}
+          {tPrice('title', { name: priceModal.product?.ProductName })}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 2 }}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Minimum Price: <strong>{priceModal.product?.Price} FRW</strong>
+              {tPrice('minPriceLabel')}: <strong>{priceModal.product?.Price} FRW</strong>
             </Typography>
           </Box>
           <TextField
             autoFocus
             fullWidth
             type="number"
-            label="Selling Price (FRW)"
+            label={tPrice('sellingPriceLabel')}
             value={tempPrice}
             onChange={(e) => {
               setTempPrice(e.target.value);
@@ -1041,7 +1106,7 @@ const CurrentInventory = () => {
             onClick={handleClosePriceModal}
             sx={{ color: "#666" }}
           >
-            Cancel
+            {t('actions.cancel')}
           </MuiButton>
           <MuiButton
             onClick={handleSavePrice}
@@ -1051,7 +1116,7 @@ const CurrentInventory = () => {
               "&:hover": { bgcolor: "#E65100" }
             }}
           >
-            Save
+            {t('actions.save')}
           </MuiButton>
         </DialogActions>
       </Dialog>
@@ -1140,7 +1205,7 @@ const CurrentInventory = () => {
               letterSpacing: "-0.5px",
               mb: 1
             }}>
-              Complete Sale
+              {tCustomer('title')}
             </Typography>
             <Typography variant="body2" sx={{
               color: "#D1D5DB",
@@ -1148,7 +1213,7 @@ const CurrentInventory = () => {
               fontSize: "0.95rem",
               lineHeight: 1.6
             }}>
-              Enter customer details and select payment method to finalize transaction
+              {tCustomer('subtitle')}
             </Typography>
           </Box>
 
@@ -1191,7 +1256,7 @@ const CurrentInventory = () => {
               display: "block",
               mb: 1
             }}>
-              Total Amount
+              {tCustomer('totalAmount')}
             </Typography>
             <Typography variant="h4" sx={{
               color: "#FBBF24",
@@ -1199,23 +1264,26 @@ const CurrentInventory = () => {
               fontSize: "1.875rem",
               mb: 1
             }}>
-              {Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW
+              {new Intl.NumberFormat(locale).format(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0))} FRW
             </Typography>
             <Typography variant="caption" sx={{
               color: "#9CA3AF",
               display: "block"
             }}>
-              {Object.keys(selectedItems).length} product{Object.keys(selectedItems).length !== 1 ? 's' : ''} • {isDebt ? "💳 Debt Sale" : "✅ Paid in Full"}
+              {tCustomer('summary', {
+                count: Object.keys(selectedItems).length,
+                status: isDebt ? tStatus('debtSale') : tStatus('paidInFull')
+              })}
             </Typography>
           </Box>
         </Box>
 
-        <DialogContent sx={{ 
-          pt: { xs: 2, md: 4 }, 
-          pb: { xs: 20, md: 24 }, 
-          px: { xs: 2, md: 4 }, 
-          flex: 1, 
-          overflow: "auto", 
+        <DialogContent sx={{
+          pt: { xs: 2, md: 4 },
+          pb: { xs: 20, md: 24 },
+          px: { xs: 2, md: 4 },
+          flex: 1,
+          overflow: "auto",
           position: "relative",
           width: { xs: "100%", md: "auto" },
           animation: customerModal ? "slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -1240,76 +1308,22 @@ const CurrentInventory = () => {
             }
           }
         }}>
-          {/* Customer Name Field */}
-          <Box sx={{ mb: 3 }}>
+          {/* Customer Phone Field with Live Search Recommendations */}
+          <Box sx={{ mb: 3, position: "relative" }}>
             <Typography variant="body2" sx={{
               color: "#111827",
               fontWeight: 600,
               mb: 1.2,
               fontSize: "0.95rem"
             }}>
-              Customer Name <span style={{ color: "#FF6D00" }}>*</span>
+              {tCustomer('phoneLabel')} <span style={{ color: "#FF6D00" }}>*</span>
             </Typography>
             <TextField
               autoFocus
               fullWidth
-              placeholder="e.g. John Doe"
-              value={customerName}
-              onChange={(e) => {
-                setCustomerName(e.target.value);
-                setCustomerErrors({ ...customerErrors, customerName: "" });
-              }}
-              error={!!customerErrors.customerName}
-              helperText={customerErrors.customerName}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  bgcolor: "#FFFFFF",
-                  borderRadius: "10px",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  "& fieldset": {
-                    borderColor: "#E5E7EB",
-                    borderWidth: "1.5px"
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#D1D5DB"
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#FF6D00",
-                    borderWidth: "2px"
-                  }
-                },
-                "& .MuiOutlinedInput-input": {
-                  padding: "12px 16px",
-                  color: "#111827"
-                },
-                "& .MuiFormHelperText-root": {
-                  color: "#EF4444",
-                  fontSize: "0.8rem",
-                  marginTop: "6px"
-                }
-              }}
-            />
-          </Box>
-
-          {/* Customer Phone Field */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="body2" sx={{
-              color: "#111827",
-              fontWeight: 600,
-              mb: 1.2,
-              fontSize: "0.95rem"
-            }}>
-              Phone Number <span style={{ color: "#FF6D00" }}>*</span>
-            </Typography>
-            <TextField
-              fullWidth
-              placeholder="e.g. +250788123456"
+              placeholder={tCustomer('phonePlaceholder')}
               value={customerPhone}
-              onChange={(e) => {
-                setCustomerPhone(e.target.value);
-                setCustomerErrors({ ...customerErrors, customerPhone: "" });
-              }}
+              onChange={handlePhoneChange}
               error={!!customerErrors.customerPhone}
               helperText={customerErrors.customerPhone}
               sx={{
@@ -1341,7 +1355,158 @@ const CurrentInventory = () => {
                 }
               }}
             />
+
+            {/* Customer Recommendations Dropdown - Absolute Position, Overlay Style */}
+            {filteredCustomers.length > 0 && (
+              <Box sx={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                mt: 0.5,
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E5E7EB",
+                borderRadius: "10px",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+                maxHeight: "280px",
+                overflowY: "auto",
+                zIndex: 1300,
+                "& ::-webkit-scrollbar": {
+                  width: "6px"
+                },
+                "& ::-webkit-scrollbar-track": {
+                  bgcolor: "transparent"
+                },
+                "& ::-webkit-scrollbar-thumb": {
+                  bgcolor: "#D1D5DB",
+                  borderRadius: "3px",
+                  "&:hover": {
+                    bgcolor: "#9CA3AF"
+                  }
+                }
+              }}>
+                {filteredCustomers.map((customer, idx) => (
+                  <Box
+                    key={`${customer.id}-${idx}`}
+                    onClick={() => handleSelectCustomer(customer)}
+                    sx={{
+                      p: "12px 16px",
+                      cursor: "pointer",
+                      borderBottom: idx < filteredCustomers.length - 1 ? "1px solid #F3F4F6" : "none",
+                      transition: "background-color 0.15s ease",
+                      "&:hover": {
+                        bgcolor: "#F9FAFB"
+                      }
+                    }}
+                  >
+                    <Typography variant="body2" sx={{
+                      color: "#111827",
+                      fontWeight: 600,
+                      fontSize: "0.95rem"
+                    }}>
+                      {customer.customerName}
+                    </Typography>
+                    <Typography variant="caption" sx={{
+                      color: "#6B7280",
+                      fontSize: "0.85rem"
+                    }}>
+                      {customer.customerPhone}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Box>
+
+          {/* Customer Name Field - Only show if user typed phone but no match found */}
+          {!matchedCustomer && customerPhone.trim().length > 0 && filteredCustomers.length === 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="body2" sx={{
+                color: "#111827",
+                fontWeight: 600,
+                mb: 1.2,
+                fontSize: "0.95rem"
+              }}>
+                {tCustomer('nameLabel')} <span style={{ color: "#FF6D00" }}>*</span>
+              </Typography>
+
+              <TextField
+                fullWidth
+                placeholder="e.g. John Doe"
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value);
+                  setCustomerErrors({ ...customerErrors, customerName: "" });
+                }}
+                error={!!customerErrors.customerName}
+                helperText={customerErrors.customerName}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#FFFFFF",
+                    borderRadius: "10px",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
+                    "& fieldset": {
+                      borderColor: "#E5E7EB",
+                      borderWidth: "1.5px"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#D1D5DB"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#FF6D00",
+                      borderWidth: "2px"
+                    }
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "12px 16px",
+                    color: "#111827"
+                  },
+                  "& .MuiFormHelperText-root": {
+                    color: "#EF4444",
+                    fontSize: "0.8rem",
+                    marginTop: "6px"
+                  }
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Matched Customer Display - Only show if match found */}
+          {matchedCustomer && (
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{
+                p: 2,
+                bgcolor: "#FFF7ED",
+                border: "1px solid #FFCC80",
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}>
+                <Box>
+                  <Typography variant="subtitle2" fontWeight="700" color="#9A3412">
+                    {matchedCustomer.customerName}
+                  </Typography>
+                  <Typography variant="caption" color="#C2410C">
+                    {tCustomer('existingCustomer')}
+                  </Typography>
+                </Box>
+                <MuiButton
+                  size="small"
+                  onClick={handleClearMatchedCustomer}
+                  sx={{
+                    minWidth: "auto",
+                    color: "#9A3412",
+                    textTransform: "none",
+                    fontSize: "0.8rem"
+                  }}
+                >
+                  {tCustomer('change')}
+                </MuiButton>
+              </Box>
+            </Box>
+          )}
 
           {/* Payment Method Selection - Premium Design */}
           <Box sx={{ mb: 4 }}>
@@ -1351,19 +1516,18 @@ const CurrentInventory = () => {
               mb: 2,
               fontSize: "0.95rem"
             }}>
-              Payment Method <span style={{ color: "#FF6D00" }}>*</span>
+              {tCustomer('paymentMethodLabel')} <span style={{ color: "#FF6D00" }}>*</span>
             </Typography>
             <Box sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "repeat(5, 1fr)", sm: "repeat(5, 1fr)" },
+              gridTemplateColumns: { xs: "repeat(4, 1fr)", sm: "repeat(4, 1fr)" },
               gap: { xs: "8px", md: "10px" }
             }}>
               {[
-                { id: "cash", label: "Cash", img: "/images/cash.jpeg" },
-                { id: "mtn", label: "MTN", img: "/images/mtn-momo-mobile-money-uganda-logo-png_seeklogo-556395.png" },
-                { id: "airtel", label: "Airtel", img: "/images/Airtel Money Uganda Logo PNG Vector (PDF) Free Download.jpeg" },
-                { id: "mpesa", label: "M-Pesa", img: "/images/mpesa.jpeg" },
-                { id: "bank_transfer", label: "Bank", img: "/images/🏦 Bank Emoji.jpeg" },
+                { id: "cash", label: tCustomer('paymentMethods.cash'), img: "/images/cash.jpeg" },
+                { id: "mtn", label: tCustomer('paymentMethods.mtn'), img: "/images/mtn-momo-mobile-money-uganda-logo-png_seeklogo-556395.png" },
+                { id: "airtel", label: tCustomer('paymentMethods.airtel'), img: "/images/Airtel Money Uganda Logo PNG Vector (PDF) Free Download.jpeg" },
+                { id: "bank_transfer", label: tCustomer('paymentMethods.bank'), img: "/images/🏦 Bank Emoji.jpeg" },
               ].map((method) => {
                 const isSelected = paymentMethod === method.id;
                 return (
@@ -1423,7 +1587,7 @@ const CurrentInventory = () => {
           </Box>
 
           {/* Conditional Phone Input for Mobile Payments */}
-          {(paymentMethod === "airtel" || paymentMethod === "mtn" || paymentMethod === "mpesa") && (
+          {(paymentMethod === "airtel" || paymentMethod === "mtn") && (
             <Box>
               <Typography variant="body2" sx={{
                 color: "#111827",
@@ -1431,7 +1595,7 @@ const CurrentInventory = () => {
                 mb: 1.2,
                 fontSize: "0.95rem"
               }}>
-                Payment Phone <span style={{ color: "#FF6D00" }}>*</span>
+                {tCustomer('paymentPhoneLabel')} <span style={{ color: "#FF6D00" }}>*</span>
               </Typography>
               <TextField
                 fullWidth
@@ -1470,7 +1634,7 @@ const CurrentInventory = () => {
                 marginTop: "8px",
                 fontWeight: 500
               }}>
-                ℹ Payment will be requested via {paymentMethod.toUpperCase()}
+                ℹ {tCustomer('paymentPhoneInfo', { method: paymentMethod.toUpperCase() })}
               </Typography>
             </Box>
           )}
@@ -1484,7 +1648,7 @@ const CurrentInventory = () => {
                 mb: 1.2,
                 fontSize: "0.95rem"
               }}>
-                Amount Paid Now (FRW)
+                {tCustomer('initialPayment')}
               </Typography>
               <TextField
                 fullWidth
@@ -1498,7 +1662,7 @@ const CurrentInventory = () => {
                   }
                 }}
                 error={!!customerErrors.amountPaidNow}
-                helperText={customerErrors.amountPaidNow || `Remaining will be recorded as debt`}
+                helperText={customerErrors.amountPaidNow || tCustomer('debtHelper')}
                 inputProps={{
                   min: 0,
                   max: Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0),
@@ -1570,7 +1734,7 @@ const CurrentInventory = () => {
               }
             }}
           >
-            Cancel
+            {t('actions.cancel')}
           </MuiButton>
           <MuiButton
             onClick={handleConfirmSale}
@@ -1600,7 +1764,7 @@ const CurrentInventory = () => {
               }
             }}
           >
-            {sellMutation.isPending ? "Processing..." : "Complete Sale"}
+            {sellMutation.isPending ? tActions('processing') : tCustomer('completeSale')}
           </MuiButton>
         </Box>
       </Dialog>

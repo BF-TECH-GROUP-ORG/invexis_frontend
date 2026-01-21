@@ -93,6 +93,7 @@ const SalesPageClient = () => {
 
     const locale = useLocale();
     const t = useTranslations("sales");
+    const tHistory = useTranslations("salesHistory");
 
     return (
         <>
@@ -101,7 +102,7 @@ const SalesPageClient = () => {
                     <SalesCards sales={sales} isLoading={isSalesLoading} />
                     <div className="space-y-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h1 className="text-2xl font-medium ">{t("title")}</h1>
+                            <h1 className="text-2xl font-medium ">{tHistory("title")}</h1>
                             <p className="space-x-4 md:space-x-10 font-light">
                                 <span>{t("dashboard")}</span>
                                 <span>.</span>

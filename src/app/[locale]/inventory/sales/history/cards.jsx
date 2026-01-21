@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Coins, TrendingUp, Undo2, Percent } from "lucide-react";
 
 // Removed local Sparkline and CardItem as they are now in StatsCard
@@ -68,9 +68,12 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
     };
   }, [sales]);
 
+  const locale = useLocale();
+  const t = useTranslations("salesHistory.cards");
+
   const cards = [
     {
-      title: "Total Daily Sales",
+      title: t("totalDailySales"),
       value: stats.today.totalSales,
       trend: stats.trends.sales,
       history: stats.history.map(h => ({ value: h.totalSales, name: h.date })),
@@ -81,7 +84,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
       isCurrency: true,
     },
     {
-      title: "Total Daily Profit",
+      title: t("totalDailyProfit"),
       value: stats.today.totalProfit,
       trend: stats.trends.profit,
       history: stats.history.map(h => ({ value: h.totalProfit, name: h.date })),
@@ -92,7 +95,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
       isCurrency: true,
     },
     {
-      title: "Returned Products",
+      title: t("returnedProducts"),
       value: stats.today.returnedCount,
       trend: stats.trends.returned,
       history: stats.history.map(h => ({ value: h.returnedCount, name: h.date })),
@@ -103,7 +106,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
       isCurrency: false,
     },
     {
-      title: "Discounts Applied",
+      title: t("discountsApplied"),
       value: stats.today.discountCount,
       trend: stats.trends.discounts,
       history: stats.history.map(h => ({ value: h.discountCount, name: h.date })),
@@ -115,7 +118,6 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
     },
   ];
 
-  const locale = useLocale();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full">

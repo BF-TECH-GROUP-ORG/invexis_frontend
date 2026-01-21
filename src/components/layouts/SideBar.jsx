@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   FileSpreadsheet,
@@ -31,25 +31,24 @@ import { getWorkersByCompanyId } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
 import dayjs from "dayjs";
 
-/* STATIC NAV ITEMS */
-const navItems = [
+/* STATIC NAV ITEMS TEMPLATE - will be replaced with translations in component */
+const getNavItems = (t) => [
   // OVERVIEW
   {
-    title: "Dashboard",
+    title: t("sidebar.dashboard"),
     icon: <LayoutDashboard size={22} />,
     path: "/inventory/dashboard",
     prefetch: true,
   },
   {
-    title: "Notifications",
+    title: t("sidebar.notifications"),
     icon: <Bell size={22} />,
     children: [
-      { title: "Inbox", path: "/inventory/notifications", prefetch: true },
-      // { title: "Settings", path: "/inventory/notifications/settings", prefetch: true },
+      { title: t("sidebar.inbox"), path: "/inventory/notifications", prefetch: true },
     ],
   },
   {
-    title: "Reports",
+    title: t("sidebar.reports"),
     icon: <FileSpreadsheet size={22} />,
     path: "/inventory/reports",
     roles: ["worker", "company_admin"],
@@ -58,71 +57,69 @@ const navItems = [
 
   // MANAGEMENT
   {
-    title: "Staff & Shops",
+    title: t("sidebar.staffAndShops"),
     icon: <Users size={22} />,
     roles: ["company_admin"],
     children: [
-      { title: "Staff List", path: "/inventory/workers/list", prefetch: true },
-      { title: "Shops", path: "/inventory/companies", prefetch: true },
+      { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true },
+      { title: t("sidebar.shops"), path: "/inventory/companies", prefetch: true },
     ],
   },
   {
-    title: "Inventory",
+    title: t("sidebar.inventory"),
     icon: <Package size={22} />,
     roles: ["worker", "company_admin"],
     children: [
-      { title: "Overview", path: "/inventory/Overview", prefetch: true },
-      { title: "Categories", path: "/inventory/categories", prefetch: true },
-      { title: "Products", path: "/inventory/products", prefetch: true },
-      { title: "Transfers", path: "/inventory/transfer", prefetch: true },
-      { title: "Stock Ops", path: "/inventory/stock", prefetch: true },
-
+      { title: t("sidebar.inventoryOverview"), path: "/inventory/Overview", prefetch: true },
+      { title: t("sidebar.categories"), path: "/inventory/categories", prefetch: true },
+      { title: t("sidebar.products"), path: "/inventory/products", prefetch: true },
+      { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true },
+      { title: t("sidebar.stockOps"), path: "/inventory/stock", prefetch: true },
     ],
   },
 
   // SALES → WITH CHILDREN
   {
-    title: "Sales",
+    title: t("sidebar.sales"),
     icon: <ShoppingBag size={22} />,
     roles: ["sales_manager", "company_admin"],
     children: [
-      { title: "Sales History", path: "/inventory/sales/history", prefetch: true },
-      { title: "Stock-out", path: "/inventory/sales/sellProduct/sale", prefetch: true },
-      // { title: "Reports", path: "/inventory/sales/reports", prefetch: true },
+      { title: t("sidebar.salesHistory"), path: "/inventory/sales/history", prefetch: true },
+      { title: t("sidebar.stockOut"), path: "/inventory/sales/sellProduct/sale", prefetch: true },
     ],
   },
 
   {
-    title: "Debts",
+    title: t("sidebar.debts"),
     icon: <Wallet size={22} />,
     path: "/inventory/debts",
     roles: ["sales_manager", "company_admin"],
     prefetch: true,
   },
   {
-    title: "Billing & Payments",
+    title: t("sidebar.billingAndPayments"),
     icon: <Receipt size={22} />,
     roles: ["sales_manager", "company_admin"],
     children: [
       {
-        title: "Invoices",
+        title: t("sidebar.invoices"),
         path: "/inventory/billing/invoices",
         prefetch: true,
       },
       {
-        title: "Payments",
+        title: t("sidebar.payments"),
         path: "/inventory/billing/payments",
         prefetch: true,
       },
       {
-        title: "Transactions",
+        title: t("sidebar.transactions"),
         path: "/inventory/billing/transactions",
         prefetch: true,
       }
     ],
   },
   {
-    title: "Documents",
+    title: t("sidebar.documents"),
     icon: <FileText size={22} />,
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
@@ -130,7 +127,7 @@ const navItems = [
   },
   // company_admin-only logs link
   {
-    title: "Logs & Audits",
+    title: t("sidebar.logsAndAudits"),
     icon: <FileSpreadsheet size={22} />,
     path: "/inventory/logs",
     roles: ["company_admin"],
@@ -144,10 +141,14 @@ export default function SideBar({
 }) {
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations();
   const router = useRouter();
   const { setLoading, setLoadingText } = useLoading();
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
+
+  // Get translated nav items
+  const navItems = getNavItems(t);
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -526,7 +527,7 @@ export default function SideBar({
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b bg-linear-to-r from-orange-50 to-white">
                   <h2 className="text-lg font-bold text-gray-800 ">
-                    Management
+                    {t("sidebar.management")}
                   </h2>
                   <button
                     onClick={() => setMoreModalOpen(false)}
@@ -638,7 +639,7 @@ export default function SideBar({
           }`}
       >
         {/* HEADER */}
-        <div className="flex items-center px-4 h-16 border-b overflow-hidden">
+        <div className="flex overflow-y-auto overflow-x-hidden shrink-0 items-center px-4 h-16 border-b overflow-hidden">
           <div className={`flex items-center transition-all duration-300 ease-in-out ${expanded ? "w-full justify-between" : "w-full justify-center"}`}>
             {expanded ? (
               <div className="flex items-center gap-2 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
@@ -667,14 +668,14 @@ export default function SideBar({
         </div>
 
         {/* NAVIGATION */}
-        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 custom-scrollbar ${expanded ? "px-3" : "px-2"}`}>
+        <nav className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-4 space-y-6 custom-scrollbar ${expanded ? "px-3" : "px-2"}`}>
           {/* OVERVIEW */}
           <section>
             <h3
               className={`text-xs font-semibold text-gray-500 uppercase mb-4 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
                 }`}
             >
-              Overview
+              {t("sidebar.overview")}
             </h3>
 
             {navItems
@@ -712,7 +713,7 @@ export default function SideBar({
               className={`text-xs font-semibold text-gray-500 uppercase mb-3 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
                 }`}
             >
-              Management
+              {t("sidebar.management")}
             </h3>
 
             {navItems
@@ -810,20 +811,20 @@ export default function SideBar({
         </nav>
 
         {/* LOGOUT SECTION */}
-        <div className={`border-t border-gray-100 py-2 m-3 ${expanded ? "mb-0" : "mb-0"}`}>
+        <div className={`shrink-0 border-t border-gray-100 py-2 m-3 ${expanded ? "mb-0" : "mb-0"}`}>
           <button
             onClick={handleLogout}
             className={`w-full flex items-center gap-3 px-3 py-2 bg-black rounded-lg transition-colors group ${expanded
               ? "justify-start text-orange-500 hover:bg-black hover:text-white"
               : "justify-center text-orange-500 hover:bg-black hover:text-white"
               }`}
-            title={!expanded ? "Logout" : ""}
+            title={!expanded ? t("sidebar.logout") : ""}
           >
             <div className="flex items-center justify-center shrink-0 w-6">
               <LogOut size={22} className="shrink-0 group-hover:stroke-orange-500" />
             </div>
             <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden font-medium group-hover:text-orange-500 ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-              Logout
+              {t("sidebar.logout")}
             </span>
           </button>
         </div>

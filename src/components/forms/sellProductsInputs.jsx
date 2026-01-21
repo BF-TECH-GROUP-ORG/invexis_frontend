@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "../shared/button";
 import SaleNotificationModal from "../shared/saleComfPop";
 import jsPDF from "jspdf";
@@ -33,10 +33,11 @@ const SellProductsInputs = ({ id }) => {
   const [shopId, setShopId] = useState("");
   const [soldBy, setSoldBy] = useState("");
 
-  const [errors, setErrors] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
+  const t = useTranslations('sellProduct');
+  const tSingle = useTranslations('sellProduct.single');
+  const tCustomer = useTranslations('sellProduct.modals.customer');
+  const tSuccess = useTranslations('sellProduct.modals.success');
+
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -87,23 +88,23 @@ const SellProductsInputs = ({ id }) => {
     switch (name) {
       case "soldPrice":
         const price = parseFloat(value);
-        if (!value) error = "Sold price is required.";
-        else if (isNaN(price) || price <= 0) error = "Sold price must be positive.";
+        if (!value) error = tSingle('errors.soldPriceRequired');
+        else if (isNaN(price) || price <= 0) error = tSingle('errors.soldPricePositive');
         break;
       case "quantitySold":
         const qty = parseInt(value, 10);
-        if (!value) error = "Quantity is required.";
-        else if (isNaN(qty) || qty <= 0) error = "Quantity must be positive.";
+        if (!value) error = tSingle('errors.quantityRequired');
+        else if (isNaN(qty) || qty <= 0) error = tSingle('errors.quantityPositive');
         break;
       case "customerName":
-        if (!value.trim()) error = "Customer name is required.";
+        if (!value.trim()) error = tCustomer('errors.nameRequired');
         break;
       case "customerPhone":
-        if (!value.trim()) error = "Phone is required.";
-        else if (!/^[0-9+\-\s]{10,20}$/.test(value.trim())) error = "Invalid phone format.";
+        if (!value.trim()) error = tCustomer('errors.phoneRequired');
+        else if (!/^[0-9+\-\s]{10,20}$/.test(value.trim())) error = tCustomer('errors.phoneInvalid');
         break;
       case "discount":
-        if (value && (isNaN(value) || parseFloat(value) < 0)) error = "Discount must be ≥ 0.";
+        if (value && (isNaN(value) || parseFloat(value) < 0)) error = tSingle('errors.discountInvalid');
         break;
       default:
         break;
@@ -131,7 +132,7 @@ const SellProductsInputs = ({ id }) => {
     if (["mtn", "airtel", "mpesa"].includes(paymentMethod)) {
       if (!paymentPhone || paymentPhone.length < 10) {
         valid = false;
-        newErrors.paymentPhone = "Valid payment phone number required for this method";
+        newErrors.paymentPhone = tSingle('errors.paymentPhoneRequired');
       }
     }
 
@@ -144,7 +145,7 @@ const SellProductsInputs = ({ id }) => {
 
     setErrors(newErrors);
     if (!valid) {
-      showModal("error", "Please fix the errors above.");
+      showModal("error", tSingle('errors.fixErrors'));
       setLoading(false);
       return;
     }
@@ -156,7 +157,7 @@ const SellProductsInputs = ({ id }) => {
     const subtotal = unitPrice * quantity;
 
     if (itemDiscount > subtotal) {
-      showModal("error", "Discount cannot be greater than the subtotal.");
+      showModal("error", tSingle('errors.discountExceeds'));
       setLoading(false);
       return;
     }
@@ -204,29 +205,29 @@ const SellProductsInputs = ({ id }) => {
       if (printReceipt) {
         const doc = new jsPDF();
         doc.setFontSize(18);
-        doc.text("Sales Receipt", 105, 20, { align: "center" });
+        doc.text(tSingle('receipt.title'), 105, 20, { align: "center" });
         doc.setFontSize(12);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 30);
-        doc.text(`Customer: ${customerName}`, 20, 40);
-        doc.text(`Phone: ${customerPhone}`, 20, 50);
-        doc.text(`Product: ${productName}`, 20, 60);
-        doc.text(`Qty: ${quantity} × FRW${unitPrice.toLocaleString()}`, 20, 70);
-        doc.text(`Subtotal: FRW${subtotal.toLocaleString()}`, 20, 80);
-        if (itemDiscount > 0) doc.text(`Discount: -FRW${itemDiscount.toLocaleString()}`, 20, 90);
-        doc.text(`Total: FRW${totalAfterDiscount.toLocaleString()}`, 20, itemDiscount > 0 ? 100 : 90);
-        const methodLabel = SALES_PAYMENT_METHODS[paymentMethod]?.label || paymentMethod;
-        doc.text(`Payment: ${methodLabel}`, 20, itemDiscount > 0 ? 110 : 100);
+        doc.text(`${tSingle('receipt.date')}: ${new Date().toLocaleDateString(locale)}`, 20, 30);
+        doc.text(`${tSingle('receipt.customer')}: ${customerName}`, 20, 40);
+        doc.text(`${tSingle('receipt.phone')}: ${customerPhone}`, 20, 50);
+        doc.text(`${tSingle('receipt.product')}: ${productName}`, 20, 60);
+        doc.text(`${tSingle('receipt.qty')}: ${quantity} × ${new Intl.NumberFormat(locale).format(unitPrice)} FRW`, 20, 70);
+        doc.text(`${tSingle('receipt.subtotal')}: ${new Intl.NumberFormat(locale).format(subtotal)} FRW`, 20, 80);
+        if (itemDiscount > 0) doc.text(`${tSingle('receipt.discount')}: -${new Intl.NumberFormat(locale).format(itemDiscount)} FRW`, 20, 90);
+        doc.text(`${tSingle('receipt.total')}: ${new Intl.NumberFormat(locale).format(totalAfterDiscount)} FRW`, 20, itemDiscount > 0 ? 100 : 90);
+        const methodLabel = tCustomer(paymentMethod);
+        doc.text(`${tSingle('receipt.payment')}: ${methodLabel}`, 20, itemDiscount > 0 ? 110 : 100);
         if (["mtn", "airtel", "mpesa"].includes(paymentMethod) && paymentPhone) {
-          doc.text(`Payment Phone: ${paymentPhone}`, 20, itemDiscount > 0 ? 120 : 110);
+          doc.text(`${tSingle('receipt.paymentPhone')}: ${paymentPhone}`, 20, itemDiscount > 0 ? 120 : 110);
         }
-        doc.text("Thank you!", 105, itemDiscount > 0 ? 140 : 130, { align: "center" });
+        doc.text(tSingle('receipt.thankYou'), 105, itemDiscount > 0 ? 140 : 130, { align: "center" });
 
         const pdfUrl = doc.output("bloburl");
         const win = window.open(pdfUrl);
         if (win) win.print();
       }
 
-      showModal("success", "Sale recorded successfully!");
+      showModal("success", tSuccess('recorded'));
 
       // Reset form
       setSoldPrice("");
@@ -256,34 +257,37 @@ const SellProductsInputs = ({ id }) => {
       <div className="w-full max-w-lg space-y-8 rounded-2xl bg-white p-10 shadow-xl">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-800">
-            Stock-Out <span className="text-orange-500">{productName}</span>
+            {tSingle.rich('title', {
+              name: productName,
+              span: (chunks) => <span className="text-orange-500">{chunks}</span>
+            })}
           </h1>
           <p className="mt-2 text-gray-600">
-            Standard Price: ${parseFloat(productPrice || 0).toFixed(2)}
+            {tSingle('standardPrice')}: {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RWF' }).format(productPrice)}
           </p>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Sold Price <span className="text-red-500">*</span></label>
-            <input type="number" step="0.01" placeholder="e.g. 99.99" value={soldPrice} onChange={(e) => setSoldPrice(e.target.value)} onBlur={(e) => validateField("soldPrice", e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium text-gray-700">{tSingle('soldPrice')} <span className="text-red-500">*</span></label>
+            <input type="number" step="0.01" placeholder={tSingle('placeholders.price')} value={soldPrice} onChange={(e) => setSoldPrice(e.target.value)} onBlur={(e) => validateField("soldPrice", e.target.value)} className={inputClass} />
             {errors.soldPrice && <p className="mt-1 text-xs text-red-500">{errors.soldPrice}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Quantity Sold <span className="text-red-500">*</span></label>
-            <input type="number" placeholder="e.g. 2" value={quantitySold} onChange={(e) => setQuantitySold(e.target.value)} onBlur={(e) => validateField("quantitySold", e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium text-gray-700">{tSingle('quantitySold')} <span className="text-red-500">*</span></label>
+            <input type="number" placeholder={tSingle('placeholders.quantity')} value={quantitySold} onChange={(e) => setQuantitySold(e.target.value)} onBlur={(e) => validateField("quantitySold", e.target.value)} className={inputClass} />
             {errors.quantitySold && <p className="mt-1 text-xs text-red-500">{errors.quantitySold}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium697 text-gray-700">Discount (optional)</label>
-            <input type="number" step="0.01" min="0" placeholder="0.00" value={discount} onChange={(e) => setDiscount(e.target.value)} onBlur={(e) => validateField("discount", e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium697 text-gray-700">{tSingle('discount')}</label>
+            <input type="number" step="0.01" min="0" placeholder={tSingle('placeholders.discount')} value={discount} onChange={(e) => setDiscount(e.target.value)} onBlur={(e) => validateField("discount", e.target.value)} className={inputClass} />
             {errors.discount && <p className="mt-1 text-xs text-red-500">{errors.discount}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Payment Method <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">{tCustomer('paymentMethod')} <span className="text-red-500">*</span></label>
             <div className="grid grid-cols-5 gap-2">
               {paymentMethods.map((method) => {
                 const methodConfig = SALES_PAYMENT_METHODS[method];
@@ -292,19 +296,17 @@ const SellProductsInputs = ({ id }) => {
                     key={method}
                     type="button"
                     onClick={() => setPaymentMethod(method)}
-                    className={`p-3 rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-200 ${
-                      paymentMethod === method
-                        ? "border-orange-500 bg-orange-50"
-                        : "border-gray-300 bg-white hover:border-orange-400"
-                    }`}
+                    className={`p-3 rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-200 ${paymentMethod === method
+                      ? "border-orange-500 bg-orange-50"
+                      : "border-gray-300 bg-white hover:border-orange-400"
+                      }`}
                   >
                     {methodConfig.image ? (
                       <img
                         src={methodConfig.image}
-                        alt={methodConfig.label}
-                        className={`h-6 w-auto object-contain mb-1 transition-all duration-200 ${
-                          paymentMethod === method ? "opacity-100" : "opacity-60"
-                        }`}
+                        alt={tCustomer(method)}
+                        className={`h-6 w-auto object-contain mb-1 transition-all duration-200 ${paymentMethod === method ? "opacity-100" : "opacity-60"
+                          }`}
                         style={{
                           filter: paymentMethod === method ? "none" : "grayscale(100%)"
                         }}
@@ -313,13 +315,12 @@ const SellProductsInputs = ({ id }) => {
                       <span className="text-lg mb-1">{methodConfig.icon}</span>
                     )}
                     <span
-                      className={`text-xs font-semibold text-center transition-colors duration-200 ${
-                        paymentMethod === method
-                          ? "text-orange-700"
-                          : "text-gray-600"
-                      }`}
+                      className={`text-xs font-semibold text-center transition-colors duration-200 ${paymentMethod === method
+                        ? "text-orange-700"
+                        : "text-gray-600"
+                        }`}
                     >
-                      {methodConfig.label}
+                      {tCustomer(method)}
                     </span>
                   </button>
                 );
@@ -330,44 +331,43 @@ const SellProductsInputs = ({ id }) => {
             {["mtn", "airtel", "mpesa"].includes(paymentMethod) && (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Payment Phone Number <span className="text-red-500">*</span>
+                  {tSingle('paymentPhoneLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
-                  placeholder="e.g. +250788123456"
+                  placeholder={tCustomer('phonePlaceholder')}
                   value={paymentPhone}
                   onChange={(e) => setPaymentPhone(e.target.value)}
-                  className={`${inputClass} ${
-                    paymentPhone && paymentPhone.length < 10
-                      ? "border-red-500 focus:ring-red-400"
-                      : ""
-                  }`}
+                  className={`${inputClass} ${paymentPhone && paymentPhone.length < 10
+                    ? "border-red-500 focus:ring-red-400"
+                    : ""
+                    }`}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter the phone number to be used for {SALES_PAYMENT_METHODS[paymentMethod]?.label} payment
+                  {tSingle('paymentPhoneInfo', { method: tCustomer(paymentMethod) })}
                 </p>
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Customer Name <span className="text-red-500">*</span></label>
-            <input type="text" placeholder="John Doe" value={customerName} onChange={(e) => setCustomerName(e.target.value)} onBlur={(e) => validateField("customerName", e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium text-gray-700">{tCustomer('nameLabel')} <span className="text-red-500">*</span></label>
+            <input type="text" placeholder={tCustomer('namePlaceholder')} value={customerName} onChange={(e) => setCustomerName(e.target.value)} onBlur={(e) => validateField("customerName", e.target.value)} className={inputClass} />
             {errors.customerName && <p className="mt-1 text-xs text-red-500">{errors.customerName}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Customer Phone <span className="text-red-500">*</span></label>
-            <input type="tel" placeholder="+250788123456" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} onBlur={(e) => validateField("customerPhone", e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium text-gray-700">{tCustomer('phoneLabel')} <span className="text-red-500">*</span></label>
+            <input type="tel" placeholder={tCustomer('phonePlaceholder')} value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} onBlur={(e) => validateField("customerPhone", e.target.value)} className={inputClass} />
             {errors.customerPhone && <p className="mt-1 text-xs text-red-500">{errors.customerPhone}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Customer Email (optional)</label>
-            <input type="email" placeholder="john@example.com" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className={inputClass} />
+            <label className="block text-sm font-medium text-gray-700">{tSingle('customerEmail')}</label>
+            <input type="email" placeholder={tSingle('placeholders.email')} value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{tSingle('transactionType')}</label>
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
               <button
                 type="button"
@@ -385,13 +385,13 @@ const SellProductsInputs = ({ id }) => {
               <span className="text-sm font-medium text-gray-700">
                 {isDebt ? (
                   <span className="flex items-center space-x-2">
-                    <span className="text-orange-600">💳 Debt Sale</span>
-                    <span className="text-xs text-gray-500">(Payment pending)</span>
+                    <span className="text-orange-600">{tCustomer('statusDebt')}</span>
+                    <span className="text-xs text-gray-500">({tCustomer('statusPaid') === "statusPaid" ? "Payment pending" : tCustomer('statusPaid')})</span>
                   </span>
                 ) : (
                   <span className="flex items-center space-x-2">
-                    <span className="text-green-600">✅ Regular Sale</span>
-                    <span className="text-xs text-gray-500">(Paid in full)</span>
+                    <span className="text-green-600">{tSingle('regularSale')}</span>
+                    <span className="text-xs text-gray-500">({tCustomer('statusPaid')})</span>
                   </span>
                 )}
               </span>
@@ -400,12 +400,12 @@ const SellProductsInputs = ({ id }) => {
 
           <div className="flex items-center space-x-3">
             <input type="checkbox" id="printReceipt" checked={printReceipt} onChange={(e) => setPrintReceipt(e.target.checked)} className="h-5 w-5 rounded border-gray-300 text-orange-500" />
-            <label htmlFor="printReceipt" className="text-sm font-medium text-gray-700 cursor-pointer">Print receipt after sale</label>
+            <label htmlFor="printReceipt" className="text-sm font-medium text-gray-700 cursor-pointer">{tSingle('printReceipt')}</label>
           </div>
 
           <div className="flex space-x-4 pt-6">
             <Button type="button" onClick={() => window.history.back()} className="flex-1 bg-gray-200 py-3 text-gray-700 hover:bg-gray-300">
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button
               type="button"
@@ -419,10 +419,10 @@ const SellProductsInputs = ({ id }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Processing...
+                  {t('actions.processing')}
                 </span>
               ) : (
-                "Confirm Sale"
+                tSingle('confirmSale')
               )}
             </Button>
           </div>

@@ -12,7 +12,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -29,61 +28,64 @@ import Skeleton from "@/components/shared/Skeleton";
 const rows = [];
 
 // Small local confirmation dialog to avoid external prop mismatches
-const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => (
-  <Dialog
-    open={open}
-    onClose={onCancel}
-    PaperProps={{
-      sx: {
-        borderRadius: 3,
-        p: 1,
-        minWidth: 320
-      }
-    }}
-  >
-    <DialogTitle sx={{ fontWeight: 700, color: "#111827" }}>{title || "Confirm"}</DialogTitle>
-    <DialogContent>
-      <Typography color="text.secondary">{message || "Are you sure?"}</Typography>
-    </DialogContent>
-    <DialogActions sx={{ p: 2, gap: 1 }}>
-      <Button
-        onClick={onCancel}
-        variant="outlined"
-        sx={{
-          borderRadius: "8px",
-          textTransform: "none",
-          fontWeight: 600,
-          borderColor: "#e5e7eb",
-          color: "#374151",
-          "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" }
-        }}
-      >
-        Cancel
-      </Button>
-      <Button
-        onClick={onConfirm}
-        variant="contained"
-        color="error"
-        sx={{
-          borderRadius: "8px",
-          textTransform: "none",
-          fontWeight: 600,
-          boxShadow: "none",
-          "&:hover": { boxShadow: "none", bgcolor: "#dc2626" }
-        }}
-      >
-        Delete
-      </Button>
-    </DialogActions>
-  </Dialog>
-);
+const ConfirmDialog = ({ open, title, message, onConfirm, onCancel }) => {
+  const t = useTranslations("salesHistory.table.dialogs");
+  return (
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          p: 1,
+          minWidth: 320
+        }
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 700, color: "#111827" }}>{title || t("deleteTitle")}</DialogTitle>
+      <DialogContent>
+        <Typography color="text.secondary">{message || t("deleteConfirm")}</Typography>
+      </DialogContent>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button
+          onClick={onCancel}
+          variant="outlined"
+          sx={{
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: 600,
+            borderColor: "#e5e7eb",
+            color: "#374151",
+            "&:hover": { bgcolor: "#f9fafb", borderColor: "#d1d5db" }
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="error"
+          sx={{
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: "none",
+            "&:hover": { boxShadow: "none", bgcolor: "#dc2626" }
+          }}
+        >
+          {t("delete")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 // ----------------------------------------------------------------------
 // Return Modal Component
 // ----------------------------------------------------------------------
 
 const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selectedShopId }) => {
-  const t = useTranslations("sales");
+  const t = useTranslations("salesHistory.table");
   const [selectedItems, setSelectedItems] = useState({});
   const [returnReason, setReturnReason] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -177,7 +179,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
 
   const handleSubmit = () => {
     if (Object.keys(selectedItems).length === 0) {
-      setSubmitError("Please select at least one item to return.");
+      setSubmitError(t("dialogs.selectItems"));
       return;
     }
 
@@ -225,7 +227,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
         alignItems: "center",
         justifyContent: "space-between"
       }}>
-        <Typography variant="h6" fontWeight="700">Return Products - Sale #{saleId}</Typography>
+        <Typography variant="h6" fontWeight="700">{t("dialogs.returnTitle", { id: saleId })}</Typography>
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent sx={{ p: 3 }}>
@@ -242,7 +244,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
             )}
 
             <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, color: "#374151" }}>
-              Select Items to Return
+              {t("dialogs.selectItems")}
             </Typography>
             <TableContainer component={Paper} variant="outlined" sx={{
               mb: 3,
@@ -262,11 +264,11 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: "#f9fafb" }}>
-                    <TableCell padding="checkbox">Select</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Sold Qty</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Return Qty</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Refund Amount</TableCell>
+                    <TableCell padding="checkbox">{t("columns.select")}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t("columns.product")}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t("columns.soldQty")}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t("columns.returnQty")}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{t("columns.refundAmount")}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -316,7 +318,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
             </TableContainer>
 
             <TextField
-              label="Reason for Return (Optional)"
+              label={t("dialogs.reason")}
               multiline
               rows={2}
               value={returnReason}
@@ -337,7 +339,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
               borderRadius: 2
             }}>
               <Typography variant="h6" fontWeight="800" color="primary">
-                Total Refund: {totalRefundAmount.toLocaleString()} FRW
+                {t("dialogs.totalRefund")}: {totalRefundAmount.toLocaleString()} FRW
               </Typography>
             </Box>
           </Box>
@@ -350,7 +352,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
           onClick={onClose}
           sx={{ textTransform: "none", fontWeight: 600, color: "#6b7280" }}
         >
-          Cancel
+          {t("dialogs.cancel")}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -366,7 +368,7 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
           }}
           disabled={returnMutation.isPending || isLoading}
         >
-          {returnMutation.isPending ? "Processing..." : "Confirm Return"}
+          {returnMutation.isPending ? t("dialogs.processing") : t("dialogs.confirmReturn")}
         </Button>
       </DialogActions>
     </Dialog>
@@ -375,10 +377,10 @@ const ReturnModal = ({ open, onClose, saleId, companyId, selectedWorkerId, selec
 
 // Custom Component for the Action Menu (RowActionsMenu)
 // onDeleteRequest should be a curried function: (id) => (open:boolean) => void
-const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onReturnRequest }) => {
+const RowActionsMenu = ({ rowId, productId, invoiceUrl, onRedirect, onDeleteRequest, onReturnRequest }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const t = useTranslations("sales");
+  const t = useTranslations("salesHistory.table");
 
   const handleClick = (event) => {
     event.stopPropagation();
@@ -395,11 +397,13 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
     handleClose();
   };
 
-  const navigate = useRouter();
-  const locale = useLocale();
-  const handleEdit = (event) => {
+  const handleDownload = (event) => {
     event.stopPropagation();
-    navigate.push(`/${locale}/inventory/sales/history/${rowId}/${rowId}`);
+    if (invoiceUrl) {
+      window.open(invoiceUrl, "_blank");
+    } else {
+      alert(t('detail.downloadFailed'));
+    }
     handleClose();
   };
 
@@ -428,6 +432,9 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
         aria-haspopup="true"
         onClick={handleClick}
         size="small"
+        sx={{
+          color: open ? "primary.main" : "text.secondary",
+        }}
       >
         <MoreVertIcon />
       </IconButton>
@@ -439,6 +446,7 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
             padding: 0,
             "& .MuiMenuItem-root": {
               paddingY: 1,
+              px: 2,
             },
           },
         }}
@@ -452,26 +460,27 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
             minWidth: 160,
             borderRadius: 2,
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)",
+            mt: 1
           },
         }}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <MenuItem onClick={handleView}>
-          <ListItemIcon><VisibilityIcon sx={{ color: "#333" }} /></ListItemIcon>
-          <ListItemText primary={`${t('view')}`} />
+          <ListItemIcon><VisibilityIcon fontSize="small" sx={{ color: "#333" }} /></ListItemIcon>
+          <ListItemText primary={t('actions.view')} />
         </MenuItem>
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon><EditIcon sx={{ color: "#333" }} /></ListItemIcon>
-          <ListItemText primary={`${t('Edit')}`} />
+        <MenuItem onClick={handleDownload}>
+          <ListItemIcon><CloudDownloadRoundedIcon fontSize="small" sx={{ color: "#333" }} /></ListItemIcon>
+          <ListItemText primary={t('actions.download')} />
         </MenuItem>
         <MenuItem onClick={handleReturn}>
-          <ListItemIcon><Undo2 sx={{ color: "#333" }} size={20} /></ListItemIcon>
-          <ListItemText primary="Return" />
+          <ListItemIcon><Undo2 fontSize="small" color="#333" size={20} /></ListItemIcon>
+          <ListItemText primary={t('actions.return')} />
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <ListItemIcon><DeleteIcon sx={{ color: "error.main" }} /></ListItemIcon>
-          <ListItemText primary={`${t('Delete')}`} />
+          <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: "error.main" }} /></ListItemIcon>
+          <ListItemText primary={t('actions.delete')} />
         </MenuItem>
       </Menu>
     </>
@@ -485,6 +494,7 @@ const RowActionsMenu = ({ rowId, productId, onRedirect, onDeleteRequest, onRetur
 const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows }) => {
   const open = Boolean(anchorEl);
   const [filterCriteria, setFilterCriteria] = useState(currentFilter);
+  const t = useTranslations("salesHistory.table.filters");
 
   useEffect(() => {
     setFilterCriteria(currentFilter);
@@ -496,27 +506,27 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
   }, []);
 
   const availableColumns = [
-    { label: 'Category', value: 'Category', type: 'text' },
-    { label: 'Unit Price (FRW)', value: 'UnitPrice', type: 'number' },
-    { label: 'Status', value: 'Status', type: 'status' },
+    { label: t("column"), value: 'Category', type: 'text' },
+    { label: t("value"), value: 'UnitPrice', type: 'number' },
+    { label: t("status"), value: 'Status', type: 'status' },
   ];
 
-  const statusOptions = ['Debt', 'Transfer', 'Returned', 'Completed'];
+  const statusOptions = ['debt', 'transfer', 'returned', 'completed'];
 
   const getOperators = (columnType) => {
     if (columnType === 'number') {
       return [
-        { label: 'is greater than', value: '>' },
-        { label: 'is less than', value: '<' },
-        { label: 'equals', value: '==' },
+        { label: t("operators.greaterThan"), value: '>' },
+        { label: t("operators.lessThan"), value: '<' },
+        { label: t("operators.equals"), value: '==' },
       ];
     }
     if (columnType === 'status') {
-      return [{ label: 'is', value: '==' }];
+      return [{ label: t("operators.is"), value: '==' }];
     }
     return [
-      { label: 'contains', value: 'contains' },
-      { label: 'equals', value: '==' },
+      { label: t("operators.contains"), value: 'contains' },
+      { label: t("operators.equals"), value: '==' },
     ];
   };
 
@@ -575,15 +585,15 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h6" fontWeight="700">Filter Sales</Typography>
+        <Typography variant="h6" fontWeight="700">{t("title")}</Typography>
         <IconButton onClick={handleClearFilter} size="small"><CloseIcon /></IconButton>
       </Box>
 
       <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: { xs: "stretch", sm: "center" } }}>
         <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
-          <InputLabel>Column</InputLabel>
+          <InputLabel>{t("column")}</InputLabel>
           <Select
-            label="Column"
+            label={t("column")}
             name="column"
             value={filterCriteria.column}
             onChange={handleSelectChange}
@@ -596,9 +606,9 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
         </FormControl>
 
         <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
-          <InputLabel>Operator</InputLabel>
+          <InputLabel>{t("operator")}</InputLabel>
           <Select
-            label="Operator"
+            label={t("operator")}
             name="operator"
             value={filterCriteria.operator}
             onChange={handleSelectChange}
@@ -620,29 +630,29 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
               onChange={handleValueChange}
               type="number"
               fullWidth
-              label="Amount"
+              label={t("value")}
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
             />
           ) : selectedColumnType === 'status' ? (
             <FormControl variant="outlined" size="small" fullWidth>
-              <InputLabel>Status</InputLabel>
+              <InputLabel>{t("status")}</InputLabel>
               <Select
-                label="Status"
+                label={t("status")}
                 name="value"
                 value={filterCriteria.value}
                 onChange={handleValueChange}
                 sx={{ borderRadius: "8px" }}
               >
                 {statusOptions.map(status => (
-                  <MenuItem key={status} value={status}>{status}</MenuItem>
+                  <MenuItem key={status} value={status}>{t(`statuses.${status}`)}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           ) : (
             <FormControl variant="outlined" size="small" fullWidth>
-              <InputLabel>Value</InputLabel>
+              <InputLabel>{t("value")}</InputLabel>
               <Select
-                label="Value"
+                label={t("value")}
                 name="value"
                 value={filterCriteria.value}
                 onChange={handleValueChange}
@@ -664,7 +674,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
           size="small"
           sx={{ borderRadius: "6px", textTransform: "none" }}
         >
-          Clear
+          {t("clear")}
         </Button>
         <Button
           onClick={onClose}
@@ -672,7 +682,7 @@ const FilterPopover = ({ anchorEl, onClose, onFilterChange, currentFilter, rows 
           size="small"
           sx={{ borderRadius: "6px", textTransform: "none", bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
         >
-          Apply
+          {t("apply")}
         </Button>
       </Box>
     </Popover>
@@ -696,7 +706,8 @@ const DataTable = ({
   isWorker,
   isLoading: isSalesLoading
 }) => {
-  const t = useTranslations("sales");
+  const t = useTranslations("salesHistory.table");
+  const tRoot = useTranslations("salesHistory");
   const navigation = useRouter();
   const [search, setSearch] = useState("");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -743,6 +754,7 @@ const DataTable = ({
         shopId: sale.shopId,
         soldBy: sale.soldBy,
         ShopName: shops.find(s => (s._id || s.id) === sale.shopId)?.name || "N/A",
+        invoiceUrl: sale.invoiceUrl,
         action: "more"
       };
     });
@@ -876,7 +888,7 @@ const DataTable = ({
 
   // Export Functions
   const exportCSV = (rows) => {
-    let csv = "Sale ID,Product Name,Shop,Status,Unit Price (FRW),Original Qty,Sold Qty,Returned Qty,Discount,Date,Total Value (FRW)\n";
+    let csv = `Sale ID,${t("columns.product")},${t("columns.shop")},${t("columns.status")},${t("columns.unitPrice")},Orig Qty,${t("columns.soldQty")},${t("columns.returnedQty")},${t("columns.discount")},${t("columns.date")},${t("columns.totalValue")}\n`;
     rows.forEach(r => {
       let status = "Completed";
       if (r.isDebt) status = "Debt";
@@ -899,9 +911,9 @@ const DataTable = ({
     doc.text("INVEXIS", 180, 15, { align: "right" });
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("Sales Report", 14, 20);
+    doc.text(tRoot("title"), 14, 20);
 
-    const tableColumn = ["Sale ID", "Product", "Shop", "Status", "Unit Price", "Orig Qty", "Sold Qty", "Ret Qty", "Discount", "Date", "Total"];
+    const tableColumn = ["Sale ID", t("columns.product"), t("columns.shop"), t("columns.status"), t("columns.unitPrice"), "Orig Qty", t("columns.soldQty"), t("columns.returnedQty"), t("columns.discount"), t("columns.date"), t("columns.totalValue")];
     const tableRows = rows.map(r => {
       let status = "Completed";
       if (r.isDebt) status = "Debt";
@@ -1062,7 +1074,7 @@ const DataTable = ({
 
             <Box>
               <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
-                {t("stockOutHistory")}
+                {tRoot("title")}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 View and manage all past sales transactions, returns, and debts.
@@ -1213,40 +1225,40 @@ const DataTable = ({
           <TableHead>
             <TableRow>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("sale")}
+                Sale ID
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("productName")}
+                {t("columns.product")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                Shop
+                {t("columns.shop")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                Status
+                {t("columns.status")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("unitPrice")} (FRW)
+                {t("columns.unitPrice")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                Original Qty
+                Orig Qty
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                Sold Qty
+                {t("columns.soldQty")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                Returned Qty
+                {t("columns.returnedQty")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("Discount")}
+                {t("columns.discount")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("date")}
+                {t("columns.date")}
               </TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("totalValue")}
+                {t("columns.totalValue")}
               </TableCell>
               <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
-                {t("action")}
+                {t("columns.action")}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -1312,28 +1324,28 @@ const DataTable = ({
                     <Stack direction="row" spacing={1}>
                       {row.isDebt && (
                         <Chip
-                          label="Debt"
+                          label={t("filters.statuses.debt")}
                           size="small"
                           sx={{ bgcolor: "#FEF2F2", color: "#DC2626", fontWeight: 600, fontSize: "0.75rem" }}
                         />
                       )}
                       {row.Category && (
                         <Chip
-                          label="Transfer"
+                          label={t("filters.statuses.transfer")}
                           size="small"
                           sx={{ bgcolor: "#EFF6FF", color: "#2563EB", fontWeight: 600, fontSize: "0.75rem" }}
                         />
                       )}
                       {row.returned !== "false" && (
                         <Chip
-                          label="Returned"
+                          label={t("filters.statuses.returned")}
                           size="small"
                           sx={{ bgcolor: "#F5F3FF", color: "#7C3AED", fontWeight: 600, fontSize: "0.75rem" }}
                         />
                       )}
                       {!row.isDebt && !row.Category && row.returned === "false" && (
                         <Chip
-                          label="Completed"
+                          label={t("filters.statuses.completed")}
                           size="small"
                           sx={{ bgcolor: "#ECFDF5", color: "#059669", fontWeight: 600, fontSize: "0.75rem" }}
                         />
@@ -1375,6 +1387,7 @@ const DataTable = ({
                     <RowActionsMenu
                       rowId={row.id}
                       productId={row.productId}
+                      invoiceUrl={row.invoiceUrl}
                       onRedirect={handleRedirectToSlug}
                       onDeleteRequest={toggleDeleteModalFor}
                       onReturnRequest={handleOpenReturnModal}
@@ -1426,6 +1439,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
   const [priceModal, setPriceModal] = useState({ open: false, product: null });
   const [tempPrice, setTempPrice] = useState("");
   const [priceError, setPriceError] = useState("");
+  const t = useTranslations("salesHistory.multiSale");
 
   // Handle checkbox toggle
   const handleCheckboxChange = (product) => {
@@ -1535,7 +1549,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
       {/* Header with Sell Button */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
-          Multi-Product Sale
+          {t("title")}
         </Typography>
         <Button
           variant="contained"
@@ -1560,7 +1574,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
             }
           }}
         >
-          SELL SELECTED ({selectedCount})
+          {t("sellSelected")} ({selectedCount})
         </Button>
       </Box>
 
@@ -1586,12 +1600,12 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
         <Table sx={{ minWidth: 1000 }}>
           <TableHead>
             <TableRow sx={{ bgcolor: "#FF6D00" }}>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Select</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Product Name</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Min Price (FRW)</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Selling Price (FRW)</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Quantity</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("select")}</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("productName")}</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("minPrice")} (FRW)</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("sellingPrice")} (FRW)</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("quantity")}</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>{t("actions")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1702,7 +1716,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
                         }
                       }}
                     >
-                      Set Price
+                      {t("setPrice")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -1730,19 +1744,19 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
           fontWeight: "bold",
           fontSize: "1.25rem"
         }}>
-          Set Price - {priceModal.product?.ProductName}
+          {t("setPrice")} - {priceModal.product?.ProductName}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 2 }}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Minimum Price: <strong>{priceModal.product?.Price} FRW</strong>
+              {t("minPrice")}: <strong>{priceModal.product?.Price} FRW</strong>
             </Typography>
           </Box>
           <TextField
             autoFocus
             fullWidth
             type="number"
-            label="Selling Price (FRW)"
+            label={`${t("sellingPrice")} (FRW)`}
             value={tempPrice}
             onChange={(e) => {
               setTempPrice(e.target.value);
@@ -1762,7 +1776,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
             onClick={handleClosePriceModal}
             sx={{ color: "#666" }}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSavePrice}
@@ -1772,7 +1786,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
               "&:hover": { bgcolor: "#E65100" }
             }}
           >
-            Save
+            {t("save")}
           </Button>
         </DialogActions>
       </Dialog>

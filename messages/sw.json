@@ -14,6 +14,34 @@
     "workers": "Wafanyakazi",
     "language": "Lugha"
   },
+  "sidebar": {
+    "overview": "Muhtasari",
+    "management": "Usimamizi",
+    "dashboard": "Dashibodi",
+    "notifications": "Arifa",
+    "inbox": "Sanduku la Ujumbe",
+    "reports": "Ripoti",
+    "staffAndShops": "Wafanyakazi & Maduka",
+    "staffList": "Orodha ya Wafanyakazi",
+    "shops": "Maduka",
+    "inventory": "Hesabu",
+    "inventoryOverview": "Muhtasari",
+    "categories": "Kategoria",
+    "products": "Bidhaa",
+    "transfers": "Uhamaji",
+    "stockOps": "Uendeshaji wa Hisa",
+    "sales": "Mauzo",
+    "salesHistory": "Historia ya Mauzo",
+    "stockOut": "Bidhaa Zinazoondoka",
+    "debts": "Madeni",
+    "billingAndPayments": "Bili na Malipo",
+    "invoices": "Ankara",
+    "payments": "Malipo",
+    "transactions": "Miamala",
+    "documents": "Hati",
+    "logsAndAudits": "Kumbukumbu na Uchunguzi",
+    "logout": "Toka"
+  },
   "welcome": {
     "title": "Karibu"
   },
@@ -201,8 +229,14 @@
     "hero": {
       "title": "Soma biashara yako yote kwa wakati halisi — popote ulipo",
       "subtitle": "Hesabu, mauzo, wafanyakazi, madeni, ripoti, arifu na ukaguzi — yote kwenye dashibodi moja yenye nguvu.",
-      "kpi1": { "title": "Arifa za wakati halisi", "value": "Live" },
-      "kpi2": { "title": "Skeli ya kimataifa", "value": "Multi-region" }
+      "kpi1": {
+        "title": "Arifa za wakati halisi",
+        "value": "Live"
+      },
+      "kpi2": {
+        "title": "Skeli ya kimataifa",
+        "value": "Multi-region"
+      }
     },
     "landing": {
       "nav": {
@@ -219,7 +253,9 @@
           "subtitle": "Jaribio la bure, bila kadi ya mkopo"
         }
       },
-      "trust": { "heading": "Imetolewa kwa biashara za kisasa ulimwenguni" },
+      "trust": {
+        "heading": "Imetolewa kwa biashara za kisasa ulimwenguni"
+      },
       "features": {
         "title": "Moduli Kamili",
         "subtitle": "Kila unachohitaji kuendesha shughuli zako kwa wakati halisi."
@@ -232,11 +268,14 @@
         "title": "Udhibiti kamili na taarifa za wakati halisi",
         "subtitle": "Iliyoundwa kwa biashara za ukubwa wote."
       },
-      "pricing": { "title": "Bei zinazofaa kwa kila biashara" },
-      "cases": { "title": "Imejengwa kwa kila biashara, kila mahali." }
+      "pricing": {
+        "title": "Bei zinazofaa kwa kila biashara"
+      },
+      "cases": {
+        "title": "Imejengwa kwa kila biashara, kila mahali."
+      }
     }
   },
-  "home": "Nyumbani",
   "about": "Kuhusu",
   "faq": "Maswali Yanayoulizwa Mara kwa Mara",
   "services": "Huduma",
@@ -281,7 +320,7 @@
     "Delete": "Futa",
     "view": "Tazama Zaidi"
   },
-  "reciept": {
+  "receipt": {
     "quantitySold": "Idadi Iliyouzwa",
     "soldPrice": "Bei ya Kuuza (RWF)",
     "discount": "Punguzo",
@@ -296,7 +335,33 @@
     "productDetails": "Maelezo ya Bidhaa",
     "customerInformation": "Taarifa za Mteja"
   },
-
+  "updateProduct": {
+    "pageTitle": "Hariri Mauzo",
+    "pageSubtitle": "Sasisha taarifa za mauzo haya ikiwemo maelezo ya bidhaa, malipo, na taarifa za mteja.",
+    "sectionCustomer": "Taarifa za Mteja",
+    "updateButton": "Sasisha Mauzo",
+    "cancelButton": "Ghairi",
+    "productName": "Jina la Bidhaa",
+    "category": "Kategoria",
+    "quantity": "Idadi",
+    "sellingPrice": "Bei ya Kuuza",
+    "discount": "Punguzo",
+    "customerName": "Jina la Mteja",
+    "customerContact": "Mawasiliano ya Mteja",
+    "paymentMethod": "Njia ya Malipo",
+    "customerInformation": "Taarifa za Mteja",
+    "success": "Mauzo yamesasishwa kwa mafanikio!",
+    "error": "Imeshindwa kusasisha mauzo: {error}",
+    "updating": "Inasasisha...",
+    "validation": {
+      "productName": "Jina la bidhaa linahitajika",
+      "quantity": "Idadi lazima iwe chanya",
+      "price": "Bei ya mauzo lazima iwe chanya",
+      "customerName": "Jina la mteja linahitajika",
+      "date": "Tarehe ya mauzo inahitajika",
+      "fixErrors": "Rekebisha makosa:"
+    }
+  },
   "debtsPage": {
     "title": "Kifuatilia Deni na Malipo",
     "subtitle": "Fuatilia madeni yasiyolipwa na ratiba za malipo kwa ufanisi.",
@@ -314,7 +379,6 @@
     "confirmCancelMessage": "Una uhakika unataka kufuta deni hili? Kitendo hiki hakiwezi kurudiwa.",
     "markPayed": "Weka ImeLipwa"
   },
-
   "Debtstable": {
     "no": "Namba",
     "debtorName": "Jina la Mkopaji",
@@ -327,5 +391,285 @@
     "isDebtCleared": "Hali",
     "cleared": "Iliyolipwa",
     "pending": "Inasubiri"
+  },
+  "salesHistory": {
+    "title": "Historia ya Mauzo",
+    "cards": {
+      "totalDailySales": "Jumla ya Mauzo ya Siku",
+      "totalDailyProfit": "Jumla ya Faida ya Siku",
+      "returnedProducts": "Bidhaa Zilizorudishwa",
+      "discountsApplied": "Punguzo Zilizotumika"
+    },
+    "table": {
+      "columns": {
+        "product": "Bidhaa",
+        "category": "Kategoria",
+        "unitPrice": "Bei ya Rejareja (FRW)",
+        "soldQty": "Idadi Iliyouzwa",
+        "returnedQty": "Idadi Iliyorudishwa",
+        "discount": "Punguzo",
+        "totalValue": "Thamani Jumla",
+        "date": "Tarehe",
+        "soldBy": "Imeuzwa na",
+        "shop": "Duka",
+        "status": "Hali",
+        "action": "Kitendo",
+        "refundAmount": "Kiasi cha Kurejesha",
+        "returnQty": "Idadi ya Kurudisha",
+        "soldPrice": "Bei Iliyouzwa",
+        "select": "Chagua"
+      },
+      "filters": {
+        "title": "Chuja Mauzo",
+        "column": "Safu",
+        "operator": "Kivugo",
+        "value": "Thamani",
+        "status": "Hali",
+        "clear": "Futa",
+        "apply": "Tumia",
+        "operators": {
+          "greaterThan": "ni kubwa kuliko",
+          "lessThan": "ni ndogo kuliko",
+          "equals": "ni sawa na",
+          "contains": "ina",
+          "is": "ni"
+        },
+        "statuses": {
+          "debt": "Deni",
+          "transfer": "Uhamisho",
+          "returned": "Imerejeshwa",
+          "completed": "Imekamilika"
+        }
+      },
+      "actions": {
+        "view": "Angalia",
+        "edit": "Hariri",
+        "download": "Pakua hati",
+        "return": "Rudisha",
+        "delete": "Futa"
+      },
+      "dialogs": {
+        "deleteTitle": "Futa Mauzo",
+        "deleteConfirm": "Una uhakika unataka kufuta mauzo haya? Kitendo hiki hakiwezi kubatilishwa.",
+        "returnTitle": "Rudisha Bidhaa - Mauzo #{id}",
+        "selectItems": "Chagua Bidhaa za Kurudisha",
+        "reason": "Sababu ya Kurudisha (Hiari)",
+        "totalRefund": "Jumla ya Kurejesha",
+        "confirmReturn": "Thibitisha Kurejesha",
+        "cancel": "Ghairi",
+        "processing": "Inachakata..."
+      },
+      "detail": {
+        "loading": "Inapakia maelezo ya mauzo...",
+        "notFound": "Mauzo hayajapatikana",
+        "saleNumber": "Mauzo #{id}",
+        "items": "Bidhaa ({count})",
+        "customerInformation": "Maelezo ya Mteja",
+        "paymentInformation": "Maelezo ya Malipo",
+        "invoiceInformation": "Maelezo ya Ankara",
+        "invoiceNumber": "Nambari ya Ankara",
+        "download": "Pakua",
+        "downloadPdf": "Pakua PDF",
+        "downloadFailed": "Imeshindwa kupakua PDF. Tafadhali jaribu tena."
+      }
+    },
+    "confirmModal": {
+      "confirmDefault": "Thibitisha Kitendo",
+      "cancelDefault": "Acha Kitendo"
+    },
+    "multiSale": {
+      "title": "Mauzo ya Bidhaa Nyingi",
+      "sellSelected": "Uza Zilizochaguliwa",
+      "minPrice": "Bei ya Chini",
+      "sellingPrice": "Bei ya Kuuza",
+      "quantity": "Kiasi",
+      "setPrice": "Weka Bei",
+      "save": "Hifadhi",
+      "cancel": "Ghairi",
+      "select": "Chagua",
+      "productName": "Jina la Bidhaa",
+      "actions": "Vitendo"
+    }
+  },
+  "sellProduct": {
+    "title": "Mauzo na Hisa",
+    "subtitle": "Simamia bidhaa, fuatilia hisa na uchakate mauzo kwa ufanisi.",
+    "searchPlaceholder": "Tafuta bidhaa...",
+    "cards": {
+      "totalProducts": "Jumla ya Bidhaa",
+      "lowStock": "Hisa Chache",
+      "inventoryValue": "Thamani ya Hisa",
+      "activeSale": "Mauzo Anayofanyika",
+      "inProgress": "Inaendelea"
+    },
+    "filter": {
+      "title": "Chuja Bidhaa",
+      "column": "Safu",
+      "operator": "Kivugo",
+      "amount": "Kiasi",
+      "searchInCategory": "Tafuta katika Kategoria",
+      "cancel": "Ghairi",
+      "apply": "Tumia Kichujio",
+      "columns": {
+        "category": "Kategoria",
+        "price": "Bei (FRW)"
+      },
+      "operators": {
+        "greaterThan": "Kubwa kuliko",
+        "lessThan": "Ndogo kuliko",
+        "equals": "Sawa na"
+      }
+    },
+    "table": {
+      "no": "Na.",
+      "select": "Chagua",
+      "product": "Bidhaa",
+      "sku": "SKU",
+      "category": "Kategoria",
+      "stock": "Hisa",
+      "minPrice": "Bei ya Chini (FRW)",
+      "sellingPrice": "Bei ya Kuuza (FRW)",
+      "quantity": "Kiasi",
+      "actions": "Vitendo",
+      "setPrice": "Weka Bei",
+      "loading": "Inapakia hisa...",
+      "noProducts": "Hakuna bidhaa zilizopatikana",
+      "selected": "{count} Zilizochaguliwa"
+    },
+    "actions": {
+      "transferToShop": "Hamishia Dukani",
+      "transferToCompany": "Hamishia Kampuni",
+      "completeSale": "KAMILISHA MAUZO",
+      "debtSale": "Mauzo ya Deni",
+      "processing": "Inachakata..."
+    },
+    "modals": {
+      "price": {
+        "title": "Weka Bei - {productName}",
+        "minPrice": "Bei ya Chini: {price} FRW",
+        "sellingPriceLabel": "Bei ya Kuuza (FRW)",
+        "cancel": "Ghairi",
+        "save": "Hifadhi",
+        "errorMinPrice": "Bei haiwezi kuwa chini ya {minPrice} FRW"
+      },
+      "customer": {
+        "title": "Kamilisha Mauzo",
+        "subtitle": "Ingiza maelezo ya mteja na uchague njia ya malipo ili kukamilisha muamala",
+        "totalAmount": "Jumla ya Kiasi",
+        "summary": "Bidhaa {count} • {status}",
+        "statusDebt": "💳 Mauzo ya Deni",
+        "statusPaid": "✅ Imelipwa Kikamilifu",
+        "phoneLabel": "Nambari ya Simu",
+        "phonePlaceholder": "mf. 0798725288",
+        "nameLabel": "Jina la Mteja",
+        "namePlaceholder": "mf. Juma Hamisi",
+        "existingCustomer": "Mteja Aliyepo",
+        "change": "Badilisha",
+        "paymentMethod": "Njia ya Malipo",
+        "paymentPhone": "Simu ya Malipo",
+        "cash": "Fedha Taslimu",
+        "mtn": "MTN",
+        "airtel": "Airtel",
+        "bank": "Benki",
+        "initialPayment": "Kiasi cha Malipo ya Awali (FRW)",
+        "cancel": "Ghairi",
+        "confirm": "Thibitisha Mauzo",
+        "errors": {
+          "nameRequired": "Jina la mteja linahitajika",
+          "phoneRequired": "Nambari ya simu inahitajika",
+          "phoneInvalid": "Muundo wa simu sio sahihi",
+          "amountExceeds": "Kiasi kilicholipwa hakiwezi kuzidi jumla ya bei ya kuuza"
+        }
+      },
+      "success": {
+        "title": "Mauzo Yamekamilika!",
+        "message": "Muamala umerekodiwa kwa mafanikio kwenye mfumo.",
+        "recorded": "Mauzo yamefanikiwa kurekodiwa!",
+        "done": "Tayari"
+      },
+      "transfer": {
+        "titleCross": "Uhamisho wa Kampuni Mbalimbali",
+        "titleIntra": "Uhamisho wa Ndani ya Kampuni",
+        "subtitleCross": "Hamisha bidhaa kwenda duka la kampuni nyingine",
+        "subtitleIntra": "Sambaza bidhaa kwenda duka lingine katika kampuni yako",
+        "totalValue": "Jumla ya Thamani ya Uhamisho",
+        "selected": "Bidhaa {count} zimechaguliwa",
+        "targetCompany": "Kampuni Lengwa",
+        "targetShop": "Duka Lengwa",
+        "reason": "Sababu",
+        "notes": "Maelezo ya Ziada (Hiari)",
+        "debtTransfer": "Weka kama Uhamisho wa Deni",
+        "debtTransferSubtitle": "Kampuni inayopokea itakuwa na deni",
+        "cancel": "Ghairi",
+        "confirm": "Thibitisha Uhamisho",
+        "placeholders": {
+          "company": "Chagua kampuni lengwa",
+          "shop": "Chagua duka lengwa",
+          "reason": "mf., Usambazaji wa kila mwezi, Usawazishaji wa hisa",
+          "notes": "Ongeza maelezo zaidi kuhusu uhamisho huu..."
+        },
+        "errors": {
+          "selectCompany": "Tafadhali chagua kampuni lengwa.",
+          "selectShop": "Tafadhali chagua duka lengwa.",
+          "reasonRequired": "Tafadhali toa sababu ya uhamisho.",
+          "noCompanies": "Hakuna kampuni zinazofaa kupatikana",
+          "noShops": "Hakuna maduka yaliyopatikana"
+        }
+      },
+      "transferSuccess": {
+        "title": "Uhamisho Umefanikiwa!",
+        "message": "Bidhaa zimehamishiwa kwa mafanikio kwa {targetName}.",
+        "close": "Funga"
+      }
+    },
+    "alerts": {
+      "outOfStock": "Haiwezi kuuza \"{productName}\" - Hisa imeisha!",
+      "saleFailed": "Mauzo yameshindikana: {error}",
+      "transferFailed": "Uhamisho umeshindikana: {error}"
+    },
+    "single": {
+      "title": "Kutoa Akiba {name}",
+      "standardPrice": "Bei ya Kawaida",
+      "soldPrice": "Bei ya Mauzo",
+      "quantitySold": "Idadi Iliyouzwa",
+      "discount": "Punguzo (hiari)",
+      "customerEmail": "Barua pepe ya Mteja (hiari)",
+      "transactionType": "Aina ya Muamala",
+      "regularSale": "Mauzo ya Kawaida",
+      "printReceipt": "Chapa risiti baada ya mauzo",
+      "confirmSale": "Thibitisha Mauzo",
+      "placeholders": {
+        "price": "mf. 99.99",
+        "quantity": "mf. 2",
+        "discount": "0.00",
+        "email": "john@mfano.com"
+      },
+      "errors": {
+        "soldPriceRequired": "Bei ya mauzo inahitajika.",
+        "soldPricePositive": "Bei ya mauzo lazima iwe chanya.",
+        "quantityRequired": "Idadi inahitajika.",
+        "quantityPositive": "Idadi lazima iwe chanya.",
+        "discountInvalid": "Punguzo lazima liwe ≥ 0.",
+        "paymentPhoneRequired": "Nambari ya simu ya malipo halali inahitajika kwa njia hii",
+        "fixErrors": "Tafadhali rekebisha makosa hapo juu.",
+        "discountExceeds": "Punguzo haliwezi kuwa kubwa kuliko jumla ndogo."
+      },
+      "paymentPhoneLabel": "Nambari ya Simu ya Malipo",
+      "paymentPhoneInfo": "Ingiza nambari ya simu itakayotumika kwa malipo ya {method}",
+      "receipt": {
+        "title": "Risiti ya Mauzo",
+        "date": "Tarehe",
+        "customer": "Mteja",
+        "phone": "Simu",
+        "product": "Bidhaa",
+        "qty": "Idadi",
+        "subtotal": "Jumla Ndogo",
+        "discount": "Punguzo",
+        "total": "Jumla",
+        "payment": "Malipo",
+        "paymentPhone": "Simu ya Malipo",
+        "thankYou": "Asante !"
+      }
+    }
   }
 }

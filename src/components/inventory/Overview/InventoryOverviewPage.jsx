@@ -93,7 +93,7 @@ const InventoryOverviewPage = () => {
 
   return (
     <div className="font-sans">
-      <div id="inventory-overview-content" className="max-w-[1600px] mx-auto space-y-6">
+      <div id="inventory-overview-content" className=" mx-auto space-y-6">
         <InventoryHeader
           onRefresh={refetch}
           lastUpdated={

@@ -9,8 +9,8 @@ const LeftSide = ({ saleOverView }) => {
     const navigate = useRouter()
     const locale = useLocale()
 
-    // This matches your exact JSON namespace "reciept"
-    const t = useTranslations('reciept');
+    // This matches your exact JSON namespace "receipt"
+    const t = useTranslations('receipt');
 
     const moreDetails = [
         { label: t('quantitySold'), value: saleOverView.quantity },

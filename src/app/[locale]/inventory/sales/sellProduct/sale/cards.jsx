@@ -5,27 +5,29 @@ import { Package, ShoppingCart, DollarSign, AlertTriangle, Maximize2, Minimize2 
 import { useMemo, useState } from "react";
 import Skeleton from "@/components/shared/Skeleton";
 import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 
 const CardItem = ({ card, index }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const Icon = card.Icon;
+    const locale = useLocale();
 
     const displayValue = useMemo(() => {
         if (typeof card.value === 'string' && !card.isCurrency) return card.value;
 
         if (isExpanded) {
             if (card.isCurrency) {
-                return new Intl.NumberFormat("en-RW", {
+                return new Intl.NumberFormat(locale, {
                     style: "currency",
                     currency: "RWF",
                     maximumFractionDigits: 0,
                 }).format(card.value);
             }
-            return new Intl.NumberFormat("en-RW").format(card.value);
+            return new Intl.NumberFormat(locale).format(card.value);
         }
 
         if (card.isCurrency) {
-            return new Intl.NumberFormat("en-RW", {
+            return new Intl.NumberFormat(locale, {
                 style: "currency",
                 currency: "RWF",
                 notation: "compact",
@@ -34,12 +36,12 @@ const CardItem = ({ card, index }) => {
             }).format(card.value);
         }
 
-        return new Intl.NumberFormat("en-RW", {
+        return new Intl.NumberFormat(locale, {
             notation: "compact",
             compactDisplay: "short",
             maximumFractionDigits: 1,
         }).format(card.value);
-    }, [isExpanded, card.value, card.isCurrency]);
+    }, [isExpanded, card.value, card.isCurrency, locale]);
 
     const showToggle = typeof card.value === 'number' && card.value >= 1000;
 
@@ -96,6 +98,8 @@ const CardItem = ({ card, index }) => {
 
 const StockCards = ({ products = [], isLoading = false }) => {
     const { data: session } = useSession();
+    const t = useTranslations('sellProduct.cards');
+    const locale = useLocale();
 
     const stats = useMemo(() => {
         // Role-based filtering for stats
@@ -118,7 +122,7 @@ const StockCards = ({ products = [], isLoading = false }) => {
 
     const cards = [
         {
-            title: "Total Products",
+            title: t('totalProducts'),
             value: stats.total,
             Icon: Package,
             color: "#3b82f6",
@@ -127,7 +131,7 @@ const StockCards = ({ products = [], isLoading = false }) => {
             isCurrency: false,
         },
         {
-            title: "Low Stock",
+            title: t('lowStock'),
             value: stats.lowStock,
             Icon: AlertTriangle,
             color: "#f59e0b",
@@ -136,7 +140,7 @@ const StockCards = ({ products = [], isLoading = false }) => {
             isCurrency: false,
         },
         {
-            title: "Inventory Value",
+            title: t('inventoryValue'),
             value: stats.totalValue,
             Icon: DollarSign,
             color: "#8b5cf6",
@@ -145,8 +149,8 @@ const StockCards = ({ products = [], isLoading = false }) => {
             isCurrency: true,
         },
         {
-            title: "Active Sale",
-            value: "In Progress",
+            title: t('activeSale'),
+            value: t('inProgress'),
             Icon: ShoppingCart,
             color: "#10b981",
             bgColor: "#ecfdf5",

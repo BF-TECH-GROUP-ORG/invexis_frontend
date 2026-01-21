@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 /**
  * A professional confirmation modal with a specific requirement:
@@ -9,8 +10,8 @@ import React from 'react';
  * @param {string} message - A brief explanation of the action being confirmed.
  * @param {function} onConfirm - Function to execute when the 'Confirm' button is clicked.
  * @param {function} onCancel - Function to execute when 'Cancel' is clicked OR the overlay is clicked.
- * @param {string} confirmButtonText - Text for the confirmation button (default: 'Confirm Action').
- * @param {string} cancelButtonText - Text for the cancellation button (default: 'Quit Action').
+ * @param {string} confirmButtonText - Text for the confirmation button (optional).
+ * @param {string} cancelButtonText - Text for the cancellation button (optional).
  */
 const ConfirmationModal = ({
   isOpen,
@@ -18,9 +19,15 @@ const ConfirmationModal = ({
   message,
   onConfirm,
   onCancel,
-  confirmButtonText = 'Confirm Action',
-  cancelButtonText = 'Quit Action',
+  confirmButtonText,
+  cancelButtonText
 }) => {
+  const t = useTranslations("salesHistory.confirmModal");
+
+  // Use translated defaults if custom text is not provided
+  const finalConfirmText = confirmButtonText || t("confirmDefault");
+  const finalCancelText = cancelButtonText || t("cancelDefault");
+
   if (!isOpen) return null;
 
   // The overlay has a 'blur' effect (bruh) and triggers onCancel when clicked
@@ -34,7 +41,7 @@ const ConfirmationModal = ({
       */}
       <div
         className="w-full max-w-md bg-white rounded-lg shadow-2xl transform transition-all"
-        onClick={e => e.stopPropagation()} 
+        onClick={e => e.stopPropagation()}
       >
         <div className="p-6">
           {/* Title */}
@@ -54,7 +61,7 @@ const ConfirmationModal = ({
               onClick={onCancel}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
             >
-              {cancelButtonText}
+              {finalCancelText}
             </button>
 
             {/* Confirm Button (Orange-400) */}
@@ -62,7 +69,7 @@ const ConfirmationModal = ({
               onClick={onConfirm}
               className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 transition duration-150 ease-in-out"
             >
-              {confirmButtonText}
+              {finalConfirmText}
             </button>
           </div>
         </div>

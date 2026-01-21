@@ -14,7 +14,7 @@ import { useState, useMemo } from "react"
 
 const SaleProduct = () => {
     const router = useRouter()
-    const t = useTranslations('sales')
+    const t = useTranslations('sellProduct')
     const locale = useLocale()
     const { data: session } = useSession()
     const companyObj = session?.user?.companies?.[0]
@@ -33,7 +33,7 @@ const SaleProduct = () => {
                 className="group mb-4 flex items-center space-x-2 text-sm font-medium text-gray-600 hover:text-orange-600 transition-colors"
             >
                 <ArrowBack className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                <span>{t('back')}</span>
+                <span>{useTranslations('sales')('back')}</span>
             </button>
             <br />
 
@@ -42,8 +42,8 @@ const SaleProduct = () => {
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('saleProducts')}</h1>
-                    <p className="text-gray-500 mt-1">{t('saleSubTitile')}</p>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('title')}</h1>
+                    <p className="text-gray-500 mt-1">{t('subtitle')}</p>
                 </div>
             </div>
             <br />

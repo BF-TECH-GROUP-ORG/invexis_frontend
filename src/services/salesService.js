@@ -276,6 +276,25 @@ const generateCustomerId = (phone) => {
   return `CUST-${phone.replace(/\D/g, "")}`;
 };
 
+export const getCustomers = async () => {
+  const cacheStrategy = getCacheStrategy("SALES", "METADATA");
+  try {
+    const data = await apiClient.get(`${SALES_URL}/k/all`, {
+      cache: cacheStrategy
+    });
+    console.log("Customers fetched:", data);
+
+    // Structure: { success: true, data: [...], pagination: {...} }
+    if (data.success && Array.isArray(data.data)) {
+      return data.data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch customers:", error.message);
+    return [];
+  }
+};
+
 export const createReturn = async (returnData) => {
   try {
     const data = await apiClient.post(`${SALES_URL}/return`, returnData);
@@ -301,4 +320,5 @@ export default {
   updateSale,
   deleteSale,
   createReturn,
+  getCustomers,
 };

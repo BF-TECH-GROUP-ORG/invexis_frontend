@@ -14,6 +14,34 @@
     "workers": "Employés",
     "language": "Langue"
   },
+  "sidebar": {
+    "overview": "Aperçu",
+    "management": "Gestion",
+    "dashboard": "Tableau de bord",
+    "notifications": "Notifications",
+    "inbox": "Boîte de réception",
+    "reports": "Rapports",
+    "staffAndShops": "Personnel & Magasins",
+    "staffList": "Liste du personnel",
+    "shops": "Magasins",
+    "inventory": "Inventaire",
+    "inventoryOverview": "Aperçu",
+    "categories": "Catégories",
+    "products": "Produits",
+    "transfers": "Transferts",
+    "stockOps": "Opérations de stock",
+    "sales": "Ventes",
+    "salesHistory": "Historique des ventes",
+    "stockOut": "Sortie de stock",
+    "debts": "Dettes",
+    "billingAndPayments": "Facturation et paiements",
+    "invoices": "Factures",
+    "payments": "Paiements",
+    "transactions": "Transactions",
+    "documents": "Documents",
+    "logsAndAudits": "Journaux et audits",
+    "logout": "Déconnexion"
+  },
   "welcome": {
     "title": "Bienvenue"
   },
@@ -201,8 +229,14 @@
     "hero": {
       "title": "Gérez votre entreprise en temps réel — où que vous soyez",
       "subtitle": "Inventaire, ventes, personnel, créances, rapports, notifications et audits — tout dans un tableau de bord puissant.",
-      "kpi1": { "title": "Alertes en temps réel", "value": "Live" },
-      "kpi2": { "title": "Échelle mondiale", "value": "Multi-région" }
+      "kpi1": {
+        "title": "Alertes en temps réel",
+        "value": "Live"
+      },
+      "kpi2": {
+        "title": "Échelle mondiale",
+        "value": "Multi-région"
+      }
     },
     "landing": {
       "nav": {
@@ -234,11 +268,14 @@
         "title": "Contrôle total et informations en temps réel",
         "subtitle": "Conçu pour les entreprises de toutes tailles."
       },
-      "pricing": { "title": "Des tarifs flexibles pour chaque entreprise" },
-      "cases": { "title": "Conçu pour toutes les entreprises, partout." }
+      "pricing": {
+        "title": "Des tarifs flexibles pour chaque entreprise"
+      },
+      "cases": {
+        "title": "Conçu pour toutes les entreprises, partout."
+      }
     }
   },
-  "home": "Accueil",
   "about": "À propos",
   "faq": "FAQ",
   "services": "Services",
@@ -283,7 +320,7 @@
     "Delete": "Supprimer",
     "view": "Voir Plus"
   },
-  "reciept": {
+  "receipt": {
     "quantitySold": "Quantité vendue",
     "soldPrice": "Prix de vente (RWF)",
     "discount": "Remise",
@@ -311,9 +348,19 @@
     "customerName": "Nom du client",
     "customerContact": "Contact du client",
     "paymentMethod": "Mode de paiement",
-    "customerInformation": "Informations du Client"
+    "customerInformation": "Informations du Client",
+    "success": "Vente mise à jour avec succès !",
+    "error": "Échec de la mise à jour de la vente : {error}",
+    "updating": "Mise à jour...",
+    "validation": {
+      "productName": "Nom du produit requis",
+      "quantity": "La quantité doit être positive",
+      "price": "Le prix de vente doit être positif",
+      "customerName": "Nom du client requis",
+      "date": "Date de vente requise",
+      "fixErrors": "Corrigez les erreurs :"
+    }
   },
-
   "debtsPage": {
     "title": "Suivi des Dettes et Remboursements",
     "subtitle": "Surveillez efficacement les dettes en cours et les échéances de remboursement.",
@@ -331,7 +378,6 @@
     "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette dette ? Cette action est irréversible.",
     "markPayed": "Marquer comme Payé"
   },
-
   "Debtstable": {
     "no": "N°",
     "debtorName": "Nom du Débiteur",
@@ -344,5 +390,284 @@
     "isDebtCleared": "Statut",
     "cleared": "Payée",
     "pending": "En Attente"
+  },
+  "salesHistory": {
+    "title": "Historique des ventes",
+    "cards": {
+      "totalDailySales": "Ventes quotidiennes totales",
+      "totalDailyProfit": "Bénéfice quotidien total",
+      "returnedProducts": "Produits retournés",
+      "discountsApplied": "Remises appliquées"
+    },
+    "table": {
+      "columns": {
+        "product": "Produit",
+        "category": "Catégorie",
+        "unitPrice": "Prix unitaire (FRW)",
+        "soldQty": "Qté vendue",
+        "returnedQty": "Qté retournée",
+        "discount": "Remise",
+        "totalValue": "Valeur totale",
+        "date": "Date",
+        "soldBy": "Vendu par",
+        "shop": "Magasin",
+        "status": "Statut",
+        "action": "Action",
+        "refundAmount": "Montant remboursé",
+        "returnQty": "Qté retour",
+        "soldPrice": "Prix vendu",
+        "select": "Sélectionner"
+      },
+      "filters": {
+        "title": "Filtrer les ventes",
+        "column": "Colonne",
+        "operator": "Opérateur",
+        "value": "Valeur",
+        "status": "Statut",
+        "clear": "Effacer",
+        "apply": "Appliquer",
+        "operators": {
+          "greaterThan": "est supérieur à",
+          "lessThan": "est inférieur à",
+          "equals": "est égal à",
+          "contains": "contient",
+          "is": "est"
+        },
+        "statuses": {
+          "debt": "Dette",
+          "transfer": "Transfert",
+          "returned": "Retourné",
+          "completed": "Terminé"
+        }
+      },
+      "actions": {
+        "view": "Voir",
+        "edit": "Modifier",
+        "download": "Télécharger le document",
+        "return": "Retourner",
+        "delete": "Supprimer"
+      },
+      "dialogs": {
+        "deleteTitle": "Supprimer la vente",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.",
+        "returnTitle": "Retourner les produits - Vente #{id}",
+        "selectItems": "Sélectionner les articles à retourner",
+        "reason": "Raison du retour (facultatif)",
+        "totalRefund": "Remboursement total",
+        "confirmReturn": "Confirmer le retour",
+        "cancel": "Annuler",
+        "processing": "Traitement..."
+      },
+      "detail": {
+        "loading": "Chargement des détails de la vente...",
+        "notFound": "Vente non trouvée",
+        "saleNumber": "Vente #{id}",
+        "items": "Articles ({count})",
+        "customerInformation": "Informations client",
+        "paymentInformation": "Informations de paiement",
+        "invoiceInformation": "Informations de facture",
+        "invoiceNumber": "Numéro de facture",
+        "download": "Télécharger",
+        "downloadPdf": "Télécharger le PDF",
+        "downloadFailed": "Échec du téléchargement du PDF. Veuillez réessayer."
+      }
+    },
+    "confirmModal": {
+      "confirmDefault": "Confirmer l'action",
+      "cancelDefault": "Quitter l'action"
+    },
+    "multiSale": {
+      "title": "Vente multi-produits",
+      "sellSelected": "Vendre la sélection",
+      "minPrice": "Prix min.",
+      "sellingPrice": "Prix de vente",
+      "quantity": "Quantité",
+      "setPrice": "Définir le prix",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "select": "Sélectionner",
+      "productName": "Nom du produit",
+      "actions": "Actions"
+    }
+  },
+  "sellProduct": {
+    "title": "Ventes et Inventaire",
+    "subtitle": "Gérez les produits, suivez les stocks et traitez les ventes efficacement.",
+    "searchPlaceholder": "Rechercher des produits...",
+    "cards": {
+      "totalProducts": "Total Produits",
+      "lowStock": "Stock Faible",
+      "inventoryValue": "Valeur d'Inventaire",
+      "activeSale": "Vente Active",
+      "inProgress": "En Cours"
+    },
+    "filter": {
+      "title": "Filtrer les Produits",
+      "column": "Colonne",
+      "operator": "Opérateur",
+      "amount": "Montant",
+      "searchInCategory": "Rechercher dans Catégorie",
+      "cancel": "Annuler",
+      "apply": "Appliquer le Filtre",
+      "columns": {
+        "category": "Catégorie",
+        "price": "Prix (FRW)"
+      },
+      "operators": {
+        "greaterThan": "Plus grand que",
+        "lessThan": "Moins que",
+        "equals": "Égal à"
+      }
+    },
+    "table": {
+      "no": "N°",
+      "select": "Sélec.",
+      "product": "Produit",
+      "sku": "SKU",
+      "category": "Catégorie",
+      "stock": "Stock",
+      "minPrice": "Prix Min (FRW)",
+      "sellingPrice": "Prix Vente (FRW)",
+      "quantity": "Quantité",
+      "actions": "Actions",
+      "setPrice": "Définir Prix",
+      "loading": "Chargement de l'inventaire...",
+      "noProducts": "Aucun produit trouvé",
+      "selected": "{count} Sélectionné(s)"
+    },
+    "actions": {
+      "transferToShop": "Transférer vers Boutique",
+      "transferToCompany": "Transférer vers Entreprise",
+      "completeSale": "TERMINER VENTE",
+      "debtSale": "Vente à Crédit",
+      "processing": "Traitement..."
+    },
+    "modals": {
+      "price": {
+        "title": "Définir Prix - {productName}",
+        "minPrice": "Prix Minimum : {price} FRW",
+        "sellingPriceLabel": "Prix de Vente (FRW)",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "errorMinPrice": "Le prix ne peut pas être inférieur à {minPrice} FRW"
+      },
+      "customer": {
+        "title": "Terminer la Vente",
+        "subtitle": "Entrez les détails du client et sélectionnez le mode de paiement",
+        "totalAmount": "Montant Total",
+        "summary": "{count} produit(s) • {status}",
+        "statusDebt": "💳 Vente à Crédit",
+        "statusPaid": "✅ Payé Intégralement",
+        "phoneLabel": "Numéro de Téléphone",
+        "phonePlaceholder": "ex: 0798725288",
+        "nameLabel": "Nom du Client",
+        "namePlaceholder": "ex: Jean Dupont",
+        "existingCustomer": "Client Existant",
+        "change": "Changer",
+        "paymentMethod": "Mode de Paiement",
+        "paymentPhone": "Téléphone de Paiement",
+        "cash": "Espèces",
+        "mtn": "MTN",
+        "airtel": "Airtel",
+        "bank": "Banque",
+        "initialPayment": "Montant du Paiement Initial (FRW)",
+        "cancel": "Annuler",
+        "confirm": "Confirmer la Vente",
+        "errors": {
+          "nameRequired": "Le nom du client est requis",
+          "phoneRequired": "Le numéro de téléphone est requis",
+          "phoneInvalid": "Format de téléphone invalide",
+          "amountExceeds": "Le montant payé ne peut excéder le prix de vente total"
+        }
+      },
+      "success": {
+        "title": "Vente Terminée !",
+        "message": "La transaction a été enregistrée avec succès dans le système.",
+        "done": "Terminé"
+      },
+      "transfer": {
+        "titleCross": "Transfert Inter-Entreprises",
+        "titleIntra": "Transfert Intra-Entreprise",
+        "subtitleCross": "Transférer des produits vers la boutique d'une autre entreprise",
+        "subtitleIntra": "Redistribuer des produits vers une autre boutique de votre entreprise",
+        "totalValue": "Valeur Totale du Transfert",
+        "selected": "{count} produit(s) sélectionné(s)",
+        "targetCompany": "Entreprise Cible",
+        "targetShop": "Boutique Cible",
+        "reason": "Raison",
+        "notes": "Notes Supplémentaires (Optionnel)",
+        "debtTransfer": "Marquer comme Transfert de Dette",
+        "debtTransferSubtitle": "L'entreprise réceptrice devra un paiement",
+        "cancel": "Annuler",
+        "confirm": "Confirmer le Transfert",
+        "placeholders": {
+          "company": "Sélectionner une entreprise cible",
+          "shop": "Sélectionner une boutique cible",
+          "reason": "ex: Redistribution mensuelle, Équilibrage de stock",
+          "notes": "Ajouter des détails supplémentaires sur ce transfert..."
+        },
+        "errors": {
+          "selectCompany": "Veuillez sélectionner une entreprise cible.",
+          "selectShop": "Veuillez sélectionner une boutique cible.",
+          "reasonRequired": "Veuillez fournir une raison pour le transfert.",
+          "noCompanies": "Aucune entreprise éligible trouvée",
+          "noShops": "Aucune boutique trouvée"
+        }
+      },
+      "transferSuccess": {
+        "title": "Transfert Réussi !",
+        "message": "Les produits ont été transférés avec succès vers {targetName}.",
+        "close": "Fermer"
+      }
+    },
+    "alerts": {
+      "outOfStock": "Impossible de vendre \"{productName}\" - Rupture de stock !",
+      "saleFailed": "Échec de la vente : {error}",
+      "transferFailed": "Échec du transfert : {error}"
+    },
+    "single": {
+      "title": "Sortie de stock {name}",
+      "standardPrice": "Prix standard",
+      "soldPrice": "Prix de vente",
+      "quantitySold": "Quantité vendue",
+      "discount": "Remise (optionnel)",
+      "customerEmail": "Email du client (optionnel)",
+      "transactionType": "Type de transaction",
+      "regularSale": "Vente régulière",
+      "printReceipt": "Imprimer le reçu après la vente",
+      "confirmSale": "Confirmer la vente",
+      "placeholders": {
+        "price": "ex: 99.99",
+        "quantity": "ex: 2",
+        "discount": "0.00",
+        "email": "john@exemple.com"
+      },
+      "errors": {
+        "soldPriceRequired": "Le prix de vente est requis.",
+        "soldPricePositive": "Le prix de vente doit être positif.",
+        "quantityRequired": "La quantité est requise.",
+        "quantityPositive": "La quantité doit être positive.",
+        "discountInvalid": "La remise doit être ≥ 0.",
+        "paymentPhoneRequired": "Numéro de téléphone de paiement valide requis pour cette méthode",
+        "fixErrors": "Veuillez corriger les erreurs ci-dessus.",
+        "discountExceeds": "La remise ne peut pas être supérieure au sous-total."
+      },
+      "paymentPhoneLabel": "Numéro de téléphone de paiement",
+      "paymentPhoneInfo": "Entrez le numéro de téléphone à utiliser pour le paiement par {method}",
+      "receipt": {
+        "title": "Reçu de vente",
+        "date": "Date",
+        "customer": "Client",
+        "phone": "Téléphone",
+        "product": "Produit",
+        "qty": "Qté",
+        "subtotal": "Sous-total",
+        "discount": "Remise",
+        "total": "Total",
+        "payment": "Paiement",
+        "paymentPhone": "Téléphone de paiement",
+        "thankYou": "Merci !"
+      }
+    }
   }
 }

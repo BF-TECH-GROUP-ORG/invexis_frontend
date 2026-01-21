@@ -3,7 +3,11 @@
 import { motion } from "framer-motion";
 import { CheckCircle, ArrowRight } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 export default function TransferSuccessModal({ isOpen, onClose, targetName, mode }) {
+    const t = useTranslations('sellProduct.modals.transferSuccess');
+
     if (!isOpen) return null;
 
     return (
@@ -35,10 +39,13 @@ export default function TransferSuccessModal({ isOpen, onClose, targetName, mode
                     </div>
 
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        Transfer Successful!
+                        {t('title')}
                     </h2>
                     <p className="text-gray-600 mb-8">
-                        Products have been successfully transferred to <span className="font-semibold text-gray-900">{targetName}</span>.
+                        {t.rich('message', {
+                            targetName: targetName,
+                            span: (chunks) => <span className="font-semibold text-gray-900">{chunks}</span>
+                        })}
                     </p>
 
                     <div className="space-y-3">
@@ -46,7 +53,7 @@ export default function TransferSuccessModal({ isOpen, onClose, targetName, mode
                             onClick={onClose}
                             className="block w-full py-3 px-4 bg-[#FF6D00] hover:bg-[#E65100] text-white font-semibold rounded-xl transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
                         >
-                            Close
+                            {t('close')}
                         </button>
                     </div>
                 </div>

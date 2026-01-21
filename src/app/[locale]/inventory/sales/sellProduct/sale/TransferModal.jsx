@@ -22,8 +22,14 @@ import { getCompanyDetails, getAllCompanies, transferToShop, transferToCompany }
 import { getBranches } from "@/services/branches";
 import { SellProduct } from "@/services/salesService";
 import TransferSuccessModal from "./TransferSuccessModal";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function TransferModal({ open, onClose, selectedItems, companyId, userId, mode = 'company', currentShopId }) {
+    const t = useTranslations('sellProduct.modals.transfer');
+    const tAlerts = useTranslations('sellProduct.alerts');
+    const tCustomer = useTranslations('sellProduct.modals.customer');
+    const tActions = useTranslations('sellProduct.actions');
+    const locale = useLocale();
     const [targetCompany, setTargetCompany] = useState("");
     const [targetShop, setTargetShop] = useState("");
     const [reason, setReason] = useState("");
@@ -108,7 +114,8 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
         mutationFn: (payload) => SellProduct(payload, false),
         onError: (error) => {
             console.error("Sales creation failed during transfer:", error);
-            setValidationError(`Sales creation failed: ${error.response?.data?.message || error.message}`);
+            const errMsg = error.response?.data?.message || error.message;
+            setValidationError(tAlerts('saleFailed', { error: errMsg }));
         }
     });
 
@@ -127,21 +134,22 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
         },
         onError: (error) => {
             console.error("Transfer failed:", error);
-            setValidationError(`Transfer failed: ${error.response?.data?.message || error.message}`);
+            const errMsg = error.response?.data?.message || error.message;
+            setValidationError(tAlerts('transferFailed', { error: errMsg }));
         }
     });
 
     const handleSubmit = async () => {
         if (mode === 'company' && !targetCompany) {
-            setValidationError("Please select a target company.");
+            setValidationError(t('errors.selectCompany'));
             return;
         }
         if (!targetShop) { // Target shop is required for both modes now
-            setValidationError("Please select a target shop.");
+            setValidationError(t('errors.selectShop'));
             return;
         }
         if (!reason.trim()) {
-            setValidationError("Please provide a reason for the transfer.");
+            setValidationError(t('errors.reasonRequired'));
             return;
         }
 
@@ -162,10 +170,10 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
         let targetDisplayName = "";
         if (mode === 'shop') {
             const shop = currentCompanyShops?.data?.find(s => (s.id || s._id) === targetShop);
-            targetDisplayName = shop?.name || shop?.shopName || "Target Shop";
+            targetDisplayName = shop?.name || shop?.shopName || t('errors.noShops');
         } else {
             const company = eligibleCompanies.find(c => (c.id || c._id) === targetCompany);
-            targetDisplayName = company?.name || company?.companyName || "Target Company";
+            targetDisplayName = company?.name || company?.companyName || t('errors.noCompanies');
         }
         setTargetName(targetDisplayName);
 
@@ -174,7 +182,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             companyId: companyId,
             shopId: currentShopId,
             soldBy: userId,
-            customerName: `Transfer to: ${targetDisplayName}`,
+            customerName: `${useTranslations('sales')('transfer')}: ${targetDisplayName}`,
             customerPhone: "N/A",
             customerEmail: "",
             items,
@@ -331,7 +339,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             letterSpacing: "-0.5px",
                             mb: 1
                         }}>
-                            {mode === 'company' ? 'Cross-Company Transfer' : 'Intra-Company Transfer'}
+                            {mode === 'company' ? t('titleCross') : t('titleIntra')}
                         </Typography>
                         <Typography variant="body2" sx={{
                             color: "#D1D5DB",
@@ -339,9 +347,9 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             fontSize: "0.95rem",
                             lineHeight: 1.6
                         }}>
-                            {mode === 'company' 
-                                ? 'Transfer products to another company\'s shop'
-                                : 'Redistribute products to another shop in your company'}
+                            {mode === 'company'
+                                ? t('subtitleCross')
+                                : t('subtitleIntra')}
                         </Typography>
                     </Box>
 
@@ -384,7 +392,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             display: "block",
                             mb: 1
                         }}>
-                            Total Transfer Value
+                            {t('totalValue')}
                         </Typography>
                         <Typography variant="h4" sx={{
                             color: "#FBBF24",
@@ -392,23 +400,23 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             fontSize: "1.875rem",
                             mb: 1
                         }}>
-                            {Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW
+                            {new Intl.NumberFormat(locale).format(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0))} FRW
                         </Typography>
                         <Typography variant="caption" sx={{
                             color: "#9CA3AF",
                             display: "block"
                         }}>
-                            {Object.keys(selectedItems).length} product{Object.keys(selectedItems).length !== 1 ? 's' : ''} selected
+                            {t('selected', { count: Object.keys(selectedItems).length })}
                         </Typography>
                     </Box>
                 </Box>
 
-                <DialogContent sx={{ 
-                    pt: { xs: 2, md: 4 }, 
-                    pb: { xs: 20, md: 24 }, 
-                    px: { xs: 2, md: 4 }, 
-                    flex: 1, 
-                    overflow: "auto", 
+                <DialogContent sx={{
+                    pt: { xs: 2, md: 4 },
+                    pb: { xs: 20, md: 24 },
+                    px: { xs: 2, md: 4 },
+                    flex: 1,
+                    overflow: "auto",
                     position: "relative",
                     width: { xs: "100%", md: "auto" },
                     animation: open ? "slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1)" : "slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -447,7 +455,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
 
                             {/* Target Company Selection (Only for Cross-Company) */}
                             {mode === 'company' && (
-                                <Box sx={{ 
+                                <Box sx={{
                                     mb: 3,
                                     animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                     "@keyframes fadeInUp": {
@@ -477,7 +485,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                         mb: 1.2,
                                         fontSize: "0.95rem"
                                     }}>
-                                        Target Company <span style={{ color: "#FF6D00" }}>*</span>
+                                        {t('targetCompany')} <span style={{ color: "#FF6D00" }}>*</span>
                                     </Typography>
                                     <FormControl fullWidth>
                                         <Select
@@ -506,7 +514,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                         >
                                             {eligibleCompanies.length === 0 ? (
                                                 <MenuItem disabled value="">
-                                                    No eligible companies found
+                                                    {t('errors.noCompanies')}
                                                 </MenuItem>
                                             ) : (
                                                 eligibleCompanies.map((company) => (
@@ -521,7 +529,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             )}
 
                             {/* Target Shop Selection */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 mb: 3,
                                 animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 "@keyframes fadeInUp": {
@@ -551,7 +559,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                     mb: 1.2,
                                     fontSize: "0.95rem"
                                 }}>
-                                    Target Shop <span style={{ color: "#FF6D00" }}>*</span>
+                                    {t('targetShop')} <span style={{ color: "#FF6D00" }}>*</span>
                                 </Typography>
                                 <FormControl fullWidth disabled={mode === 'company' && !targetCompany}>
                                     <Select
@@ -580,15 +588,15 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                         {shopsToDisplay.length === 0 ? (
                                             <MenuItem disabled value="">
                                                 {mode === 'company' && !targetCompany
-                                                    ? "Select a company first"
-                                                    : "No shops found"}
+                                                    ? t('placeholders.shop')
+                                                    : t('errors.noShops')}
                                             </MenuItem>
                                         ) : (
                                             shopsToDisplay
                                                 .filter(shop => shop.id !== currentShopId && shop._id !== currentShopId)
                                                 .map((shop) => (
                                                     <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
-                                                        {shop.name || shop.shopName || "Unnamed Shop"}
+                                                        {shop.name || shop.shopName || t('errors.noShops')}
                                                     </MenuItem>
                                                 ))
                                         )}
@@ -597,7 +605,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             </Box>
 
                             {/* Reason Field */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 mb: 3,
                                 animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.35s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 "@keyframes fadeInUp": {
@@ -627,11 +635,11 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                     mb: 1.2,
                                     fontSize: "0.95rem"
                                 }}>
-                                    Reason <span style={{ color: "#FF6D00" }}>*</span>
+                                    {t('reason')} <span style={{ color: "#FF6D00" }}>*</span>
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="e.g., Monthly redistribution, Stock balancing"
+                                    placeholder={t('placeholders.reason')}
                                     value={reason}
                                     onChange={(e) => {
                                         setReason(e.target.value);
@@ -664,7 +672,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             </Box>
 
                             {/* Notes Field */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 mb: 4,
                                 animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.45s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 "@keyframes fadeInUp": {
@@ -694,11 +702,11 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                     mb: 1.2,
                                     fontSize: "0.95rem"
                                 }}>
-                                    Additional Notes (Optional)
+                                    {t('notes')}
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="Add any additional details about this transfer..."
+                                    placeholder={t('placeholders.notes')}
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     multiline
@@ -730,11 +738,11 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
 
                             {/* Debt Transfer Toggle - Only for Cross-Company Mode */}
                             {mode === 'company' && (
-                                <Box sx={{ 
-                                    mb: 4, 
-                                    p: "16px 20px", 
-                                    bgcolor: "#F3E8FF", 
-                                    borderRadius: "10px", 
+                                <Box sx={{
+                                    mb: 4,
+                                    p: "16px 20px",
+                                    bgcolor: "#F3E8FF",
+                                    borderRadius: "10px",
                                     border: "1.5px solid #E9D5FF",
                                     animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.55s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                     "@keyframes fadeInUp": {
@@ -765,13 +773,13 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                                 fontWeight: 600,
                                                 fontSize: "0.95rem"
                                             }}>
-                                                Mark as Debt Transfer
+                                                {t('debtTransfer')}
                                             </Typography>
                                             <Typography variant="caption" sx={{
                                                 color: "#7C3AED",
                                                 fontSize: "0.8rem"
                                             }}>
-                                                The receiving company will owe payment
+                                                {t('debtTransferSubtitle')}
                                             </Typography>
                                         </Box>
                                         <button
@@ -786,11 +794,11 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                     {isDebt && (
                                         <>
                                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 500 }}>
-                                                Total Transfer Value: <strong style={{ color: "#E65100" }}>{Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString()} FRW</strong>
+                                                {t('totalValue')}: <strong style={{ color: "#E65100" }}>{new Intl.NumberFormat(locale).format(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0))} FRW</strong>
                                             </Typography>
                                             <TextField
                                                 fullWidth
-                                                label="Initial Payment Amount (FRW)"
+                                                label={tCustomer('initialPayment')}
                                                 type="number"
                                                 value={amountPaidNow}
                                                 onChange={(e) => {
@@ -802,7 +810,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                                     setAmountPaidNow(e.target.value);
                                                 }}
                                                 inputProps={{ min: 0 }}
-                                                helperText={`Remaining Debt: ${(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) - (parseFloat(amountPaidNow) || 0)).toLocaleString()} FRW`}
+                                                helperText={`${t('debtTransferSubtitle')}: ${new Intl.NumberFormat(locale).format(Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0) - (parseFloat(amountPaidNow) || 0))} FRW`}
                                                 sx={{
                                                     "& .MuiOutlinedInput-root": {
                                                         bgcolor: "#FFFFFF",
@@ -862,7 +870,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             }
                         }}
                     >
-                        Cancel
+                        {t('cancel')}
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -892,7 +900,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                             }
                         }}
                     >
-                        {transferMutation.isPending || sellMutation.isPending ? "Processing..." : "Confirm Transfer"}
+                        {transferMutation.isPending || sellMutation.isPending ? tActions('processing') : t('confirm')}
                     </Button>
                 </Box>
             </Dialog>
