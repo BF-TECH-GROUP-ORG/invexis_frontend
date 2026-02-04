@@ -16,6 +16,8 @@ import {
   Tooltip,
   Avatar,
   Chip,
+  Paper,
+  Typography,
 } from "@mui/material";
 import { HiDotsVertical } from "react-icons/hi";
 
@@ -128,37 +130,52 @@ export default function EcommerceDataTable({
             </TableHead>
 
             <TableBody>
-              {visibleRows.map((row) => (
-                <TableRow
-                  key={row[keyField] || JSON.stringify(row)}
-                  hover
-                  selected={selected.includes(row[keyField])}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selected.includes(row[keyField])}
-                      onChange={() => toggleRow(row[keyField])}
-                    />
-                  </TableCell>
-                  {columns.map((col) => (
-                    <TableCell key={col.id} sx={{ verticalAlign: "middle" }}>
-                      {col.render ? (
-                        col.render(row)
-                      ) : (
-                        <span>{row[col.accessor || col.id]}</span>
-                      )}
+              {visibleRows.length > 0 ? (
+                visibleRows.map((row) => (
+                  <TableRow
+                    key={row[keyField] || JSON.stringify(row)}
+                    hover
+                    selected={selected.includes(row[keyField])}
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selected.includes(row[keyField])}
+                        onChange={() => toggleRow(row[keyField])}
+                      />
                     </TableCell>
-                  ))}
+                    {columns.map((col) => (
+                      <TableCell key={col.id} sx={{ verticalAlign: "middle" }}>
+                        {col.render ? (
+                          col.render(row)
+                        ) : (
+                          <span>{row[col.accessor || col.id]}</span>
+                        )}
+                      </TableCell>
+                    ))}
 
-                  <TableCell align="center">
-                    <Tooltip title="Actions">
-                      <IconButton size="small">
-                        <HiDotsVertical />
-                      </IconButton>
-                    </Tooltip>
+                    <TableCell align="center">
+                      <Tooltip title="Actions">
+                        <IconButton size="small">
+                          <HiDotsVertical />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 10 }}>
+                    <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
+                      <Typography variant="body2" color="textSecondary" fontWeight={600}>
+                        No records found
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Try adjusting your search or filters
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

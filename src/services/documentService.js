@@ -1,93 +1,54 @@
-import axiosClient from "@/utils/axiosClient";
-import mockData from '@/features/documents/mockData';
+import apiClient from "@/lib/apiClient";
 
-const documentService = {
-    // Get all documents
-    getAll: async (params) => {
-        try {
-            // If developer wants to use local mocks, enable via env var NEXT_PUBLIC_USE_MOCKS=true
-            if (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_USE_MOCKS === 'true') {
-                return mockData;
-            }
-            const response = await axiosClient.get("/documents", { params });
-            return response.data;
-        } catch (error) {
-            // If API fails, fall back to bundled mock data to keep the UI functional during dev
-            console.warn('documentService.getAll failed, returning mock data', error);
-            return mockData;
-        }
-    },
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-    // Create a new document
-    create: async (data) => {
-        try {
-            const response = await axiosClient.post("/documents", data);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+/**
+ * Get all sales invoices for a company
+ * @param {string} companyId - The ID of the company
+ * @param {Object} options - Additional request options (e.g. headers)
+ * @returns {Promise<Object>} The API response
+ */
+export const getCompanySalesInvoices = async (companyId, options = {}) => {
+    if (!companyId) return { success: false, data: [] };
 
-    // Update a document
-    update: async (id, data) => {
-        try {
-            const response = await axiosClient.put(`/documents/${id}`, data);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+    try {
+        const url = `${BASE_URL}/document/sales/company/${companyId}/invoices`;
+        const response = await apiClient.get(url, {
+            ...options,
+            cache: { ttl: 5 * 60 * 1000 } // 5 minutes cache
+        });
 
-    // Move to Trash (Soft Delete)
-    moveToTrash: async (id) => {
-        try {
-            const response = await axiosClient.patch(`/documents/${id}/status`, { status: 'Trash' });
-            return response.data;
-        } catch (error) {
-            // Fallback for demo if API fails
-            return { id, status: 'Trash' };
-        }
-    },
-
-    // Archive Document
-    archive: async (id) => {
-        try {
-            const response = await axiosClient.patch(`/documents/${id}/status`, { status: 'Archived' });
-            return response.data;
-        } catch (error) {
-            // Fallback for demo
-            return { id, status: 'Archived' };
-        }
-    },
-
-    // Permanent Delete
-    delete: async (id) => {
-        try {
-            await axiosClient.delete(`/documents/${id}`);
-            return id;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Download Document
-    download: async (id) => {
-        try {
-            const response = await axiosClient.get(`/documents/${id}/download`, {
-                responseType: 'blob',
-                headers: {
-                    'Accept': 'application/pdf',
-                }
-            });
-            return response.data;
-        } catch (error) {
-            // Mock download if API not available
-            console.warn("Download API failed, creating mock PDF blob");
-            // A more realistic mock PDF header to ensure browsers treat it as PDF
-            const pdfHeader = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n178\n%%EOF";
-            return new Blob([pdfHeader], { type: 'application/pdf' });
-        }
+        // apiClient.get returns response.data directly
+        return response || { success: false, data: [] };
+    } catch (error) {
+        console.error("Failed to fetch sales invoices documents:", error);
+        return { success: false, data: [] };
     }
 };
 
-export default documentService;
+/**
+ * Get all inventory media (barcodes, QR codes) for a company
+ * @param {string} companyId - The ID of the company
+ * @param {Object} options - Additional request options
+ * @returns {Promise<Object>} The API response
+ */
+export const getCompanyInventoryMedia = async (companyId, options = {}) => {
+    if (!companyId) return { success: false, data: [] };
+
+    try {
+        const url = `${BASE_URL}/document/inventory/company/${companyId}/media`;
+        const response = await apiClient.get(url, {
+            ...options,
+            cache: { ttl: 5 * 60 * 1000 }
+        });
+        return response || { success: false, data: [] };
+    } catch (error) {
+        console.error("Failed to fetch inventory media documents:", error);
+        return { success: false, data: [] };
+    }
+};
+
+export default {
+    getCompanySalesInvoices,
+    getCompanyInventoryMedia,
+};

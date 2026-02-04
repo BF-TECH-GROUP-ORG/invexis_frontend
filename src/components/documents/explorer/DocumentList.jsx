@@ -1,11 +1,38 @@
-"use client";
-import { useDispatch } from "react-redux";
-import { downloadDocument } from "@/features/documents/documentsSlice";
-import { ArrowLeft, FileText, Eye, Download, LayoutGrid, List, FileCheck, HardDrive, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, FileText, Eye, Download, LayoutGrid, List, FileCheck, HardDrive } from "lucide-react";
+import toast from "react-hot-toast";
+import dayjs from "dayjs";
 
 export default function DocumentList({ documents, year, month, onOpenValues, onBack, selectedIds, onToggleSelect }) {
-    const dispatch = useDispatch();
     const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+
+    const handleDownload = async (doc) => {
+        if (!doc.pdfUrl) {
+            toast.error("No download URL available for this document");
+            return;
+        }
+
+        const toastId = toast.loading(`Preparing ${doc.name}...`);
+        try {
+            const response = await fetch(doc.pdfUrl);
+            if (!response.ok) throw new Error("Download failed");
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${doc.name}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            toast.success("Download complete!", { id: toastId });
+        } catch (error) {
+            console.error("Download error:", error);
+            toast.error("Download failed. Opening in tab...", { id: toastId });
+            window.open(doc.pdfUrl, '_blank');
+        }
+    };
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-right-4 duration-1000">
@@ -35,9 +62,6 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                         <button className="p-2 bg-white text-orange-600 rounded-lg shadow-sm border border-slate-100"><List size={18} /></button>
                         <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors"><LayoutGrid size={18} /></button>
                     </div>
-                    <button className="px-6 py-3 bg-[#081422] text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all shadow-sm active:scale-95">
-                        Bulk Export
-                    </button>
                 </div>
             </div>
 
@@ -87,7 +111,7 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                                 <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                     <span className="flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                        {doc.date}
+                                        {dayjs(doc.date).format("MMM DD, YYYY")}
                                     </span>
                                     <span className="flex items-center gap-2 opacity-60">
                                         <HardDrive size={12} />
@@ -108,7 +132,7 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        dispatch(downloadDocument({ id: doc.id, name: doc.name }));
+                                        handleDownload(doc);
                                     }}
                                     className="p-3 text-white bg-[#ff782d] rounded-2xl hover:bg-[#081422] transition-all shadow-lg shadow-orange-100 active:scale-95"
                                     title="Download"

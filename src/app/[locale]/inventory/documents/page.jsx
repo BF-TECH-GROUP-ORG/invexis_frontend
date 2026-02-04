@@ -1,58 +1,129 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchData, archiveDocument, trashDocument } from '@/features/documents/documentsSlice';
+import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
 import FolderNavigation from '@/components/documents/FolderNavigation';
-import PreviewPanel from '@/components/documents/PreviewPanel';
-import { Search, Menu } from 'lucide-react';
+import InvoicePreviewModal from '@/app/[locale]/inventory/billing/components/InvoicePreviewModal';
+import { Search, Menu, AlertCircle } from 'lucide-react';
+import { Alert, CircularProgress } from '@mui/material';
 
 // Explorer Components
 import YearGrid from '@/components/documents/explorer/YearGrid';
 import MonthGrid from '@/components/documents/explorer/MonthGrid';
 import DocumentList from '@/components/documents/explorer/DocumentList';
-import RecentDocsList from '@/components/documents/explorer/RecentDocsList';
 
 // Skeletons
 import YearGridSkeleton from '@/components/documents/explorer/skeletons/YearGridSkeleton';
 import MonthGridSkeleton from '@/components/documents/explorer/skeletons/MonthGridSkeleton';
 import DocumentListSkeleton from '@/components/documents/explorer/skeletons/DocumentListSkeleton';
 
-import mockData from '@/features/documents/mockData';
-
 export default function DocumentsPage() {
-  const dispatch = useDispatch();
-  const { items: allDocs = [], status } = useSelector((state) => state.documents || {});
+  const { data: session } = useSession();
+
+  // Robust companyId extraction
+  const user = session?.user;
+  const companyObj = user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  // Prepare options with auth header
+  const options = useMemo(() => session?.accessToken ? {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`
+    }
+  } : {}, [session?.accessToken]);
 
   // Navigation State
   const [drillState, setDrillState] = useState({
-    category: "All Files", // Default
+    category: "Sales & Orders", // Defaulting to the category we have data for
     year: null,
     month: null
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSidebar, setShowSidebar] = useState(false);
 
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchData());
+  // 1. Fetch Invoices from Backend
+  const {
+    data: invoicesData,
+    isLoading: isInvoicesLoading,
+    isError: isInvoicesError,
+    error: invoicesError
+  } = useQuery({
+    queryKey: ['salesInvoices', companyId],
+    queryFn: () => getCompanySalesInvoices(companyId, options),
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 2. Fetch Inventory Media (Barcodes/QRs) from Backend
+  const {
+    data: inventoryData,
+    isLoading: isInventoryLoading,
+    isError: isInventoryError,
+    error: inventoryError
+  } = useQuery({
+    queryKey: ['inventoryMedia', companyId],
+    queryFn: () => getCompanyInventoryMedia(companyId, options),
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 10 * 60 * 1000, // Assets change less frequently
+  });
+
+  const isLoading = isInvoicesLoading || isInventoryLoading;
+  const isError = isInvoicesError || isInventoryError;
+  const error = invoicesError || inventoryError;
+
+  // Transform Backend Data to Explorer Format
+  const allDocs = useMemo(() => {
+    const docs = [];
+
+    // Map Invoices
+    if (invoicesData?.data && Array.isArray(invoicesData.data)) {
+      invoicesData.data.forEach(doc => {
+        const metadata = doc.metadata || {};
+        const storage = doc.storage || {};
+        docs.push({
+          id: doc.documentId || doc._id,
+          name: metadata.invoiceNumber || `Invoice-${doc.documentId?.slice(0, 8)}`,
+          date: doc.createdAt,
+          size: storage.size ? `${(storage.size / 1024).toFixed(1)} KB` : "N/A",
+          type: doc.type || "invoice",
+          category: "Sales & Orders",
+          pdfUrl: storage.url,
+          customer: { name: metadata.companyName || metadata.shopName || "Company Record" }
+        });
+      });
     }
-  }, [status, dispatch]);
+
+    // Map Inventory Media
+    if (inventoryData?.data && Array.isArray(inventoryData.data)) {
+      inventoryData.data.forEach(doc => {
+        const metadata = doc.metadata || {};
+        const storage = doc.storage || {};
+        const label = doc.type === 'barcode' ? 'Barcode' : 'QR Code';
+        docs.push({
+          id: doc.documentId || doc._id,
+          name: `${label}: ${metadata.sku || 'Unknown SKU'}`,
+          date: doc.createdAt,
+          size: storage.size ? `${(storage.size / 1024).toFixed(1)} KB` : "N/A",
+          type: doc.type || "media",
+          category: "Inventory",
+          pdfUrl: storage.url,
+          customer: { name: `Product SKU: ${metadata.sku || 'N/A'}` }
+        });
+      });
+    }
+
+    return docs;
+  }, [invoicesData, inventoryData]);
 
   // --- Derived Data Logic ---
   const filteredByCategory = useMemo(() => {
-    return mockData;
-  }, []);
-
-  // Recent Docs (Top 4 by date)
-  const recentDocs = useMemo(() => {
-    return [...filteredByCategory]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 4);
-  }, [filteredByCategory]);
+    if (drillState.category === "All Files") return allDocs;
+    return allDocs.filter(d => d.category === drillState.category);
+  }, [allDocs, drillState.category]);
 
   const availableYears = useMemo(() => {
     const years = new Set(
@@ -80,7 +151,7 @@ export default function DocumentsPage() {
       return date.getFullYear() === drillState.year && (date.getMonth() + 1) === drillState.month;
     });
     // Sort by date desc in the list
-    return docs.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return docs.sort((a, b) => b - a);
   }, [filteredByCategory, drillState.year, drillState.month]);
 
   // --- Handlers ---
@@ -96,13 +167,8 @@ export default function DocumentsPage() {
   };
 
   const handleBulkAction = async (actionType) => {
-    if (actionType === 'trash') {
-      const promises = selectedIds.map(id => dispatch(trashDocument(id)));
-      await Promise.all(promises);
-    } else if (actionType === 'archive') {
-      const promises = selectedIds.map(id => dispatch(archiveDocument(id)));
-      await Promise.all(promises);
-    }
+    console.log(`[DocumentsPage] Bulk Action: ${actionType} on IDs:`, selectedIds);
+    // Real implementation would call a delete/archive service
     setSelectedIds([]); // Clear after action
   };
 
@@ -157,10 +223,16 @@ export default function DocumentsPage() {
 
           <div className="flex-1 overflow-y-auto">
             {/* Hierarchical Drill-down View */}
-            {status === 'loading' ? (
+            {isLoading ? (
               !drillState.year ? <YearGridSkeleton /> :
                 !drillState.month ? <MonthGridSkeleton /> :
                   <DocumentListSkeleton />
+            ) : isError ? (
+              <div className="p-8">
+                <Alert severity="error" icon={<AlertCircle size={20} />}>
+                  {error?.message || "Failed to sync with document repository. Please check your connection."}
+                </Alert>
+              </div>
             ) : (
               <>
                 {!drillState.year ? (
@@ -243,12 +315,11 @@ export default function DocumentsPage() {
       </div>
 
       {/* Full-Screen Immersive Document Viewer */}
-      {selectedDoc && (
-        <PreviewPanel
-          document={selectedDoc}
-          onClose={() => setSelectedDoc(null)}
-        />
-      )}
+      <InvoicePreviewModal
+        invoice={selectedDoc}
+        open={!!selectedDoc}
+        onClose={() => setSelectedDoc(null)}
+      />
     </div>
   );
 }

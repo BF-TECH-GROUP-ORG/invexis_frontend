@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -24,6 +23,7 @@ import {
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useLoading } from "@/contexts/LoadingContext";
+import useRouteLoading from "@/hooks/useRouteLoading";
 import { useNotification } from "@/providers/NotificationProvider";
 import AnalyticsService from "@/services/analyticsService";
 import { getSalesHistory } from "@/services/salesService";
@@ -144,6 +144,7 @@ export default function SideBar({
   const t = useTranslations();
   const router = useRouter();
   const { setLoading, setLoadingText } = useLoading();
+  const { startNavigating } = useRouteLoading();
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
 
@@ -163,6 +164,7 @@ export default function SideBar({
   const [moreModalOpen, setMoreModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [optimisticPath, setOptimisticPath] = useState(null);
 
   const timeoutRef = useRef(null);
   const prefetchTimeoutRef = useRef(null);
@@ -205,10 +207,11 @@ export default function SideBar({
   );
 
   const isActive = useCallback(
-    (path) =>
-      pathname === `/${locale}${path}` ||
-      pathname.startsWith(`/${locale}${path}/`),
-    [pathname, locale]
+    (path) => {
+      const currentPath = optimisticPath || pathname;
+      return currentPath === path || currentPath.startsWith(`${path}/`);
+    },
+    [pathname, optimisticPath]
   );
 
   const prefetchData = useCallback((item) => {
@@ -273,13 +276,13 @@ export default function SideBar({
 
         // Prefetch routes for first few children to be ready, but DON'T fetch data yet
         if (item.children) {
-          item.children.slice(0, 4).forEach(child => {
+          item.children.slice(0, 6).forEach(child => {
             if (child.path && !isActive(child.path)) {
               router.prefetch(`/${locale}${child.path}`);
             }
           });
         }
-      }, 200);
+      }, 150);
 
       if (!expanded) {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -306,6 +309,13 @@ export default function SideBar({
       .map((item) => item.title);
     setOpenMenus(activeParents);
   }, [pathname, isActive]);
+
+  /* Clear optimistic path on actual navigation */
+  useEffect(() => {
+    if (pathname === optimisticPath) {
+      setOptimisticPath(null);
+    }
+  }, [pathname, optimisticPath]);
 
   /* Set mounted state */
   useEffect(() => {
@@ -439,8 +449,13 @@ export default function SideBar({
             <div className="flex items-center justify-around max-w-md mx-auto">
               {/* Dashboard */}
               <Link
-                href={`/${locale}/inventory/dashboard`}
-                prefetch={true}
+                href="/inventory/dashboard"
+                onClick={() => {
+                  if (!isActive("/inventory/dashboard")) {
+                    setOptimisticPath("/inventory/dashboard");
+                    startNavigating();
+                  }
+                }}
                 className="flex flex-col items-center gap-1 group"
               >
                 <div
@@ -458,8 +473,13 @@ export default function SideBar({
 
               {/* Notifications */}
               <Link
-                href={`/${locale}/inventory/notifications`}
-                prefetch={true}
+                href="/inventory/notifications"
+                onClick={() => {
+                  if (!isActive("/inventory/notifications")) {
+                    setOptimisticPath("/inventory/notifications");
+                    startNavigating();
+                  }
+                }}
                 className="flex flex-col items-center gap-1 group"
               >
                 <div
@@ -478,8 +498,13 @@ export default function SideBar({
               {/* Reports */}
               {visibleFor(navItems[2]) && (
                 <Link
-                  href={`/${locale}/inventory/reports`}
-                  prefetch={true}
+                  href="/inventory/reports"
+                  onClick={() => {
+                    if (!isActive("/inventory/reports")) {
+                      setOptimisticPath("/inventory/reports");
+                      startNavigating();
+                    }
+                  }}
                   className="flex flex-col items-center gap-1 group"
                 >
                   <div
@@ -552,9 +577,14 @@ export default function SideBar({
                           {/* Single Item (Sales) */}
                           {!item.children && (
                             <Link
-                              href={`/${locale}${item.path}`}
-                              prefetch={item.prefetch}
-                              onClick={() => setMoreModalOpen(false)}
+                              href={item.path}
+                              onClick={() => {
+                                setMoreModalOpen(false);
+                                if (!isActive(item.path)) {
+                                  setOptimisticPath(item.path);
+                                  startNavigating();
+                                }
+                              }}
                               className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
                                 ? "bg-orange-500 text-white shadow-lg"
                                 : "text-gray-700 hover:bg-orange-50"
@@ -605,11 +635,14 @@ export default function SideBar({
                                       .map((child) => (
                                         <Link
                                           key={child.title}
-                                          href={`/${locale}${child.path}`}
-                                          prefetch={child.prefetch}
-                                          onClick={() =>
-                                            setMoreModalOpen(false)
-                                          }
+                                          href={child.path}
+                                          onClick={() => {
+                                            setMoreModalOpen(false);
+                                            if (!isActive(child.path)) {
+                                              setOptimisticPath(child.path);
+                                              startNavigating();
+                                            }
+                                          }}
                                           className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
                                             ? "bg-orange-500 text-white"
                                             : "text-gray-600 hover:bg-gray-100"
@@ -688,9 +721,14 @@ export default function SideBar({
                   onMouseLeave={handleHoverLeave}
                 >
                   <Link
-                    href={`/${locale}${item.path}`}
-                    prefetch={item.prefetch}
+                    href={item.path}
                     onMouseEnter={() => prefetchData(item)}
+                    onClick={() => {
+                      if (!isActive(item.path)) {
+                        setOptimisticPath(item.path);
+                        startNavigating();
+                      }
+                    }}
                     className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
                       ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                       : "text-gray-700 hover:bg-orange-50"
@@ -733,9 +771,14 @@ export default function SideBar({
                     {/* Single-item (Sales) */}
                     {!item.children && visibleFor(item) && (
                       <Link
-                        href={`/${locale}${item.path}`}
-                        prefetch={item.prefetch}
+                        href={item.path}
                         onMouseEnter={() => prefetchData(item)}
+                        onClick={() => {
+                          if (!isActive(item.path)) {
+                            setOptimisticPath(item.path);
+                            startNavigating();
+                          }
+                        }}
                         className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
                           ? "bg-gray-100 font-bold border-l-5 border-orange-500 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
@@ -789,9 +832,14 @@ export default function SideBar({
                               {item.children.filter(visibleFor).map((child) => (
                                 <Link
                                   key={child.title}
-                                  href={`/${locale}${child.path}`}
-                                  prefetch={child.prefetch}
+                                  href={child.path}
                                   onMouseEnter={() => prefetchData(child)}
+                                  onClick={() => {
+                                    if (!isActive(child.path)) {
+                                      setOptimisticPath(child.path);
+                                      startNavigating();
+                                    }
+                                  }}
                                   className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
                                     ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                     : "text-gray-600 hover:bg-gray-100"
@@ -868,10 +916,15 @@ export default function SideBar({
             {/* Header/Main Link */}
             {!hoverItem.children ? (
               <Link
-                href={`/${locale}${hoverItem.path}`}
-                prefetch={hoverItem.prefetch}
+                href={hoverItem.path}
                 onMouseEnter={() => prefetchData(hoverItem)}
-                onClick={() => setHoverItem(null)}
+                onClick={() => {
+                  setHoverItem(null);
+                  if (!isActive(hoverItem.path)) {
+                    setOptimisticPath(hoverItem.path);
+                    startNavigating();
+                  }
+                }}
                 className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all ${isActive(hoverItem.path)
                   ? "bg-orange-500 text-white font-bold shadow-md"
                   : "text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-600 dark:hover:text-orange-400"
@@ -890,10 +943,15 @@ export default function SideBar({
                   {hoverItem.children.filter(visibleFor).map((child) => (
                     <Link
                       key={child.title}
-                      href={`/${locale}${child.path}`}
-                      prefetch={child.prefetch}
+                      href={child.path}
                       onMouseEnter={() => prefetchData(child)}
-                      onClick={() => setHoverItem(null)}
+                      onClick={() => {
+                        setHoverItem(null);
+                        if (!isActive(child.path)) {
+                          setOptimisticPath(child.path);
+                          startNavigating();
+                        }
+                      }}
                       className={`block px-3 py-2 text-sm rounded-lg transition-all ${isActive(child.path)
                         ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"

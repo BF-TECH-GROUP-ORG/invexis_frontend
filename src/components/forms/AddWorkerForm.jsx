@@ -26,7 +26,7 @@ const getDefaultWorker = () => ({
   email: "",
   phone: "",
   // countryCode: "+250",
-  password: "",
+
   role: "worker",
   dateOfBirth: "",
   gender: "",
@@ -166,11 +166,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       if (!worker.phone.trim()) errors.phone = "Phone is required";
       else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, "")))
         errors.phone = "Invalid phone format (e.g., +250...)";
-      if (!isEditMode) {
-        if (!worker.password.trim()) errors.password = "Password is required";
-        else if (worker.password.length < 6)
-          errors.password = "Password must be at least 6 characters";
-      }
+
       if (!worker.gender) errors.gender = "Gender is required";
     }
 
@@ -286,6 +282,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
 
     delete payload.username;
+    delete payload.password;
     delete payload.department;
 
     if (payload.nationalId)
@@ -427,19 +424,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               }}
             />
 
-            <TextField
-              label="Password"
-              type="password"
-              value={worker.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              required={!isEditMode}
-              error={!!fieldErrors.password}
-              helperText={fieldErrors.password}
-              fullWidth
-              placeholder={
-                isEditMode ? "Leave blank to keep current password" : ""
-              }
-            />
+
 
             <TextField
               label="Date of Birth"

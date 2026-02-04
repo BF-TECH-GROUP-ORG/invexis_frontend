@@ -14,5 +14,7 @@ export default function useRouteLoading() {
     setIsNavigating(false);
   }, [pathname, searchParams]);
 
-  return { isNavigating };
+  const startNavigating = () => setIsNavigating(true);
+
+  return { isNavigating, startNavigating };
 }

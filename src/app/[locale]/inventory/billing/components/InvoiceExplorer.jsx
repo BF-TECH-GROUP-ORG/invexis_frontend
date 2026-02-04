@@ -27,6 +27,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import InvoiceGenerator from "./InvoiceGenerator";
+import InvoicePreviewModal from "./InvoicePreviewModal";
 
 export default function InvoiceExplorer({ invoices }) {
     const [viewState, setViewState] = useState({
@@ -34,6 +35,8 @@ export default function InvoiceExplorer({ invoices }) {
         year: null,
         month: null
     });
+
+    const [selectedPreviewInvoice, setSelectedPreviewInvoice] = useState(null);
 
     const [dateRange, setDateRange] = useState({ start: "", end: "" });
     const [selectedShop, setSelectedShop] = useState("All");
@@ -266,7 +269,11 @@ export default function InvoiceExplorer({ invoices }) {
             {viewState.view === "list" && (
                 <div className="grid grid-cols-1 gap-6 animate-in slide-in-from-right-4 duration-400">
                     {groupedData[viewState.year][viewState.month].map(invoice => (
-                        <InvoiceGenerator key={invoice.id} invoice={invoice} />
+                        <InvoiceGenerator
+                            key={invoice.id}
+                            invoice={invoice}
+                            onPreview={() => setSelectedPreviewInvoice(invoice)}
+                        />
                     ))}
                     {groupedData[viewState.year][viewState.month].length === 0 && (
                         <div className="py-20 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-3xl">
@@ -277,6 +284,12 @@ export default function InvoiceExplorer({ invoices }) {
                 </div>
             )}
 
+            {/* Preview Modal */}
+            <InvoicePreviewModal
+                invoice={selectedPreviewInvoice}
+                open={!!selectedPreviewInvoice}
+                onClose={() => setSelectedPreviewInvoice(null)}
+            />
         </div>
     );
 }

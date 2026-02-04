@@ -12,6 +12,7 @@ import GlobalLoader from "@/components/shared/GlobalLoader";
 import { useLoading } from "@/contexts/LoadingContext";
 import useRouteLoading from "@/hooks/useRouteLoading";
 import useNotifications from "@/hooks/useNotifications";
+import TopProgressBar from "@/components/shared/TopProgressBar";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
 
@@ -160,9 +161,10 @@ export default function LayoutWrapper({ children }) {
   // 1. Initial Mount or Auth Loading -> Full Screen
   // 2. Global Loading (Logout/Login actions) -> Full Screen
   // 3. Navigation FROM Auth pages -> Full Screen (prevents transition to inner loader)
-  // 4. Other Navigation -> Inner Content Loader
+  // 4. Other Navigation -> Top Progress Bar (Partial/Progressive)
 
   const showFullScreenLoader = globalLoading || (isNavigating && isComingFromAuth);
+  const showTopProgress = isNavigating && !isComingFromAuth;
 
   // If logged in but on auth page (redirecting), show Full Screen
   const isAuthRoute = /^\/[a-z]{2}\/auth\//.test(pathname || "");
@@ -172,6 +174,7 @@ export default function LayoutWrapper({ children }) {
 
   return (
     <>
+      <TopProgressBar isNavigating={showTopProgress} />
       {showFullScreenLoader ? (
         <GlobalLoader visible={true} text={loadingText || "Loading..."} />
       ) : (
