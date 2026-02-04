@@ -12,8 +12,11 @@ import ProductRiskSection from "./ProductRiskSection";
 import InventoryValueTrendSection from "./InventoryValueTrendSection";
 import ShopPerformanceSection from "./ShopPerformanceSection";
 import InventoryActivitySection from "./InventoryActivitySection";
+import { useTranslations } from "next-intl";
+import { RefreshCw } from "lucide-react";
 
 const InventoryOverviewPage = () => {
+  const t = useTranslations("inventoryOverview.errors");
   const { data: session, status } = useSession();
 
   // Extract companyId from session
@@ -42,14 +45,14 @@ const InventoryOverviewPage = () => {
       <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">
-            Something went wrong
+            {t('somethingWentWrong')}
           </h2>
           <p className="text-gray-500 mb-4">{error}</p>
           <button
             onClick={refetch}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
       </div>
@@ -61,11 +64,10 @@ const InventoryOverviewPage = () => {
       <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-xl font-bold text-orange-600 mb-2">
-            No Company Selected
+            {t('noCompanySelected')}
           </h2>
           <p className="text-gray-500 mb-4">
-            Please ensure you are associated with a company to view the
-            dashboard.
+            {t('noCompanySelectedDesc')}
           </p>
         </div>
       </div>

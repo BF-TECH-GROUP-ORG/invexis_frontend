@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import {
   createProduct,
   updateProduct,
@@ -30,6 +31,7 @@ import useProductForm from "./ProductFormHooks/useProductForm";
 const TOTAL_STEPS = 6;
 
 export default function AddProductModal({ onClose, editData = null }) {
+  const t = useTranslations("products.form");
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
@@ -68,7 +70,7 @@ export default function AddProductModal({ onClose, editData = null }) {
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
     } else {
-      toast.error("Please fix the errors before continuing");
+      toast.error(t("modal.errorFix"));
     }
   };
 
@@ -78,7 +80,7 @@ export default function AddProductModal({ onClose, editData = null }) {
 
   const handleSubmit = async () => {
     if (!isSimpleMode && !validateStep(TOTAL_STEPS)) {
-      toast.error("Please fix all errors before saving");
+      toast.error(t("modal.errorAll"));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function AddProductModal({ onClose, editData = null }) {
 
       const basePrice =
         formData.pricing?.basePrice !== "" &&
-        formData.pricing?.basePrice !== undefined
+          formData.pricing?.basePrice !== undefined
           ? Number(formData.pricing.basePrice)
           : 0;
 
@@ -108,7 +110,7 @@ export default function AddProductModal({ onClose, editData = null }) {
 
       const normalizedStock =
         formData.inventory?.quantity !== "" &&
-        formData.inventory?.quantity !== undefined
+          formData.inventory?.quantity !== undefined
           ? Number(formData.inventory.quantity)
           : 0;
 
@@ -150,11 +152,11 @@ export default function AddProductModal({ onClose, editData = null }) {
 
         images: Array.isArray(formData.images)
           ? formData.images.map((img, index) => ({
-              url: img.url,
-              alt: img.alt || "product image",
-              isPrimary: !!img.isPrimary,
-              sortOrder: index + 1,
-            }))
+            url: img.url,
+            alt: img.alt || "product image",
+            isPrimary: !!img.isPrimary,
+            sortOrder: index + 1,
+          }))
           : [],
 
         videoUrls: formData.videoUrls?.filter(Boolean) || [],
@@ -188,15 +190,13 @@ export default function AddProductModal({ onClose, editData = null }) {
       }
 
       if (!selectedCategory) {
-        toast.error("Please select a valid category (level-3)");
+        toast.error(t("modal.errorSelectCategory"));
         setIsSubmitting(false);
         return;
       }
 
       if (selectedCategory.level !== 3) {
-        toast.error(
-          "Category must be a level-3 category. Please pick a more specific category."
-        );
+        toast.error(t("modal.errorLevel3"));
         setIsSubmitting(false);
         return;
       }
@@ -213,16 +213,16 @@ export default function AddProductModal({ onClose, editData = null }) {
         await dispatch(
           updateProduct({ id: editData._id || editData.id, data: payload })
         ).unwrap();
-        toast.success("Product updated successfully");
+        toast.success(t("modal.successUpdate"));
       } else {
         await dispatch(createProduct(payload)).unwrap();
-        toast.success("Product created successfully");
+        toast.success(t("modal.successCreate"));
       }
 
       onClose();
     } catch (error) {
       console.error("Submission failed:", error);
-      toast.error(error?.message || "Failed to save product");
+      toast.error(error?.message || t("modal.failureSave"));
     } finally {
       setIsSubmitting(false);
     }
@@ -230,18 +230,18 @@ export default function AddProductModal({ onClose, editData = null }) {
 
   const handleSimpleSubmit = () => {
     const simpleErrors = {};
-    if (!formData.name) simpleErrors.name = "Name is required";
-    if (!formData.category) simpleErrors.category = "Category is required";
+    if (!formData.name) simpleErrors.name = t("errors.nameRequired");
+    if (!formData.category) simpleErrors.category = t("errors.categoryRequired");
     if (!formData.pricing?.basePrice)
-      simpleErrors.price = "Base Price is required";
+      simpleErrors.price = t("errors.priceRequired");
     if (
       formData.inventory?.quantity === "" ||
       formData.inventory?.quantity === undefined
     )
-      simpleErrors.stock = "Stock is required";
+      simpleErrors.stock = t("errors.stockRequired");
 
     if (Object.keys(simpleErrors).length > 0) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("modal.requiredFields"));
       return;
     }
 
@@ -270,17 +270,17 @@ export default function AddProductModal({ onClose, editData = null }) {
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                {editData ? "Edit Product" : "Add New Product"}
+                {editData ? t("modal.editTitle") : t("modal.createTitle")}
                 {isSimpleMode && (
                   <span className="text-xs bg-white/20 px-2 py-1 rounded-full font-medium flex items-center gap-1">
-                    <Sparkles size={12} /> Simple
+                    <Sparkles size={12} /> {t("modal.simple")}
                   </span>
                 )}
               </h2>
               <p className="text-sm text-white/90 mt-1">
                 {isSimpleMode
-                  ? "Quickly add a product with essential details."
-                  : `Step ${currentStep} of ${TOTAL_STEPS} - Advanced Configuration`}
+                  ? t("modal.quickAdd")
+                  : t("modal.advancedPrompt", { step: currentStep, total: TOTAL_STEPS })}
               </p>
             </div>
 
@@ -291,11 +291,11 @@ export default function AddProductModal({ onClose, editData = null }) {
               >
                 {isSimpleMode ? (
                   <>
-                    <Layers size={16} /> Switch to Advanced
+                    <Layers size={16} /> {t("modal.switchToAdvanced")}
                   </>
                 ) : (
                   <>
-                    <Sparkles size={16} /> Switch to Simple
+                    <Sparkles size={16} /> {t("modal.switchToSimple")}
                   </>
                 )}
               </button>
@@ -315,13 +315,12 @@ export default function AddProductModal({ onClose, editData = null }) {
 
           {/* Content */}
           <div
-            className={`p-6 flex-1 ${
-              isSimpleMode ? "overflow-hidden flex flex-col" : "overflow-y-auto"
-            }`}
+            className={`p-6 flex-1 ${isSimpleMode ? "overflow-hidden flex flex-col" : "overflow-y-auto"
+              }`}
           >
             {isLoadingDropdowns ? (
               <div className="text-center py-8 text-gray-500">
-                Loading categories...
+                {t("modal.loadingCategories")}
               </div>
             ) : (
               <>
@@ -409,7 +408,7 @@ export default function AddProductModal({ onClose, editData = null }) {
                   className="flex items-center gap-2 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition"
                 >
                   <ChevronLeft size={20} />
-                  Previous
+                  {t("modal.previous")}
                 </button>
               )}
             </div>
@@ -430,12 +429,12 @@ export default function AddProductModal({ onClose, editData = null }) {
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                      Saving...
+                      {t("modal.saving")}
                     </>
                   ) : (
                     <>
                       <Plus size={20} />
-                      {editData ? "Update Product" : "Create Product"}
+                      {editData ? t("modal.updateProduct") : t("modal.createProduct")}
                     </>
                   )}
                 </button>
@@ -445,7 +444,7 @@ export default function AddProductModal({ onClose, editData = null }) {
                   disabled={isLoadingDropdowns}
                   className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-50"
                 >
-                  Next Step
+                  {t("modal.nextStep")}
                   <ChevronRight size={20} />
                 </button>
               ) : (
@@ -457,12 +456,12 @@ export default function AddProductModal({ onClose, editData = null }) {
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                      Saving...
+                      {t("modal.saving")}
                     </>
                   ) : (
                     <>
                       <Plus size={20} />
-                      {editData ? "Update" : "Add"} Product
+                      {editData ? t("modal.updateProduct") : t("modal.createProduct")}
                     </>
                   )}
                 </button>

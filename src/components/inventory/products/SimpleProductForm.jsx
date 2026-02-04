@@ -1,9 +1,9 @@
-// src/components/inventory/products/SimpleProductForm.jsx
 "use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, Upload, X, Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function SimpleProductForm({
     formData,
@@ -15,6 +15,7 @@ export default function SimpleProductForm({
     removeImage,
     setPrimaryImage,
 }) {
+    const t = useTranslations("products.form");
     const [activeSlide, setActiveSlide] = useState(0);
 
     const pricing = formData.pricing || { basePrice: "", currency: "USD" };
@@ -52,15 +53,15 @@ export default function SimpleProductForm({
                 <button
                     onClick={() => setActiveSlide(0)}
                     className={`flex items-center gap-3 px-2 py-2 rounded-xl transition-all ${activeSlide === 0
-                            ? "bg-orange-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-orange-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                 >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 0 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
                         }`}>
                         1
                     </div>
-                    <span className="font-semibold text-sm">Product Details</span>
+                    <span className="font-semibold text-sm">{t("simple.productDetails")}</span>
                 </button>
 
                 {/* Connector Line */}
@@ -70,15 +71,15 @@ export default function SimpleProductForm({
                 <button
                     onClick={() => setActiveSlide(1)}
                     className={`flex items-center gap-3 px-2 py-2 rounded-xl transition-all ${activeSlide === 1
-                            ? "bg-orange-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-orange-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                 >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${activeSlide === 1 ? "bg-white text-orange-500" : "bg-gray-300 text-gray-600"
                         }`}>
                         2
                     </div>
-                    <span className="font-semibold text-sm">Pricing & Inventory</span>
+                    <span className="font-semibold text-sm">{t("simple.pricingInventory")}</span>
                 </button>
             </div>
 
@@ -100,13 +101,13 @@ export default function SimpleProductForm({
                                     {/* Name */}
                                     <div className="col-span-2">
                                         <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-                                            Product Name <span className="text-red-500">*</span>
+                                            {t("fields.name")} <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             value={formData.name || ""}
                                             onChange={(e) => updateFormData({ name: e.target.value })}
                                             className={`w-full px-3 py-2.5 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition ${errors.name ? "border-red-500" : "border-gray-300"}`}
-                                            placeholder="Enter product name"
+                                            placeholder={t("fields.namePlaceholder")}
                                         />
                                         {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                                     </div>
@@ -114,20 +115,20 @@ export default function SimpleProductForm({
                                     {/* Brand */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-                                            Brand <span className="text-red-500">*</span>
+                                            {t("fields.brand")} <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             value={formData.brand || ""}
                                             onChange={(e) => updateFormData({ brand: e.target.value })}
                                             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                            placeholder="Enter brand"
+                                            placeholder={t("fields.brandPlaceholder")}
                                         />
                                     </div>
 
                                     {/* Category */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-                                            Category <span className="text-red-500">*</span>
+                                            {t("fields.category")} <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             value={formData.category || ""}
@@ -135,7 +136,7 @@ export default function SimpleProductForm({
                                             disabled={isLoadingCategories}
                                             className={`w-full px-3 py-2.5 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition ${errors.category ? "border-red-500" : "border-gray-300"}`}
                                         >
-                                            <option value="">Select Category</option>
+                                            <option value="">{t("fields.selectCategory")}</option>
                                             {categories.map((cat) => (
                                                 <option key={cat._id} value={cat._id}>{cat.name}</option>
                                             ))}
@@ -145,29 +146,29 @@ export default function SimpleProductForm({
 
                                     {/* Supplier */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Supplier</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">{t("fields.supplier")}</label>
                                         <input
                                             value={formData.supplier || ""}
                                             onChange={(e) => updateFormData({ supplier: e.target.value })}
                                             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                            placeholder="Enter supplier name"
+                                            placeholder={t("fields.supplierPlaceholder")}
                                         />
                                     </div>
 
                                     {/* Manufacturer */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Manufacturer</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">{t("fields.manufacturer")}</label>
                                         <input
                                             value={formData.manufacturer || ""}
                                             onChange={(e) => updateFormData({ manufacturer: e.target.value })}
                                             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                            placeholder="Enter manufacturer"
+                                            placeholder={t("fields.manufacturerPlaceholder")}
                                         />
                                     </div>
 
                                     {/* Tags */}
                                     <div className="col-span-2">
-                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Tags</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">{t("fields.tags")}</label>
                                         <input
                                             value={(formData.tags || []).join(", ")}
                                             onChange={(e) =>
@@ -176,14 +177,14 @@ export default function SimpleProductForm({
                                                 })
                                             }
                                             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                            placeholder="e.g. organic, cotton, eco-friendly"
+                                            placeholder={t("fields.tagsPlaceholder")}
                                         />
                                     </div>
 
                                     {/* Short Description */}
                                     <div className="col-span-2">
                                         <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-                                            Short Description <span className="text-red-500">*</span>
+                                            {t("fields.shortDesc")} <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             value={formData.description?.short || ""}
@@ -191,7 +192,7 @@ export default function SimpleProductForm({
                                                 updateFormData({ description: { ...formData.description, short: e.target.value } })
                                             }
                                             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition resize-none"
-                                            placeholder="Brief product summary..."
+                                            placeholder={t("fields.shortDescPlaceholder")}
                                             rows="3"
                                         />
                                     </div>
@@ -202,7 +203,7 @@ export default function SimpleProductForm({
                                         onClick={nextSlide}
                                         className="flex items-center gap-2 px-6 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-medium"
                                     >
-                                        Next: Pricing & Inventory
+                                        {t("simple.nextPricing")}
                                         <ChevronRight size={18} />
                                     </button>
                                 </div>
@@ -224,7 +225,7 @@ export default function SimpleProductForm({
                                     {/* Base Price */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                                            Base Price <span className="text-red-500">*</span>
+                                            {t("fields.basePrice")} <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-3 text-sm text-gray-500">
@@ -246,7 +247,7 @@ export default function SimpleProductForm({
 
                                     {/* Sale Price */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Sale Price</label>
+                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">{t("fields.salePrice")}</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-3 text-sm text-gray-500">
                                                 {pricing.currency === "FRW" ? "Frw" :
@@ -266,7 +267,7 @@ export default function SimpleProductForm({
 
                                     {/* Cost */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Cost</label>
+                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">{t("fields.cost")}</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-3 text-sm text-gray-500">
                                                 {pricing.currency === "FRW" ? "Frw" :
@@ -286,7 +287,7 @@ export default function SimpleProductForm({
 
                                     {/* Currency */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Currency</label>
+                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">{t("fields.currency")}</label>
                                         <select
                                             value={pricing.currency}
                                             onChange={(e) => handlePriceChange("currency", e.target.value)}
@@ -303,7 +304,7 @@ export default function SimpleProductForm({
                                     {/* Stock */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                                            Stock Quantity <span className="text-red-500">*</span>
+                                            {t("fields.stockQty")} <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="number"
@@ -317,7 +318,7 @@ export default function SimpleProductForm({
 
                                     {/* Low Stock Threshold */}
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Low Stock Alert</label>
+                                        <label className="text-sm font-medium text-gray-700 block mb-1.5">{t("fields.lowStockAlert")}</label>
                                         <input
                                             type="number"
                                             value={inventory.lowStockThreshold || ""}
@@ -337,7 +338,7 @@ export default function SimpleProductForm({
                                             onChange={(e) => handleInventoryChange("trackQuantity", e.target.checked)}
                                             className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                                         />
-                                        <span className="text-sm text-gray-700">Track Quantity</span>
+                                        <span className="text-sm text-gray-700">{t("fields.trackQuantity")}</span>
                                     </label>
 
                                     <label className="flex items-center gap-2 cursor-pointer">
@@ -347,13 +348,13 @@ export default function SimpleProductForm({
                                             onChange={(e) => handleInventoryChange("allowBackorder", e.target.checked)}
                                             className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                                         />
-                                        <span className="text-sm text-gray-700">Allow Backorder</span>
+                                        <span className="text-sm text-gray-700">{t("fields.allowBackorder")}</span>
                                     </label>
                                 </div>
 
                                 {/* Images */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700 block mb-3">Product Images</label>
+                                    <label className="text-sm font-medium text-gray-700 block mb-3">{t("fields.productImages")}</label>
                                     <div className="grid grid-cols-5 gap-3">
                                         {(formData.images || []).map((img, index) => (
                                             <div
@@ -375,7 +376,7 @@ export default function SimpleProductForm({
 
                                                 {img.isPrimary && (
                                                     <div className="absolute bottom-0 w-full text-center text-xs bg-orange-500 text-white py-1 font-medium">
-                                                        Primary
+                                                        {t("fields.primary")}
                                                     </div>
                                                 )}
 
@@ -384,7 +385,7 @@ export default function SimpleProductForm({
                                                         onClick={() => setPrimaryImage(index)}
                                                         className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs px-2 py-1 bg-white border border-gray-300 rounded opacity-0 group-hover:opacity-100 transition"
                                                     >
-                                                        Set Primary
+                                                        {t("fields.setPrimary")}
                                                     </button>
                                                 )}
                                             </div>
@@ -393,7 +394,7 @@ export default function SimpleProductForm({
                                         {(formData.images || []).length < 10 && (
                                             <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition">
                                                 <Upload size={20} className="text-gray-400" />
-                                                <span className="text-xs text-gray-500 mt-1">Upload</span>
+                                                <span className="text-xs text-gray-500 mt-1">{t("fields.upload")}</span>
                                                 <input
                                                     type="file"
                                                     multiple
@@ -408,7 +409,7 @@ export default function SimpleProductForm({
 
                                 {/* Attributes */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700 block mb-3">Product Attributes</label>
+                                    <label className="text-sm font-medium text-gray-700 block mb-3">{t("fields.attributes")}</label>
                                     <div className="space-y-2">
                                         {attributes.map((attr, index) => (
                                             <div key={index} className="flex gap-2">
@@ -423,7 +424,7 @@ export default function SimpleProductForm({
                                                         })
                                                     }
                                                     className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                                    placeholder="Attribute name"
+                                                    placeholder={t("fields.attrName")}
                                                 />
 
                                                 <input
@@ -437,7 +438,7 @@ export default function SimpleProductForm({
                                                         })
                                                     }
                                                     className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 transition"
-                                                    placeholder="Value"
+                                                    placeholder={t("fields.value")}
                                                 />
 
                                                 <button
@@ -462,7 +463,7 @@ export default function SimpleProductForm({
                                         }
                                         className="mt-3 text-sm text-orange-600 hover:text-orange-700 flex items-center gap-1.5 font-medium"
                                     >
-                                        <Plus size={16} /> Add Attribute
+                                        <Plus size={16} /> {t("fields.addAttribute")}
                                     </button>
                                 </div>
                             </div>

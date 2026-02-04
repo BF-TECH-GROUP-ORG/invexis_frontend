@@ -70,8 +70,8 @@ const getNavItems = (t) => [
     icon: <Package size={22} />,
     roles: ["worker", "company_admin"],
     children: [
-      { title: t("sidebar.inventoryOverview"), path: "/inventory/Overview", prefetch: true },
-      { title: t("sidebar.categories"), path: "/inventory/categories", prefetch: true },
+      { title: t("inventoryOverview.header.title"), path: "/inventory/Overview", prefetch: true },
+      { title: t("categories.list.title"), path: "/inventory/categories", prefetch: true },
       { title: t("sidebar.products"), path: "/inventory/products", prefetch: true },
       { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true },
       { title: t("sidebar.stockOps"), path: "/inventory/stock", prefetch: true },

@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from 'react';
-import { Store, Users, Boxes, CircleX, TrendingUp, Undo2, Percent, Coins } from 'lucide-react';
+import { Store, Boxes, TrendingUp, Coins } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
 import { StatsCard } from '@/components/shared/StatsCard';
-import Skeleton from '@/components/shared/Skeleton';
+// import Skeleton from '@/components/shared/Skeleton';
 import dynamic from 'next/dynamic';
 const SalesPerformance = dynamic(() => import('@/components/visuals/sales/salesPerformance'), {
     loading: () => <div className="h-[400px] w-full bg-gray-50 animate-pulse rounded-3xl border border-gray-100" />,

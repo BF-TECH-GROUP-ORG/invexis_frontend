@@ -8,6 +8,7 @@ import {
   deleteProduct,
 } from "@/features/products/productsSlice";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
@@ -21,10 +22,10 @@ import {
 } from "lucide-react";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
-
 function Field({ label, value }) {
+  const t = useTranslations("products.detail");
   let display;
-  if (value === undefined || value === null) display = "N/A";
+  if (value === undefined || value === null) display = t("fields.none");
   else if (React.isValidElement(value)) display = value;
   else if (typeof value === "object") {
     if (Array.isArray(value)) display = value.join(", ");
@@ -41,6 +42,7 @@ function Field({ label, value }) {
 }
 
 function DetailInner({ id }) {
+  const t = useTranslations("products.detail");
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -124,13 +126,13 @@ function DetailInner({ id }) {
   }, [mediaItems, mainMedia]);
 
   const handleDelete = async () => {
-    if (!confirm("Delete this product? This action cannot be undone.")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     try {
       await dispatch(deleteProduct(product._id || product.id)).unwrap();
-      toast.success("Product deleted");
+      toast.success(t("successDelete")); // Need to add successDelete to JSON or use existing
       router.push(pathname.replace(/\/[^/]+$/, "/products"));
     } catch (err) {
-      toast.error("Failed to delete product");
+      toast.error(t("errorDelete")); // Need to add errorDelete to JSON
     }
   };
 
@@ -166,7 +168,7 @@ function DetailInner({ id }) {
   if (loading || !product) {
     return (
       <div className="p-8 bg-white rounded-lg shadow-sm">
-        <p className="text-gray-500">Loading product...</p>
+        <p className="text-gray-500">{t("loading")}</p>
       </div>
     );
   }
@@ -176,10 +178,10 @@ function DetailInner({ id }) {
   const fmt = (v) =>
     typeof v === "number"
       ? new Intl.NumberFormat(undefined, {
-          style: "currency",
-          currency,
-        }).format(v)
-      : v ?? "N/A";
+        style: "currency",
+        currency,
+      }).format(v)
+      : v ?? t("fields.none");
 
   const openLightbox = (index = 0) => {
     setLightboxIndex(index);
@@ -212,56 +214,52 @@ function DetailInner({ id }) {
                   {product.sku ||
                     product.identifiers?.sku ||
                     product.inventory?.sku ||
-                    "No SKU"}
+                    t("noSku")}
                 </span>
               </div>
 
               <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
-                    (
-                      typeof product.status === "object"
-                        ? product.status.active
-                        : product.status === "active" ||
-                          product.status === "Active"
-                    )
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-red-50 text-red-700 border-red-200"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${(
+                    typeof product.status === "object"
+                      ? product.status.active
+                      : product.status?.toLowerCase() === "active"
+                  )
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-red-50 text-red-700 border-red-200"
+                    }`}
                 >
                   <span
-                    className={`w-2 h-2 rounded-full ${
-                      (
-                        typeof product.status === "object"
-                          ? product.status.active
-                          : product.status === "active" ||
-                            product.status === "Active"
-                      )
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }`}
+                    className={`w-2 h-2 rounded-full ${(
+                      typeof product.status === "object"
+                        ? product.status.active
+                        : product.status?.toLowerCase() === "active"
+                    )
+                      ? "bg-green-500"
+                      : "bg-red-500"
+                      }`}
                   />
                   {(typeof product.status === "object"
                     ? product.status.active
-                      ? "Active"
-                      : "Inactive"
-                    : product.status) ||
+                      ? t("fields.active")
+                      : t("fields.inactive")
+                    : product.status?.toLowerCase() === "active" ? t("fields.active") : product.status?.toLowerCase() === "inactive" ? t("fields.inactive") : product.status) ||
                     product.availability ||
-                    "Unknown"}
+                    t("unknown")}
                 </span>
 
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                  {product.visibility || product.status?.visible || "public"}
+                  {product.visibility === "private" ? t("fields.private") : t("public")}
                 </span>
 
                 {product.isFeatured && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                    ★ Featured
+                    ★ {t("featured")}
                   </span>
                 )}
 
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#081422] border border-gray-200">
-                  {product.category?.name || "Uncategorized"}
+                  {product.category?.name || t("uncategorized")}
                 </span>
               </div>
             </div>
@@ -272,19 +270,19 @@ function DetailInner({ id }) {
               onClick={handleExport}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-2 shadow-sm"
             >
-              <Download size={18} /> <span>Export</span>
+              <Download size={18} /> <span>{t("export")}</span>
             </button>
             <button
               onClick={handleEdit}
               className="px-4 py-2 bg-[#081422] hover:bg-[#081422]/90 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
             >
-              <Edit size={18} /> <span>Edit</span>
+              <Edit size={18} /> <span>{t("edit")}</span>
             </button>
             <button
               onClick={handleDelete}
               className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
             >
-              <Trash2 size={18} /> <span>Delete</span>
+              <Trash2 size={18} /> <span>{t("delete")}</span>
             </button>
           </div>
         </div>
@@ -293,23 +291,22 @@ function DetailInner({ id }) {
         <div className="px-8 pt-2 bg-gray-50/50 border-b">
           <nav className="flex gap-6 overflow-x-auto no-scrollbar w-full">
             {[
-              { id: "overview", label: "Overview" },
-              { id: "pricing", label: "Pricing" },
-              { id: "inventory", label: "Inventory" },
-              { id: "media", label: "Media" },
-              { id: "variations", label: "Variations" },
-              { id: "codes", label: "Codes" },
-              { id: "specs", label: "Specs" },
-              ...(isDev ? [{ id: "raw", label: "Raw Data" }] : []),
-            ].map((t) => (
+              { id: "overview", label: t("tabs.overview") },
+              { id: "pricing", label: t("tabs.pricing") },
+              { id: "inventory", label: t("tabs.inventory") },
+              { id: "media", label: t("tabs.media") },
+              { id: "variations", label: t("tabs.variations") },
+              { id: "codes", label: t("tabs.codes") },
+              { id: "specs", label: t("tabs.specs") },
+              ...(isDev ? [{ id: "raw", label: t("tabs.raw") }] : []),
+            ].map((tab) => (
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`pb-4 pt-4 text-sm font-medium transition-all relative whitespace-nowrap ${
-                  activeTab === t.id
-                    ? "text-orange-600"
-                    : "text-gray-500 hover:text-gray-800"
-                }`}
+                className={`pb-4 pt-4 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === t.id
+                  ? "text-orange-600"
+                  : "text-gray-500 hover:text-gray-800"
+                  }`}
               >
                 {t.label}
                 {activeTab === t.id && (
@@ -354,7 +351,7 @@ function DetailInner({ id }) {
                     </button>
                   )
                 ) : (
-                  <div className="text-gray-400">No media available</div>
+                  <div className="text-gray-400">{t("noMedia")}</div>
                 )}
               </div>
 
@@ -364,9 +361,8 @@ function DetailInner({ id }) {
                     <button
                       key={i}
                       onClick={() => setMainMedia(item)}
-                      className={`h-20 rounded-md overflow-hidden border focus:outline-none focus:ring-2 focus:ring-orange-300 relative ${
-                        mainMedia === item ? "ring-2 ring-orange-500" : ""
-                      }`}
+                      className={`h-20 rounded-md overflow-hidden border focus:outline-none focus:ring-2 focus:ring-orange-300 relative ${mainMedia === item ? "ring-2 ring-orange-500" : ""
+                        }`}
                     >
                       {item.type === "youtube" || item.type === "video" ? (
                         <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white text-xs">
@@ -404,19 +400,19 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">Selling Price</p>
+                      <p className="text-xs text-gray-500">{t("cards.sellingPrice")}</p>
                       <p className="text-xl font-bold text-green-600">
                         {fmt(product.pricing?.basePrice)}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">Cost Price</p>
+                      <p className="text-xs text-gray-500">{t("cards.costPrice")}</p>
                       <p className="text-xl font-semibold">
                         {fmt(product.pricing?.cost)}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">Stock</p>
+                      <p className="text-xs text-gray-500">{t("cards.stock")}</p>
                       <p className="text-xl font-semibold">
                         {product.inventory?.stockQty ??
                           product.stock?.total ??
@@ -424,13 +420,13 @@ function DetailInner({ id }) {
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">Total Value</p>
+                      <p className="text-xs text-gray-500">{t("cards.totalValue")}</p>
                       <p className="text-xl font-bold text-orange-600">
                         {fmt(
                           (product.pricing?.basePrice || 0) *
-                            (product.inventory?.stockQty ??
-                              product.stock?.total ??
-                              0)
+                          (product.inventory?.stockQty ??
+                            product.stock?.total ??
+                            0)
                         )}
                       </p>
                     </div>
@@ -438,76 +434,76 @@ function DetailInner({ id }) {
 
                   <div className="bg-white border rounded-lg p-4">
                     <h3 className="text-sm text-gray-600 mb-2 font-bold">
-                      Details
+                      {t("sections.details")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field
-                        label="Category"
-                        value={product.category?.name || "N/A"}
+                        label={t("fields.category")}
+                        value={product.category?.name || t("fields.none")}
                       />
-                      <Field label="Shop ID" value={product.shopId || "N/A"} />
-                      <Field label="Brand" value={product.brand || "N/A"} />
+                      <Field label={t("fields.shopId")} value={product.shopId || t("fields.none")} />
+                      <Field label={t("fields.brand")} value={product.brand || t("fields.none")} />
                       <Field
-                        label="Manufacturer"
-                        value={product.manufacturer || "N/A"}
-                      />
-                      <Field
-                        label="SKU"
-                        value={product.identifiers?.sku || "N/A"}
+                        label={t("fields.manufacturer")}
+                        value={product.manufacturer || t("fields.none")}
                       />
                       <Field
-                        label="ASIN"
-                        value={product.identifiers?.asin || "N/A"}
+                        label={t("fields.sku")}
+                        value={product.identifiers?.sku || t("fields.none")}
                       />
                       <Field
-                        label="UPC"
-                        value={product.identifiers?.upc || "N/A"}
+                        label={t("fields.asin")}
+                        value={product.identifiers?.asin || t("fields.none")}
                       />
                       <Field
-                        label="Scan ID"
-                        value={product.identifiers?.scanId || "N/A"}
+                        label={t("fields.upc")}
+                        value={product.identifiers?.upc || t("fields.none")}
                       />
                       <Field
-                        label="Date Entered"
+                        label={t("fields.scanId")}
+                        value={product.identifiers?.scanId || t("fields.none")}
+                      />
+                      <Field
+                        label={t("fields.dateEntered")}
                         value={
                           product.createdAt
                             ? new Date(product.createdAt).toLocaleString()
-                            : "N/A"
+                            : t("fields.none")
                         }
                       />
                       <Field
-                        label="Tags"
+                        label={t("fields.tags")}
                         value={
                           product.tags && product.tags.length > 0
                             ? product.tags.join(", ")
-                            : "None"
+                            : t("fields.none")
                         }
                       />
                     </div>
                     {product.expiryDate && (
                       <Field
-                        label="Expiry Date"
+                        label={t("fields.expiryDate")}
                         value={new Date(
                           product.expiryDate
                         ).toLocaleDateString()}
                       />
                     )}
                     {!product.expiryDate && (
-                      <Field label="Expiry Date" value="Not Applicable" />
+                      <Field label={t("fields.expiryDate")} value={t("fields.notApplicable")} />
                     )}
                   </div>
 
                   <div className="bg-white border rounded-lg p-4">
                     <h3 className="text-sm text-gray-600 mb-2 font-bold">
-                      Description
+                      {t("sections.description")}
                     </h3>
                     <p className="text-sm text-gray-700 whitespace-pre-line">
                       {typeof product.description === "object" &&
-                      product.description?.short
+                        product.description?.short
                         ? product.description.short
                         : typeof product.description === "string"
-                        ? product.description
-                        : "No description provided."}
+                          ? product.description
+                          : t("sections.noDescription")}
                     </p>
                   </div>
                 </div>
@@ -517,38 +513,38 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field
-                      label="Selling Price"
+                      label={t("cards.sellingPrice")}
                       value={fmt(product.pricing?.basePrice)}
                     />
                     <Field
-                      label="Cost Price"
+                      label={t("cards.costPrice")}
                       value={fmt(product.pricing?.cost)}
                     />
                     <Field
-                      label="Margin"
+                      label={t("fields.margin")}
                       value={
                         product.pricing?.marginAmount
                           ? `${fmt(product.pricing.marginAmount)} (${(
-                              product.pricing.marginPercent || 0
-                            ).toFixed(1)}%)`
-                          : "N/A"
+                            product.pricing.marginPercent || 0
+                          ).toFixed(1)}%)`
+                          : t("fields.none")
                       }
                     />
                     <Field
-                      label="Profit Rank"
+                      label={t("fields.profitRank")}
                       value={(
-                        product.pricing?.profitRank || "N/A"
+                        product.pricing?.profitRank || t("fields.none")
                       ).toUpperCase()}
                     />
                     <Field
-                      label="Sale Price"
+                      label={t("fields.salePrice")}
                       value={
                         product.pricing?.salePrice
                           ? fmt(product.pricing.salePrice)
-                          : "None"
+                          : t("fields.none")
                       }
                     />
-                    <Field label="Currency" value={currency} />
+                    <Field label={t("fields.currency")} value={currency} />
                   </div>
                 </div>
               )}
@@ -557,13 +553,13 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field
-                      label="Total Stock"
+                      label={t("fields.totalStock")}
                       value={
                         product.inventory?.stockQty ?? product.stock?.total ?? 0
                       }
                     />
                     <Field
-                      label="Available"
+                      label={t("fields.available")}
                       value={
                         product.inventory?.stockQty ??
                         product.stock?.available ??
@@ -571,37 +567,37 @@ function DetailInner({ id }) {
                       }
                     />
                     <Field
-                      label="Low Stock Threshold"
+                      label={t("fields.lowStockThreshold")}
                       value={
                         product.inventory?.lowStockThreshold ??
                         product.stock?.lowStockThreshold ??
-                        "N/A"
+                        t("fields.none")
                       }
                     />
                     <Field
-                      label="Min Reorder Qty"
-                      value={product.inventory?.minReorderQty ?? "N/A"}
+                      label={t("fields.minReorderQty")}
+                      value={product.inventory?.minReorderQty ?? t("fields.none")}
                     />
                     <Field
-                      label="Safety Stock"
-                      value={product.inventory?.safetyStock ?? "N/A"}
+                      label={t("fields.safetyStock")}
+                      value={product.inventory?.safetyStock ?? t("fields.none")}
                     />
                     <Field
-                      label="Allow Backorder"
+                      label={t("fields.allowBackorder")}
                       value={
                         product.inventory?.allowBackorder ??
-                        product.stock?.allowBackorder
-                          ? "Yes"
-                          : "No"
+                          product.stock?.allowBackorder
+                          ? t("fields.yes")
+                          : t("fields.no")
                       }
                     />
                     <Field
-                      label="Track Quantity"
+                      label={t("fields.trackQuantity")}
                       value={
                         product.inventory?.trackQuantity ??
-                        product.stock?.trackQuantity
-                          ? "Yes"
-                          : "No"
+                          product.stock?.trackQuantity
+                          ? t("fields.yes")
+                          : t("fields.no")
                       }
                     />
                   </div>
@@ -612,7 +608,7 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   {mediaItems.length === 0 ? (
                     <div className="text-center py-10 text-gray-400">
-                      No media uploaded.
+                      {t("media.noMedia")}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -647,7 +643,7 @@ function DetailInner({ id }) {
                               }}
                               className="px-3 py-1 bg-white text-black text-xs rounded-full"
                             >
-                              View
+                              {t("media.view")}
                             </button>
                             {/* Potential Delete Button here later */}
                           </div>
@@ -663,14 +659,14 @@ function DetailInner({ id }) {
                   <div className="bg-white border rounded-lg overflow-hidden">
                     {/* Backend 'variants' now contains the combinations based on our swap */}
                     {(product.variants && product.variants.length > 0) ||
-                    (product.variations && product.variations.length > 0) ? (
+                      (product.variations && product.variations.length > 0) ? (
                       <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
                           <tr>
-                            <th className="px-6 py-3">Variant</th>
-                            <th className="px-6 py-3">SKU</th>
-                            <th className="px-6 py-3">Price</th>
-                            <th className="px-6 py-3">Stock</th>
+                            <th className="px-6 py-3">{t("variations.variant")}</th>
+                            <th className="px-6 py-3">{t("variations.sku")}</th>
+                            <th className="px-6 py-3">{t("variations.price")}</th>
+                            <th className="px-6 py-3">{t("variations.stock")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -686,28 +682,27 @@ function DetailInner({ id }) {
                                     variant.attributes || variant.options || {}
                                   )
                                     .map(([k, v]) => `${k}: ${v}`)
-                                    .join(", ") || "Default"}
+                                    .join(", ") || t("variations.default")}
                                 </td>
                                 <td className="px-6 py-3 text-gray-600">
-                                  {variant.sku || "N/A"}
+                                  {variant.sku || t("fields.none")}
                                 </td>
                                 <td className="px-6 py-3 font-semibold text-green-600">
                                   {fmt(variant.price || variant.basePrice)}
                                 </td>
                                 <td className="px-6 py-3">
                                   <span
-                                    className={`px-2 py-1 rounded-full text-xs ${
-                                      (variant.stockQty ||
-                                        variant.initialStock ||
-                                        0) > 0
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-red-100 text-red-800"
-                                    }`}
+                                    className={`px-2 py-1 rounded-full text-xs ${(variant.stockQty ||
+                                      variant.initialStock ||
+                                      0) > 0
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                      }`}
                                   >
                                     {variant.stockQty ||
                                       variant.initialStock ||
                                       0}{" "}
-                                    in stock
+                                    {t("variations.inStock")}
                                   </span>
                                 </td>
                               </tr>
@@ -719,10 +714,10 @@ function DetailInner({ id }) {
                       <div className="p-12 text-center text-gray-500">
                         <QrCode size={48} className="mx-auto mb-4 opacity-20" />
                         <p className="text-lg font-medium">
-                          No variations defined
+                          {t("variations.none")}
                         </p>
                         <p className="text-sm">
-                          This is a simple product with no variants.
+                          {t("variations.simpleDesc")}
                         </p>
                       </div>
                     )}
@@ -735,19 +730,19 @@ function DetailInner({ id }) {
                   {/* QR Code */}
                   <div className="bg-white border rounded-lg p-6">
                     <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
-                      QR Code
+                      {t("sections.qrCode")}
                     </h3>
                     <div className="flex flex-col items-center">
                       <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200 inline-block">
                         {product.codes?.qrCodeUrl || product.qrCodeUrl ? (
                           <img
                             src={product.codes?.qrCodeUrl || product.qrCodeUrl}
-                            alt="QR Code"
+                            alt={t("sections.qrCode")}
                             className="w-64 h-64 object-contain"
                           />
                         ) : (
                           <div className="w-64 h-64 flex items-center justify-center text-gray-400 text-sm">
-                            No QR Code Available
+                            {t("sections.noQr")}
                           </div>
                         )}
                       </div>
@@ -762,7 +757,7 @@ function DetailInner({ id }) {
                   {/* Barcode */}
                   <div className="bg-white border rounded-lg p-6">
                     <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
-                      Barcode
+                      {t("sections.barcode")}
                     </h3>
                     <div className="flex flex-col items-center">
                       <div className="bg-white p-4 inline-block border rounded-lg">
@@ -771,12 +766,12 @@ function DetailInner({ id }) {
                             src={
                               product.codes?.barcodeUrl || product.barcodeUrl
                             }
-                            alt="Barcode"
+                            alt={t("sections.barcode")}
                             className="h-32 object-contain"
                           />
                         ) : (
                           <div className="h-32 w-80 bg-gray-50 flex items-center justify-center text-gray-400 text-sm rounded-lg border-2 border-dashed">
-                            No Barcode Available
+                            {t("sections.noBarcode")}
                           </div>
                         )}
                       </div>
@@ -794,50 +789,50 @@ function DetailInner({ id }) {
                 <div className="space-y-4">
                   <div className="bg-white border rounded-lg overflow-hidden">
                     {(product.specs && product.specs.length > 0) ||
-                    (product.specifications &&
-                      Object.keys(product.specifications).length > 0) ? (
+                      (product.specifications &&
+                        Object.keys(product.specifications).length > 0) ? (
                       <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
                           <tr>
-                            <th className="px-6 py-3">Attribute</th>
-                            <th className="px-6 py-3">Value</th>
+                            <th className="px-6 py-3">{t("fields.attribute")}</th>
+                            <th className="px-6 py-3">{t("fields.value")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {/* Prefer new specs array format */}
                           {product.specs && product.specs.length > 0
                             ? product.specs.map((s, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50">
+                              <tr key={idx} className="hover:bg-gray-50">
+                                <td className="px-6 py-3 font-medium text-gray-900 capitalize">
+                                  {s.name?.replace(/_/g, " ")}
+                                </td>
+                                <td className="px-6 py-3 text-gray-600">
+                                  {typeof s.value === "object"
+                                    ? JSON.stringify(s.value)
+                                    : s.value}
+                                </td>
+                              </tr>
+                            ))
+                            : /* Fallback to legacy specifications object */
+                            Object.entries(product.specifications || {}).map(
+                              ([key, val]) => (
+                                <tr key={key} className="hover:bg-gray-50">
                                   <td className="px-6 py-3 font-medium text-gray-900 capitalize">
-                                    {s.name?.replace(/_/g, " ")}
+                                    {key.replace(/_/g, " ")}
                                   </td>
                                   <td className="px-6 py-3 text-gray-600">
-                                    {typeof s.value === "object"
-                                      ? JSON.stringify(s.value)
-                                      : s.value}
+                                    {typeof val === "object"
+                                      ? JSON.stringify(val)
+                                      : val}
                                   </td>
                                 </tr>
-                              ))
-                            : /* Fallback to legacy specifications object */
-                              Object.entries(product.specifications || {}).map(
-                                ([key, val]) => (
-                                  <tr key={key} className="hover:bg-gray-50">
-                                    <td className="px-6 py-3 font-medium text-gray-900 capitalize">
-                                      {key.replace(/_/g, " ")}
-                                    </td>
-                                    <td className="px-6 py-3 text-gray-600">
-                                      {typeof val === "object"
-                                        ? JSON.stringify(val)
-                                        : val}
-                                    </td>
-                                  </tr>
-                                )
-                              )}
+                              )
+                            )}
                         </tbody>
                       </table>
                     ) : (
                       <div className="p-6 text-center text-gray-500">
-                        No specifications found.
+                        {t("sections.noSpecs")}
                       </div>
                     )}
                   </div>
@@ -848,7 +843,7 @@ function DetailInner({ id }) {
                 <div className="bg-white border rounded-lg overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
                     <h3 className="text-sm font-semibold text-gray-700">
-                      Raw Product JSON
+                      {t("sections.rawJson")}
                     </h3>
                     <button
                       onClick={handleCopyRaw}
@@ -857,12 +852,12 @@ function DetailInner({ id }) {
                       {copiedRaw ? (
                         <>
                           <Check size={14} className="text-green-600" />
-                          <span className="text-green-600">Copied</span>
+                          <span className="text-green-600">{t("copied")}</span>
                         </>
                       ) : (
                         <>
                           <Copy size={14} />
-                          <span>Copy JSON</span>
+                          <span>{t("copyJson")}</span>
                         </>
                       )}
                     </button>

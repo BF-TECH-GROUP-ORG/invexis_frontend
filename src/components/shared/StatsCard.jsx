@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label, locale = 'en-RW' }) => {
 const Sparkline = ({ data, color, locale }) => {
     // Check if all values are zero or data is empty
     const allZero = !data || data.length === 0 || data.every(d => (d.value || 0) === 0);
-    
+
     if (allZero) {
         // Render a completely flat line when all values are zero
         return (
@@ -57,7 +57,7 @@ const Sparkline = ({ data, color, locale }) => {
             </div>
         );
     }
-    
+
     // Normal chart with data
     return (
         <div className="h-16 w-full mt-4">
@@ -97,12 +97,15 @@ export const StatsCard = memo(({
     isCurrency = false,
     isLoading = false,
     index = 0,
-    locale = 'en-RW'
+    locale = 'en-RW',
+    isText = false // Add isText prop
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const isPositive = trend >= 0;
 
     const displayValue = useMemo(() => {
+        if (isText) return value; // Return text directly if isText is true
+
         if (isExpanded) {
             return new Intl.NumberFormat(locale, {
                 style: isCurrency ? "currency" : "decimal",
@@ -117,9 +120,9 @@ export const StatsCard = memo(({
             compactDisplay: "short",
             maximumFractionDigits: 1,
         }).format(value);
-    }, [isExpanded, value, isCurrency, locale]);
+    }, [isExpanded, value, isCurrency, locale, isText]);
 
-    const showToggle = value >= 1000;
+    const showToggle = !isText && typeof value === 'number' && value >= 1000;
 
     if (isLoading) {
         return (

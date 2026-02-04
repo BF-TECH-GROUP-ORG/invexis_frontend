@@ -11,8 +11,10 @@ import {
 } from "recharts";
 import { getAllShops } from "@/services/shopService";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 const CustomTooltip = ({ active, payload, label }) => {
+  const t = useTranslations("inventoryOverview.shopPerformance");
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl text-sm">
@@ -35,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             </div>
             <span className="font-bold text-gray-900 dark:text-white font-mono">
               {entry.value.toLocaleString()}
-              {entry.name === "Gross Profit" ? " RWF" : ""}
+              {entry.name === t("grossProfit") ? " RWF" : ""}
             </span>
           </div>
         ))}
@@ -68,6 +70,7 @@ const ModernLegend = (props) => {
 };
 
 const ShopPerformanceSection = ({ data = [] }) => {
+  const t = useTranslations("inventoryOverview.shopPerformance");
   const { data: session } = useSession();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +104,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
     const map = {};
     shops.forEach((shop) => {
       if (shop._id || shop.id) {
-        map[shop._id || shop.id] = shop.name || shop.shopName || "Shop";
+        map[shop._id || shop.id] = shop.name || shop.shopName || t("subtitle").split(" ")[0]; // Typo? Let's use Shop
       }
     });
     return map;
@@ -129,10 +132,10 @@ const ShopPerformanceSection = ({ data = [] }) => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Shop Performance
+            {t("title")}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Revenue vs Inventory Volume by Location
+            {t("subtitle")}
           </p>
         </div>
         {/* Quick metrics: turnover & inventory value */}
@@ -146,7 +149,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
                 {s.name}
               </div>
               <div className="text-sm font-bold text-gray-900 dark:text-white">
-                Turnover: {s.turnover}
+                {t("turnover", { value: s.turnover })}
               </div>
             </div>
           ))}
@@ -212,7 +215,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
             <Bar
               yAxisId="left"
               dataKey="profit"
-              name="Gross Profit"
+              name={t("grossProfit")}
               fill="#081422"
               radius={[12, 12, 12, 12]}
             />
@@ -231,7 +234,7 @@ const ShopPerformanceSection = ({ data = [] }) => {
             <Bar
               yAxisId="right"
               dataKey="value"
-              name="Inventory Value"
+              name={t("inventoryValue")}
               fill="#ea580c"
               radius={[12, 12, 12, 12]}
             />

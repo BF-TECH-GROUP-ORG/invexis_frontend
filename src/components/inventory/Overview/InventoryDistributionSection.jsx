@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { getProducts } from "@/services/productsService";
 import { getAllShops } from "@/services/shopService";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { Package, PieChart as PieChartIcon } from "lucide-react";
 
 const CustomTooltip = ({ active, payload, coordinate, total }) => {
   if (active && payload && payload.length) {
@@ -10,9 +11,6 @@ const CustomTooltip = ({ active, payload, coordinate, total }) => {
     const name = p.name ?? "—";
     const value = typeof p.value !== "undefined" ? Number(p.value) : 0;
 
-    // percent may be provided by recharts as a fraction (e.g., 0.012),
-    // but small slices could round to 0 if we use Math.round(p.percent * 100).
-    // Prefer showing one decimal place for small values (e.g., 0.4%).
     let percentStr = "0";
     if (typeof p.percent === "number") {
       const pct = p.percent * 100;
@@ -22,7 +20,6 @@ const CustomTooltip = ({ active, payload, coordinate, total }) => {
       percentStr = pct < 1 ? pct.toFixed(1) : Math.round(pct).toString();
     }
 
-    // ensure tooltip is above center text by raising zIndex
     return (
       <div
         className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg text-xs"
@@ -47,7 +44,6 @@ const CustomTooltip = ({ active, payload, coordinate, total }) => {
 };
 
 const CustomLegend = ({ data = [], total }) => {
-  // compute sum if total not supplied
   const totalValue =
     typeof total === "number"
       ? total
@@ -66,7 +62,6 @@ const CustomLegend = ({ data = [], total }) => {
     const itemRect = e.currentTarget.getBoundingClientRect();
 
     if (containerRect) {
-      // Position tooltip centrally above the item
       const x = itemRect.left - containerRect.left + itemRect.width / 2;
       const y = itemRect.top - containerRect.top - 8;
       setTip({ visible: true, x, y, content });
@@ -132,7 +127,6 @@ const CustomLegend = ({ data = [], total }) => {
           <div className="font-bold text-gray-900 dark:text-white">
             {tip.content}
           </div>
-          {/* Small arrow down */}
           <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-white dark:bg-gray-900 border-r border-b border-gray-200 dark:border-gray-700 rotate-45"></div>
         </div>
       )}
@@ -145,23 +139,22 @@ const InventoryDistributionSection = ({
   valueByCategory = [],
   valueByShop = [],
   valueByStatus = [],
-  valueData = [], // back-compat
+  valueData = [],
   totalUnits,
   totalValue,
   companyId,
 }) => {
+  const t = useTranslations("inventoryOverview.distribution");
   const { data: session } = useSession();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Extract companyId from session if not provided
   const finalCompanyId = useMemo(() => {
     if (companyId) return companyId;
     const companyObj = session?.user?.companies?.[0];
     return typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
   }, [companyId, session]);
 
-  // Fetch shops data
   useEffect(() => {
     const fetchShops = async () => {
       if (!finalCompanyId) return;
@@ -179,25 +172,23 @@ const InventoryDistributionSection = ({
     fetchShops();
   }, [finalCompanyId]);
 
-  // Create a map of shop ID to shop name for quick lookup
   const shopNameMap = useMemo(() => {
     const map = {};
     shops.forEach((shop) => {
       if (shop._id || shop.id) {
-        map[shop._id || shop.id] = shop.name || shop.shopName || "Shop";
+        map[shop._id || shop.id] = shop.name || shop.shopName || t("viewShop");
       }
     });
     return map;
-  }, [shops]);
+  }, [shops, t]);
 
   const themeColors = useMemo(
     () => ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"],
     []
   );
 
-  const [valueView, setValueView] = React.useState("category");
+  const [valueView, setValueView] = useState("category");
 
-  // Helper: format currency similar to KPI card (compact by default)
   const formatCurrency = (value, isCompact = true) => {
     const num = Number(value) || 0;
     if (!isCompact) {
@@ -228,7 +219,6 @@ const InventoryDistributionSection = ({
             : themeColors[i % themeColors.length],
   }));
 
-  // Select current value dataset based on view preference
   const selectedValueData =
     valueView === "category"
       ? valueByCategory
@@ -240,17 +230,12 @@ const InventoryDistributionSection = ({
 
   const valueDataBuffered = useMemo(() => {
     return (selectedValueData || []).map((d, i) => {
-      // Get shop name if this is a shop entry
       let displayName = d.name;
       if (valueView === "shop") {
-        // The shopId is explicitly stored
         const shopId = d.shopId;
-        
-        // Try to get mapped shop name first
         if (shopId && shopNameMap[shopId]) {
           displayName = shopNameMap[shopId];
         } else {
-          // If no mapped name, keep the shopId (which is stored in name field from hook)
           displayName = shopId || d.name;
         }
       }
@@ -271,14 +256,16 @@ const InventoryDistributionSection = ({
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
-      {/* Status Distribution */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center gap-4 md:gap-6">
         <div className="w-full min-w-0 h-[250px] md:h-[300px] relative">
           <div className="absolute top-0 left-0 z-10">
-            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight">
-              Inventory Status
+            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight flex items-center gap-2">
+              <Package className="w-5 h-5 text-indigo-500" />
+              {t("statusTitle")}
             </h3>
-            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Breakdown by stock level</p>
+            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+              {t("statusSubtitle")}
+            </p>
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -309,7 +296,7 @@ const InventoryDistributionSection = ({
                 {totalProducts.toLocaleString()}
               </span>
               <span className="text-[8px] md:text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
-                Products
+                {t("products")}
               </span>
             </div>
           </div>
@@ -319,40 +306,40 @@ const InventoryDistributionSection = ({
         </div>
       </div>
 
-      {/* Value Distribution */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center gap-4 md:gap-6">
         <div className="w-full min-w-0 h-[250px] md:h-[300px] relative">
           <div className="absolute top-0 left-0 z-10">
-            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight">
-              Value Distribution
+            <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white leading-tight flex items-center gap-2">
+              <PieChartIcon className="w-5 h-5 text-indigo-500" />
+              {t("valueTitle")}
             </h3>
             <div className="flex flex-wrap gap-1 md:gap-2 mt-1.5">
               <button
                 onClick={() => setValueView("category")}
                 className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "category"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
-                Category
+                {t("viewCategory")}
               </button>
               <button
                 onClick={() => setValueView("shop")}
                 className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "shop"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
-                Shop
+                {t("viewShop")}
               </button>
               <button
                 onClick={() => setValueView("status")}
                 className={`px-2 md:px-3 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors ${valueView === "status"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
-                Status
+                {t("viewStatus")}
               </button>
             </div>
           </div>
@@ -386,7 +373,7 @@ const InventoryDistributionSection = ({
                 {formatCurrency(totalValue, true)}
               </span>
               <span className="text-[8px] md:text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-1">
-                Total Value
+                {t("totalValue")}
               </span>
             </div>
           </div>

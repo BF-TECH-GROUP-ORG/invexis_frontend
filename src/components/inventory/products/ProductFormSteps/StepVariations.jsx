@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Plus, Trash2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -10,6 +11,7 @@ export default function StepVariations({
     updateFormData,
     errors,
 }) {
+    const t = useTranslations("products.form");
     const [variants, setVariants] = useState(formData.variants || []);
     const [variations, setVariations] = useState(formData.variations || []);
     const [expandedRow, setExpandedRow] = useState(null);
@@ -135,21 +137,21 @@ export default function StepVariations({
             className="space-y-8"
         >
             <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">Product Variants</h3>
+                <h3 className="text-lg font-semibold mb-4">{t("fields.variants")}</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Define attributes like Color or Size to generate all possible combinations.
+                    {t("fields.variantsDesc")}
                 </p>
 
                 {variants.map((variant, vIndex) => (
                     <div key={vIndex} className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex-1 mr-4">
-                                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Attribute Name</label>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t("fields.attrNameLabel")}</label>
                                 <input
                                     type="text"
                                     value={variant.name}
                                     onChange={(e) => handleVariantNameChange(vIndex, e.target.value)}
-                                    placeholder="e.g. Color, Storage"
+                                    placeholder={t("fields.attrNamePlaceholder")}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                                 />
                             </div>
@@ -162,7 +164,7 @@ export default function StepVariations({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Options</label>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t("fields.optionsLabel")}</label>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {variant.options.map((option, oIndex) => (
                                     <span key={oIndex} className="bg-white border border-gray-300 px-3 py-1 rounded-full text-sm flex items-center gap-2">
@@ -175,7 +177,7 @@ export default function StepVariations({
                             </div>
                             <input
                                 type="text"
-                                placeholder="Type option and press Enter (e.g. Red, 256GB)"
+                                placeholder={t("fields.optionsPlaceholder")}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
@@ -194,7 +196,7 @@ export default function StepVariations({
                     className="flex items-center gap-2 text-orange-600 font-medium hover:text-orange-700"
                 >
                     <Plus size={18} />
-                    Add Attribute
+                    {t("fields.addAttribute")}
                 </button>
             </div>
 
@@ -205,14 +207,14 @@ export default function StepVariations({
                         className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md"
                     >
                         <RefreshCw size={18} />
-                        Generate Variations
+                        {t("fields.generateVariations")}
                     </button>
                 </div>
             )}
 
             {variations.length > 0 && (
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
-                    <h3 className="text-lg font-semibold mb-4">Variations ({variations.length})</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t("fields.variationsCount", { count: variations.length })}</h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead>
@@ -265,7 +267,7 @@ export default function StepVariations({
                                                         : "bg-gray-100 text-gray-800"
                                                         }`}
                                                 >
-                                                    {variation.isActive ? "Active" : "Inactive"}
+                                                    {variation.isActive ? t("fields.active") : t("fields.inactive")}
                                                 </button>
                                             </td>
                                             <td className="py-3 px-4 text-right">
@@ -283,10 +285,10 @@ export default function StepVariations({
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         {/* Inventory Details */}
                                                         <div className="bg-white p-3 rounded border border-gray-200">
-                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Inventory Settings</h4>
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">{t("fields.inventorySettings")}</h4>
                                                             <div className="grid grid-cols-2 gap-3">
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Low Stock Threshold</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.lowStockAlert")}</label>
                                                                     <input
                                                                         type="number"
                                                                         value={variation.lowStockThreshold}
@@ -295,7 +297,7 @@ export default function StepVariations({
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Min Reorder Qty</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.minReorderQty")}</label>
                                                                     <input
                                                                         type="number"
                                                                         value={variation.minReorderQty}
@@ -308,10 +310,10 @@ export default function StepVariations({
 
                                                         {/* Dimensions */}
                                                         <div className="bg-white p-3 rounded border border-gray-200">
-                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Dimensions ({variation.dimensions?.unit || 'mm'})</h4>
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">{t("fields.dimensions", { unit: variation.dimensions?.unit || "mm" })}</h4>
                                                             <div className="grid grid-cols-3 gap-2">
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Length</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.length")}</label>
                                                                     <input
                                                                         type="number"
                                                                         value={variation.dimensions?.length || 0}
@@ -320,7 +322,7 @@ export default function StepVariations({
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Width</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.width")}</label>
                                                                     <input
                                                                         type="number"
                                                                         value={variation.dimensions?.width || 0}
@@ -329,7 +331,7 @@ export default function StepVariations({
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Height</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.height")}</label>
                                                                     <input
                                                                         type="number"
                                                                         value={variation.dimensions?.height || 0}
@@ -342,10 +344,10 @@ export default function StepVariations({
 
                                                         {/* Weight & Units */}
                                                         <div className="bg-white p-3 rounded border border-gray-200">
-                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Units</h4>
+                                                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">{t("fields.units")}</h4>
                                                             <div className="grid grid-cols-2 gap-3">
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Weight Unit</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.weightUnit")}</label>
                                                                     <select
                                                                         value={variation.weight?.unit || 'g'}
                                                                         onChange={(e) => updateVariationNested(index, 'weight', 'unit', e.target.value)}
@@ -358,7 +360,7 @@ export default function StepVariations({
                                                                     </select>
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs text-gray-500 mb-1">Dim Unit</label>
+                                                                    <label className="block text-xs text-gray-500 mb-1">{t("fields.dimUnit")}</label>
                                                                     <select
                                                                         value={variation.dimensions?.unit || 'mm'}
                                                                         onChange={(e) => updateVariationNested(index, 'dimensions', 'unit', e.target.value)}

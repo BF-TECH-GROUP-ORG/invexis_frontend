@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -47,6 +48,7 @@ export default function ProductTable({
   pagination = {},
   onPageChange = () => { },
 }) {
+  const t = useTranslations("products.table");
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuRowId, setMenuRowId] = useState(null);
 
@@ -125,47 +127,47 @@ export default function ProductTable({
                 />
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Product Name
+                {t("productName")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Image
+                {t("image")}
               </TableCell>
 
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Category
+                {t("category")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Brand
+                {t("brand")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Supplier
+                {t("supplier")}
               </TableCell>
               <TableCell
                 align="center"
                 sx={{ fontWeight: 600, color: "#4b5563" }}
               >
-                Stock
+                {t("stock")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Unit Price
+                {t("unitPrice")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Total Value
+                {t("totalValue")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                L.Threshold
+                {t("threshold")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Stock Status
+                {t("stockStatus")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Status
+                {t("status")}
               </TableCell>
               <TableCell
                 align="center"
                 sx={{ fontWeight: 600, color: "#4b5563" }}
               >
-                Actions
+                {t("actions")}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -207,12 +209,12 @@ export default function ProductTable({
                 }
 
                 const id = product._id || product.id;
-                const name = product.name || product.ProductName || "Unnamed";
+                const name = product.name || product.ProductName || t("unnamed");
                 const category =
                   product.category?.name ||
                   product.categoryId?.name ||
                   product.Category ||
-                  "Uncategorized";
+                  t("uncategorized");
 
                 // Extract basePrice - try all possible paths
                 const basePrice =
@@ -414,7 +416,7 @@ export default function ProductTable({
 
                     <TableCell>
                       <Chip
-                        label={stock < lowStockThreshold ? "Low Stock" : "Stable"}
+                        label={stock < lowStockThreshold ? t("lowStock") : t("stable")}
                         size="small"
                         sx={{
                           backgroundColor: stock < lowStockThreshold ? "#FEF2F2" : "#ECFDF5",
@@ -427,13 +429,13 @@ export default function ProductTable({
 
                     <TableCell>
                       <Chip
-                        label={
-                          status === "active"
-                            ? "Active"
-                            : status === "inactive"
-                              ? "Inactive"
-                              : status
-                        }
+                        label={(() => {
+                          const s = status?.toString().toLowerCase() || "";
+                          if (s === "active" || s.includes("active")) return t("active");
+                          if (s === "inactive" || s.includes("inactive")) return t("inactive");
+                          if (s === "draft" || s.includes("draft")) return t("draft");
+                          return status || t("unnamed");
+                        })()}
                         size="small"
                         sx={{
                           backgroundColor:
@@ -484,14 +486,14 @@ export default function ProductTable({
             <ListItemIcon>
               <VisibilityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>View Details</ListItemText>
+            <ListItemText>{t("viewDetails")}</ListItemText>
           </MenuItem>
         ) : (
           <MenuItem onClick={handleView}>
             <ListItemIcon>
               <VisibilityIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>View Details</ListItemText>
+            <ListItemText>{t("viewDetails")}</ListItemText>
           </MenuItem>
         )}
 
@@ -504,14 +506,14 @@ export default function ProductTable({
             <ListItemIcon>
               <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Edit Product</ListItemText>
+            <ListItemText>{t("editProduct")}</ListItemText>
           </MenuItem>
         ) : (
           <MenuItem onClick={handleEdit}>
             <ListItemIcon>
               <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Edit Product</ListItemText>
+            <ListItemText>{t("editProduct")}</ListItemText>
           </MenuItem>
         )}
 
@@ -519,7 +521,7 @@ export default function ProductTable({
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>Delete Product</ListItemText>
+          <ListItemText>{t("deleteProduct")}</ListItemText>
         </MenuItem>
       </Menu>
 

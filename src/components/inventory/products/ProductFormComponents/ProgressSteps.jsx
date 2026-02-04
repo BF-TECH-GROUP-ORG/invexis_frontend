@@ -2,17 +2,18 @@
 "use client";
 
 import { Package, List, DollarSign, Image as ImageIcon, Layers, Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-const STEPS = [
-  { id: 1, title: "Basic Info", icon: Package },
-  { id: 2, title: "Attributes", icon: List },
-  { id: 3, title: "Inventory", icon: DollarSign },
-  { id: 4, title: "Media", icon: ImageIcon },
-  { id: 5, title: "Variations", icon: Layers },
-  { id: 6, title: "Advanced", icon: Shield },
+  const t = useTranslations("products.form");
+  const STEPS = [
+  { id: 1, title: t("fields.stepBasic"), icon: Package },
+  { id: 2, title: t("fields.stepAttr"), icon: List },
+  { id: 3, title: t("fields.stepInv"), icon: DollarSign },
+  { id: 4, title: t("fields.stepMedia"), icon: ImageIcon },
+  { id: 5, title: t("fields.stepVar"), icon: Layers },
+  { id: 6, title: t("fields.stepAdv"), icon: Shield },
 ];
 
-export default function ProgressSteps({ currentStep, totalSteps }) {
   return (
     <div className="bg-white border-b">
       <div className="flex items-center px-6 py-4">

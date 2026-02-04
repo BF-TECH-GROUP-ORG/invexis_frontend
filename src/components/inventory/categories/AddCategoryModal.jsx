@@ -11,8 +11,10 @@ import {
 import { ParentCategories } from "@/services/categoriesService";
 import { toast } from "react-hot-toast";
 import useAuth from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 export default function AddCategoryModal({ onClose, editData = null }) {
+  const t = useTranslations("categories");
   const dispatch = useDispatch();
   const { items } = useSelector((state) => state.categories);
   const { user } = useAuth();
@@ -133,7 +135,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error("Category name is required");
+      toast.error(t("toasts.nameRequired"));
       return;
     }
 
@@ -150,10 +152,10 @@ export default function AddCategoryModal({ onClose, editData = null }) {
         await dispatch(
           updateCategory({ id: editData._id, updates: payload })
         ).unwrap();
-        toast.success("Category updated successfully! ✨");
+        toast.success(t("toasts.updateSuccess"));
       } else {
         await dispatch(createCategory(payload)).unwrap();
-        toast.success("Category created successfully! 🎉");
+        toast.success(t("toasts.createSuccess"));
       }
       onClose();
     } catch (error) {
@@ -182,7 +184,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
           {/* Header */}
           <div className="bg-white text-gray-700 px-6 py-4 flex items-center justify-between border-b-2 rounded-t-2xl">
             <h2 className="text-2xl font-bold">
-              {editData ? "Edit Category" : "Add New Category"}
+              {editData ? t("modal.editTitle") : t("modal.addTitle")}
             </h2>
             <button
               onClick={onClose}
@@ -197,7 +199,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
               {/* Category Name */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
-                  Category Name <span className="text-red-500">*</span>
+                  {t("modal.nameLabel")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -207,14 +209,14 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                  placeholder="e.g., Men's Casual Shirts"
+                  placeholder={t("modal.namePlaceholder")}
                 />
               </div>
 
               {/* Parent Category */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
-                  Parent Category
+                  {t("modal.parentLabel")}
                 </label>
                 <select
                   value={formData.parentCategory}
@@ -223,7 +225,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                   }
                   className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 transition"
                 >
-                  <option value="">Select Section</option>
+                  <option value="">{t("modal.selectParent")}</option>
                   {parentOptions.map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
@@ -236,7 +238,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
             {/* Description */}
             <div>
               <label className="block text-sm font-semibold mb-2 text-gray-700">
-                Description
+                {t("modal.descriptionLabel")}
               </label>
               <textarea
                 value={formData.description}
@@ -245,7 +247,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                 }
                 rows={3}
                 className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-orange-500 transition resize-none"
-                placeholder="Brief description of the category..."
+                placeholder={t("modal.descriptionPlaceholder")}
               />
             </div>
 
@@ -258,7 +260,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
               >
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                   <span className="w-1.5 h-5 bg-orange-500 rounded-full"></span>
-                  Product Attributes{" "}
+                  {t("modal.attributesTitle")}{" "}
                   {formData.attributes.length > 0 &&
                     `(${formData.attributes.length})`}
                 </h3>
@@ -283,7 +285,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                       <div className="space-y-3 mb-4">
                         <input
                           type="text"
-                          placeholder="Attribute name (e.g., Size)"
+                          placeholder={t("modal.attributeNamePlaceholder")}
                           value={newAttribute.name}
                           onChange={(e) =>
                             setNewAttribute({
@@ -322,7 +324,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                               className="w-4 h-4 text-orange-500 rounded focus:ring-2 focus:ring-orange-500"
                             />
                             <span className="text-sm font-medium">
-                              Required
+                              {t("modal.required")}
                             </span>
                           </label>
                         </div>
@@ -332,7 +334,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                             <div className="flex gap-2 mb-2">
                               <input
                                 type="text"
-                                placeholder="Add option (e.g., S, M, L)"
+                                placeholder={t("modal.addOptionPlaceholder")}
                                 value={optionInput}
                                 onChange={(e) => setOptionInput(e.target.value)}
                                 onKeyPress={(e) =>
@@ -377,7 +379,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                           disabled={!newAttribute.name.trim()}
                           className="w-full px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
                         >
-                          Add Attribute
+                          {t("modal.addAttribute")}
                         </button>
                       </div>
 
@@ -385,7 +387,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                       {formData.attributes.length > 0 && (
                         <div className="space-y-2">
                           <p className="text-sm font-medium text-gray-600 mb-2">
-                            Added Attributes:
+                            {t("modal.addedAttributes")}:
                           </p>
                           {formData.attributes.map((attr, idx) => (
                             <div
@@ -427,7 +429,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                 onClick={onClose}
                 className="px-6 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition font-medium"
               >
-                Cancel
+                {t("modal.cancel")}
               </button>
               <button
                 type="submit"
@@ -435,10 +437,10 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                 className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 transition font-medium shadow-lg"
               >
                 {loading
-                  ? "Saving..."
+                  ? t("modal.saving")
                   : editData
-                  ? "Update Category"
-                  : "Create Category"}
+                    ? t("modal.updateCategory")
+                    : t("modal.createCategory")}
               </button>
             </div>
           </form>

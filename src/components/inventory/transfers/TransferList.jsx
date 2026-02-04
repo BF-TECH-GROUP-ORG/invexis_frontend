@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import TransferStats from "./TransferStats";
 import TransferTable from "./TransferTable";
 import TransferFilters from "./TransferFilters";
+import { useTranslations } from "next-intl";
 import {
     Box,
     Typography,
@@ -23,6 +24,7 @@ import { getWorkersByCompanyId } from "@/services/workersService";
 import { getCompanyDetails, getAllCompanies } from "@/services/stockService";
 
 export default function TransferList() {
+    const t = useTranslations("transfers");
     const { data: session } = useSession();
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
@@ -158,7 +160,7 @@ export default function TransferList() {
             const worker = workers.find(w => w._id === uId || w.id === uId);
 
             // If intra-company, the destination company is effectively "Us"
-            const companyNameLabel = item.transferType === 'intra_company' ? "Us" : (companyInfo?.name || "Us");
+            const companyNameLabel = item.transferType === 'intra_company' ? t("table.us") : (companyInfo?.name || t("table.us"));
             const targetCompany = item.toCompanyId ? allCompanies.find(c => c._id === item.toCompanyId || c.id === item.toCompanyId) : null;
 
             // Build worker name from firstName and lastName
@@ -168,10 +170,10 @@ export default function TransferList() {
 
             return {
                 ...item,
-                sourceShopName: sourceShop?.name || sourceShop?.shopName || item.sourceShopName || "Unknown Shop",
-                destShopName: destShop?.name || destShop?.shopName || item.destShopName || "Unknown Shop",
+                sourceShopName: sourceShop?.name || sourceShop?.shopName || item.sourceShopName || t("table.unknownShop"),
+                destShopName: destShop?.name || destShop?.shopName || item.destShopName || t("table.unknownShop"),
                 workerName: resolvedWorkerName,
-                destCompanyName: targetCompany?.name || targetCompany?.companyName || item.destCompanyName,
+                destCompanyName: targetCompany?.name || targetCompany?.companyName || item.destCompanyName || t("table.unknown"),
                 companyName: companyNameLabel // Carry formatted company name for display
             };
         });
@@ -207,10 +209,10 @@ export default function TransferList() {
                     transition={{ duration: 0.5 }}
                 >
                     <Typography variant="h4" fontWeight={800} sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
-                        Inventory Transfers
+                        {t("header.title")}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        Master log of all product movements across your company ecosystem.
+                        {t("header.subtitle")}
                     </Typography>
                 </motion.div>
 
@@ -238,7 +240,7 @@ export default function TransferList() {
                             }
                         }}
                     >
-                        Add Transfer
+                        {t("header.addTransfer")}
                     </Button>
                 </motion.div>
             </Stack>

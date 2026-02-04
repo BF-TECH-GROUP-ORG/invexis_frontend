@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "@/components/shared/Skeleton";
+import { useTranslations } from "next-intl";
 
 const formatValue = (value, isCompact) => {
   const num = Number(value) || 0;
@@ -29,83 +30,88 @@ const formatValue = (value, isCompact) => {
   return num.toString();
 };
 
-const CustomTooltip = ({ active, payload, label, locale = 'en-RW' }) => {
-    if (active && payload && payload.length && label) {
-        const date = new Date(label);
-        if (isNaN(date.getTime())) return null;
-
-        const dayName = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(date);
-
-        return (
-            <div className="bg-white p-2 border border-gray-100 shadow-lg rounded-lg text-xs">
-                <p className="font-semibold text-gray-700">{dayName}</p>
-                <p className="font-medium" style={{ color: payload[0].stroke }}>
-                    {new Intl.NumberFormat(locale, { compactDisplay: "short", notation: "compact" }).format(payload[0].value)}
-                </p>
-            </div>
-        );
-    }
-    return null;
+const CustomTooltip = ({ active, payload, label }) => {
+  const t = useTranslations("inventoryOverview.insights");
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-2 border border-gray-100 dark:border-gray-700 rounded-lg shadow-xl">
+        <p className="text-[10px] text-gray-400 mb-1">
+          {new Date(label).toLocaleDateString("en-RW", {
+            month: "short",
+            day: "numeric",
+          })}
+        </p>
+        <p className="text-xs font-bold text-gray-900 dark:text-white">
+          {new Intl.NumberFormat("en-RW", {
+            style: "currency",
+            currency: "RWF",
+            maximumFractionDigits: 0,
+          }).format(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
 };
 
 const KPISparkline = ({ data, color, locale }) => {
-    // Check if all values are zero
-    const allZero = !data || data.length === 0 || data.every(d => (d.value || 0) === 0);
-    
-    if (allZero) {
-        // Render a completely flat line when all values are zero
-        return (
-            <div className="h-16 w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={[{ value: 0, name: '' }]} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.1} />
-                                <stop offset="95%" stopColor={color} stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <XAxis dataKey="name" hide />
-                        <Area
-                            type="monotone"
-                            dataKey="value"
-                            stroke={color}
-                            strokeWidth={1}
-                            fillOpacity={0.1}
-                            fill={`url(#gradient-${color})`}
-                            isAnimationActive={false}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-        );
-    }
-    
-    // Normal chart with data
+  // Check if all values are zero
+  const allZero = !data || data.length === 0 || data.every(d => (d.value || 0) === 0);
+
+  if (allZero) {
+    // Render a completely flat line when all values are zero
     return (
-        <div className="h-16 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                        <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                            <stop offset="95%" stopColor={color} stopOpacity={0} />
-                        </linearGradient>
-                    </defs>
-                    <XAxis dataKey="name" hide />
-                    <Tooltip content={<CustomTooltip locale={locale} />} cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '3 3' }} />
-                    <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke={color}
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill={`url(#gradient-${color})`}
-                        isAnimationActive={true}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
-        </div>
+      <div className="h-16 w-full mt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={[{ value: 0, name: '' }]} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.1} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="name" hide />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={1}
+              fillOpacity={0.1}
+              fill={`url(#gradient-${color})`}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     );
+  }
+
+  // Normal chart with data
+  return (
+    <div className="h-16 w-full mt-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="name" hide />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '3 3' }} />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={color}
+            strokeWidth={2}
+            fillOpacity={1}
+            fill={`url(#gradient-${color})`}
+            isAnimationActive={true}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
 };
 
 const KPICard = memo(({
@@ -158,7 +164,7 @@ const KPICard = memo(({
       if (typeof value === "number") return value.toLocaleString();
       return value;
     }
-    
+
     if (isCurrency) {
       const num = Number(value) || 0;
       return `${num.toLocaleString(undefined, {
@@ -270,6 +276,7 @@ const generateSampleSparkline = (key, baseValue = 100) => {
 };
 
 const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
+  const t = useTranslations("inventoryOverview.kpi");
   const [isCompact, setIsCompact] = useState(true);
   const [isGrossProfitCompact, setIsGrossProfitCompact] = useState(true);
 
@@ -284,9 +291,9 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
     if (sparklines?.[key]?.length > 0) {
       return sparklines[key];
     }
-    
+
     // Generate sample data based on key
-    switch(key) {
+    switch (key) {
       case 'value':
         return generateSampleSparkline(key, totalValue / 10);
       case 'units':
@@ -304,7 +311,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
         <KPICard
-          title="Total Inventory Value"
+          title={t("totalValue")}
           value={totalValue}
           icon={DollarSign}
           trend={computeTrendPercent(getSpark("value"))}
@@ -316,7 +323,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           index={0}
         />
         <KPICard
-          title="Total Units"
+          title={t("totalUnits")}
           value={totalUnits}
           icon={Package}
           trend={computeTrendPercent(getSpark("units"))}
@@ -325,7 +332,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           index={1}
         />
         <KPICard
-          title="Low Stock Items"
+          title={t("lowStock")}
           value={lowStock}
           icon={AlertTriangle}
           trend={computeTrendPercent(getSpark("risk"))}
@@ -334,7 +341,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           index={2}
         />
         <KPICard
-          title="Net Movement"
+          title={t("netMovement")}
           value={netMovement > 0 ? `+${netMovement}` : netMovement}
           icon={Activity}
           trend={computeTrendPercent(getSpark("movement"))}
@@ -347,7 +354,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
       {/* Additional KPIs from analytics endpoint (if available) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
         <KPICard
-          title="Gross Profit"
+          title={t("grossProfit")}
           value={kpis?.grossProfit ?? "—"}
           icon={DollarSign}
           trend={Math.round(kpis?.grossMargin ?? 0)}
@@ -359,7 +366,7 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
           index={4}
         />
         <KPICard
-          title="Stock Turnover Rate"
+          title={t("stockTurnover")}
           value={kpis?.stockTurnoverRate ?? "—"}
           icon={Activity}
           trend={0}
@@ -373,3 +380,4 @@ const InventoryKPISection = ({ summary = {}, sparklines = {}, kpis = {} }) => {
 };
 
 export default InventoryKPISection;
+

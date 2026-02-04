@@ -1,5 +1,5 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List, Folder, CheckCircle, XCircle, Search } from "lucide-react";
@@ -12,9 +12,10 @@ import FilterModal from "./FilterModal";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import useAuth from '@/hooks/useAuth';
-import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export default function CategoryList() {
+  const t = useTranslations("categories");
   const dispatch = useDispatch();
   const { user } = useAuth();
   const { data: session } = useSession();
@@ -73,7 +74,7 @@ export default function CategoryList() {
 
   // Refresh handler - force fetch
   const handleRefresh = () => {
-    toast.success("Refreshing categories...");
+    toast.success(t("toasts.refreshing"));
     loadCategories(true); // Force refresh
   };
 
@@ -81,11 +82,11 @@ export default function CategoryList() {
   const handleDelete = async (id) => {
     // if (!canManage) return toast.error("Only Super Admins can delete categories!");
 
-    if (!window.confirm("Delete this category? This cannot be undone.")) return;
+    if (!window.confirm(t("toasts.deleteConfirm"))) return;
 
     try {
       await dispatch(deleteCategory(id)).unwrap();
-      toast.success("Category deleted!");
+      toast.success(t("toasts.deleteSuccess"));
       setSelectedIds(prev => prev.filter(sid => sid !== id));
     } catch (err) {
       toast.error(err.message || "Failed to delete category");
@@ -97,11 +98,11 @@ export default function CategoryList() {
     // if (!canManage) return toast.error("Only Super Admins can delete categories!");
     if (selectedIds.length === 0) return toast.error("Select categories first");
 
-    if (!window.confirm(`Delete ${selectedIds.length} categories permanently?`)) return;
+    if (!window.confirm(t("toasts.bulkDeleteConfirm", { count: selectedIds.length }))) return;
 
     try {
       await Promise.all(selectedIds.map(id => dispatch(deleteCategory(id)).unwrap()));
-      toast.success(`${selectedIds.length} categories deleted!`);
+      toast.success(t("toasts.bulkDeleteSuccess", { count: selectedIds.length }));
       setSelectedIds([]);
       loadCategories();
     } catch (err) {
@@ -144,9 +145,9 @@ export default function CategoryList() {
       link.click();
       URL.revokeObjectURL(url);
 
-      toast.success("Exported successfully!");
+      toast.success(t("toasts.exportSuccess"));
     } catch (err) {
-      toast.error("Export failed");
+      toast.error(t("toasts.exportFailed"));
     }
   };
 
@@ -165,7 +166,7 @@ export default function CategoryList() {
 
   const clearFilters = () => {
     setFilters({ level: null, parentCategory: null, search: "" });
-    toast("Filters cleared");
+    toast(t("toasts.filtersCleared"));
   };
 
   // Stats
@@ -203,9 +204,9 @@ export default function CategoryList() {
       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-0">
         {Object.entries(stats).map(([key, value]) => {
           const config = {
-            total: { icon: Folder, color: "#ff782d", bgColor: "#fff8f5", label: "Total Categories" },
-            active: { icon: CheckCircle, color: "#10b981", bgColor: "#f0fdf4", label: "Active Categories" },
-            inactive: { icon: XCircle, color: "#ef4444", bgColor: "#fff1f2", label: "Inactive Categories" },
+            total: { icon: Folder, color: "#ff782d", bgColor: "#fff8f5", label: t("list.totalCategories") },
+            active: { icon: CheckCircle, color: "#10b981", bgColor: "#f0fdf4", label: t("list.activeCategories") },
+            inactive: { icon: XCircle, color: "#ef4444", bgColor: "#fff1f2", label: t("list.inactiveCategories") },
           }[key] || { icon: Folder, color: "#6b7280", bgColor: "#f9fafb", label: key };
 
           const Icon = config.icon;
@@ -238,11 +239,11 @@ export default function CategoryList() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">Master Categories</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t("list.title")}</h1>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {items.length} categories
-                {activeFiltersCount > 0 && ` • ${activeFiltersCount} active filter${activeFiltersCount > 1 ? 's' : ''}`}
+                {t("list.categoriesCount", { count: items.length })}
+                {activeFiltersCount > 0 && ` • ${t("list.activeFilters", { count: activeFiltersCount })}`}
               </p>
             </div>
 
@@ -255,19 +256,19 @@ export default function CategoryList() {
                   type="text"
                   value={filters.search}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search categories..."
+                  placeholder={t("list.searchPlaceholder")}
                   className="w-full sm:w-[312px] pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
                 />
               </div>
 
               {selectedIds.length > 0 && canManage && (
                 <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
-                  <Trash2 size={18} /> Delete ({selectedIds.length})
+                  <Trash2 size={18} /> {t("list.deleteSelected", { count: selectedIds.length })}
                 </button>
               )}
 
               <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50 transition text-gray-700">
-                <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh
+                <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> {t("list.refresh")}
               </button>
 
               <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700">
@@ -294,7 +295,7 @@ export default function CategoryList() {
                 onClick={handleAddNew}
                 className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
               >
-                <Plus size={24} /> {!canManage ? 'Add Category' : 'Add Level 3 Category'}
+                <Plus size={24} /> {!canManage ? t('list.addCategory') : t('list.addLevel3')}
               </button>
             </div>
           </div>
@@ -302,10 +303,10 @@ export default function CategoryList() {
           {activeFiltersCount > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600">Active:</span>
-              {filters.level && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Level {filters.level} <button onClick={() => setFilters(f => ({ ...f, level: null }))}>×</button></span>}
+              {filters.level && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">{t("table.levelLabel", { level: filters.level })} <button onClick={() => setFilters(f => ({ ...f, level: null }))}>×</button></span>}
               {filters.parentCategory && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Parent Selected <button onClick={() => setFilters(f => ({ ...f, parentCategory: null }))}>×</button></span>}
               {filters.search && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">"{filters.search}" <button onClick={() => setFilters(f => ({ ...f, search: "" }))}>×</button></span>}
-              <button onClick={clearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium ml-2">Clear all</button>
+              <button onClick={clearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium ml-2">{t("list.clearAll")}</button>
             </div>
           )}
         </div>
@@ -388,7 +389,7 @@ export default function CategoryList() {
           onApply={(newFilters) => {
             setFilters(newFilters);
             setShowFilterModal(false);
-            toast.success("Filters applied!");
+            toast.success(t("toasts.filtersApplied"));
           }}
           onClose={() => setShowFilterModal(false)}
         />

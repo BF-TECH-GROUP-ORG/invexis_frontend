@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -65,6 +66,7 @@ const ModernLegend = (props) => {
 };
 
 const InventoryHealthSection = ({ data = [] }) => {
+  const t = useTranslations("inventoryOverview.health");
   const chartData =
     data && data.length > 0
       ? data
@@ -75,10 +77,10 @@ const InventoryHealthSection = ({ data = [] }) => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Stock Status History
+            {t("title")}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Historical view of check-ins vs shortages
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -136,7 +138,7 @@ const InventoryHealthSection = ({ data = [] }) => {
               dataKey="inStock"
               stackId="a"
               fill="#3b82f6"
-              name="In Stock"
+              name={t("inStock")}
               radius={[15, 15, 10, 10]}
             />
             {/* Texture overlay for In Stock */}
@@ -144,7 +146,7 @@ const InventoryHealthSection = ({ data = [] }) => {
               dataKey="inStock"
               stackId="b"
               fill="url(#lines-pattern)"
-              name="In Stock"
+              name={t("inStock")}
               legendType="none"
               tooltipType="none"
               style={{
@@ -160,14 +162,14 @@ const InventoryHealthSection = ({ data = [] }) => {
               dataKey="lowStock"
               stackId="a"
               fill="#ea580c"
-              name="Low Stock"
+              name={t("lowStock")}
               radius={[15, 15, 15, 15]}
             />
             <Bar
               dataKey="outOfStock"
               stackId="a"
               fill="#ef4444"
-              name="Out of Stock"
+              name={t("outOfStock")}
               radius={[15, 15, 15, 15]}
             />
           </BarChart>

@@ -1,36 +1,19 @@
-"use client";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchInvoices } from "@/features/billing/billingSlice";
-import CustomerList from "../components/CustomerList";
-import Loading from "./loading";
+'use client';
 
-export default function PaymentsPage() {
-    const dispatch = useDispatch();
-    const { items: invoices, status } = useSelector((state) => state.billing);
+import PaymentDashboard from "./dashboard"
+import { useEffect } from "react"
 
+const PaymentsPage = () => {
     useEffect(() => {
-        if (status === 'idle') {
-            dispatch(fetchInvoices());
-        }
-    }, [dispatch, status]);
-
-    if (status === 'loading') {
-        return <Loading />;
-    }
+        // Log instructions in consol
+        
+    }, []);
 
     return (
-        <div className="p-4 space-y-8 w-full">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-                    <p className="text-gray-500">Manage and view customers.</p>
-                </div>
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <CustomerList invoices={invoices} />
-            </div>
-        </div>
-    );
+        <>
+            <PaymentDashboard />
+        </>
+    )
 }
+
+export default PaymentsPage

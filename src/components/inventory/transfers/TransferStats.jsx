@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     ArrowLeftRight,
     CheckCircle2,
@@ -12,6 +12,7 @@ import {
 
 const TransferStats = ({ stats = {} }) => {
     const locale = useLocale();
+    const t = useTranslations("transfers.stats");
 
     // Mock history data for sparklines
     const mockHistory = (baseValue) => {
@@ -23,7 +24,7 @@ const TransferStats = ({ stats = {} }) => {
 
     const cards = useMemo(() => [
         {
-            title: "Total Transfers",
+            title: t("totalTransfers"),
             value: stats.total || 0,
             trend: 12.5,
             history: mockHistory(stats.total || 10),
@@ -33,7 +34,7 @@ const TransferStats = ({ stats = {} }) => {
             key: "total",
         },
         {
-            title: "Completed",
+            title: t("completed"),
             value: stats.completed || 0,
             trend: 8.2,
             history: mockHistory(stats.completed || 8),
@@ -43,7 +44,7 @@ const TransferStats = ({ stats = {} }) => {
             key: "completed",
         },
         {
-            title: "Stock Moved",
+            title: t("stockMoved"),
             value: stats.totalQuantity || 0,
             trend: 15.4,
             history: mockHistory(stats.totalQuantity || 200),
@@ -54,7 +55,7 @@ const TransferStats = ({ stats = {} }) => {
             isCurrency: false,
         },
         {
-            title: "Recent Active Days",
+            title: t("recentActiveDays"),
             value: stats.latestDay || 0,
             trend: -5.0,
             history: mockHistory(stats.latestDay || 3),

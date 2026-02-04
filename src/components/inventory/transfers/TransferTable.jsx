@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     Table,
     TableBody,
@@ -41,6 +41,7 @@ export default function TransferTable({
 }) {
     const router = useRouter();
     const locale = useLocale();
+    const t = useTranslations("transfers.table");
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedRow, setSelectedRow] = useState(null);
 
@@ -82,16 +83,16 @@ export default function TransferTable({
             >
                 <Table sx={{ minWidth: 1200 }}><TableHead>
                     <TableRow sx={{ backgroundColor: "#f9fafb", "& .MuiTableCell-root": { whiteSpace: "nowrap" } }}>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151", py: 2 }}>Product</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Dest. Company</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Dest. Shop</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Transfer Type</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700, color: "#374151" }}>Qty</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 700, color: "#374151" }}>Remained Qty</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Performed By</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>Date</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700, color: "#374151", pr: 3 }}>Actions</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151", py: 2 }}>{t("product")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("destCompany")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("destShop")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("transferType")}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, color: "#374151" }}>{t("qty")}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, color: "#374151" }}>{t("remainedQty")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("performedBy")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("status")}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: "#374151" }}>{t("date")}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, color: "#374151", pr: 3 }}>{t("actions")}</TableCell>
                     </TableRow>
                 </TableHead><TableBody>
                         {loading ? (
@@ -152,8 +153,8 @@ export default function TransferTable({
                                     <TableCell>
                                         <Typography variant="body2" fontWeight={700} color={item.transferType === "intra_company" ? "#ff782d" : "#111827"}>
                                             {item.transferType === "cross_company"
-                                                ? (item.destCompanyName || "Unknown")
-                                                : "Us"}
+                                                ? (item.destCompanyName || t("unknown"))
+                                                : t("us")}
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
@@ -247,20 +248,20 @@ export default function TransferTable({
             >
                 <MenuItem onClick={handleViewDetails} sx={{ py: 1.2 }}>
                     <ListItemIcon><Eye size={18} className="text-gray-500" /></ListItemIcon>
-                    <ListItemText primary="View Details" primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
+                    <ListItemText primary={t("viewDetails")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
                 </MenuItem>
                 <MenuItem onClick={handleCloseMenu} sx={{ py: 1.2 }}>
                     <ListItemIcon><Printer size={18} className="text-gray-500" /></ListItemIcon>
-                    <ListItemText primary="Print Receipt" primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
+                    <ListItemText primary={t("printReceipt")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
                 </MenuItem>
                 <MenuItem onClick={handleCloseMenu} sx={{ py: 1.2 }}>
                     <ListItemIcon><FileText size={18} className="text-gray-500" /></ListItemIcon>
-                    <ListItemText primary="Download CSV" primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
+                    <ListItemText primary={t("downloadCsv")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleCloseMenu} sx={{ py: 1.2, color: "error.main" }}>
                     <ListItemIcon><Trash2 size={18} className="text-red-500" /></ListItemIcon>
-                    <ListItemText primary="Cancel Transfer" primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
+                    <ListItemText primary={t("cancelTransfer")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
                 </MenuItem>
             </Menu>
         </motion.div>
