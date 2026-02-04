@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Package,
@@ -20,11 +21,12 @@ const formatValue = (value, isCompact) => {
 };
 
 export default function ProductStats({ stats }) {
+  const t = useTranslations("products.stats");
   const [isCompact, setIsCompact] = useState(true);
 
   const statCards = [
     {
-      title: "All Products",
+      title: t("allProducts"),
       value: stats.total || 0,
       Icon: Package,
       color: "#3b82f6",
@@ -32,7 +34,7 @@ export default function ProductStats({ stats }) {
       key: "total",
     },
     {
-      title: "In Stock",
+      title: t("inStock"),
       value: stats.inStock || 0,
       Icon: TrendingUp,
       color: "#10b981",
@@ -40,7 +42,7 @@ export default function ProductStats({ stats }) {
       key: "stock",
     },
     {
-      title: "Low Stock",
+      title: t("lowStock"),
       value: stats.lowStock || 0,
       Icon: AlertTriangle,
       color: "#f59e0b",
@@ -48,7 +50,7 @@ export default function ProductStats({ stats }) {
       key: "low_stock",
     },
     {
-      title: "Total Value",
+      title: t("totalValue"),
       value: stats.totalValue || 0,
       Icon: DollarSign,
       color: "#8b5cf6",
@@ -82,9 +84,8 @@ export default function ProductStats({ stats }) {
                 </p>
                 <div className="flex items-center gap-2">
                   <p
-                    className={`font-bold font-jetbrains text-[#081422] transition-all ${
-                      displayValue.length > 12 ? "text-lg" : "text-2xl"
-                    }`}
+                    className={`font-bold font-jetbrains text-[#081422] transition-all ${displayValue.length > 12 ? "text-lg" : "text-2xl"
+                      }`}
                   >
                     {displayValue}
                   </p>
@@ -93,7 +94,7 @@ export default function ProductStats({ stats }) {
                       onClick={() => setIsCompact(!isCompact)}
                       className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                       title={
-                        isCompact ? "Show full value" : "Show compact value"
+                        isCompact ? t("showFull") : t("showCompact")
                       }
                     >
                       {isCompact ? (

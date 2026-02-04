@@ -26,6 +26,7 @@ import {
 import { MoreVertical, Edit, Trash2, Folder } from "lucide-react";
 import { toggleCategoryActive } from "@/features/categories/categoriesSlice";
 import { toast } from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export default function CategoryTable({
   categories = [],
@@ -36,6 +37,7 @@ export default function CategoryTable({
   onEdit,
   canManage = false,
 }) {
+  const t = useTranslations("categories");
   const dispatch = useDispatch();
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [menuRowId, setMenuRowId] = useState(null);
@@ -60,7 +62,7 @@ export default function CategoryTable({
   const handleToggleActive = async (id) => {
     try {
       await dispatch(toggleCategoryActive(id)).unwrap();
-      toast.success("Category status updated!");
+      toast.success(t("toasts.statusUpdated"));
     } catch (error) {
       // toast.error("Failed to update category");
     }
@@ -100,9 +102,9 @@ export default function CategoryTable({
     return (
       <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
         <Folder className="mx-auto mb-4 text-gray-400" size={48} />
-        <p className="text-lg font-medium text-gray-900">No categories found</p>
+        <p className="text-lg font-medium text-gray-900">{t("table.noCategories")}</p>
         <p className="text-sm text-gray-500 mt-1">
-          Create categories to get started
+          {t("table.createFirst")}
         </p>
       </div>
     );
@@ -148,22 +150,22 @@ export default function CategoryTable({
                 />
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Category Name
+                {t("table.categoryName")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Level
+                {t("table.level")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Parent
+                {t("table.parent")}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
-                Status
+                {t("table.status")}
               </TableCell>
               <TableCell
                 align="center"
                 sx={{ fontWeight: 600, color: "#4b5563" }}
               >
-                Actions
+                {t("table.actions")}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -227,7 +229,7 @@ export default function CategoryTable({
 
                 <TableCell>
                   <Chip
-                    label={`Level ${category.level}`}
+                    label={t("table.levelLabel", { level: category.level })}
                     size="small"
                     sx={{
                       backgroundColor: "#F3F4F6",
@@ -253,7 +255,7 @@ export default function CategoryTable({
 
                 <TableCell>
                   <Chip
-                    label={category.isActive ? "Active" : "Inactive"}
+                    label={category.isActive ? t("table.active") : t("table.inactive")}
                     size="small"
                     onClick={() => handleToggleActive(category._id)}
                     sx={{
@@ -270,7 +272,7 @@ export default function CategoryTable({
                 </TableCell>
 
                 <TableCell align="center">
-                  <Tooltip title="Actions">
+                  <Tooltip title={t("table.actions")}>
                     <IconButton
                       size="small"
                       onClick={(e) => openMenu(e, category)}
@@ -307,7 +309,7 @@ export default function CategoryTable({
           <ListItemIcon>
             <Edit size={16} />
           </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
+          <ListItemText>{t("table.edit")}</ListItemText>
         </MenuItem>
         <MenuItem
           onClick={handleDeleteAction}
@@ -316,7 +318,7 @@ export default function CategoryTable({
           <ListItemIcon>
             <Trash2 size={16} className="text-red-600" />
           </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
+          <ListItemText>{t("table.delete")}</ListItemText>
         </MenuItem>
       </Menu>
     </>

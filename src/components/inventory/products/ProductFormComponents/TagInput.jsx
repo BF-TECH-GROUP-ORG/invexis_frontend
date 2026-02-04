@@ -1,12 +1,14 @@
 "use client";
 
 import { Plus, X, Tag } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function TagInput({ tags, tagInput, setTagInput, onAddTag, onRemoveTag }) {
+  const t = useTranslations("products.form");
   return (
     <div>
       <label className="block text-sm font-semibold mb-2">
-        Product Tags (Max 10)
+        {t("fields.productTags", { max: 10 })}
       </label>
       <div className="flex gap-2 mb-3">
         <input
@@ -20,7 +22,7 @@ export default function TagInput({ tags, tagInput, setTagInput, onAddTag, onRemo
             }
           }}
           className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-          placeholder="Type and press Enter..."
+          placeholder={t("fields.typePressEnter")}
           disabled={tags.length >= 10}
         />
         <button
@@ -40,7 +42,7 @@ export default function TagInput({ tags, tagInput, setTagInput, onAddTag, onRemo
           >
             <Tag size={14} />
             {tag}
-            <button 
+            <button
               type="button"
               onClick={() => onRemoveTag(index)}
               className="hover:text-orange-900"
@@ -50,7 +52,7 @@ export default function TagInput({ tags, tagInput, setTagInput, onAddTag, onRemo
           </span>
         ))}
       </div>
-      <p className="text-xs text-gray-500 mt-2">{tags.length}/10 tags used</p>
+      <p className="text-xs text-gray-500 mt-2">{t("fields.tagsUsed", { count: tags.length, max: 10 })}</p>
     </div>
   );
 }

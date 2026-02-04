@@ -30,7 +30,7 @@ export default function DashboardLayout({ children, expanded: controlledExpanded
   }, [expanded, setExpanded, isControlled]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden flex flex-col">
+    <div className="min-h-screen  dark:bg-gray-900 overflow-x-hidden flex flex-col">
       <SideBar
         expanded={expanded}
         setExpanded={handleSetExpanded}

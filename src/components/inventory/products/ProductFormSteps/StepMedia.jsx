@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import ImageUploader from "../ProductFormComponents/ImageUploader";
 
 export default function StepMedia({
@@ -11,6 +12,7 @@ export default function StepMedia({
   setPrimaryImage,
   updateFormData,
 }) {
+  const t = useTranslations("products.form");
   const images = formData?.images || [];
   const videoUrls = formData?.videoUrls || [];
 
@@ -50,7 +52,7 @@ export default function StepMedia({
     >
       {/* Images */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Product Images</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("fields.productImages")}</h3>
         <ImageUploader
           images={images}
           onUpload={onUpload}
@@ -61,7 +63,7 @@ export default function StepMedia({
 
       {/* Video URLs */}
       <div className="bg-white p-6 rounded-xl border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Video URLs</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("fields.videoUrls")}</h3>
         <div className="space-y-3">
           {videoUrls.map((url, index) => (
             <div key={index} className="flex gap-2">
@@ -84,7 +86,7 @@ export default function StepMedia({
             onClick={handleAddVideo}
             className="text-sm text-orange-600 font-semibold hover:text-orange-700"
           >
-            + Add Video URL
+            {t("fields.addVideoUrl")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
     Box,
     TextField,
@@ -32,6 +33,7 @@ export default function TransferFilters({
     shops = [],
     workers = []
 }) {
+    const t = useTranslations("transfers.filters");
     const [search, setSearch] = useState("");
     const [filters, setFilters] = useState({
         direction: "all",
@@ -93,7 +95,7 @@ export default function TransferFilters({
             >
                 {/* Search Bar */}
                 <TextField
-                    placeholder="Search products or IDs..."
+                    placeholder={t("searchPlaceholder")}
                     size="small"
                     value={search}
                     onChange={handleSearchChange}
@@ -132,9 +134,9 @@ export default function TransferFilters({
                             displayEmpty
                             sx={{ borderRadius: "12px", bgcolor: "#f9fafb" }}
                         >
-                            <MenuItem value="all">All Directions</MenuItem>
-                            <MenuItem value="inbound">Inbound (To us)</MenuItem>
-                            <MenuItem value="outbound">Outbound (From us)</MenuItem>
+                            <MenuItem value="all">{t("allDirections")}</MenuItem>
+                            <MenuItem value="inbound">{t("inbound")}</MenuItem>
+                            <MenuItem value="outbound">{t("outbound")}</MenuItem>
                         </Select>
                     </FormControl>
 
@@ -159,7 +161,7 @@ export default function TransferFilters({
                             fontWeight: activeAdvancedCount > 0 ? 700 : 500
                         }}
                     >
-                        {activeAdvancedCount > 0 ? `More (${activeAdvancedCount})` : "More"}
+                        {activeAdvancedCount > 0 ? t("activeMore", { count: activeAdvancedCount }) : t("more")}
                     </Button>
 
                     <IconButton
@@ -172,7 +174,7 @@ export default function TransferFilters({
                             flex: "none",
                             "&:hover": { bgcolor: "#fee2e2", borderColor: "#fecaca", color: "#ef4444" }
                         }}
-                        title="Reset Filters"
+                        title={t("resetFilters")}
                     >
                         <RefreshCcw size={18} />
                     </IconButton>
@@ -189,26 +191,26 @@ export default function TransferFilters({
                     sx: { p: 3, borderRadius: "16px", minWidth: 320, mt: 1, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }
                 }}
             >
-                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 2 }}>Advanced Filters</Typography>
+                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 2 }}>{t("advancedFilters")}</Typography>
 
                 <Stack spacing={2}>
                     <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>Transfer Type</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("transferType")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
                                 value={filters.type}
                                 onChange={(e) => handleFilterChange("type", e.target.value)}
                                 sx={{ borderRadius: "8px" }}
                             >
-                                <MenuItem value="all">All Types</MenuItem>
-                                <MenuItem value="intra_company">Intra-company</MenuItem>
-                                <MenuItem value="cross_company">Cross-company</MenuItem>
+                                <MenuItem value="all">{t("allTypes")}</MenuItem>
+                                <MenuItem value="intra_company">{t("intraCompany")}</MenuItem>
+                                <MenuItem value="cross_company">{t("crossCompany")}</MenuItem>
                             </Select>
                         </FormControl>
                     </Box>
 
                     <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>Shop / Location</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("shopLocation")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
                                 value={filters.shop}
@@ -216,7 +218,7 @@ export default function TransferFilters({
                                 sx={{ borderRadius: "8px" }}
                                 startAdornment={<Store size={14} className="mr-2 text-gray-400" />}
                             >
-                                <MenuItem value="all">All Shops</MenuItem>
+                                <MenuItem value="all">{t("allShops")}</MenuItem>
                                 {shops.map(shop => (
                                     <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>{shop.name || shop.shopName}</MenuItem>
                                 ))}
@@ -225,7 +227,7 @@ export default function TransferFilters({
                     </Box>
 
                     <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>Performed By</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("performedBy")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
                                 value={filters.worker}
@@ -233,7 +235,7 @@ export default function TransferFilters({
                                 sx={{ borderRadius: "8px" }}
                                 startAdornment={<Users size={14} className="mr-2 text-gray-400" />}
                             >
-                                <MenuItem value="all">All Workers</MenuItem>
+                                <MenuItem value="all">{t("allWorkers")}</MenuItem>
                                 {workers.map(worker => (
                                     <MenuItem key={worker.id || worker._id} value={worker.id || worker._id}>
                                         {worker.fullName || (worker.firstName ? `${worker.firstName} ${worker.lastName || ""}`.trim() : worker.name)}
@@ -246,7 +248,7 @@ export default function TransferFilters({
                     <Divider />
 
                     <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>Date Range</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("dateRange")}</Typography>
                         <Stack direction="row" spacing={1}>
                             <TextField
                                 type="date"
@@ -278,7 +280,7 @@ export default function TransferFilters({
                             boxShadow: "none"
                         }}
                     >
-                        Show Results
+                        {t("showResults")}
                     </Button>
                 </Stack>
             </Popover>

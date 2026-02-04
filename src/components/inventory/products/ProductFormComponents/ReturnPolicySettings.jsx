@@ -1,15 +1,17 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ReturnPolicySettings({ returnPolicy, updateNestedField }) {
+  const t = useTranslations("products.form");
   return (
     <div className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50">
       <h3 className="font-semibold mb-4 flex items-center gap-2">
         <RotateCcw size={20} className="text-orange-500" />
-        Return Policy (Optional)
+        {t("fields.returnPolicyTitle")}
       </h3>
-      
+
       <div className="space-y-4">
         <label className="flex items-center gap-3 cursor-pointer">
           <input
@@ -18,14 +20,14 @@ export default function ReturnPolicySettings({ returnPolicy, updateNestedField }
             onChange={(e) => updateNestedField('returnPolicy', 'allowed', e.target.checked)}
             className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
           />
-          <span className="text-sm font-medium">Allow returns for this product</span>
+          <span className="text-sm font-medium">{t("fields.allowReturns")}</span>
         </label>
 
         {returnPolicy.allowed && (
           <div className="space-y-4 pl-8 border-l-4 border-orange-200">
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Return Window (Days)
+                {t("fields.returnWindow")}
               </label>
               <input
                 type="number"
@@ -37,20 +39,20 @@ export default function ReturnPolicySettings({ returnPolicy, updateNestedField }
                 max="365"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Number of days customers can return the product
+                {t("fields.returnWindowDesc")}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Return Conditions
+                {t("fields.returnConditions")}
               </label>
               <textarea
                 value={returnPolicy.conditions}
                 onChange={(e) => updateNestedField('returnPolicy', 'conditions', e.target.value)}
                 rows={3}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                placeholder="E.g., Product must be unused, in original packaging..."
+                placeholder={t("fields.returnConditionsPlaceholder")}
               />
             </div>
 
@@ -62,13 +64,13 @@ export default function ReturnPolicySettings({ returnPolicy, updateNestedField }
                   onChange={(e) => updateNestedField('returnPolicy', 'restockingFee', e.target.checked)}
                   className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
                 />
-                <span className="text-sm font-medium">Charge restocking fee</span>
+                <span className="text-sm font-medium">{t("fields.restockingFee")}</span>
               </label>
 
               {returnPolicy.restockingFee && (
                 <div className="ml-8">
                   <label className="block text-sm font-medium mb-1">
-                    Restocking Fee Percentage
+                    {t("fields.restockingFeePercent")}
                   </label>
                   <input
                     type="number"
@@ -80,7 +82,7 @@ export default function ReturnPolicySettings({ returnPolicy, updateNestedField }
                     max="100"
                     step="0.01"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Percentage of product price</p>
+                  <p className="text-xs text-gray-500 mt-1">{t("fields.restockingFeeDesc")}</p>
                 </div>
               )}
             </div>

@@ -3,8 +3,10 @@
 
 import { motion } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function StepMoreInfo({ formData, updateFormData }) {
+  const t = useTranslations("products.form");
   const attributes = formData.attributes || [];
 
   const handleAddAttribute = () => {
@@ -30,9 +32,9 @@ export default function StepMoreInfo({ formData, updateFormData }) {
       className="space-y-6"
     >
       <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Product Attributes</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("fields.attributes")}</h3>
         <p className="text-sm text-gray-500 mb-6">
-          Add custom attributes like Material, Care Instructions, etc.
+          {t("fields.attrDesc")}
         </p>
 
         {attributes.map((attr, index) => (
@@ -43,7 +45,7 @@ export default function StepMoreInfo({ formData, updateFormData }) {
                 value={attr.name}
                 onChange={(e) => handleAttributeChange(index, "name", e.target.value)}
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                placeholder="Name (e.g. Material)"
+                placeholder={t("fields.attrNamePlaceholder")}
               />
             </div>
             <div className="flex-1">
@@ -52,7 +54,7 @@ export default function StepMoreInfo({ formData, updateFormData }) {
                 value={attr.value}
                 onChange={(e) => handleAttributeChange(index, "value", e.target.value)}
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                placeholder="Value (e.g. 100% Cotton)"
+                placeholder={t("fields.attrValuePlaceholder")}
               />
             </div>
             <button
@@ -69,7 +71,7 @@ export default function StepMoreInfo({ formData, updateFormData }) {
           className="flex items-center gap-2 text-orange-600 font-medium hover:text-orange-700 mt-2"
         >
           <Plus size={20} />
-          Add Attribute
+          {t("fields.addAttribute")}
         </button>
       </div>
     </motion.div>

@@ -7,10 +7,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const PAGE_SIZE = 5;
 
 const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
+  const tRisk = useTranslations("inventoryOverview.risk");
+  const tTop = useTranslations("inventoryOverview.topPerformers");
   const [topPage, setTopPage] = useState(0);
   const [riskPage, setRiskPage] = useState(0);
   // If both lists are empty, hide the whole section per request
@@ -39,10 +42,10 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-xl">
                 <AlertCircle className="w-5 h-5 text-orange-600" />
               </div>
-              Stockout Risks
+              {tRisk("title")}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-11">
-              Items predicted to run out soon
+              {tRisk("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -60,13 +63,13 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 dark:border-gray-700">
                 <th className="font-bold uppercase tracking-wider py-3 pl-1">
-                  Product
+                  {tRisk("table.product")}
                 </th>
                 <th className="font-bold uppercase tracking-wider py-3 text-center">
-                  Remaining
+                  {tRisk("table.remaining")}
                 </th>
                 <th className="font-bold uppercase tracking-wider py-3 text-right pr-1">
-                  Burn Rate
+                  {tRisk("table.burnRate")}
                 </th>
               </tr>
             </thead>
@@ -81,22 +84,21 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
                       {item.name}
                     </div>
                     <div className="text-xs text-gray-500 font-medium">
-                      {item.stock} in stock
+                      {tRisk("inStock", { count: item.stock })}
                     </div>
                   </td>
                   <td className="py-4 text-center">
                     <span
-                      className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border ${
-                        item.remainingDays <= 3
-                          ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30"
-                          : "bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30"
-                      }`}
+                      className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border ${item.remainingDays <= 3
+                        ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30"
+                        : "bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30"
+                        }`}
                     >
-                      {item.remainingDays} Days
+                      {tRisk("days", { count: item.remainingDays })}
                     </span>
                   </td>
                   <td className="py-4 text-right pr-1 font-bold text-gray-600 dark:text-gray-300 font-mono">
-                    {item.burnRate}/day
+                    {tRisk("perDay", { count: item.burnRate })}
                   </td>
                 </tr>
               ))}
@@ -108,9 +110,11 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
         {riskProducts?.length > PAGE_SIZE && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-xs text-gray-500">
-              Showing {riskPage * PAGE_SIZE + 1}–
-              {Math.min((riskPage + 1) * PAGE_SIZE, riskProducts.length)} of{" "}
-              {riskProducts.length}
+              {tRisk("pagination", {
+                start: riskPage * PAGE_SIZE + 1,
+                end: Math.min((riskPage + 1) * PAGE_SIZE, riskProducts.length),
+                total: riskProducts.length
+              })}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -142,10 +146,10 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               <div className="p-2 bg-emerald-100 dark:bg-emerald-900/20 rounded-xl">
                 <TrendingUp className="w-5 h-5 text-emerald-600" />
               </div>
-              Top Performers
+              {tTop("title")}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-11">
-              Highest grossing products this month
+              {tTop("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -153,7 +157,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               href="/inventory/products"
               className="text-xs text-indigo-600 hover:underline"
             >
-              View all
+              {tTop("viewAll") || tRisk("viewAll")}
             </Link>
           </div>
         </div>
@@ -168,11 +172,10 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                      index < 3
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${index < 3
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-gray-100 text-gray-500"
+                      }`}
                   >
                     #{index + 1}
                   </div>
@@ -182,7 +185,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
                     </div>
                     <div className="text-xs text-gray-500 flex items-center gap-1 font-medium mt-0.5">
                       <Package className="w-3 h-3" />
-                      {product.unitsSold} units sold
+                      {tTop("unitsSold", { count: product.unitsSold })}
                     </div>
                   </div>
                 </div>
@@ -191,7 +194,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
                     +{(Number(product.profit) || 0).toLocaleString()} RWF
                   </div>
                   <div className="text-xs text-gray-400 font-medium">
-                    Profit
+                    {tTop("profit")}
                   </div>
                 </div>
               </div>
@@ -203,9 +206,11 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
         {topProducts?.length > PAGE_SIZE && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-xs text-gray-500">
-              Showing {topPage * PAGE_SIZE + 1}–
-              {Math.min((topPage + 1) * PAGE_SIZE, topProducts.length)} of{" "}
-              {topProducts.length}
+              {tRisk("pagination", {
+                start: topPage * PAGE_SIZE + 1,
+                end: Math.min((topPage + 1) * PAGE_SIZE, topProducts.length),
+                total: topProducts.length
+              })}
             </div>
             <div className="flex items-center gap-2">
               <button

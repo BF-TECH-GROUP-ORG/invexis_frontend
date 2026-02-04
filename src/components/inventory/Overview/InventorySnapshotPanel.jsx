@@ -1,7 +1,8 @@
-import React from "react";
 import { Package, Layers, DollarSign, ClipboardList } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
+  const t = useTranslations("inventoryOverview.snapshot");
   const format = (v) => (typeof v === "number" ? v.toLocaleString() : v ?? "—");
 
   return (
@@ -10,17 +11,17 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Total Units
+              {t("totalUnits")}
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
               {format(
                 snapshot.totalUnits ??
-                  kpis?.totalInventoryUnits ??
-                  snapshot.totalUnits
+                kpis?.totalInventoryUnits ??
+                snapshot.totalUnits
               )}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              SKUs: {format(snapshot.totalSKUs ?? snapshot.totalSkus ?? "—")}
+              {t("skus")}: {format(snapshot.totalSKUs ?? snapshot.totalSkus ?? "—")}
             </p>
           </div>
           <div className="p-2 rounded-full bg-orange-50 text-orange-600">
@@ -33,13 +34,13 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Available Units
+              {t("availableUnits")}
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
               {format(snapshot.availableUnits)}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Out of stock: {format(snapshot.outOfStockUnits)}
+              {t("outOfStock")}: {format(snapshot.outOfStockUnits)}
             </p>
           </div>
           <div className="p-2 rounded-full bg-emerald-50 text-emerald-600">
@@ -52,7 +53,7 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Inventory Value
+              {t("inventoryValue")}
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
               {snapshot.totalInventoryValue
@@ -60,7 +61,7 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
                 : "—"}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Avg Unit Cost:{" "}
+              {t("avgUnitCost")}:{" "}
               {snapshot.averageUnitCost
                 ? `${Number(snapshot.averageUnitCost).toLocaleString()} RWF`
                 : "—"}
@@ -76,13 +77,13 @@ export default function InventorySnapshotPanel({ snapshot = {}, kpis = {} }) {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Net Movement
+              {t("netMovement")}
             </p>
             <p className="text-2xl font-extrabold text-gray-900">
               {kpis?.netStockMovement ?? kpis?.netMovement ?? "—"}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Stock In: {kpis?.stockInUnits ?? "—"} • Stock Out:{" "}
+              {t("stockIn")}: {kpis?.stockInUnits ?? "—"} • {t("stockOut")}:{" "}
               {kpis?.stockOutUnits ?? "—"}
             </p>
           </div>

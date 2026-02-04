@@ -15,6 +15,7 @@ import {
   Search,
   RefreshCw,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -31,6 +32,7 @@ import ProductTable from "./ProductTable";
 import ProductStats from "./ProductStats";
 
 export default function ProductList() {
+  const t = useTranslations("products");
   const dispatch = useDispatch();
   const pathname = usePathname(); // Only this — no more useRouter()
   const { data: session } = useSession();
@@ -142,25 +144,25 @@ export default function ProductList() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this product?")) return;
+    if (!confirm(t("toasts.deleteConfirm"))) return;
     try {
       await dispatch(deleteProduct(id)).unwrap();
-      toast.success("Product deleted!");
+      toast.success(t("toasts.deleteSuccess"));
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("toasts.deleteFailed"));
     }
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Delete ${selectedIds.length} products?`)) return;
+    if (!confirm(t("toasts.bulkDeleteConfirm", { count: selectedIds.length }))) return;
     try {
       await Promise.all(
         selectedIds.map((id) => dispatch(deleteProduct(id)).unwrap())
       );
-      toast.success("Products deleted");
+      toast.success(t("toasts.bulkDeleteSuccess"));
       setSelectedIds([]);
     } catch {
-      toast.error("Some failed");
+      toast.error(t("toasts.bulkDeleteSomeFailed"));
     }
   };
 
@@ -168,7 +170,7 @@ export default function ProductList() {
     apiClient.clearCache();
     if (companyId) {
       dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
-      toast.success("Cache cleared & data refreshed");
+      toast.success(t("toasts.refreshSuccess"));
     }
   };
 
@@ -178,23 +180,26 @@ export default function ProductList() {
     // Add Header
     doc.setFontSize(20);
     doc.setTextColor(249, 115, 22); // Orange color
-    doc.text("Inventory Report", 14, 22);
+    doc.text(t("report.title"), 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(
-      `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+      t("report.generatedOn", {
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+      }),
       14,
       30
     );
 
     const tableColumn = [
-      "Image",
-      "Product Details",
-      "Category",
-      "Stock & Price",
-      "Status",
-      "Total Value",
+      t("report.image"),
+      t("report.productDetails"),
+      t("report.category"),
+      t("report.stockPrice"),
+      t("report.status"),
+      t("report.totalValue"),
     ];
     const tableRows = [];
 
@@ -208,13 +213,13 @@ export default function ProductList() {
         product.UnitPrice ||
         product.cost ||
         0;
-      
+
       const salePrice =
-        product.pricing?.salePrice || 
-        product.pricingId?.salePrice || 
+        product.pricing?.salePrice ||
+        product.pricingId?.salePrice ||
         product.salePrice ||
         0;
-      
+
       const effectivePrice =
         salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
 
@@ -225,7 +230,7 @@ export default function ProductList() {
         product.stock ??
         0;
       const totalValue = effectivePrice * stock;
-      const status = stock > 0 ? "In Stock" : "Out of Stock";
+      const status = stock > 0 ? t("report.inStock") : t("report.outOfStock");
       const discount = product.pricing?.discount || product.discount || 0;
 
       // Format data for the table
@@ -236,7 +241,7 @@ export default function ProductList() {
           : ""
         }`,
         product.category?.name || product.categoryId?.name || "N/A",
-        `Qty: ${stock}\nPrice: ${Number(effectivePrice).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}${discount > 0 ? `\nDisc: ${discount}%` : ""
+        `${t("report.qty")}: ${stock}\n${t("report.price")}: ${Number(effectivePrice).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}${discount > 0 ? `\n${t("report.disc")}: ${discount}%` : ""
         }`,
         status,
         `${Number(totalValue).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
@@ -289,7 +294,7 @@ export default function ProductList() {
     });
 
     doc.save(`inventory-report-${new Date().toISOString().slice(0, 10)}.pdf`);
-    toast.success("PDF Report generated successfully");
+    toast.success(t("report.success"));
   };
 
   // Calculate stats dynamically from actual product data
@@ -325,23 +330,23 @@ export default function ProductList() {
         p.UnitPrice ||
         p.cost ||
         0;
-      
-      const salePrice = 
-        p.pricing?.salePrice ?? 
-        p.pricingId?.salePrice ?? 
+
+      const salePrice =
+        p.pricing?.salePrice ??
+        p.pricingId?.salePrice ??
         p.salePrice ??
         0;
-      
+
       const effectivePrice =
         salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
-      
+
       const qty =
         p.stock?.total ??
         p.stock?.available ??
         p.inventory?.quantity ??
         p.stock ??
         0;
-      
+
       return sum + effectivePrice * qty;
     }, 0),
   };
@@ -354,9 +359,9 @@ export default function ProductList() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("header.title")}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {stats.total} total products
+              {t("header.count", { count: stats.total })}
             </p>
           </div>
 
@@ -368,7 +373,7 @@ export default function ProductList() {
               </div>
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t("header.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full sm:w-96 pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
@@ -380,7 +385,7 @@ export default function ProductList() {
                 className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
                 <Trash2 size={18} />
-                Delete ({selectedIds.length})
+                {t("header.deleteSelected", { count: selectedIds.length })}
               </button>
             )}
 
@@ -397,7 +402,7 @@ export default function ProductList() {
                   }`}
               >
                 <Filter size={18} />
-                <span>Filters</span>
+                <span>{t("header.filters")}</span>
                 {(filters.category || filters.warehouse || filters.status) && (
                   <span className="flex h-2 w-2 rounded-full bg-orange-500 ml-1"></span>
                 )}
@@ -407,7 +412,7 @@ export default function ProductList() {
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-gray-100 p-4 z-20 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-900">
-                      Filter Products
+                      {t("filters.title")}
                     </h3>
                     <button
                       onClick={() => {
@@ -421,14 +426,14 @@ export default function ProductList() {
                       }}
                       className="text-xs text-orange-600 hover:text-orange-700 font-medium"
                     >
-                      Clear All
+                      {t("filters.clearAll")}
                     </button>
                   </div>
 
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Category
+                        {t("filters.category")}
                       </label>
                       <select
                         value={filters.category}
@@ -437,7 +442,7 @@ export default function ProductList() {
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
-                        <option value="">All Categories</option>
+                        <option value="">{t("filters.allCategories")}</option>
                         {categories.map((cat) => (
                           <option key={cat._id} value={cat._id}>
                             {cat.name}
@@ -448,7 +453,7 @@ export default function ProductList() {
 
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Shop
+                        {t("filters.shop")}
                       </label>
                       <select
                         value={filters.warehouse}
@@ -457,7 +462,7 @@ export default function ProductList() {
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
-                        <option value="">All Shops</option>
+                        <option value="">{t("filters.allShops")}</option>
                         {warehouses.map((w) => (
                           <option key={w._id} value={w._id}>
                             {w.name}
@@ -468,7 +473,7 @@ export default function ProductList() {
 
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Status
+                        {t("filters.status")}
                       </label>
                       <select
                         value={filters.status}
@@ -477,10 +482,10 @@ export default function ProductList() {
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
-                        <option value="">Any Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="draft">Draft</option>
+                        <option value="">{t("filters.anyStatus")}</option>
+                        <option value="active">{t("filters.active")}</option>
+                        <option value="inactive">{t("filters.inactive")}</option>
+                        <option value="draft">{t("filters.draft")}</option>
                       </select>
                     </div>
                   </div>
@@ -491,7 +496,7 @@ export default function ProductList() {
             <button
               onClick={handleRefresh}
               className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
-              title="Clear Cache & Refresh"
+              title={t("header.clearCache")}
             >
               <RefreshCw size={18} />
             </button>
@@ -501,7 +506,7 @@ export default function ProductList() {
               className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
             >
               <Download size={18} />
-              Export PDF
+              {t("header.exportPdf")}
             </button>
 
             <Link
@@ -510,7 +515,7 @@ export default function ProductList() {
               className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
             >
               <Plus size={24} />
-              Add Product
+              {t("header.addProduct")}
             </Link>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Package, Layers, DollarSign, TrendingUp } from "lucide-react";
 
 /**
@@ -9,29 +9,29 @@ import { Package, Layers, DollarSign, TrendingUp } from "lucide-react";
  * Displays 4 key inventory metrics with sparkline charts and trend indicators
  * Properly handles zero values with flat graph visualization
  */
-const InventoryOverviewCards = ({ 
-  snapshot = {}, 
-  kpis = {}, 
+const InventoryOverviewCards = ({
+  snapshot = {},
+  kpis = {},
   trends = {},
   history = {},
-  isLoading = false 
+  isLoading = false
 }) => {
-  
+  const t = useTranslations("inventoryOverview.snapshot");
   const stats = useMemo(() => {
     // Extract history data for sparklines - ensure proper format
-    const totalUnitsHistory = Array.isArray(history?.totalUnits) 
+    const totalUnitsHistory = Array.isArray(history?.totalUnits)
       ? history.totalUnits.map(h => ({ value: h.value || 0, name: h.name || h.date || '' }))
       : [];
-    
-    const availableUnitsHistory = Array.isArray(history?.availableUnits) 
+
+    const availableUnitsHistory = Array.isArray(history?.availableUnits)
       ? history.availableUnits.map(h => ({ value: h.value || 0, name: h.name || h.date || '' }))
       : [];
-    
-    const inventoryValueHistory = Array.isArray(history?.inventoryValue) 
+
+    const inventoryValueHistory = Array.isArray(history?.inventoryValue)
       ? history.inventoryValue.map(h => ({ value: h.value || 0, name: h.name || h.date || '' }))
       : [];
-    
-    const netMovementHistory = Array.isArray(history?.netMovement) 
+
+    const netMovementHistory = Array.isArray(history?.netMovement)
       ? history.netMovement.map(h => ({ value: h.value || 0, name: h.name || h.date || '' }))
       : [];
 
@@ -58,7 +58,7 @@ const InventoryOverviewCards = ({
   // Exact same card structure as SalesCards for visual consistency
   const cards = [
     {
-      title: "Total Units",
+      title: t("totalUnits"),
       value: stats.totalUnits,
       trend: stats.trends.totalUnits,
       history: stats.history.totalUnits,
@@ -69,7 +69,7 @@ const InventoryOverviewCards = ({
       isCurrency: false,
     },
     {
-      title: "Available Units",
+      title: t("availableUnits"),
       value: stats.availableUnits,
       trend: stats.trends.availableUnits,
       history: stats.history.availableUnits,
@@ -80,7 +80,7 @@ const InventoryOverviewCards = ({
       isCurrency: false,
     },
     {
-      title: "Inventory Value",
+      title: t("inventoryValue"),
       value: stats.inventoryValue,
       trend: stats.trends.inventoryValue,
       history: stats.history.inventoryValue,
@@ -91,7 +91,7 @@ const InventoryOverviewCards = ({
       isCurrency: true,
     },
     {
-      title: "Net Movement",
+      title: t("netMovement"),
       value: stats.netMovement,
       trend: stats.trends.netMovement,
       history: stats.history.netMovement,

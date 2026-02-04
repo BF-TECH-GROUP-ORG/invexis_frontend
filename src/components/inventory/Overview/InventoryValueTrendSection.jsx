@@ -8,15 +8,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 const CustomTooltip = ({ active, payload, label }) => {
+  const t = useTranslations("inventoryOverview.valueTrend");
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-xl text-sm">
         <p className="font-bold text-gray-900 dark:text-white mb-2">{label}</p>
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
-          <span className="text-gray-600 dark:text-gray-300">Total Value:</span>
+          <span className="text-gray-600 dark:text-gray-300">{t("totalValue")}:</span>
           <span className="font-bold text-gray-900 dark:text-white">
             {payload[0].value.toLocaleString()} RWF
           </span>
@@ -28,36 +30,38 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const InventoryValueTrendSection = ({ data = [] }) => {
+  const t = useTranslations("inventoryOverview.valueTrend");
+  const tMonths = useTranslations("inventoryOverview.valueTrend.months");
   const chartData =
     data.length > 0
       ? data
       : Array.from({ length: 12 }).map((_, i) => ({
-          month: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ][i],
-          value: 500000 + Math.random() * 200000,
-        }));
+        month: [
+          tMonths("Jan"),
+          tMonths("Feb"),
+          tMonths("Mar"),
+          tMonths("Apr"),
+          tMonths("May"),
+          tMonths("Jun"),
+          tMonths("Jul"),
+          tMonths("Aug"),
+          tMonths("Sep"),
+          tMonths("Oct"),
+          tMonths("Nov"),
+          tMonths("Dec"),
+        ][i],
+        value: 500000 + Math.random() * 200000,
+      }));
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 mb-8 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Inventory Value Over Time
+            {t("title")}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Total valuation trend (FIFO)
+            {t("subtitle")}
           </p>
         </div>
       </div>

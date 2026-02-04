@@ -9,42 +9,47 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { getProducts } from "@/services/productsService";
 
 const PAGE_SIZE = 5;
 
 const ActivityBadge = ({ type }) => {
+  const t = useTranslations("inventoryOverview.activity.types");
   switch (type) {
     case "RESTOCK":
     case "STOCK_IN":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-          Restock
+          {t("restock")}
         </span>
       );
     case "SALE":
     case "STOCK_OUT":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
-          Sale
+          {t("sale")}
         </span>
       );
     case "ADJUSTMENT":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-          Adjustment
+          {t("adjustment")}
         </span>
       );
     default:
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-          Other
+          {t("other")}
         </span>
       );
   }
 };
 
 const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
+  const tActivity = useTranslations("inventoryOverview.activity");
+  const tNewProducts = useTranslations("inventoryOverview.newProducts");
+  const tRisk = useTranslations("inventoryOverview.risk");
   const { data: session } = useSession();
   const [actPage, setActPage] = useState(0);
   const [prodPage, setProdPage] = useState(0);
@@ -105,11 +110,11 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <History className="w-5 h-5 text-gray-400" />
-            Recent Activity
+            {tActivity("title")}
           </h3>
           <div className="flex items-center gap-3">
             <button className="text-sm text-indigo-600 font-medium hover:text-indigo-700">
-              View Log
+              {tActivity("viewLog")}
             </button>
           </div>
         </div>
@@ -118,10 +123,10 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
           <table className="w-full text-left min-w-[500px]">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                <th className="font-medium py-3 pl-1">Action</th>
-                <th className="font-medium py-3">Item</th>
-                <th className="font-medium py-3 text-right">Qty</th>
-                <th className="font-medium py-3 text-right">Time</th>
+                <th className="font-medium py-3 pl-1">{tActivity("table.action")}</th>
+                <th className="font-medium py-3">{tActivity("table.item")}</th>
+                <th className="font-medium py-3 text-right">{tActivity("table.qty")}</th>
+                <th className="font-medium py-3 text-right">{tActivity("table.time")}</th>
               </tr>
             </thead>
             <tbody className="text-sm">
@@ -129,7 +134,7 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
                 actSlice.map((activity) => {
                   // Get real product name from the map or use the original item
                   const productId = activity.productId || activity.id;
-                  const displayProductName = productId && productNameMap[productId] 
+                  const displayProductName = productId && productNameMap[productId]
                     ? productNameMap[productId]
                     : activity.item || activity.productName || "Unknown Product";
 
@@ -146,14 +151,14 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
                         <div className="text-xs text-gray-400 mt-1">
                           {activity.shop ? `${activity.shop} · ` : ""}
                           {activity.performedBy
-                            ? `By ${activity.performedBy}`
+                            ? tActivity("by", { user: activity.performedBy })
                             : ""}
                         </div>
                       </td>
                       <td
                         className={`py-3 text-right font-medium ${activity.quantity > 0
-                            ? "text-emerald-600"
-                            : "text-gray-900 dark:text-white"
+                          ? "text-emerald-600"
+                          : "text-gray-900 dark:text-white"
                           }`}
                       >
                         {activity.quantity > 0 ? "+" : ""}
@@ -168,7 +173,7 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
               ) : (
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-gray-500">
-                    No recent activity
+                    {tActivity("noActivity")}
                   </td>
                 </tr>
               )}
@@ -179,9 +184,11 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
         {activities?.length > PAGE_SIZE && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-xs text-gray-500">
-              Showing {actPage * PAGE_SIZE + 1}–
-              {Math.min((actPage + 1) * PAGE_SIZE, activities.length)} of{" "}
-              {activities.length}
+              {tRisk("pagination", {
+                start: actPage * PAGE_SIZE + 1,
+                end: Math.min((actPage + 1) * PAGE_SIZE, activities.length),
+                total: activities.length
+              })}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -208,14 +215,14 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-gray-400" />
-            New Products
+            {tNewProducts("title")}
           </h3>
           <div className="flex items-center gap-3">
             <Link
               href="/inventory/products"
               className="flex items-center gap-1 text-sm text-indigo-600 font-medium hover:text-indigo-700"
             >
-              View All <ArrowRight className="w-3 h-3" />
+              {tNewProducts("viewAll")} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -241,18 +248,18 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
                         {name}
                       </h4>
                       <p className="text-xs text-gray-500">
-                        Added by {addedBy}
+                        {tNewProducts("addedBy", { user: addedBy })}
                       </p>
                     </div>
                     <div className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 px-2 py-1 rounded-md">
-                      Active
+                      {tNewProducts("active")}
                     </div>
                   </div>
                 );
               })
             ) : (
               <div className="py-6 text-center text-gray-500">
-                No recent products
+                {tNewProducts("noProducts")}
               </div>
             )}
           </div>
@@ -261,9 +268,11 @@ const InventoryActivitySection = ({ activities = [], recentProducts = [] }) => {
         {recentProducts?.length > PAGE_SIZE && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-xs text-gray-500">
-              Showing {prodPage * PAGE_SIZE + 1}–
-              {Math.min((prodPage + 1) * PAGE_SIZE, recentProducts.length)} of{" "}
-              {recentProducts.length}
+              {tRisk("pagination", {
+                start: prodPage * PAGE_SIZE + 1,
+                end: Math.min((prodPage + 1) * PAGE_SIZE, recentProducts.length),
+                total: recentProducts.length
+              })}
             </div>
             <div className="flex items-center gap-2">
               <button

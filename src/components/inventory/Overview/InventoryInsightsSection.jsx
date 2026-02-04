@@ -8,8 +8,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTranslations } from "next-intl";
+import { Activity, TrendingUp } from "lucide-react";
 
 const HeatmapCell = ({ value, day, time }) => {
+  const t = useTranslations("inventoryOverview.insights");
   let colorClass =
     "bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700";
   // Slightly more vibrant Orange scale
@@ -33,13 +36,23 @@ const HeatmapCell = ({ value, day, time }) => {
             {day} - {time}
           </span>
         </div>
-        <div className="flex justify-between mb-1">
-          <span className="text-gray-400">Activity Score:</span>
-          <span className="font-mono font-bold">{value}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-400">Transactions:</span>
-          <span className="font-mono">{Math.floor(value * 1.5)}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-[10px] text-gray-500 uppercase tracking-wider">
+              {t("activityScore")}
+            </span>
+            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              {value.toFixed(1)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-[10px] text-gray-500 uppercase tracking-wider">
+              {t("transactions")}
+            </span>
+            <span className="text-xs font-bold text-gray-900 dark:text-white">
+              {Math.floor(value * 1.5)}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -47,6 +60,7 @@ const HeatmapCell = ({ value, day, time }) => {
 };
 
 const CustomAreaTooltip = ({ active, payload, label }) => {
+  const t = useTranslations("inventoryOverview.insights");
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl text-sm">
@@ -73,28 +87,47 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
+const InventoryInsightsSection = ({ heatmapData = [], profitCostData = [] }) => {
+  const t = useTranslations("inventoryOverview.insights");
+  const tDays = useTranslations("inventoryOverview.insights.days");
+  const tTimes = useTranslations("inventoryOverview.insights.times");
+
+  const DAYS = [
+    tDays("Mon"),
+    tDays("Tue"),
+    tDays("Wed"),
+    tDays("Thu"),
+    tDays("Fri"),
+    tDays("Sat"),
+    tDays("Sun"),
+  ];
+  const TIMES = [
+    tTimes("Morning"),
+    tTimes("Noon"),
+    tTimes("Evening"),
+    tTimes("Night"),
+  ];
+
   const chartHeatmap =
     heatmapData.length > 0
       ? heatmapData
       : Array.from({ length: 28 }).map(() => 0);
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const times = ["Morning", "Noon", "Evening", "Night"];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       {/* Heatmap Panel */}
       <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          Activity Heatmap
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <Activity className="w-5 h-5 text-indigo-500" />
+          {t("heatmapTitle")}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Inventory movement intensity by day
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {t("heatmapSubtitle")}
         </p>
 
         <div className="flex">
           <div className="flex flex-col justify-between pr-3 text-xs text-gray-400 font-bold py-2">
-            {times.map((t) => (
+            {TIMES.map((t) => (
               <span key={t}>{t}</span>
             ))}
           </div>
@@ -106,15 +139,15 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
                 <HeatmapCell
                   key={i}
                   value={val}
-                  day={days[dayIndex]}
-                  time={times[timeIndex]}
+                  day={DAYS[dayIndex]}
+                  time={TIMES[timeIndex]}
                 />
               );
             })}
           </div>
         </div>
         <div className="flex justify-between mt-4 px-2 text-xs text-gray-400 font-bold">
-          {days.map((d) => (
+          {DAYS.map((d) => (
             <span key={d}>{d[0]}</span>
           ))}
         </div>
@@ -124,31 +157,32 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
       <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Profit & Cost Analysis
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-indigo-500" />
+              {t("analysisTitle")}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Revenue vs Expenses
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {t("analysisSubtitle")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-sm bg-gray-50 dark:bg-gray-800 p-1.5 rounded-lg border border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-2 px-2">
               <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
               <span className="text-gray-700 dark:text-gray-300 font-medium">
-                Revenue
+                {t("revenue")}
               </span>
             </div>
             <div className="flex items-center gap-2 px-2 border-l border-gray-200 dark:border-gray-700 hidden sm:flex">
               <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
               <span className="text-gray-700 dark:text-gray-300 font-medium">
-                Cost
+                {t("cost")}
               </span>
             </div>
             {/* Mobile version without border */}
             <div className="flex items-center gap-2 px-2 sm:hidden">
               <span className="w-2.5 h-2.5 rounded-full bg-[#081422]"></span>
               <span className="text-gray-700 dark:text-gray-300 font-medium">
-                Cost
+                {t("cost")}
               </span>
             </div>
           </div>
@@ -157,7 +191,7 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={financialData}
+              data={profitCostData}
               margin={{ top: 10, right: 10, bottom: 30, left: 0 }}
             >
               <defs>
@@ -169,13 +203,13 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
                 >
                   <circle cx="2" cy="2" r="1" fill="#081422" opacity="0.1" />
                 </pattern>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ea580c" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
+                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#081422" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#081422" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -202,19 +236,21 @@ const InventoryInsightsSection = ({ financialData = [], heatmapData = [] }) => {
 
               <Area
                 type="monotone"
+                name={t("revenue")}
                 dataKey="revenue"
-                stroke="#ea580c"
-                strokeWidth={4}
+                stroke="#10b981"
                 fillOpacity={1}
-                fill="url(#colorRevenue)"
+                fill="url(#colorRev)"
+                strokeWidth={3}
               />
               <Area
                 type="monotone"
+                name={t("cost")}
                 dataKey="cost"
-                stroke="#081422"
-                strokeWidth={4}
+                stroke="#f43f5e"
                 fillOpacity={1}
                 fill="url(#colorCost)"
+                strokeWidth={3}
               />
               {/* Texture overlay for Cost */}
               <Area
