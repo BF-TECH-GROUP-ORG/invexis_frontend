@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import {
     AreaChart,
@@ -35,7 +35,7 @@ const SparklineCard = ({ title, value, data, color }) => (
     </div>
 );
 
-export default function PlatformHealthPage() {
+function PlatformHealthPageContent() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -79,3 +79,13 @@ export default function PlatformHealthPage() {
         </div>
     );
 }
+
+
+export default function PlatformHealthPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <PlatformHealthPageContent />
+        </Suspense>
+    );
+}
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
@@ -36,7 +36,7 @@ const needle = (value, data, cx, cy, iR, oR, color) => {
     ];
 };
 
-export default function InventoryHealthReportPage() {
+function InventoryHealthReportPageContent() {
     const [turnoverRate, setTurnoverRate] = useState(0);
     const [loading, setLoading] = useState(true);
 
@@ -125,3 +125,13 @@ export default function InventoryHealthReportPage() {
         </div>
     );
 }
+
+
+export default function InventoryHealthReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <InventoryHealthReportPageContent />
+        </Suspense>
+    );
+}
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, Suspense, lazy } from 'react';
+import React, { useState, useRef, Suspense, lazy } from "react";
 import {
     Box,
     Typography,

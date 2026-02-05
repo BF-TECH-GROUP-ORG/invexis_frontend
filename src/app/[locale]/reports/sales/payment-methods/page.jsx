@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-export default function PaymentMethodsReportPage() {
+function PaymentMethodsReportPageContent() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [bestMethod, setBestMethod] = useState(null);
@@ -86,3 +86,13 @@ export default function PaymentMethodsReportPage() {
         </div>
     );
 }
+
+
+export default function PaymentMethodsReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <PaymentMethodsReportPageContent />
+        </Suspense>
+    );
+}
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import {
     AreaChart,
@@ -12,7 +12,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
-export default function ActiveUsersReportPage() {
+function ActiveUsersReportPageContent() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -70,3 +70,13 @@ export default function ActiveUsersReportPage() {
         </div>
     );
 }
+
+
+export default function ActiveUsersReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <ActiveUsersReportPageContent />
+        </Suspense>
+    );
+}
+

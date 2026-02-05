@@ -2,13 +2,13 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { ShieldAlert } from "lucide-react";
 
-export default function UnauthorizedPage() {
+function UnauthorizedPageContent() {
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -70,3 +70,13 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
+
+
+export default function UnauthorizedPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <UnauthorizedPageContent />
+        </Suspense>
+    );
+}
+

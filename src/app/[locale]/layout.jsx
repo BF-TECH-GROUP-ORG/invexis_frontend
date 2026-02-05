@@ -1,4 +1,5 @@
 // src/app/[locale]/layout.jsx
+import { Suspense } from "react";
 import "../../styles/globals.css";
 import ClientProviders from "../../providers/ClientProviders";
 import { ThemeRegistry } from "../../providers/ThemeRegistry";
@@ -51,7 +52,9 @@ export default async function RootLayout({ children, params }) {
                   <WebSocketProvider>
                     {/* Initialize settings from localStorage */}
                     <SettingsInitializer />
-                    <LayoutWrapper>{children}</LayoutWrapper>
+                    <Suspense fallback={null}>
+                      <LayoutWrapper>{children}</LayoutWrapper>
+                    </Suspense>
                   </WebSocketProvider>
                 </ThemeRegistry>
               </LoadingProvider>

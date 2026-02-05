@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import {
     BarChart,
@@ -13,7 +13,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
-export default function ShopPerformanceReportPage() {
+function ShopPerformanceReportPageContent() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,3 +71,13 @@ export default function ShopPerformanceReportPage() {
         </div>
     );
 }
+
+
+export default function ShopPerformanceReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <ShopPerformanceReportPageContent />
+        </Suspense>
+    );
+}
+

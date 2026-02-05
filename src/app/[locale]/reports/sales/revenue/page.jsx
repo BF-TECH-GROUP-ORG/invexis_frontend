@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import AnalyticsService from "@/services/analyticsService";
 import {
@@ -15,7 +15,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
-export default function RevenueReportPage() {
+function RevenueReportPageContent() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -84,3 +84,13 @@ export default function RevenueReportPage() {
         </div>
     );
 }
+
+
+export default function RevenueReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <RevenueReportPageContent />
+        </Suspense>
+    );
+}
+

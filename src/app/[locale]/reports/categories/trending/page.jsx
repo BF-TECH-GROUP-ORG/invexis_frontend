@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -49,7 +49,7 @@ const CustomizedContent = (props) => {
     );
 };
 
-export default function TrendingCategoriesReportPage() {
+function TrendingCategoriesReportPageContent() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -117,3 +117,13 @@ export default function TrendingCategoriesReportPage() {
         </div>
     );
 }
+
+
+export default function TrendingCategoriesReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <TrendingCategoriesReportPageContent />
+        </Suspense>
+    );
+}
+

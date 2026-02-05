@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 
-export default function TopCustomersReportPage() {
+function TopCustomersReportPageContent() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -73,3 +73,13 @@ export default function TopCustomersReportPage() {
         </div>
     );
 }
+
+
+export default function TopCustomersReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <TopCustomersReportPageContent />
+        </Suspense>
+    );
+}
+

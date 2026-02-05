@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import AnalyticsService from "@/services/analyticsService";
 import { motion } from "framer-motion";
 
-export default function EmployeePerformanceReportPage() {
+function EmployeePerformanceReportPageContent() {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -75,3 +75,13 @@ export default function EmployeePerformanceReportPage() {
         </div>
     );
 }
+
+
+export default function EmployeePerformanceReportPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <EmployeePerformanceReportPageContent />
+        </Suspense>
+    );
+}
+

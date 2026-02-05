@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useTranslations } from "next-intl";
 import AnalyticsService from "@/services/analyticsService";
 import { TrendingUp, TrendingDown, Users, ShoppingBag, DollarSign } from "lucide-react";
@@ -28,7 +28,7 @@ const KPICard = ({ title, value, trend, icon: Icon, color }) => (
     </motion.div>
 );
 
-export default function DashboardOverview() {
+function DashboardOverviewContent() {
     const t = useTranslations("analytics"); // Assuming we'll add translations later
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -103,3 +103,13 @@ export default function DashboardOverview() {
         </div>
     );
 }
+
+
+export default function DashboardOverview() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <DashboardOverviewContent />
+        </Suspense>
+    );
+}
+
