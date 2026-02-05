@@ -1,7 +1,7 @@
 // src/app/[locale]/inventory/settings/page.jsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import {
     Settings,
     LayoutDashboard,
@@ -20,7 +20,7 @@ const settingsTabs = [
     { id: "data", label: "Data & Export", icon: Database },
 ];
 
-export default function InventorySettingsPage() {
+function InventorySettingsPageContent() {
     const [activeTab, setActiveTab] = useState("dashboard");
 
     // In a real app, get this from your auth context/store
@@ -58,8 +58,8 @@ export default function InventorySettingsPage() {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === tab.id
-                                                ? "bg-orange-50 text-orange-600 font-medium"
-                                                : "text-gray-600 hover:bg-gray-50"
+                                            ? "bg-orange-50 text-orange-600 font-medium"
+                                            : "text-gray-600 hover:bg-gray-50"
                                             }`}
                                     >
                                         <Icon size={18} />
@@ -130,8 +130,8 @@ export default function InventorySettingsPage() {
                                             <button
                                                 key={theme}
                                                 className={`p-4 border rounded-lg text-center transition-all ${theme === "Light"
-                                                        ? "border-orange-400 bg-orange-50 text-orange-700"
-                                                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                                                    ? "border-orange-400 bg-orange-50 text-orange-700"
+                                                    : "border-gray-200 text-gray-600 hover:border-gray-300"
                                                     }`}
                                             >
                                                 {theme}
@@ -201,5 +201,17 @@ export default function InventorySettingsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function InventorySettingsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="text-gray-500">Loading settings...</div>
+            </div>
+        }>
+            <InventorySettingsPageContent />
+        </Suspense>
     );
 }
