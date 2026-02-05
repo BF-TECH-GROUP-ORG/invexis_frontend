@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import AddWorkerForm from "@/components/forms/AddWorkerForm";
 import { getWorkerById } from "@/services/workersService";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Loading from "./loading";
 
-export default function EditWorkerPage({ params }) {
+function EditWorkerPageContent({ params }) {
     const { id } = React.use(params);
     const { data: session } = useSession();
     const [worker, setWorker] = useState(null);
@@ -51,4 +51,12 @@ export default function EditWorkerPage({ params }) {
     }
 
     return <AddWorkerForm initialData={worker} isEditMode={true} />;
+}
+
+export default function EditWorkerPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <EditWorkerPageContent />
+        </Suspense>
+    );
 }

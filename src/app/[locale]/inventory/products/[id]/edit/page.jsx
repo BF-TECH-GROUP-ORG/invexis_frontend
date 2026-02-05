@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById } from "@/features/products/productsSlice";
 import AddProductWizard from "@/components/products/add/AddProductWizard";
@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
-export default function EditProductPage({ params }) {
+function EditProductPageContent({ params }) {
   // Unwrap params Promise using React.use()
   const unwrappedParams = React.use(params);
   const { id, locale } = unwrappedParams;
@@ -72,5 +72,13 @@ export default function EditProductPage({ params }) {
         isEdit={true}
       />
     </div>
+  );
+}
+
+export default function EditProductPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+      <EditProductPageContent />
+    </Suspense>
   );
 }

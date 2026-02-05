@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
@@ -50,7 +51,9 @@ export default async function DebtsPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <DebtsPageContent companyId={companyId} />
+      <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading debts...</div></div>}>
+        <DebtsPageContent companyId={companyId} />
+      </Suspense>
     </HydrationBoundary>
   );
 }

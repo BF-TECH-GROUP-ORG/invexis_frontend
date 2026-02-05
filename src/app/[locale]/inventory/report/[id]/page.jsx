@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     ArrowLeft,
@@ -70,7 +70,7 @@ const generateMockDetails = (type, id) => {
     return items;
 };
 
-export default function ReportDetailPage() {
+function ReportDetailPageContent() {
     const params = useParams();
     const router = useRouter();
     const [report, setReport] = useState(null);
@@ -380,3 +380,13 @@ export default function ReportDetailPage() {
         </div>
     );
 }
+
+
+export default function ReportDetailPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <ReportDetailPageContent />
+        </Suspense>
+    );
+}
+

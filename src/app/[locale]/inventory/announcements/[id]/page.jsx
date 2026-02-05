@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
@@ -13,7 +13,7 @@ import { Button } from '@mui/material';
 import { ArrowLeft, Trash2, CheckCircle, Clock, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function AnnouncementDetailPage() {
+function AnnouncementDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const locale = useLocale();
@@ -153,3 +153,13 @@ export default function AnnouncementDetailPage() {
     </div>
   );
 }
+
+
+export default function AnnouncementDetailPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <AnnouncementDetailPageContent />
+        </Suspense>
+    );
+}
+

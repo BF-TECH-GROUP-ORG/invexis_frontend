@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from "react";
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
@@ -34,7 +34,7 @@ const TABS = [
 // Separate Archive tab for special positioning
 const ARCHIVE_TAB = { id: 'archive', label: 'Archived', icon: Archive, color: 'text-gray-600', border: 'border-gray-500' };
 
-export default function AnnouncementsPage() {
+function AnnouncementsPageContent() {
     const router = useRouter();
     const locale = useLocale();
     const [activeTab, setActiveTab] = useState('primary');
@@ -288,3 +288,13 @@ export default function AnnouncementsPage() {
         </div>
     );
 }
+
+
+export default function AnnouncementsPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <AnnouncementsPageContent />
+        </Suspense>
+    );
+}
+

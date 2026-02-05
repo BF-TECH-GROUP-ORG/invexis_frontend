@@ -1,10 +1,10 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 
-export default function BillingPage() {
+function BillingPageContent() {
     const router = useRouter();
     const locale = useLocale();
 
@@ -18,3 +18,13 @@ export default function BillingPage() {
         </div>
     );
 }
+
+
+export default function BillingPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <BillingPageContent />
+        </Suspense>
+    );
+}
+

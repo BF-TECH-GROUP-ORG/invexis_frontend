@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
     Box,
@@ -39,7 +39,7 @@ import { getAllShops } from "@/services/shopService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getCompanyDetails, getAllCompanies } from "@/services/stockService";
 
-export default function TransferDetailPage() {
+function TransferDetailPageContent() {
     const navigate = useRouter();
     const params = useParams();
     const transferId = params.id;
@@ -443,3 +443,13 @@ export default function TransferDetailPage() {
         </Box>
     );
 }
+
+
+export default function TransferDetailPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+            <TransferDetailPageContent />
+        </Suspense>
+    );
+}
+
