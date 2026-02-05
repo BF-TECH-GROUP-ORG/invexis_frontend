@@ -14,6 +14,32 @@
     "workers": "Employés",
     "language": "Langue"
   },
+  "sidebar": {
+    "overview": "Aperçu",
+    "management": "Gestion",
+    "dashboard": "Tableau de bord",
+    "notifications": "Notifications",
+    "inbox": "Boîte de réception",
+    "reports": "Rapports",
+    "staffAndShops": "Personnel & Magasins",
+    "staffList": "Liste du personnel",
+    "shops": "Magasins",
+    "inventory": "Inventaire",
+    "products": "Produits",
+    "transfers": "Transferts",
+    "stockOps": "Opérations de stock",
+    "sales": "Ventes",
+    "salesHistory": "Historique des ventes",
+    "stockOut": "Sortie de stock",
+    "debts": "Dettes",
+    "billingAndPayments": "Facturation et paiements",
+    "invoices": "Factures",
+    "payments": "Paiements",
+    "transactions": "Transactions",
+    "documents": "Documents",
+    "logsAndAudits": "Journaux et audits",
+    "logout": "Déconnexion"
+  },
   "welcome": {
     "title": "Bienvenue"
   },
@@ -59,9 +85,6 @@
       "title": "Vérifier l'e-mail",
       "subtitle": "Nous vérifions votre adresse e-mail...",
       "verifying": "Vérification..."
-    },
-    "googleCallback": {
-      "title": "Connexion avec Google"
     },
     "otp": {
       "request": {
@@ -201,53 +224,86 @@
   "home": {
     "login": "Connexion",
     "register": "S'inscrire",
-    "home": "Accueil",
-    "about": "À propos",
-    "faq": "FAQ",
-    "services": "Services",
     "hero": {
-      "title1": "Arrêtez de perdre du temps",
-      "title2": "dans les enregistrements manuels",
-      "subtitle": "Augmentez l'efficacité, économisez du temps et de l'argent avec ce système de gestion des stocks.",
-      "getStarted": "Commencer"
+      "title": "Gérez votre entreprise en temps réel — où que vous soyez",
+      "subtitle": "Inventaire, ventes, personnel, créances, rapports, notifications et audits — tout dans un tableau de bord puissant.",
+      "kpi1": {
+        "title": "Alertes en temps réel",
+        "value": "Live"
+      },
+      "kpi2": {
+        "title": "Échelle mondiale",
+        "value": "Multi-région"
+      }
     },
-    "stats": {
-      "users": "Utilisateurs",
-      "system": "Système",
-      "satisfaction": "Taux de satisfaction",
-      "uptime": "Garantie de disponibilité"
+    "landing": {
+      "nav": {
+        "home": "Accueil",
+        "features": "Fonctionnalités",
+        "pricing": "Tarifs",
+        "login": "Connexion"
+      },
+      "cta": {
+        "start": "Démarrer l'essai",
+        "demo": "Demander une démo",
+        "final": {
+          "title": "Gérez votre entreprise plus intelligemment — aujourd'hui",
+          "subtitle": "Essai gratuit, aucune carte requise"
+        }
+      },
+      "trust": {
+        "heading": "Adopté par des entreprises modernes dans le monde entier"
+      },
+      "features": {
+        "title": "Modules complets",
+        "subtitle": "Tout ce dont vous avez besoin pour gérer vos opérations en temps réel."
+      },
+      "how": {
+        "title": "Comment fonctionne Invexix",
+        "subtitle": "Configurez et surveillez en quelques minutes."
+      },
+      "why": {
+        "title": "Contrôle total et informations en temps réel",
+        "subtitle": "Conçu pour les entreprises de toutes tailles."
+      },
+      "pricing": {
+        "title": "Des tarifs flexibles pour chaque entreprise"
+      },
+      "cases": {
+        "title": "Conçu pour toutes les entreprises, partout."
+      }
     }
   },
   "termsPopup": {
     "title": "Conditions générales et politique de confidentialité",
     "description": "Veuillez consulter et accepter nos Conditions générales et notre Politique de confidentialité avant de continuer."
   },
-  "sales":{
-    "title":"Gérer et suivre tous les enregistrements de ventes",
-    "dashboard":"Tableau de bord",
-    "products":"Produits",
-    "list":"Liste",
-    "stockOut":"Sortie de stock",
-    "stockOutHistory":"Historique des sorties de stock",
-    "filter":"filtre",
+  "sales": {
+    "title": "Gérer et suivre tous les enregistrements de ventes",
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "list": "Liste",
+    "stockOut": "Sortie de stock",
+    "stockOutHistory": "Historique des sorties de stock",
+    "filter": "filtre",
     "export": "Exporter",
-  "sale": "Vente",
-  "productName": "Nom du produit",
-  "category": "Catégorie",
-  "unitPrice": "Prix unitaire",
-  "Returned": "Retourné",
-  "Discount": "Remise",
-  "date": "Date",
-  "totalValue": "Valeur totale",
-  "action": "Action",
-  "saleProducts": "Sortie de Produit du Stock",
-  "saleSubTitile": "Enregistrer les détails des produits quittant le magasin ou l'entrepôt",
-  "back": "Retour",
-  "Edit": "Modifier",
-  "Delete": "Supprimer",
-  "view": "Voir Plus"
+    "sale": "Vente",
+    "productName": "Nom du produit",
+    "category": "Catégorie",
+    "unitPrice": "Prix unitaire",
+    "Returned": "Retourné",
+    "Discount": "Remise",
+    "date": "Date",
+    "totalValue": "Valeur totale",
+    "action": "Action",
+    "saleProducts": "Sortie de Produit du Stock",
+    "saleSubTitile": "Enregistrer les détails des produits quittant le magasin ou l'entrepôt",
+    "back": "Retour",
+    "Edit": "Modifier",
+    "Delete": "Supprimer",
+    "view": "Voir Plus"
   },
-  "reciept": {
+  "receipt": {
     "quantitySold": "Quantité vendue",
     "soldPrice": "Prix de vente (RWF)",
     "discount": "Remise",
@@ -275,8 +331,981 @@
     "customerName": "Nom du client",
     "customerContact": "Contact du client",
     "paymentMethod": "Mode de paiement",
-    "customerInformation": "Informations du Client"
+    "customerInformation": "Informations du Client",
+    "success": "Vente mise à jour avec succès !",
+    "error": "Échec de la mise à jour de la vente : {error}",
+    "updating": "Mise à jour...",
+    "validation": {
+      "productName": "Nom du produit requis",
+      "quantity": "La quantité doit être positive",
+      "price": "Le prix de vente doit être positif",
+      "customerName": "Nom du client requis",
+      "date": "Date de vente requise",
+      "fixErrors": "Corrigez les erreurs :"
+    }
+  },
+  "debtsPage": {
+    "title": "Suivi des Dettes et Remboursements",
+    "subtitle": "Surveillez efficacement les dettes en cours et les échéances de remboursement.",
+    "totalDebts": "Total des Dettes",
+    "clearedDebts": "Dettes Payées",
+    "upcomingPayments": "Paiements à Venir",
+    "verifiedDebtors": "Débiteurs Vérifiés",
+    "repay": "Rembourser",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "actionView": "Voir les Détails",
+    "cancelDebt": "Annuler la Dette",
+    "searchPlaceholder": "Rechercher par nom ou téléphone du débiteur...",
+    "confirmCancelTitle": "Annuler la Dette",
+    "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette dette ? Cette action est irréversible.",
+    "markPayed": "Marquer comme Payé"
+  },
+  "Debtstable": {
+    "no": "N°",
+    "debtorName": "Nom du Débiteur",
+    "contact": "Contact",
+    "totalDebt": "Dette Totale",
+    "amountPaid": "Montant Payé",
+    "remainingDebt": "Dette Restante",
+    "dueDate": "Date d'Échéance",
+    "action": "Action",
+    "isDebtCleared": "Statut",
+    "cleared": "Payée",
+    "pending": "En Attente"
+  },
+  "salesHistory": {
+    "title": "Historique des ventes",
+    "cards": {
+      "totalDailySales": "Ventes quotidiennes totales",
+      "totalDailyProfit": "Bénéfice quotidien total",
+      "returnedProducts": "Produits retournés",
+      "discountsApplied": "Remises appliquées"
+    },
+    "table": {
+      "columns": {
+        "product": "Produit",
+        "category": "Catégorie",
+        "unitPrice": "Prix unitaire (FRW)",
+        "soldQty": "Qté vendue",
+        "returnedQty": "Qté retournée",
+        "discount": "Remise",
+        "totalValue": "Valeur totale",
+        "date": "Date",
+        "soldBy": "Vendu par",
+        "shop": "Magasin",
+        "status": "Statut",
+        "action": "Action",
+        "refundAmount": "Montant remboursé",
+        "returnQty": "Qté retour",
+        "soldPrice": "Prix vendu",
+        "select": "Sélectionner"
+      },
+      "filters": {
+        "title": "Filtrer les ventes",
+        "column": "Colonne",
+        "operator": "Opérateur",
+        "value": "Valeur",
+        "status": "Statut",
+        "clear": "Effacer",
+        "apply": "Appliquer",
+        "operators": {
+          "greaterThan": "est supérieur à",
+          "lessThan": "est inférieur à",
+          "equals": "est égal à",
+          "contains": "contient",
+          "is": "est"
+        },
+        "statuses": {
+          "debt": "Dette",
+          "transfer": "Transfert",
+          "returned": "Retourné",
+          "completed": "Terminé"
+        }
+      },
+      "actions": {
+        "view": "Voir",
+        "edit": "Modifier",
+        "download": "Télécharger le document",
+        "return": "Retourner",
+        "delete": "Supprimer"
+      },
+      "dialogs": {
+        "deleteTitle": "Supprimer la vente",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.",
+        "returnTitle": "Retourner les produits - Vente #{id}",
+        "selectItems": "Sélectionner les articles à retourner",
+        "reason": "Raison du retour (facultatif)",
+        "totalRefund": "Remboursement total",
+        "confirmReturn": "Confirmer le retour",
+        "cancel": "Annuler",
+        "processing": "Traitement..."
+      },
+      "detail": {
+        "loading": "Chargement des détails de la vente...",
+        "notFound": "Vente non trouvée",
+        "saleNumber": "Vente #{id}",
+        "items": "Articles ({count})",
+        "customerInformation": "Informations client",
+        "paymentInformation": "Informations de paiement",
+        "invoiceInformation": "Informations de facture",
+        "invoiceNumber": "Numéro de facture",
+        "download": "Télécharger",
+        "downloadPdf": "Télécharger le PDF",
+        "downloadFailed": "Échec du téléchargement du PDF. Veuillez réessayer."
+      }
+    },
+    "confirmModal": {
+      "confirmDefault": "Confirmer l'action",
+      "cancelDefault": "Quitter l'action"
+    },
+    "multiSale": {
+      "title": "Vente multi-produits",
+      "sellSelected": "Vendre la sélection",
+      "minPrice": "Prix min.",
+      "sellingPrice": "Prix de vente",
+      "quantity": "Quantité",
+      "setPrice": "Définir le prix",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "select": "Sélectionner",
+      "productName": "Nom du produit",
+      "actions": "Actions"
+    }
+  },
+  "sellProduct": {
+    "title": "Ventes et Inventaire",
+    "subtitle": "Gérez les produits, suivez les stocks et traitez les ventes efficacement.",
+    "searchPlaceholder": "Rechercher des produits...",
+    "cards": {
+      "totalProducts": "Total Produits",
+      "lowStock": "Stock Faible",
+      "inventoryValue": "Valeur d'Inventaire",
+      "activeSale": "Vente Active",
+      "inProgress": "En Cours"
+    },
+    "filter": {
+      "title": "Filtrer les Produits",
+      "column": "Colonne",
+      "operator": "Opérateur",
+      "amount": "Montant",
+      "searchInCategory": "Rechercher dans Catégorie",
+      "cancel": "Annuler",
+      "apply": "Appliquer le Filtre",
+      "columns": {
+        "category": "Catégorie",
+        "price": "Prix (FRW)"
+      },
+      "operators": {
+        "greaterThan": "Plus grand que",
+        "lessThan": "Moins que",
+        "equals": "Égal à"
+      }
+    },
+    "table": {
+      "no": "N°",
+      "select": "Sélec.",
+      "product": "Produit",
+      "sku": "SKU",
+      "category": "Catégorie",
+      "stock": "Stock",
+      "minPrice": "Prix Min (FRW)",
+      "sellingPrice": "Prix Vente (FRW)",
+      "quantity": "Quantité",
+      "actions": "Actions",
+      "setPrice": "Définir Prix",
+      "loading": "Chargement de l'inventaire...",
+      "noProducts": "Aucun produit trouvé",
+      "selected": "{count} Sélectionné(s)"
+    },
+    "actions": {
+      "transferToShop": "Transférer vers Boutique",
+      "transferToCompany": "Transférer vers Entreprise",
+      "completeSale": "TERMINER VENTE",
+      "debtSale": "Vente à Crédit",
+      "processing": "Traitement..."
+    },
+    "modals": {
+      "price": {
+        "title": "Définir Prix - {productName}",
+        "minPrice": "Prix Minimum : {price} FRW",
+        "sellingPriceLabel": "Prix de Vente (FRW)",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "errorMinPrice": "Le prix ne peut pas être inférieur à {minPrice} FRW"
+      },
+      "customer": {
+        "title": "Terminer la Vente",
+        "subtitle": "Entrez les détails du client et sélectionnez le mode de paiement",
+        "totalAmount": "Montant Total",
+        "summary": "{count} produit(s) • {status}",
+        "statusDebt": "💳 Vente à Crédit",
+        "statusPaid": "✅ Payé Intégralement",
+        "phoneLabel": "Numéro de Téléphone",
+        "phonePlaceholder": "ex: 0798725288",
+        "nameLabel": "Nom du Client",
+        "namePlaceholder": "ex: Jean Dupont",
+        "existingCustomer": "Client Existant",
+        "change": "Changer",
+        "paymentMethod": "Mode de Paiement",
+        "paymentPhone": "Téléphone de Paiement",
+        "cash": "Espèces",
+        "mtn": "MTN",
+        "airtel": "Airtel",
+        "bank": "Banque",
+        "initialPayment": "Montant du Paiement Initial (FRW)",
+        "cancel": "Annuler",
+        "confirm": "Confirmer la Vente",
+        "errors": {
+          "nameRequired": "Le nom du client est requis",
+          "phoneRequired": "Le numéro de téléphone est requis",
+          "phoneInvalid": "Format de téléphone invalide",
+          "amountExceeds": "Le montant payé ne peut excéder le prix de vente total"
+        }
+      },
+      "success": {
+        "title": "Vente Terminée !",
+        "message": "La transaction a été enregistrée avec succès dans le système.",
+        "done": "Terminé"
+      },
+      "transfer": {
+        "titleCross": "Transfert Inter-Entreprises",
+        "titleIntra": "Transfert Intra-Entreprise",
+        "subtitleCross": "Transférer des produits vers la boutique d'une autre entreprise",
+        "subtitleIntra": "Redistribuer des produits vers une autre boutique de votre entreprise",
+        "totalValue": "Valeur Totale du Transfert",
+        "selected": "{count} produit(s) sélectionné(s)",
+        "targetCompany": "Entreprise Cible",
+        "targetShop": "Boutique Cible",
+        "reason": "Raison",
+        "notes": "Notes Supplémentaires (Optionnel)",
+        "debtTransfer": "Marquer comme Transfert de Dette",
+        "debtTransferSubtitle": "L'entreprise réceptrice devra un paiement",
+        "cancel": "Annuler",
+        "confirm": "Confirmer le Transfert",
+        "placeholders": {
+          "company": "Sélectionner une entreprise cible",
+          "shop": "Sélectionner une boutique cible",
+          "reason": "ex: Redistribution mensuelle, Équilibrage de stock",
+          "notes": "Ajouter des détails supplémentaires sur ce transfert..."
+        },
+        "errors": {
+          "selectCompany": "Veuillez sélectionner une entreprise cible.",
+          "selectShop": "Veuillez sélectionner une boutique cible.",
+          "reasonRequired": "Veuillez fournir une raison pour le transfert.",
+          "noCompanies": "Aucune entreprise éligible trouvée",
+          "noShops": "Aucune boutique trouvée"
+        }
+      },
+      "transferSuccess": {
+        "title": "Transfert Réussi !",
+        "message": "Les produits ont été transférés avec succès vers {targetName}.",
+        "close": "Fermer"
+      }
+    },
+    "alerts": {
+      "outOfStock": "Impossible de vendre \"{productName}\" - Rupture de stock !",
+      "saleFailed": "Échec de la vente : {error}",
+      "transferFailed": "Échec du transfert : {error}"
+    },
+    "single": {
+      "title": "Sortie de stock {name}",
+      "standardPrice": "Prix standard",
+      "soldPrice": "Prix de vente",
+      "quantitySold": "Quantité vendue",
+      "discount": "Remise (optionnel)",
+      "customerEmail": "Email du client (optionnel)",
+      "transactionType": "Type de transaction",
+      "regularSale": "Vente régulière",
+      "printReceipt": "Imprimer le reçu après la vente",
+      "confirmSale": "Confirmer la vente",
+      "placeholders": {
+        "price": "ex: 99.99",
+        "quantity": "ex: 2",
+        "discount": "0.00",
+        "email": "john@exemple.com"
+      },
+      "errors": {
+        "soldPriceRequired": "Le prix de vente est requis.",
+        "soldPricePositive": "Le prix de vente doit être positif.",
+        "quantityRequired": "La quantité est requise.",
+        "quantityPositive": "La quantité doit être positive.",
+        "discountInvalid": "La remise doit être ≥ 0.",
+        "paymentPhoneRequired": "Numéro de téléphone de paiement valide requis pour cette méthode",
+        "fixErrors": "Veuillez corriger les erreurs ci-dessus.",
+        "discountExceeds": "La remise ne peut pas être supérieure au sous-total."
+      },
+      "paymentPhoneLabel": "Numéro de téléphone de paiement",
+      "paymentPhoneInfo": "Entrez le numéro de téléphone à utiliser pour le paiement par {method}",
+      "receipt": {
+        "title": "Reçu de vente",
+        "date": "Date",
+        "customer": "Client",
+        "phone": "Téléphone",
+        "product": "Produit",
+        "qty": "Qté",
+        "subtotal": "Sous-total",
+        "discount": "Remise",
+        "total": "Total",
+        "payment": "Paiement",
+        "paymentPhone": "Téléphone de paiement",
+        "thankYou": "Merci !"
+      }
+    }
+  },
+  "inventoryOverview": {
+    "header": {
+      "title": "Aperçu de l'inventaire",
+      "subtitle": "Connaissance de la situation en temps réel de la santé de votre stock",
+      "refresh": "Actualiser",
+      "last30Days": "30 derniers jours",
+      "lastUpdated": "Dernière mise à jour : ",
+      "exportReport": "Exporter le rapport",
+      "exporting": "Exportation...",
+      "unknown": "Inconnu"
+    },
+    "kpi": {
+      "totalValue": "Valeur totale de l'inventaire",
+      "totalUnits": "Unités totales",
+      "lowStock": "Articles à bas stock",
+      "netMovement": "Mouvement net",
+      "grossProfit": "Marge brute",
+      "stockTurnover": "Taux de rotation des stocks"
+    },
+    "distribution": {
+      "statusTitle": "État de l'inventaire",
+      "statusSubtitle": "Répartition par niveau de stock",
+      "valueTitle": "Répartition de la valeur",
+      "viewCategory": "Catégorie",
+      "viewShop": "Boutique",
+      "viewStatus": "Statut",
+      "products": "Produits",
+      "totalValue": "Valeur totale"
+    },
+    "movement": {
+      "title": "Tendance des mouvements d'inventaire",
+      "subtitle": "Analyse Entrées vs Sorties de stock au fil du temps",
+      "stockIn": "Entrée de stock",
+      "stockOut": "Sortie de stock",
+      "netChange": "Changement net"
+    },
+    "insights": {
+      "heatmapTitle": "Carte thermique d'activité",
+      "heatmapSubtitle": "Intensité des mouvements d'inventaire par jour",
+      "analysisTitle": "Analyse des profits et des coûts",
+      "analysisSubtitle": "Revenus vs Dépenses",
+      "revenue": "Revenu",
+      "cost": "Coût",
+      "activityScore": "Score d'activité",
+      "transactions": "Transactions",
+      "days": {
+        "Mon": "Lun",
+        "Tue": "Mar",
+        "Wed": "Mer",
+        "Thu": "Jeu",
+        "Fri": "Ven",
+        "Sat": "Sam",
+        "Sun": "Dim"
+      },
+      "times": {
+        "Morning": "Matin",
+        "Noon": "Midi",
+        "Evening": "Soir",
+        "Night": "Nuit"
+      }
+    },
+    "risk": {
+      "title": "Risques de rupture de stock",
+      "subtitle": "Articles prévus d'être épuisés bientôt",
+      "viewAll": "Voir tout",
+      "table": {
+        "product": "Produit",
+        "remaining": "Restant",
+        "burnRate": "Taux de consommation"
+      },
+      "inStock": "{count} en stock",
+      "days": "{count} Jours",
+      "perDay": "{count}/jour",
+      "pagination": "Affichage de {start} à {end} sur {total}"
+    },
+    "topPerformers": {
+      "title": "Meilleurs performeurs",
+      "subtitle": "Produits les plus rentables ce mois-ci",
+      "unitsSold": "{count} unités vendues",
+      "profit": "Profit"
+    },
+    "valueTrend": {
+      "title": "Valeur de l'inventaire au fil du temps",
+      "subtitle": "Tendance de la valorisation totale (FIFO)",
+      "totalValue": "Valeur totale",
+      "months": {
+        "Jan": "Jan",
+        "Feb": "Fév",
+        "Mar": "Mar",
+        "Apr": "Avr",
+        "May": "Mai",
+        "Jun": "Juin",
+        "Jul": "Juil",
+        "Aug": "Août",
+        "Sep": "Sep",
+        "Oct": "Oct",
+        "Nov": "Nov",
+        "Dec": "Déc"
+      }
+    },
+    "shopPerformance": {
+      "title": "Performance par boutique",
+      "subtitle": "Revenu vs Volume d'inventaire par emplacement",
+      "turnover": "Rotation : {value}",
+      "grossProfit": "Marge brute",
+      "inventoryValue": "Valeur de l'inventaire"
+    },
+    "activity": {
+      "title": "Activité récente",
+      "viewLog": "Voir le journal",
+      "table": {
+        "action": "Action",
+        "item": "Article",
+        "qty": "Qté",
+        "time": "Heure"
+      },
+      "types": {
+        "restock": "Réapprovisionnement",
+        "sale": "Vente",
+        "adjustment": "Ajustement",
+        "other": "Autre"
+      },
+      "by": "Par {user}",
+      "noActivity": "Aucune activité récente"
+    },
+    "newProducts": {
+      "title": "Nouveaux produits",
+      "viewAll": "Voir tout",
+      "addedBy": "Ajouté par {user}",
+      "active": "Actif",
+      "noProducts": "Aucun produit récent"
+    },
+    "errors": {
+      "somethingWentWrong": "Quelque chose s'est mal passé",
+      "tryAgain": "Réessayer",
+      "noCompanySelected": "Aucune entreprise sélectionnée",
+      "noCompanySelectedDesc": "Veuillez sélectionner une entreprise pour voir les données d'inventaire.",
+      "exportFailed": "Échec de l'exportation du PDF. Veuillez réessayer.",
+      "contentNotFound": "Impossible de trouver le contenu à exporter",
+      "downloadFailed": "URL du document non disponible"
+    },
+    "health": {
+      "title": "Historique de l'état du stock",
+      "subtitle": "Vue historique des entrées vs pénuries",
+      "inStock": "En stock",
+      "lowStock": "Stock bas",
+      "outOfStock": "Rupture de stock"
+    },
+    "snapshot": {
+      "totalUnits": "Unités totales",
+      "skus": "SKUs",
+      "availableUnits": "Unités disponibles",
+      "outOfStock": "Rupture de stock",
+      "inventoryValue": "Valeur de l'inventaire",
+      "avgUnitCost": "Coût unitaire moyen",
+      "netMovement": "Mouvement net",
+      "stockIn": "Entrée de stock",
+      "stockOut": "Sortie de stock"
+    }
+  },
+  "categories": {
+    "list": {
+      "title": "Catégories Maîtresses",
+      "categoriesCount": "{count} catégories",
+      "activeFilters": "{count} filtre{count, plural, one {} other {s}} actif{count, plural, one {} other {s}}",
+      "searchPlaceholder": "Rechercher des catégories...",
+      "deleteSelected": "Supprimer ({count})",
+      "refresh": "Actualiser",
+      "addCategory": "Ajouter une catégorie",
+      "addLevel3": "Ajouter une catégorie de niveau 3",
+      "active": "Active",
+      "clearAll": "Tout effacer",
+      "totalCategories": "Total des catégories",
+      "activeCategories": "Catégories actives",
+      "inactiveCategories": "Catégories inactives"
+    },
+    "table": {
+      "categoryName": "Nom de la catégorie",
+      "level": "Niveau",
+      "parent": "Parent",
+      "status": "Statut",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "noCategories": "Aucune catégorie trouvée",
+      "createFirst": "Créez des catégories pour commencer",
+      "levelLabel": "Niveau {level}"
+    },
+    "modal": {
+      "addTitle": "Ajouter une nouvelle catégorie",
+      "editTitle": "Modifier la catégorie",
+      "nameLabel": "Nom de la catégorie",
+      "namePlaceholder": "ex: Chemises décontractées pour hommes",
+      "parentLabel": "Catégorie parente",
+      "selectParent": "Sélectionner une section",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Brève description de la catégorie...",
+      "attributesTitle": "Attributs du produit",
+      "attributeNamePlaceholder": "Nom de l'attribut (ex: Taille)",
+      "required": "Requis",
+      "addOptionPlaceholder": "Ajouter une option (ex: S, M, L)",
+      "addAttribute": "Ajouter un attribut",
+      "addedAttributes": "Attributs ajoutés",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "updateCategory": "Mettre à jour la catégorie",
+      "createCategory": "Créer la catégorie"
+    },
+    "toasts": {
+      "refreshing": "Actualisation des catégories...",
+      "deleteConfirm": "Supprimer cette catégorie ? Cela ne peut pas être annulé.",
+      "deleteSuccess": "Catégorie supprimée !",
+      "bulkDeleteConfirm": "Supprimer {count} catégories définitivement ?",
+      "bulkDeleteSuccess": "{count} catégories supprimées !",
+      "exportSuccess": "Exporté avec succès !",
+      "exportFailed": "L'exportation a échoué",
+      "filtersCleared": "Filtres effacés",
+      "filtersApplied": "Filtres appliqués !",
+      "statusUpdated": "Statut de la catégorie mis à jour !",
+      "updateSuccess": "Catégorie mise à jour avec succès ! ✨",
+      "createSuccess": "Catégorie créée avec succès ! 🎉",
+      "nameRequired": "Le nom de la catégorie est requis"
+    }
+  },
+  "about": "À propos",
+  "faq": "FAQ",
+  "services": "Services",
+  "hero": {
+    "title1": "Arrêtez de perdre du temps",
+    "title2": "dans les enregistrements manuels",
+    "subtitle": "Augmentez l'efficacité, économisez du temps et de l'argent avec ce système de gestion des stocks.",
+    "getStarted": "Commencer"
+  },
+  "stats": {
+    "users": "Utilisateurs",
+    "system": "Système",
+    "satisfaction": "Taux de satisfaction",
+    "uptime": "Garantie de disponibilité"
+  },
+  "transfers": {
+    "header": {
+      "title": "Transferts d’inventaire",
+      "subtitle": "Journal principal de tous les mouvements de produits au sein de votre écosystème.",
+      "addTransfer": "Ajouter un transfert"
+    },
+    "stats": {
+      "totalTransfers": "Total des transferts",
+      "completed": "Terminé",
+      "stockMoved": "Stock déplacé",
+      "recentActiveDays": "Jours d’activité récents"
+    },
+    "filters": {
+      "searchPlaceholder": "Rechercher des produits ou des IDs...",
+      "allDirections": "Toutes les directions",
+      "inbound": "Entrant (Vers nous)",
+      "outbound": "Sortant (De nous)",
+      "more": "Plus",
+      "activeMore": "Plus ({count})",
+      "resetFilters": "Réinitialiser les filtres",
+      "advancedFilters": "Filtres avancés",
+      "transferType": "Type de transfert",
+      "allTypes": "Tous les types",
+      "intraCompany": "Intra-entreprise",
+      "crossCompany": "Inter-entreprises",
+      "shopLocation": "Magasin / Emplacement",
+      "allShops": "Tous les magasins",
+      "performedBy": "Effectué par",
+      "allWorkers": "Tous les employés",
+      "dateRange": "Plage de dates",
+      "showResults": "Afficher les résultats"
+    },
+    "table": {
+      "product": "Produit",
+      "destCompany": "Entreprise dest.",
+      "destShop": "Magasin dest.",
+      "transferType": "Type de transfert",
+      "qty": "Qté",
+      "remainedQty": "Qté restante",
+      "performedBy": "Effectué par",
+      "status": "Statut",
+      "date": "Date",
+      "actions": "Actions",
+      "unknownShop": "Magasin inconnu",
+      "us": "Nous",
+      "unknown": "Inconnu",
+      "viewDetails": "Voir les détails",
+      "printReceipt": "Imprimer le reçu",
+      "downloadCsv": "Télécharger CSV",
+      "cancelTransfer": "Annuler le transfert"
+    }
+  },
+  "products": {
+    "header": {
+      "title": "Produits",
+      "count": "{count} produits au total",
+      "searchPlaceholder": "Rechercher des produits...",
+      "deleteSelected": "Supprimer ({count})",
+      "filters": "Filtres",
+      "clearCache": "Vider le cache et actualiser",
+      "exportPdf": "Exporter en PDF",
+      "addProduct": "Ajouter un produit"
+    },
+    "stats": {
+      "allProducts": "Tous les produits",
+      "inStock": "En stock",
+      "lowStock": "Stock faible",
+      "totalValue": "Valeur totale",
+      "showFull": "Afficher la valeur complète",
+      "showCompact": "Afficher la valeur compacte"
+    },
+    "filters": {
+      "title": "Filtrer les produits",
+      "clearAll": "Tout effacer",
+      "category": "Catégorie",
+      "allCategories": "Toutes les catégories",
+      "shop": "Magasin",
+      "allShops": "Tous les magasins",
+      "status": "Statut",
+      "anyStatus": "Tous les statuts",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "draft": "Brouillon"
+    },
+    "table": {
+      "productName": "Nom du produit",
+      "image": "Image",
+      "category": "Catégorie",
+      "brand": "Marque",
+      "supplier": "Fournisseur",
+      "stock": "Stock",
+      "unitPrice": "Prix unitaire",
+      "totalValue": "Valeur totale",
+      "threshold": "Seuil min.",
+      "stockStatus": "État du stock",
+      "status": "Statut",
+      "actions": "Actions",
+      "unnamed": "Sans nom",
+      "uncategorized": "Non catégorisé",
+      "inStock": "En stock",
+      "outOfStock": "Rupture de stock",
+      "lowStock": "Stock faible",
+      "stable": "Stable",
+      "viewDetails": "Voir les détails",
+      "editProduct": "Modifier le produit",
+      "deleteProduct": "Supprimer le produit",
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft"
+    },
+    "toasts": {
+      "deleteConfirm": "Supprimer ce produit ?",
+      "deleteSuccess": "Produit supprimé !",
+      "deleteFailed": "Échec de la suppression",
+      "bulkDeleteConfirm": "Supprimer {count} produits ?",
+      "bulkDeleteSuccess": "Produits supprimés",
+      "bulkDeleteSomeFailed": "Certains ont échoué",
+      "refreshSuccess": "Cache vidé et données actualisées"
+    },
+    "report": {
+      "title": "Rapport d’inventaire",
+      "generatedOn": "Généré le {date} à {time}",
+      "image": "Image",
+      "productDetails": "Détails du produit",
+      "category": "Catégorie",
+      "stockPrice": "Stock et prix",
+      "status": "Statut",
+      "totalValue": "Valeur totale",
+      "qty": "Qté",
+      "price": "Prix",
+      "disc": "Rem.",
+      "inStock": "En stock",
+      "outOfStock": "Rupture de stock",
+      "success": "Rapport PDF généré avec succès"
+    },
+    "form": {
+      "modal": {
+        "editTitle": "Modifier le produit",
+        "createTitle": "Ajouter un nouveau produit",
+        "simple": "Simple",
+        "advancedConfig": "Configuration avancée",
+        "quickAdd": "Ajoutez rapidement un produit avec les détails essentiels.",
+        "advancedPrompt": "Étape {step} sur {total} - Configuration avancée",
+        "switchToAdvanced": "Passer en mode avancé",
+        "switchToSimple": "Passer en mode simple",
+        "loadingCategories": "Chargement des catégories...",
+        "previous": "Précédent",
+        "nextStep": "Étape suivante",
+        "saving": "Enregistrement...",
+        "updateProduct": "Mettre à jour le produit",
+        "createProduct": "Créer le produit",
+        "update": "Mettre à jour",
+        "add": "Ajouter",
+        "errorFix": "Veuillez corriger les erreurs avant de continuer",
+        "errorAll": "Veuillez corriger toutes les erreurs avant d’enregistrer",
+        "errorSelectCategory": "Veuillez sélectionner une catégorie valide (niveau 3)",
+        "errorLevel3": "La catégorie doit être une catégorie de niveau 3. Veuillez choisir une catégorie plus spécifique.",
+        "successUpdate": "Produit mis à jour avec succès",
+        "successCreate": "Produit créé avec succès",
+        "failureSave": "Échec de l’enregistrement du produit",
+        "requiredFields": "Veuillez remplir tous les champs obligatoires"
+      },
+      "simple": {
+        "productDetails": "Détails du produit",
+        "pricingInventory": "Prix et inventaire",
+        "nextPricing": "Suivant : Prix et inventaire"
+      },
+      "fields": {
+        "name": "Nom du produit",
+        "namePlaceholder": "Entrez le nom du produit",
+        "brand": "Marque",
+        "brandPlaceholder": "Entrez la marque",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie",
+        "supplier": "Fournisseur",
+        "supplierPlaceholder": "Entrez le nom du fournisseur",
+        "manufacturer": "Fabricant",
+        "manufacturerPlaceholder": "Entrez le fabricant",
+        "tags": "Étiquettes",
+        "tagsPlaceholder": "ex : bio, coton, éco-responsable",
+        "shortDesc": "Description courte",
+        "shortDescPlaceholder": "Bref résumé du produit...",
+        "longDesc": "Description longue",
+        "longDescPlaceholder": "Description détaillée du produit...",
+        "basePrice": "Prix de base",
+        "salePrice": "Prix de vente",
+        "cost": "Coût",
+        "currency": "Devise",
+        "stockQty": "Quantité en stock",
+        "lowStockAlert": "Alerte stock faible",
+        "trackQuantity": "Suivre la quantité",
+        "allowBackorder": "Autoriser les commandes différées",
+        "productImages": "Images du produit",
+        "upload": "Télécharger",
+        "primary": "Primaire",
+        "setPrimary": "Définir comme primaire",
+        "attributes": "Attributs du produit",
+        "attrName": "Nom de l’attribut",
+        "value": "Valeur",
+        "addAttribute": "Ajouter un attribut",
+        "condition": "État",
+        "availability": "Disponibilité",
+        "new": "Neuf",
+        "refurbished": "Remis à neuf",
+        "used": "Occasion",
+        "inStock": "En stock",
+        "outOfStock": "Rupture de stock",
+        "preorder": "Précommande",
+        "attrDesc": "Ajoutez des attributs personnalisés comme le matériel, les instructions d’entretien, etc.",
+        "attrNamePlaceholder": "ex : Couleur, Stockage",
+        "attrValuePlaceholder": "Valeur (ex : 100% Coton)",
+        "optional": "Optionnel",
+        "videoUrls": "URLs vidéo",
+        "addVideoUrl": "+ Ajouter une URL vidéo",
+        "pricing": "Prix",
+        "inventory": "Inventaire",
+        "listPrice": "Prix catalogue (PDSF)",
+        "costCogs": "Coût (COGS)",
+        "variants": "Variantes de produit",
+        "variantsDesc": "Définissez des attributs comme la couleur ou la taille pour générer toutes les combinaisons possibles.",
+        "attrNameLabel": "Nom de l’attribut",
+        "optionsLabel": "Options",
+        "optionsPlaceholder": "Tapez l’option et appuyez sur Entrée (ex : Rouge, 256 Go)",
+        "generateVariations": "Générer des variantes",
+        "variationsCount": "Variantes ({count})",
+        "stock": "Stock",
+        "weight": "Poids",
+        "status": "Statut",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "inventorySettings": "Paramètres d’inventaire",
+        "minReorderQty": "Qté de réapprovisionnement min.",
+        "dimensions": "Dimensions ({unit})",
+        "length": "Longueur",
+        "width": "Largeur",
+        "height": "Hauteur",
+        "units": "Unités",
+        "weightUnit": "Unité de poids",
+        "dimUnit": "Unité de dim.",
+        "generalSettings": "Paramètres généraux",
+        "visibility": "Visibilité",
+        "public": "Public",
+        "private": "Privé",
+        "sortOrder": "Ordre de tri",
+        "featuredProduct": "Produit vedette",
+        "isActive": "Est actif",
+        "seoSettings": "Paramètres SEO",
+        "metaTitle": "Méta-titre",
+        "metaTitlePlaceholder": "Titre SEO",
+        "metaDescription": "Méta-description",
+        "metaDescriptionPlaceholder": "Description SEO",
+        "keywords": "Mots-clés (séparés par des virgules)",
+        "keywordsPlaceholder": "mot-clé1, mot-clé2",
+        "archived": "Archivé",
+        "stepBasic": "Infos de base",
+        "stepAttr": "Attributs",
+        "stepInv": "Inventaire",
+        "stepMedia": "Médias",
+        "stepVar": "Variantes",
+        "stepAdv": "Avancé",
+        "mediaTitle": "Images et vidéos de produits (Max {max}, 50 Mo chacune)",
+        "maxReached": "Nombre maximal de fichiers atteint",
+        "dropzoneText": "Cliquez ou glissez des images/vidéos ici",
+        "chooseFiles": "Choisir des fichiers",
+        "filesUploaded": "{count}/{max} fichiers téléchargés",
+        "supportedFormats": "Supporté : JPG, PNG, GIF, WebP, MP4, MOV, AVI, WebM",
+        "remove": "Supprimer",
+        "discountTitle": "Paramètres de réduction (Facultatif)",
+        "enableDiscount": "Activer la réduction pour ce produit",
+        "discountType": "Type de réduction",
+        "discountPercentage": "Pourcentage (%)",
+        "discountFixed": "Montant fixe (RWF)",
+        "discountValue": "Valeur de la réduction",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "discountPreview": "Aperçu de la réduction",
+        "off": "de réduction",
+        "returnPolicyTitle": "Politique de retour (Facultatif)",
+        "allowReturns": "Autoriser les retours pour ce produit",
+        "returnWindow": "Délai de retour (jours)",
+        "returnWindowDesc": "Nombre de jours pendant lesquels les clients peuvent retourner le produit",
+        "returnConditions": "Conditions de retour",
+        "returnConditionsPlaceholder": "Ex : Le produit doit être inutilisé, dans son emballage d’origine...",
+        "restockingFee": "Frais de restockage",
+        "restockingFeePercent": "Pourcentage des frais de restockage",
+        "restockingFeeDesc": "Pourcentage du prix du produit",
+        "productTags": "Étiquettes de produit (Max {max})",
+        "typePressEnter": "Tapez et appuyez sur Entrée...",
+        "tagsUsed": "{count}/{max} étiquettes utilisées"
+      },
+      "errors": {
+        "nameRequired": "Le nom est obligatoire",
+        "categoryRequired": "La catégorie est obligatoire",
+        "priceRequired": "Le prix de base est obligatoire",
+        "stockRequired": "Le stock est obligatoire"
+      }
+    },
+    "detail": {
+      "title": "Détails du produit",
+      "back": "Retour",
+      "noSku": "Pas de SKU",
+      "unknown": "Inconnu",
+      "public": "Public",
+      "featured": "Vedette",
+      "uncategorized": "Non classé",
+      "export": "Exporter",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "loading": "Chargement du produit...",
+      "deleteConfirm": "Supprimer ce produit ? Cette action est irréversible.",
+      "tabs": {
+        "overview": "Aperçu",
+        "pricing": "Prix",
+        "inventory": "Inventaire",
+        "media": "Média",
+        "variations": "Variantes",
+        "codes": "Codes",
+        "specs": "Spécifs",
+        "raw": "Données brutes"
+      },
+      "cards": {
+        "sellingPrice": "Prix de vente",
+        "costPrice": "Prix de revient",
+        "stock": "Stock",
+        "totalValue": "Valeur totale"
+      },
+      "sections": {
+        "details": "Détails",
+        "description": "Description",
+        "noDescription": "Aucune description fournie.",
+        "qrCode": "Code QR",
+        "noQr": "Aucun code QR disponible",
+        "barcode": "Code à barres",
+        "noBarcode": "Aucun code à barres disponible",
+        "rawJson": "JSON brut du produit",
+        "noSpecs": "Aucune spécification trouvée."
+      },
+      "fields": {
+        "category": "Catégorie",
+        "shopId": "ID du magasin",
+        "brand": "Marque",
+        "manufacturer": "Fabricant",
+        "sku": "SKU",
+        "asin": "ASIN",
+        "upc": "UPC",
+        "scanId": "ID de scan",
+        "dateEntered": "Date d’entrée",
+        "tags": "Étiquettes",
+        "expiryDate": "Date d’expiration",
+        "notApplicable": "Non applicable",
+        "none": "Aucun",
+        "margin": "Marge",
+        "profitRank": "Rang de profit",
+        "totalStock": "Stock total",
+        "available": "Disponible",
+        "lowStockThreshold": "Seuil de stock faible",
+        "minReorderQty": "Qté de réapprovisionnement min.",
+        "safetyStock": "Stock de sécurité",
+        "allowBackorder": "Autoriser les commandes différées",
+        "trackQuantity": "Suivre la quantité",
+        "yes": "Oui",
+        "no": "Non",
+        "attribute": "Attribut",
+        "value": "Valeur"
+      },
+      "variations": {
+        "variant": "Variante",
+        "sku": "SKU",
+        "price": "Prix",
+        "stock": "Stock",
+        "default": "Par défaut",
+        "inStock": "en stock",
+        "none": "Aucune variante définie",
+        "simpleDesc": "C’est un produit simple sans variantes."
+      },
+      "media": {
+        "noMedia": "Aucun média téléchargé.",
+        "view": "Voir"
+      },
+      "successDelete": "Produit supprimé avec succès",
+      "errorDelete": "Échec de la suppression du produit",
+      "copied": "Copié",
+      "copyJson": "Copier le JSON"
+    }
+  },
+  "payments": {
+    "title": "Paiements",
+    "subtitle": "Gérer les paiements et les transactions de l'entreprise",
+    "cards": {
+      "totalPaymentAmount": "Montant Total des Paiements",
+      "succeededPayments": "Paiements Réussis",
+      "pendingPayments": "Paiements en Attente",
+      "totalTransactions": "Total des Transactions"
+    }
+  },
+  "paymentsTable": {
+    "paymentId": "ID de Paiement",
+    "customer": "Client",
+    "amount": "Montant",
+    "status": "Statut",
+    "paymentMethod": "Méthode de Paiement",
+    "type": "Type",
+    "date": "Date",
+    "actions": "Actions",
+    "viewDetails": "Voir les Détails",
+    "downloadReceipt": "Télécharger le Reçu",
+    "delete": "Supprimer",
+    "noPayments": "Aucun paiement trouvé",
+    "succeeded": "Réussi",
+    "pending": "En attente",
+    "failed": "Échoué",
+    "cancelled": "Annulé"
   }
-  
-  
 }

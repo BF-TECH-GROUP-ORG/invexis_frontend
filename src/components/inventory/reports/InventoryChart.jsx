@@ -17,16 +17,16 @@ export default function InventoryChart({ data }) {
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="date" 
+        <XAxis
+          dataKey="date"
           stroke="#9ca3af"
           style={{ fontSize: "12px" }}
         />
-        <YAxis 
+        <YAxis
           stroke="#9ca3af"
           style={{ fontSize: "12px" }}
         />
-        <Tooltip 
+        <Tooltip
           contentStyle={{
             backgroundColor: "#fff",
             border: "1px solid #e5e7eb",
@@ -34,32 +34,32 @@ export default function InventoryChart({ data }) {
             boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
           }}
         />
-        <Legend 
+        <Legend
           wrapperStyle={{ fontSize: "12px" }}
         />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke="#f97316" 
-          strokeWidth={3}
-          dot={{ fill: "#f97316", r: 5 }}
-          activeDot={{ r: 7 }}
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#f97316"
+          strokeWidth={2}
+          dot={{ fill: "#f97316", r: 4 }}
+          activeDot={{ r: 6 }}
           name="Total Value"
         />
-        <Line 
-          type="monotone" 
-          dataKey="stockIn" 
-          stroke="#10b981" 
+        <Line
+          type="monotone"
+          dataKey="stockIn"
+          stroke="#fb923c"
           strokeWidth={2}
-          dot={{ fill: "#10b981", r: 4 }}
+          dot={{ fill: "#fb923c", r: 3 }}
           name="Stock In"
         />
-        <Line 
-          type="monotone" 
-          dataKey="stockOut" 
-          stroke="#ef4444" 
+        <Line
+          type="monotone"
+          dataKey="stockOut"
+          stroke="#fdba74"
           strokeWidth={2}
-          dot={{ fill: "#ef4444", r: 4 }}
+          dot={{ fill: "#fdba74", r: 3 }}
           name="Stock Out"
         />
       </LineChart>

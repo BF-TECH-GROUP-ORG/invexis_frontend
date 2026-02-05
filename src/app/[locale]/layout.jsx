@@ -21,6 +21,12 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+import AuthProvider from "@/providers/AuthProvider";
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import WebSocketProvider from "@/providers/WebSocketProvider";
+
+// ... existing imports
+
 export default async function RootLayout({ children, params }) {
   const { locale } = await params;
 
@@ -32,18 +38,24 @@ export default async function RootLayout({ children, params }) {
   setRequestLocale(locale);
 
   // Get messages for the locale
-  
+  // const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className="font-metropolis antialiased">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale}>
           <ClientProviders>
-            <ThemeRegistry>
-              {/* Initialize settings from localStorage */}
-              <SettingsInitializer />
-              <LayoutWrapper>{children}</LayoutWrapper>
-            </ThemeRegistry>
+            <AuthProvider>
+              <LoadingProvider>
+                <ThemeRegistry>
+                  <WebSocketProvider>
+                    {/* Initialize settings from localStorage */}
+                    <SettingsInitializer />
+                    <LayoutWrapper>{children}</LayoutWrapper>
+                  </WebSocketProvider>
+                </ThemeRegistry>
+              </LoadingProvider>
+            </AuthProvider>
           </ClientProviders>
         </NextIntlClientProvider>
       </body>

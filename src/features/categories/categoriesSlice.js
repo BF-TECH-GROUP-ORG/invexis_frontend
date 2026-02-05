@@ -70,10 +70,14 @@ const categoriesSlice = createSlice({
     items: [],
     loading: false,
     error: null,
+    lastFetched: null, // Track when data was last fetched
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    clearCache: (state) => {
+      state.lastFetched = null;
     },
   },
   extraReducers: (builder) => {
@@ -85,6 +89,7 @@ const categoriesSlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload?.data || action.payload || [];
+        state.lastFetched = Date.now(); // Set timestamp when data is fetched
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
@@ -137,5 +142,5 @@ const categoriesSlice = createSlice({
   },
 });
 
-export const { clearError } = categoriesSlice.actions;
+export const { clearError, clearCache } = categoriesSlice.actions;
 export default categoriesSlice.reducer;

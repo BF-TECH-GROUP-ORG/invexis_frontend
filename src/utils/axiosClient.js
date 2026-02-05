@@ -1,6 +1,5 @@
-
-
 import axios from "axios";
+import { getSession, signOut, signIn } from "next-auth/react";
 
 // ==================== CONFIGURATION ====================
 
@@ -9,30 +8,37 @@ const axiosClient = axios.create({
   timeout: 30000, // 30 seconds timeout
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
+    Accept: "application/json",
   },
 });
 
 // ==================== REQUEST INTERCEPTOR ====================
 
 axiosClient.interceptors.request.use(
-  (config) => {
-    // Get token from localStorage (or your preferred storage)
-    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    // Try to attach token from next-auth session (client-side only)
+    if (typeof window !== "undefined") {
+      try {
+        const sess = await getSession();
+        const token = sess?.accessToken;
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+      } catch (e) {
+        // ignore lookup errors
+      }
     }
 
     // Add request timestamp for debugging
     config.metadata = { startTime: new Date().getTime() };
 
     // Log request in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 [API Request] ${config.method.toUpperCase()} ${config.url}`, {
-        params: config.params,
-        data: config.data,
-      });
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `🚀 [API Request] ${config.method.toUpperCase()} ${config.url}`,
+        {
+          params: config.params,
+          data: config.data,
+        }
+      );
     }
 
     return config;
@@ -51,12 +57,17 @@ axiosClient.interceptors.response.use(
     const duration = new Date().getTime() - response.config.metadata.startTime;
 
     // Log response in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ [API Response] ${response.config.method.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        duration: `${duration}ms`,
-        data: response.data,
-      });
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ [API Response] ${response.config.method.toUpperCase()} ${
+          response.config.url
+        }`,
+        {
+          status: response.status,
+          duration: `${duration}ms`,
+          data: response.data,
+        }
+      );
     }
 
     return response;
@@ -65,12 +76,17 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // Log error in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`❌ [API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
-        status: error.response?.status,
-        message: error.message,
-        data: error.response?.data,
-      });
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        `❌ [API Error] ${error.config?.method?.toUpperCase()} ${
+          error.config?.url
+        }`,
+        {
+          status: error.response?.status,
+          message: error.message,
+          data: error.response?.data,
+        }
+      );
     }
 
     // Handle specific error cases
@@ -82,49 +98,91 @@ axiosClient.interceptors.response.use(
           if (!originalRequest._retry) {
             originalRequest._retry = true;
 
+            // First attempt: call the backend /auth/refresh endpoint directly.
+            // Use the raw axios client to avoid interceptor recursion.
             try {
-              // Try to refresh token
-              const refreshToken = typeof window !== 'undefined' ? localStorage.getItem("refreshToken") : null;
-              
-              if (refreshToken) {
-                const response = await axios.post(`${axiosClient.defaults.baseURL}/auth/refresh`, {
-                  refreshToken,
-                });
+              const refreshUrl = `${axiosClient.defaults.baseURL.replace(
+                /\/$/,
+                ""
+              )}/auth/refresh`;
+              const refreshRes = await axios.post(
+                refreshUrl,
+                {},
+                { withCredentials: true }
+              );
+              if (refreshRes?.data?.accessToken) {
+                const newToken = refreshRes.data.accessToken;
+                const refreshedUser = refreshRes.data.user || null;
 
-                const newToken = response.data.token;
-                
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem("token", newToken);
+                // Update the original request with a new header and retry
+                originalRequest.headers = originalRequest.headers || {};
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+                // If running in browser, also re-seed NextAuth session so useSession() updates
+                if (typeof window !== "undefined") {
+                  try {
+                    await signIn("credentials", {
+                      redirect: false,
+                      seedUser: JSON.stringify(refreshedUser || {}),
+                      accessToken: newToken,
+                    });
+                  } catch (e) {
+                    // non-fatal — still retry request with new token
+                    console.warn("session reseed failed after refresh", e);
+                  }
                 }
 
-                // Retry original request with new token
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return axiosClient(originalRequest);
               }
-            } catch (refreshError) {
-              // Refresh failed, logout user
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem("token");
-                localStorage.removeItem("refreshToken");
-                window.location.href = "/login";
+            } catch (refreshErr) {
+              // If refresh call failed, fall back to checking NextAuth client session
+              try {
+                const sess = await getSession();
+                if (sess?.accessToken) {
+                  originalRequest.headers.Authorization = `Bearer ${sess.accessToken}`;
+                  return axiosClient(originalRequest);
+                }
+              } catch (err) {
+                // try sign out when refresh fails
+                if (typeof window !== "undefined") {
+                  try {
+                    await signOut({ redirect: false });
+                  } catch (e) {}
+                  // ensure localized redirect to login
+                  const match = window?.location?.pathname?.match(
+                    /^\/([a-z]{2})(?:\/|$)/i
+                  );
+                  const loc = match ? match[1] : "en";
+                  window.location.href = `/${loc}/auth/login`;
+                }
+                return Promise.reject(err);
               }
-              return Promise.reject(refreshError);
             }
           }
-          
-          // If retry already attempted, logout
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem("token");
-            localStorage.removeItem("refreshToken");
-            window.location.href = "/login";
+
+          // If retry already attempted, sign out
+          if (typeof window !== "undefined") {
+            try {
+              await signOut({ redirect: false });
+            } catch (e) {}
+            // localized fallback redirect
+            const match2 = window?.location?.pathname?.match(
+              /^\/([a-z]{2})(?:\/|$)/i
+            );
+            const loc2 = match2 ? match2[1] : "en";
+            window.location.href = `/${loc2}/auth/login`;
           }
           break;
 
         case 403: // Forbidden
-          console.error("🚫 Access Denied: You don't have permission to access this resource");
-          if (typeof window !== 'undefined') {
-            // Optionally redirect to unauthorized page
-            // window.location.href = "/unauthorized";
+          console.error(
+            "🚫 Access Denied: You don't have permission to access this resource"
+          );
+          if (typeof window !== "undefined") {
+            // Optionally redirect to localized unauthorized page
+            // const match = window?.location?.pathname?.match(/^\/([a-z]{2})(?:\/|$)/i);
+            // const loc = match ? match[1] : "en";
+            // window.location.href = `/${loc}/unauthorized`;
           }
           break;
 
@@ -145,15 +203,22 @@ axiosClient.interceptors.response.use(
           break;
 
         case 503: // Service Unavailable
-          console.error("🔧 Service temporarily unavailable. Please try again later.");
+          console.error(
+            "🔧 Service temporarily unavailable. Please try again later."
+          );
           break;
 
         default:
-          console.error(`❌ Error ${status}:`, data.message || "Unknown error occurred");
+          console.error(
+            `❌ Error ${status}:`,
+            data.message || "Unknown error occurred"
+          );
       }
     } else if (error.request) {
       // Request was made but no response received
-      console.error("🌐 Network Error: No response from server. Please check your connection.");
+      console.error(
+        "🌐 Network Error: No response from server. Please check your connection."
+      );
     } else {
       // Something else happened
       console.error("⚠️ Error:", error.message);
@@ -263,7 +328,7 @@ export const documentAPI = {
   delete: (ids) => axiosClient.delete("/documents", { data: { ids } }),
 
   // Bulk update status
-  bulkUpdateStatus: (ids, status) => 
+  bulkUpdateStatus: (ids, status) =>
     axiosClient.patch("/documents/bulk-status", { ids, status }),
 
   // Upload document file
@@ -274,19 +339,23 @@ export const documentAPI = {
   },
 
   // Download document
-  download: (id, filename) => 
+  download: (id, filename) =>
     downloadFile(`/documents/${id}/download`, filename),
 
   // Export documents
-  export: (format, filters) => 
-    axiosClient.post("/documents/export", { format, filters }, {
-      responseType: "blob",
-    }),
+  export: (format, filters) =>
+    axiosClient.post(
+      "/documents/export",
+      { format, filters },
+      {
+        responseType: "blob",
+      }
+    ),
 
   // Search documents
-  search: (query, filters) => 
-    axiosClient.get("/documents/search", { 
-      params: { q: query, ...filters } 
+  search: (query, filters) =>
+    axiosClient.get("/documents/search", {
+      params: { q: query, ...filters },
     }),
 
   // Get document statistics
@@ -313,7 +382,8 @@ export const authAPI = {
   register: (userData) => axiosClient.post("/auth/register", userData),
 
   // Refresh token
-  refresh: (refreshToken) => axiosClient.post("/auth/refresh", { refreshToken }),
+  refresh: (refreshToken) =>
+    axiosClient.post("/auth/refresh", { refreshToken }),
 
   // Get current user
   getUser: () => axiosClient.get("/auth/me"),
@@ -350,4 +420,4 @@ export const userAPI = {
 export default axiosClient;
 
 // Export all API modules
-export { documentAPI, authAPI, userAPI };
+// named api modules are already exported via their declarations above

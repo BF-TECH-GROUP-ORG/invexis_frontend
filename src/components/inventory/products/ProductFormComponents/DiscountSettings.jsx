@@ -1,11 +1,13 @@
 "use client";
 
 import { Percent } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function DiscountSettings({ discount, updateNestedField, errors }) {
+  const t = useTranslations("products.form");
   const calculateDiscountedPrice = (originalPrice, discountValue, discountType) => {
     if (!originalPrice || !discountValue) return originalPrice;
-    
+
     if (discountType === 'percentage') {
       return (originalPrice - (originalPrice * discountValue / 100)).toFixed(2);
     } else {
@@ -17,9 +19,9 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
     <div className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50">
       <h3 className="font-semibold mb-4 flex items-center gap-2">
         <Percent size={20} className="text-orange-500" />
-        Discount Settings (Optional)
+        {t("fields.discountTitle")}
       </h3>
-      
+
       <div className="space-y-4">
         <label className="flex items-center gap-3 cursor-pointer">
           <input
@@ -28,37 +30,36 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
             onChange={(e) => updateNestedField('discount', 'enabled', e.target.checked)}
             className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
           />
-          <span className="text-sm font-medium">Enable discount for this product</span>
+          <span className="text-sm font-medium">{t("fields.enableDiscount")}</span>
         </label>
-
+        +
         {discount.enabled && (
           <div className="space-y-4 pl-8 border-l-4 border-orange-200">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  Discount Type
+                  {t("fields.discountType")}
                 </label>
                 <select
                   value={discount.type}
                   onChange={(e) => updateNestedField('discount', 'type', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                 >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount ($)</option>
+                  <option value="percentage">{t("fields.discountPercentage")}</option>
+                  <option value="fixed">{t("fields.discountFixed")}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  Discount Value
+                  {t("fields.discountValue")}
                 </label>
                 <input
                   type="number"
                   value={discount.value}
                   onChange={(e) => updateNestedField('discount', 'value', e.target.value)}
-                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 ${
-                    errors?.discountValue ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 ${errors?.discountValue ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder={discount.type === 'percentage' ? '0-100' : '0.00'}
                   step={discount.type === 'percentage' ? '1' : '0.01'}
                   min="0"
@@ -73,7 +74,7 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  Start Date
+                  {t("fields.startDate")}
                 </label>
                 <input
                   type="date"
@@ -86,7 +87,7 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
 
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  End Date
+                  {t("fields.endDate")}
                 </label>
                 <input
                   type="date"
@@ -102,12 +103,12 @@ export default function DiscountSettings({ discount, updateNestedField, errors }
             {discount.value > 0 && (
               <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
                 <p className="text-sm font-semibold text-orange-800 mb-2">
-                  Discount Preview
+                  {t("fields.discountPreview")}
                 </p>
                 <p className="text-xs text-gray-600">
-                  {discount.type === 'percentage' 
-                    ? `${discount.value}% off` 
-                    : `$${parseFloat(discount.value || 0).toFixed(2)} off`}
+                  {discount.type === 'percentage'
+                    ? `${discount.value}% ${t("fields.off")}`
+                    : `${parseFloat(discount.value || 0).toFixed(0)} RWF ${t("fields.off")}`}
                 </p>
               </div>
             )}

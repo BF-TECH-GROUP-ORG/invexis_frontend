@@ -3,8 +3,10 @@
 import { motion } from "framer-motion";
 import { Folder, MoreVertical, Edit, Trash2, Eye, Package } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function CategoryGrid({ categories, loading, onDelete, canManage }) {
+  const t = useTranslations("categories");
   const [menuOpen, setMenuOpen] = useState(null);
 
   if (loading) {
@@ -21,8 +23,8 @@ export default function CategoryGrid({ categories, loading, onDelete, canManage 
     return (
       <div className="text-center py-12">
         <Folder className="mx-auto mb-4 text-gray-400" size={64} />
-        <p className="text-lg text-gray-500">No categories found</p>
-        <p className="text-sm text-gray-400 mt-2">Try adjusting your filters</p>
+        <p className="text-lg text-gray-500">{t("table.noCategories")}</p>
+        <p className="text-sm text-gray-400 mt-2">{t("table.createFirst")}</p>
       </div>
     );
   }
@@ -74,14 +76,13 @@ export default function CategoryGrid({ categories, loading, onDelete, canManage 
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mb-3">
             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getLevelColor(category.level)}`}>
-              Level {category.level}
+              {t("table.levelLabel", { level: category.level })}
             </span>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              category.isActive 
-                ? "bg-green-100 text-green-700 border border-green-200" 
-                : "bg-red-100 text-red-700 border border-red-200"
-            }`}>
-              {category.isActive ? "Active" : "Inactive"}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.isActive
+              ? "bg-green-100 text-green-700 border border-green-200"
+              : "bg-red-100 text-red-700 border border-red-200"
+              }`}>
+              {category.isActive ? t("table.active") : t("table.inactive")}
             </span>
           </div>
 
@@ -89,7 +90,7 @@ export default function CategoryGrid({ categories, loading, onDelete, canManage 
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
             <div className="flex items-center gap-1">
               <Package size={16} />
-              <span>{category.statistics?.totalProducts || 0} products</span>
+              <span>{t("list.productsCount", { count: category.statistics?.totalProducts || 0 })}</span>
             </div>
           </div>
 
@@ -104,12 +105,12 @@ export default function CategoryGrid({ categories, loading, onDelete, canManage 
             {menuOpen === category._id && (
               <div className="absolute right-0 mt-2 w-40 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10">
                 <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition text-sm">
-                  <Eye size={16} /> View
+                  <Eye size={16} /> {t("table.actions")}
                 </button>
                 {canManage && (
                   <>
                     <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 text-left transition text-sm">
-                      <Edit size={16} /> Edit
+                      <Edit size={16} /> {t("table.edit")}
                     </button>
                     <button
                       onClick={() => {
@@ -118,7 +119,7 @@ export default function CategoryGrid({ categories, loading, onDelete, canManage 
                       }}
                       className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 text-red-600 text-left transition text-sm"
                     >
-                      <Trash2 size={16} /> Delete
+                      <Trash2 size={16} /> {t("table.delete")}
                     </button>
                   </>
                 )}

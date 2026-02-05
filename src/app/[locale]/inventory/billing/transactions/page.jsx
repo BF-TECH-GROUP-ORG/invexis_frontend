@@ -1,0 +1,49 @@
+export const dynamic = "force-dynamic";
+
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
+import TransactionsPageClient from "./TransactionsPageClient";
+import { getCompanyTransactions } from "@/services/paymentService";
+import { getWorkersByCompanyId } from "@/services/workersService";
+import { getAllShops } from "@/services/shopService";
+
+export default async function TransactionsPage() {
+    const session = await getServerSession(authOptions);
+    const queryClient = getQueryClient();
+
+    if (session?.accessToken) {
+        const user = session.user;
+        const companyObj = user?.companies?.[0];
+        const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+        const options = {
+            headers: {
+                Authorization: `Bearer ${session.accessToken}`
+            }
+        };
+
+        // Prefetch transactions, shops, and workers
+        await Promise.all([
+            queryClient.prefetchQuery({
+                queryKey: ['companyTransactions', companyId, session.accessToken],
+                queryFn: () => getCompanyTransactions(companyId, options),
+            }),
+            queryClient.prefetchQuery({
+                queryKey: ['shops', companyId],
+                queryFn: () => getAllShops(companyId),
+            }),
+            queryClient.prefetchQuery({
+                queryKey: ['companyWorkers', companyId, session.accessToken],
+                queryFn: () => getWorkersByCompanyId(companyId, options),
+            })
+        ]);
+    }
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <TransactionsPageClient />
+        </HydrationBoundary>
+    );
+}

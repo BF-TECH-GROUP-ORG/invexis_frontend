@@ -17,8 +17,8 @@ import SettingsDropdown from "../shared/SettingsDropdown";
 export default function OnBoardingScreens({ steps }) {
   const dispatch = useDispatch();
   const { activeStep, completed } = useSelector((s) => s.onboarding);
-    const locale = useLocale();
-    const t = useTranslations("onboarding");
+  const locale = useLocale();
+  const t = useTranslations("onboarding");
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [settingsAnchor, setSettingsAnchor] = useState(null);
@@ -43,7 +43,12 @@ export default function OnBoardingScreens({ steps }) {
   }
 
   if (completed) {
-    return redirect(`/${locale}/auth/login`);
+    const BYPASS =
+      process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
+      (typeof window !== "undefined" &&
+        localStorage.getItem("DEV_BYPASS_AUTH") === "true");
+
+    return redirect(BYPASS ? `/${locale}/inventory` : `/${locale}/auth/login`);
   }
 
   const handleNext = () => {
@@ -95,8 +100,10 @@ export default function OnBoardingScreens({ steps }) {
       </div>
 
       {/* Image Section */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full bg-gradient-to-br from-orange-50 to-orange-100
-                    dark:from-[#2d1b0f] dark:to-[#1a0f0a] flex items-center justify-center p-8">
+      <div
+        className="w-full md:w-1/2 h-1/2 md:h-full bg-gradient-to-br from-orange-50 to-orange-100
+                    dark:from-[#2d1b0f] dark:to-[#1a0f0a] flex items-center justify-center p-8"
+      >
         {loading ? (
           <div className="w-[560px] h-[560px] bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg" />
         ) : (
@@ -173,7 +180,7 @@ export default function OnBoardingScreens({ steps }) {
             <button
               onClick={() => dispatch(completeOnboarding())}
               disabled={loading}
-              className="w-4/5 py-3 rounded-xl font-bold text-white bg-[#ff782d] hover:bg-[#e66a24]
+              className="w-1/5 py-3 rounded-xl font-bold text-white bg-[#ff782d] hover:bg-[#e66a24]
                          shadow-lg hover:shadow-xl transition disabled:opacity-40"
             >
               {t("getStarted")}

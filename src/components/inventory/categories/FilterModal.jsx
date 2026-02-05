@@ -4,8 +4,10 @@ import { useState } from "react";
 import { X, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
+import { useTranslations } from "next-intl";
 
 export default function FilterModal({ filters, onApply, onClose }) {
+  const t = useTranslations("categories");
   const { items } = useSelector((state) => state.categories);
   const [localFilters, setLocalFilters] = useState(filters);
 
@@ -36,7 +38,7 @@ export default function FilterModal({ filters, onApply, onClose }) {
           <div className="flex items-center justify-between p-5 border-b">
             <div className="flex items-center gap-2">
               <Filter className="text-orange-500" size={24} />
-              <h2 className="text-xl font-bold">Filter Categories</h2>
+              <h2 className="text-xl font-bold">{t("toasts.filtersApplied").replace('!', '')}</h2>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
               <X size={20} />
@@ -45,7 +47,7 @@ export default function FilterModal({ filters, onApply, onClose }) {
 
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Category Level</label>
+              <label className="block text-sm font-medium mb-2">{t("table.level")}</label>
               <select
                 value={localFilters.level || ""}
                 onChange={(e) =>
@@ -56,15 +58,15 @@ export default function FilterModal({ filters, onApply, onClose }) {
                 }
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
               >
-                <option value="">All Levels</option>
-                <option value={1}>Level 1 (Main)</option>
-                <option value={2}>Level 2 (Sub)</option>
-                <option value={3}>Level 3 (Sub-Sub)</option>
+                <option value="">{t("list.clearAll")}</option>
+                <option value={1}>{t("table.levelLabel", { level: 1 })}</option>
+                <option value={2}>{t("table.levelLabel", { level: 2 })}</option>
+                <option value={3}>{t("table.levelLabel", { level: 3 })}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Parent Category</label>
+              <label className="block text-sm font-medium mb-2">{t("table.parent")}</label>
               <select
                 value={localFilters.parentCategory || ""}
                 onChange={(e) =>
@@ -72,12 +74,12 @@ export default function FilterModal({ filters, onApply, onClose }) {
                 }
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
               >
-                <option value="">All Parents</option>
+                <option value="">{t("modal.selectParent")}</option>
                 {items
                   .filter((cat) => cat.level < 3)
                   .map((cat) => (
                     <option key={cat._id} value={cat._id}>
-                      {cat.name} (Level {cat.level})
+                      {cat.name} ({t("table.levelLabel", { level: cat.level })})
                     </option>
                   ))}
               </select>
@@ -89,13 +91,13 @@ export default function FilterModal({ filters, onApply, onClose }) {
               onClick={handleReset}
               className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
             >
-              Reset
+              {t("list.clearAll")}
             </button>
             <button
               onClick={handleApply}
               className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
             >
-              Apply Filters
+              {t("toasts.filtersApplied").replace('!', '')}
             </button>
           </div>
         </motion.div>

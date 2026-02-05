@@ -1,0 +1,308 @@
+import apiClient from "@/lib/apiClient";
+import { getCacheStrategy } from "@/lib/cacheConfig";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/**
+ * Lookup product by scanned QR/Barcode data
+ * POST /v1/stock/lookup
+ */
+export async function lookupProduct(scanData) {
+  try {
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/lookup`,
+      scanData
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Add inventory (restocking)
+ * POST /v1/stock/in
+ *
+ * @param {Object} payload - The inventory data to add
+ * @returns {Promise<Object>} The response data from the API
+ */
+export async function stockIn(payload) {
+  try {
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/bulk-in`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Remove inventory (sales, damage, etc.)
+ * POST /v1/stock/out
+ *
+ * @param {Object} payload - The inventory data to remove
+ * @returns {Promise<Object>} The response data from the API
+ */
+export async function stockOut(payload) {
+  try {
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/out`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Bulk add inventory for multiple products
+ * POST /v1/stock/bulk-in
+ *
+ * @param {Array<Object>} items - An array of items to add to inventory
+ * @returns {Promise<Object>} The response data from the API
+ */
+export async function bulkStockIn(payload) {
+  try {
+    // payload may be either an array of items or an object { companyId, shopId, userId, items }
+    const body = Array.isArray(payload) ? { items: payload } : payload;
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/bulk-in`,
+      body
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Bulk remove inventory for multiple products
+ * POST /v1/stock/bulk-out
+ *
+ * @param {Array<Object>} items - An array of items to remove from inventory
+ * @returns {Promise<Object>} The response data from the API
+ */
+export async function bulkStockOut(items) {
+  try {
+    const res = await apiClient.post(
+      `${API_BASE}/inventory/v1/stock/bulk-out`,
+      { items }
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Get all stock changes (REAL-TIME DATA - always fresh)
+ * GET /v1/stock/changes
+ *
+ * @param {Object} params - Query parameters
+ * @param {number} params.page - Page number
+ * @param {number} params.limit - Items per page
+ * @param {string} params.companyId - Company ID
+ * @param {string} params.productId - Product ID
+ * @returns {Promise<Object>} Stock changes data
+ *
+ * CACHING: NO-STORE - Real-time stock movements must always be current
+ */
+export async function getAllStockChanges(
+  { page = 1, limit = 20, companyId, productId } = {},
+  options = {}
+) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
+
+  const params = { page, limit };
+  if (companyId) params.companyId = companyId;
+  if (productId) params.productId = productId;
+
+  return apiClient.get(`${API_BASE}/inventory/v1/stock/changes`, {
+    params,
+    cache: cacheStrategy, // NO-STORE
+    ...options,
+  });
+}
+
+/**
+ * Get stock history for a product (historical data can be cached)
+ * GET /v1/stock/history
+ *
+ * @param {Object} params - Query parameters
+ * @param {string} params.productId - Product ID
+ * @param {number} params.page - Page number
+ * @param {number} params.limit - Items per page
+ * @returns {Promise<Object>} Stock history data
+ *
+ * CACHING: Metadata cached for 1 hour (historical data changes infrequently)
+ */
+export async function getStockHistory({
+  productId,
+  page = 1,
+  limit = 20,
+} = {}) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+
+  const params = { page, limit };
+  if (productId) params.productId = productId;
+
+  return apiClient.get(`${API_BASE}/inventory/v1/stock/history`, {
+    params,
+    cache: cacheStrategy, // 1 hour cache
+  });
+}
+
+/**
+ * Get stock change history (analytics endpoint)
+ * GET /inventory/v1/analytics/stock-change-history?companyId=...
+ *
+ * This endpoint returns an object { history: [...], pagination: { ... }, stats: { ... } }
+ * Use for historical analytics and paginated history views.
+ */
+export async function getStockChangeHistory(
+  { companyId, page = 1, limit = 50 } = {},
+  options = {}
+) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+
+  const params = { page, limit };
+  if (companyId) params.companyId = companyId;
+
+  return apiClient.get(
+    `${API_BASE}/inventory/v1/analytics/stock-change-history`,
+    {
+      params,
+      cache: cacheStrategy,
+      ...options,
+    }
+  );
+}
+
+/**
+ * Get daily stock summary for a company
+ * GET /inventory/v1/stock/daily-summary?companyId=...
+ *
+ * Response shape: { success: true, data: { today: {...}, inventory: {...} } }
+ */
+export async function getDailySummary({ companyId } = {}, options = {}) {
+  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+  const params = {};
+  if (companyId) params.companyId = companyId;
+
+  return apiClient.get(`${API_BASE}/inventory/v1/stock/daily-summary`, {
+    params,
+    cache: cacheStrategy,
+    ...options,
+  });
+}
+
+/**
+ * Get stock change by ID
+ * GET /v1/stock/changes/:id
+ *
+ * @param {string} id - The ID of the stock change to retrieve
+ * @returns {Promise<Object>} The stock change data
+ */
+export async function getStockChangeById(id) {
+  return apiClient.get(`${API_BASE}/inventory/v1/stock/changes/${id}`);
+}
+
+/**
+ * Create a stock change manually
+ * POST /v1/stock/changes
+ *
+ * @param {Object} payload - Stock change data
+ * @returns {Promise<Object>} Created stock change data
+ */
+export async function createStockChange(payload) {
+  return apiClient.post(`${API_BASE}/inventory/v1/stock/changes`, payload);
+}
+
+export default {
+  lookupProduct,
+  stockIn,
+  stockOut,
+  bulkStockIn,
+  bulkStockOut,
+  getAllStockChanges,
+  getStockHistory,
+  getStockChangeHistory,
+  getDailySummary,
+  getStockChangeById,
+  createStockChange,
+  getCompanyDetails,
+  getAllCompanies,
+  transferToShop,
+  transferToCompany,
+};
+
+/**
+ * Intra-Company Bulk Transfer (Shop to Shop)
+ * POST /api/v1/companies/:companyId/shops/:shopId/bulk-transfer
+ */
+export async function transferToShop(companyId, shopId, payload) {
+  return apiClient.post(
+    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`,
+    payload
+  );
+}
+
+/**
+ * Cross-Company Bulk Transfer
+ * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
+ */
+export async function transferToCompany(companyId, shopId, payload) {
+  return apiClient.post(
+    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`,
+    payload
+  );
+}
+
+/**
+ * Get company details by ID
+ * GET /company/companies/:id
+ *
+ * @param {string} id - Company ID
+ * @returns {Promise<Object>} Company details
+ */
+export async function getCompanyDetails(id) {
+  return apiClient.get(`${API_BASE}/company/companies/${id}`);
+}
+
+/**
+ * Get all companies
+ * GET /company/companies
+ *
+ * @returns {Promise<Object>} List of companies
+ */
+export async function getAllCompanies() {
+  try {
+    const response = await apiClient.get(`${API_BASE}/company/companies`);
+    console.log("getAllCompanies raw response:", response);
+    
+    // Axios wraps response in response.data
+    // Backend may return: {data: Array(...), ...} or just Array
+    const apiResponse = response.data;
+    
+    // Return the structured response so components can access via .data
+    // This maintains consistency with React Query
+    if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+      console.log("✓ Companies extracted:", apiResponse.data.length, "companies");
+      return { data: apiResponse.data };
+    }
+    
+    if (Array.isArray(apiResponse)) {
+      console.log("✓ Companies (direct array):", apiResponse.length, "companies");
+      return { data: apiResponse };
+    }
+    
+    console.warn("Unexpected companies response:", apiResponse);
+    return { data: [] };
+  } catch (error) {
+    console.error("Error fetching companies:", error);
+    throw error;
+  }
+}

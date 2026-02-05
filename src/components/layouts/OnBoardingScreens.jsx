@@ -10,6 +10,7 @@ import {
   setActiveStep,
 } from "@/features/onboarding/onboardingSlice";
 import { redirect } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export default function OnBoardingScreens({ steps }) {
   const dispatch = useDispatch();
@@ -17,6 +18,7 @@ export default function OnBoardingScreens({ steps }) {
 
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const locale = useLocale();
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +40,15 @@ export default function OnBoardingScreens({ steps }) {
   }
 
   if (completed) {
-    return redirect("/auth/login");
+    const BYPASS =
+      process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
+      (typeof window !== "undefined" &&
+        localStorage.getItem("DEV_BYPASS_AUTH") === "true");
+
+    if (BYPASS && locale) return redirect(`/${locale}/inventory`);
+    if (BYPASS) return redirect(`/inventory`);
+    // Ensure localized redirect to the login page when onboarding completed
+    return redirect(locale ? `/${locale}/auth/login` : `/en/auth/login`);
   }
 
   const handleNext = () => {
@@ -59,7 +69,11 @@ export default function OnBoardingScreens({ steps }) {
       <button
         onClick={() => dispatch(completeOnboarding())}
         className={`fixed top-4 right-4 md:top-20 md:right-20 z-20 px-4 py-2 rounded-lg font-medium transition
-          ${window.innerWidth < 768 ? "bg-white/30 hover:bg-white/50 text-black" : "bg-gray-100 hover:bg-gray-200 text-black"}`}
+          ${
+            window.innerWidth < 768
+              ? "bg-white/30 hover:bg-white/50 text-black"
+              : "bg-gray-100 hover:bg-gray-200 text-black"
+          }`}
       >
         Skip
       </button>

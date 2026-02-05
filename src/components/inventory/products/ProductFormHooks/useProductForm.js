@@ -1,3 +1,4 @@
+// src/components/inventory/products/ProductFormHooks/useProductForm.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,132 +6,98 @@ import { useState, useEffect } from "react";
 const INITIAL_FORM_DATA = {
   // Basic Info
   name: "",
-  sku: "",
+  brand: "",
+  manufacturer: "",
   category: "",
-  subcategory: "",
-  subSubcategory: "",
-  slug: "",
-  // pricing moved to nested object to match backend shape
+  tags: [],
+  description: {
+    short: "",
+    long: ""
+  },
+  condition: 'new',
+  availability: 'in_stock',
+
+  // Attributes (Dynamic)
+  attributes: [],
+
+  // Pricing & Inventory
   pricing: {
     basePrice: "",
     salePrice: "",
-    currency: "USD",
+    listPrice: "",
     cost: "",
+    currency: "USD",
   },
-  // legacy top-level fields kept for compatibility
-  price: "",
-  costPrice: "",
-  description: "",
-  supplier: "",
-  manufacturer: "",
-
-  // Inventory
-  stock: "",
-  minStockLevel: "",
-  maxStockLevel: "",
-  warehouse: "",
-  expiryDate: "",
-
-  // Specifications
-  specifications: {
-    brand: "",
-    model: "",
-    color: "",
-    warranty: "",
+  inventory: {
+    trackQuantity: true,
+    quantity: "",
+    lowStockThreshold: 10,
+    allowBackorder: false,
   },
 
   // Media
   images: [],
-  tags: [],
+  videoUrls: [],
 
-  // Variants / variations
+  // Variations
   variants: [],
   variations: [],
 
-  condition: 'new',
-  availability: 'in_stock',
-
-  // Advanced
+  // Advanced / Settings
   status: "active",
   visibility: "public",
-  isTaxable: true,
-  trackInventory: true,
-  allowBackorder: false,
-  isPerishable: false,
-  notes: "",
-  asin: "",           // Amazon Standard Identification Number
-  upc: "",            // Universal Product Code
-  bulletPoints: [],   // Product features/highlights
-
-  // Discount
-  discount: {
-    enabled: false,
-    type: "percentage",
-    value: "",
-    startDate: "",
-    endDate: "",
-  },
-
-  // Return Policy
-  returnPolicy: {
-    allowed: true,
-    days: 30,
-    conditions: "",
-    restockingFee: false,
-    restockingFeePercent: "",
-  },
-  // SEO
+  featured: false,
+  isActive: true,
+  sortOrder: 0,
   seo: {
     metaTitle: "",
     metaDescription: "",
     keywords: [],
   },
-  // Optional product flags
-  featured: false,
-  isActive: true,
-  sortOrder: 0,
-  browseNodeId: "",
 };
 
 export default function useProductForm(initialData = null) {
   const [formData, setFormData] = useState(initialData || INITIAL_FORM_DATA);
-  
+
   // If initialData changes (e.g. when editing an existing product), populate the form
   useEffect(() => {
     if (!initialData) return;
 
     const src = initialData;
     const normalized = {
-      // merge with defaults to ensure all fields exist
       ...INITIAL_FORM_DATA,
       ...src,
       pricing: {
         ...INITIAL_FORM_DATA.pricing,
         ...(src.pricing || {}),
       },
-      specifications: {
-        ...INITIAL_FORM_DATA.specifications,
-        ...(src.specifications || src.specs || {}),
+      inventory: {
+        ...INITIAL_FORM_DATA.inventory,
+        ...(src.inventory || {}),
       },
-      images: Array.isArray(src.images) ? src.images : src.images ? [src.images] : [],
-      tags: Array.isArray(src.tags) ? src.tags : src.tags ? [src.tags] : [],
-      manufacturer: src.manufacturer || INITIAL_FORM_DATA.manufacturer,
-      upc: src.upc || INITIAL_FORM_DATA.upc,
-      bulletPoints: Array.isArray(src.bulletPoints) ? src.bulletPoints : src.bulletPoints ? [src.bulletPoints] : INITIAL_FORM_DATA.bulletPoints,
-      variants: Array.isArray(src.variants) ? src.variants : INITIAL_FORM_DATA.variants,
-      variations: Array.isArray(src.variations) ? src.variations : INITIAL_FORM_DATA.variations,
-      seo: { ...INITIAL_FORM_DATA.seo, ...(src.seo || {}) },
-      price: src.price ?? (src.pricing && src.pricing.basePrice) ?? INITIAL_FORM_DATA.price,
-      costPrice: src.costPrice ?? (src.pricing && src.pricing.cost) ?? INITIAL_FORM_DATA.costPrice,
-      stock: src.stock ?? (src.inventory && src.inventory.quantity) ?? INITIAL_FORM_DATA.stock,
-      warehouse: src.warehouse?.id || src.warehouse?._id || src.warehouse || INITIAL_FORM_DATA.warehouse,
-      expiryDate: src.expiryDate || INITIAL_FORM_DATA.expiryDate,
-      discount: src.discount || INITIAL_FORM_DATA.discount,
-      returnPolicy: src.returnPolicy || INITIAL_FORM_DATA.returnPolicy,
+      description: {
+        ...INITIAL_FORM_DATA.description,
+        ...(src.description || {}),
+      },
+      seo: {
+        ...INITIAL_FORM_DATA.seo,
+        ...(src.seo || {}),
+      },
+      images: Array.isArray(src.images) ? src.images : [],
+      tags: Array.isArray(src.tags) ? src.tags : [],
+      attributes: Array.isArray(src.attributes) ? src.attributes : [],
+      videoUrls: Array.isArray(src.videoUrls) ? src.videoUrls : [],
+      variants: Array.isArray(src.variants) ? src.variants : [],
+      variations: Array.isArray(src.variations) ? src.variations : [],
     };
+
+    // Handle flat fields mapping to nested if necessary (legacy support)
+    if (src.price && !normalized.pricing.basePrice) normalized.pricing.basePrice = src.price;
+    if (src.stock && !normalized.inventory.quantity) normalized.inventory.quantity = src.stock;
 
     setFormData(normalized);
   }, [initialData]);
+
   const [errors, setErrors] = useState({});
   const [currentStep, setCurrentStep] = useState(1);
   const [tagInput, setTagInput] = useState("");
@@ -138,7 +105,7 @@ export default function useProductForm(initialData = null) {
   // Update form data
   const updateFormData = (updates) => {
     setFormData((prev) => ({ ...prev, ...updates }));
-    
+
     // Clear related errors
     const newErrors = { ...errors };
     Object.keys(updates).forEach((key) => {
@@ -147,7 +114,7 @@ export default function useProductForm(initialData = null) {
     setErrors(newErrors);
   };
 
-  // Update nested fields (for specifications, discount, returnPolicy)
+  // Update nested fields
   const updateNestedField = (parent, field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -162,6 +129,7 @@ export default function useProductForm(initialData = null) {
   const validateStep = (step) => {
     const newErrors = {};
 
+    // Step 1: Basic Info
     if (step === 1) {
       if (!formData.name.trim()) {
         newErrors.name = "Product name is required";
@@ -169,35 +137,15 @@ export default function useProductForm(initialData = null) {
       if (!formData.category) {
         newErrors.category = "Category is required";
       }
-        const priceVal = formData.pricing?.basePrice !== undefined && formData.pricing?.basePrice !== "" ? formData.pricing.basePrice : formData.price;
-        if (!priceVal || parseFloat(priceVal) <= 0) {
-          newErrors.price = "Valid price is required";
-        }
-        const costVal = formData.pricing?.cost !== undefined && formData.pricing?.cost !== "" ? formData.pricing.cost : formData.costPrice;
-        if (costVal && parseFloat(costVal) < 0) {
-          newErrors.costPrice = "Cost price cannot be negative";
-        }
     }
 
-    // Inventory validation belongs to step 3 (Inventory)
+    // Step 3: Inventory (Pricing & Stock)
     if (step === 3) {
-      if (!formData.stock || parseInt(formData.stock) < 0) {
-        newErrors.stock = "Valid stock quantity is required";
+      if (!formData.pricing?.basePrice) {
+        newErrors.price = "Base Price is required";
       }
-      if (!formData.warehouse) {
-        newErrors.warehouse = "Warehouse is required";
-      }
-    }
-
-    if (step === 4) {
-      if (formData.discount.enabled && formData.discount.value) {
-        const discountValue = parseFloat(formData.discount.value);
-        if (formData.discount.type === 'percentage' && (discountValue < 0 || discountValue > 100)) {
-          newErrors.discountValue = "Percentage must be between 0 and 100";
-        }
-        if (formData.discount.type === 'fixed' && discountValue < 0) {
-          newErrors.discountValue = "Discount amount cannot be negative";
-        }
+      if (formData.inventory?.quantity === undefined || formData.inventory?.quantity === "") {
+        newErrors.stock = "Quantity is required";
       }
     }
 
@@ -205,36 +153,76 @@ export default function useProductForm(initialData = null) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle image upload
+  // Handle image upload with aggressive compression for 5+ images
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const maxImages = 5;
+    const maxSize = 5 * 1024 * 1024; // 5MB per file
+    const maxImages = 10;
 
-    if (formData.images.length >= maxImages) {
-      alert(`Maximum ${maxImages} images allowed`);
+    if (formData.images.length + files.length > maxImages) {
+      alert(`Maximum ${maxImages} images allowed. You can upload ${maxImages - formData.images.length} more.`);
       return;
     }
+
+    let processedCount = 0;
+    const totalFiles = files.length;
 
     files.forEach((file) => {
       if (file.size > maxSize) {
         alert(`${file.name} exceeds 5MB limit`);
+        processedCount++;
         return;
       }
 
+      // Compress image before upload
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          images: [
-            ...prev.images,
-            {
-              url: reader.result,
-              alt: file.name,
-              isPrimary: prev.images.length === 0,
-            },
-          ].slice(0, maxImages),
-        }));
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // Calculate new dimensions (max 600px for better compression)
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 600; // Reduced from 800 for better compression
+
+          if (width > height && width > maxDimension) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw and compress (60% quality for smaller file size)
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+          setFormData((prev) => ({
+            ...prev,
+            images: [
+              ...prev.images,
+              {
+                url: compressedDataUrl,
+                alt: file.name,
+                isPrimary: prev.images.length === 0,
+              },
+            ].slice(0, maxImages),
+          }));
+
+          processedCount++;
+
+          // Show success message when all images are processed
+          if (processedCount === totalFiles) {
+            console.log(`✅ Successfully uploaded ${totalFiles} image(s)`);
+          }
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     });
@@ -285,8 +273,8 @@ export default function useProductForm(initialData = null) {
   // Navigation
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      // support up to 5 steps (Basic, MoreInfo, Inventory, Media, Advanced)
-      setCurrentStep((prev) => Math.min(prev + 1, 5));
+      // support up to 6 steps
+      setCurrentStep((prev) => Math.min(prev + 1, 6));
     }
   };
 
@@ -310,6 +298,7 @@ export default function useProductForm(initialData = null) {
     formData,
     errors,
     currentStep,
+    setCurrentStep, // Exposed for manual control if needed
     tagInput,
     setTagInput,
     updateFormData,

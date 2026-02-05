@@ -1,0 +1,85 @@
+// import axios from 'axios';
+
+// const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+// const defaultHeaders = (typeof API_BASE === 'string' && API_BASE.includes('ngrok'))
+//     ? { 'ngrok-skip-browser-warning': 'true', 'Content-Type': 'application/json' }
+//     : {};
+
+// export async function getShopInventory({ shopId, page = 1, limit = 20 }) {
+//     try {
+//         if (!shopId) throw new Error("Shop ID is required");
+//         const res = await axios.get(`${API_BASE}/inventory/v1/shop-inventory/shop/${shopId}`, {
+//             params: { page, limit },
+//             headers: defaultHeaders
+//         });
+//         return res.data;
+//     } catch (err) {
+//         throw err;
+//     }
+// }
+
+// export async function updateShopInventory(id, payload) {
+//     try {
+//         const res = await axios.put(`${API_BASE}/inventory/v1/shop-inventory/${id}`, payload, { headers: defaultHeaders });
+//         return res.data;
+//     } catch (err) {
+//         throw err;
+//     }
+// }
+
+// export default { getShopInventory, updateShopInventory };
+
+
+import apiClient from "@/lib/apiClient";
+
+/**
+ * -----------------------------------------------------
+ * Inventory base route
+ * -----------------------------------------------------
+ */
+const INVENTORY_BASE = "/inventory/v1/shop-inventory";
+
+/**
+ * -----------------------------------------------------
+ * Get shop inventory (paginated)
+ * SSR-safe: token optional
+ * -----------------------------------------------------
+ */
+export async function getShopInventory(
+  { shopId, page = 1, limit = 20 },
+  options = {}
+) {
+  if (!shopId) {
+    throw new Error("Shop ID is required");
+  }
+
+  return apiClient.get(
+    `${INVENTORY_BASE}/shop/${shopId}`,
+    {
+      params: { page, limit },
+      ...options
+    }
+  );
+}
+
+/**
+ * -----------------------------------------------------
+ * Update shop inventory item
+ * -----------------------------------------------------
+ */
+export async function updateShopInventory(id, payload) {
+  if (!id) {
+    throw new Error("Inventory ID is required");
+  }
+
+  return apiClient.put(
+    `${INVENTORY_BASE}/${id}`,
+    payload
+  );
+}
+
+export default {
+  getShopInventory,
+  updateShopInventory,
+};

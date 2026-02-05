@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { updateUserSettings } from "@/store/authActions";
+import useAuth from "@/hooks/useAuth";
+// Authentication handled by NextAuth — removed legacy redux auth helpers
 import {
   TextField,
   Button,
@@ -13,30 +13,40 @@ import IOSSwitch from "@/components/shared/IosSwitch";
 import Image from "next/image";
 import { ThemeRegistry } from "@/providers/ThemeRegistry";
 import { RadioGroup, Radio, FormControl } from "@mui/material";
+import { useRouter } from "next/navigation";
+
+import { authAPI } from "@/utils/axiosClient";
+import toast from "react-hot-toast";
+import { signIn, getSession } from "next-auth/react";
+import { useLocale } from "next-intl";
 
 export default function EditProfilePage() {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  // no redux dispatch — session is managed by NextAuth
+  const router = useRouter();
+  const { user } = useAuth();
+  const locale = useLocale();
 
   const [activeSection, setActiveSection] = useState("profile");
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     username: user?.username || "",
-    fullName: user?.fullName || "",
+    firstName: user?.firstName || user?.fullName?.split(" ")?.[0] || "",
+    lastName:
+      user?.lastName || user?.fullName?.split(" ")?.slice(1).join(" ") || "",
     email: user?.email || "",
     phone: user?.phone || "",
-    dob: user?.dob || "",
+    dateOfBirth: user?.dateOfBirth || user?.dob || "",
     gender: user?.gender || "",
-    bio: user?.bio || "",
+    bio: user?.bio || user?.about || "",
     desc: user?.desc || "",
     facebook: user?.social?.facebook || "",
     instagram: user?.social?.instagram || "",
     x: user?.social?.x || "",
     linkedin: user?.social?.linkedin || "",
-    profileImage: user?.profileImage || "",
+    profilePicture: user?.profilePicture || user?.profileImage || "",
     backgroundImage: user?.backgroundImage || "",
-    two_fa_enabled: user?.two_fa_enabled || false,
+    twoFAEnabled: user?.twoFAEnabled || user?.two_fa_enabled || false,
     loginOptions: {
       emailPassword: true,
       google: false,
@@ -44,11 +54,35 @@ export default function EditProfilePage() {
       otp: false,
       voice: false,
     },
-    email_verified: user?.email_verified || false,
+    email_verified: user?.isEmailVerified || user?.email_verified || false,
+    nationalId: user?.nationalId || user?.nationalID || "",
+    position: user?.position || "",
+    department: user?.department || "",
+    employmentStatus: user?.employmentStatus || "",
+    address: {
+      street: user?.address?.street || "",
+      city: user?.address?.city || "",
+      state: user?.address?.state || "",
+      postalCode: user?.address?.postalCode || "",
+      country: user?.address?.country || "",
+    },
+    emergencyContact: {
+      name: user?.emergencyContact?.name || "",
+      phone: user?.emergencyContact?.phone || "",
+    },
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // support nested fields like address.street or emergencyContact.name
+    if (name.includes(".")) {
+      const parts = name.split(".");
+      setFormData((prev) => ({
+        ...prev,
+        [parts[0]]: { ...prev[parts[0]], [parts[1]]: value },
+      }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -70,32 +104,108 @@ export default function EditProfilePage() {
     const file = e.target.files?.[0];
     if (file) {
       const imageURL = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, profileImage: imageURL }));
+      setFormData((prev) => ({ ...prev, profilePicture: imageURL }));
+      // leave actual upload to the server endpoint (if available); currently preview-only
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(updateUserSettings(formData));
+
+    try {
+      const payload = {
+        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        bio: formData.bio,
+        desc: formData.desc,
+        profilePicture: formData.profilePicture,
+        backgroundImage: formData.backgroundImage,
+        twoFAEnabled: formData.twoFAEnabled,
+        nationalId: formData.nationalId,
+        position: formData.position,
+        department: formData.department,
+        employmentStatus: formData.employmentStatus,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+        social: {
+          facebook: formData.facebook,
+          instagram: formData.instagram,
+          x: formData.x,
+          linkedin: formData.linkedin,
+        },
+      };
+
+      const res = await authAPI.updateProfile(payload);
+      const updatedUser = res?.data?.user || res?.data;
+
+      // Re-seed the NextAuth session with fresh user data. We pass the current
+      // accessToken (if present) so the jwt callback can preserve tokens.
+      try {
+        const sess = await getSession();
+        await signIn("credentials", {
+          redirect: false,
+          seedUser: JSON.stringify(updatedUser),
+          accessToken: sess?.accessToken,
+        });
+      } catch (e) {
+        // if signIn fails, not catastrophic — UI can continue to show updated values
+        console.warn("session reseed failed", e);
+      }
+
+      // Update local form fields with server returned user data
+      setFormData((prev) => ({
+        ...prev,
+        firstName: updatedUser?.firstName ?? prev.firstName,
+        lastName: updatedUser?.lastName ?? prev.lastName,
+        username: updatedUser?.username ?? prev.username,
+        email: updatedUser?.email ?? prev.email,
+        phone: updatedUser?.phone ?? prev.phone,
+        dateOfBirth: updatedUser?.dateOfBirth ?? prev.dateOfBirth,
+        gender: updatedUser?.gender ?? prev.gender,
+        bio: updatedUser?.bio ?? prev.bio,
+        profilePicture: updatedUser?.profilePicture ?? prev.profilePicture,
+        address: { ...(prev.address || {}), ...(updatedUser?.address || {}) },
+        emergencyContact: {
+          ...(prev.emergencyContact || {}),
+          ...(updatedUser?.emergencyContact || {}),
+        },
+      }));
+
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to update profile"
+      );
+    }
   };
 
   const handleReset = () => {
     setFormData({
       username: user?.username || "",
-      fullName: user?.fullName || "",
+      firstName: user?.firstName || user?.fullName?.split(" ")?.[0] || "",
+      lastName:
+        user?.lastName || user?.fullName?.split(" ")?.slice(1).join(" ") || "",
       email: user?.email || "",
       phone: user?.phone || "",
-      dob: user?.dob || "",
+      dateOfBirth: user?.dateOfBirth || user?.dob || "",
       gender: user?.gender || "",
-      bio: user?.bio || "",
+      bio: user?.bio || user?.about || "",
       desc: user?.desc || "",
       facebook: user?.social?.facebook || "",
       instagram: user?.social?.instagram || "",
       x: user?.social?.x || "",
       linkedin: user?.social?.linkedin || "",
-      profileImage: user?.profileImage || "",
+      profilePicture: user?.profilePicture || user?.profileImage || "",
       backgroundImage: user?.backgroundImage || "",
-      two_fa_enabled: user?.two_fa_enabled || false,
+      twoFAEnabled: user?.twoFAEnabled || user?.two_fa_enabled || false,
       loginOptions: {
         emailPassword: true,
         google: false,
@@ -103,13 +213,28 @@ export default function EditProfilePage() {
         otp: false,
         voice: false,
       },
-      email_verified: user?.email_verified || false,
+      email_verified: user?.isEmailVerified || user?.email_verified || false,
+      nationalId: user?.nationalId || user?.nationalID || "",
+      employmentStatus: user?.employmentStatus || "",
+      position: user?.position || "",
+      department: user?.department || "",
+      address: {
+        street: user?.address?.street || "",
+        city: user?.address?.city || "",
+        state: user?.address?.state || "",
+        postalCode: user?.address?.postalCode || "",
+        country: user?.address?.country || "",
+      },
+      emergencyContact: {
+        name: user?.emergencyContact?.name || "",
+        phone: user?.emergencyContact?.phone || "",
+      },
     });
   };
 
   return (
     <ThemeRegistry>
-      <div className="flex flex-col md:flex-row bg-gray-50 rounded-2xl w-full p-6 font-metropolis pb-24">
+      <div className="flex flex-col md:flex-row bg-white rounded-2xl w-full p-6 font-metropolis pb-24 border border-gray-100">
         {/* Left: Form Content */}
         <div className="flex-1 p-6 rounded-2xl">
           <h5 className="font-bold text-2xl mb-10">
@@ -126,7 +251,7 @@ export default function EditProfilePage() {
                 <div className="col-span-2 flex items-center gap-6 mb-8">
                   <div className="relative">
                     <Image
-                      src={formData.profileImage || "/images/user3.jpg"}
+                      src={formData.profilePicture || "/images/user3.jpg"}
                       alt="Profile"
                       width={90}
                       height={90}
@@ -136,7 +261,11 @@ export default function EditProfilePage() {
                   <div className="flex flex-col gap-2 w-full">
                     <div className="flex flex-col">
                       <p className="font-semibold text-lg">
-                        {formData.fullName || "Your Name"}
+                        {formData.firstName || formData.username
+                          ? `${formData.firstName ?? ""} ${
+                              formData.lastName ?? ""
+                            }`.trim()
+                          : "Your Name"}
                       </p>
                       <p className="font-light text-sm text-gray-400 italic">
                         {formData.username || "Your Name"}
@@ -145,7 +274,7 @@ export default function EditProfilePage() {
 
                     <button
                       type="button"
-                      className="px-4 py-2 bg-gray-300 text-gray-800 rounded-2xl w-fit"
+                      className="px-4 py-2 bg-white text-gray-800 rounded-2xl w-fit border border-gray-200"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       Change
@@ -161,9 +290,16 @@ export default function EditProfilePage() {
                 </div>
 
                 <TextField
-                  label="Full Name"
-                  name="fullName"
-                  value={formData.fullName}
+                  label="First Name"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="Last Name"
+                  name="lastName"
+                  value={formData.lastName}
                   onChange={handleChange}
                   fullWidth
                 />
@@ -224,10 +360,17 @@ export default function EditProfilePage() {
                   fullWidth
                 />
                 <TextField
+                  label="National ID"
+                  name="nationalId"
+                  value={formData.nationalId}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
                   label="Date of Birth"
                   type="date"
-                  name="dob"
-                  value={formData.dob}
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
                   onChange={handleChange}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
@@ -255,6 +398,63 @@ export default function EditProfilePage() {
                 <p className="col-span-2 mt-4 mb-2 font-semibold text-lg">
                   Social Media
                 </p>
+                <p className="col-span-2 mt-4 mb-2 font-semibold text-lg">
+                  Address
+                </p>
+
+                <TextField
+                  label="Street"
+                  name="address.street"
+                  value={formData.address.street}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="City"
+                  name="address.city"
+                  value={formData.address.city}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="State"
+                  name="address.state"
+                  value={formData.address.state}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="Postal Code"
+                  name="address.postalCode"
+                  value={formData.address.postalCode}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="Country"
+                  name="address.country"
+                  value={formData.address.country}
+                  onChange={handleChange}
+                  fullWidth
+                />
+
+                <p className="col-span-2 mt-4 mb-2 font-semibold text-lg">
+                  Emergency Contact
+                </p>
+                <TextField
+                  label="Contact Name"
+                  name="emergencyContact.name"
+                  value={formData.emergencyContact.name}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  label="Contact Phone"
+                  name="emergencyContact.phone"
+                  value={formData.emergencyContact.phone}
+                  onChange={handleChange}
+                  fullWidth
+                />
                 <TextField
                   label="Facebook"
                   name="facebook"
@@ -362,18 +562,16 @@ export default function EditProfilePage() {
       {/* 🧭 Fixed Bottom Navbar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-end gap-4 px-6 py-3 md:pl-[calc(256px+1.5rem)]">
         <Button
-          variant="contained"
+          variant="outlined"
           onClick={handleReset}
           sx={{
-            backgroundColor: "#9ca3af", // tailwind gray-400
-            color: "#000",
+            backgroundColor: "#fff",
+            color: "#111827",
             textTransform: "none",
             fontWeight: 600,
+            borderColor: "#e5e7eb",
             boxShadow: "none",
-            border: "none",
-            ":hover": {
-              backgroundColor: "#6b7280", // gray-500 hover
-            },
+            ":hover": { backgroundColor: "#fbfbfb" },
           }}
         >
           Reset
@@ -384,7 +582,7 @@ export default function EditProfilePage() {
           type="submit"
           onClick={async (e) => {
             await handleSubmit(e);
-            window.location.href = "/account/profile"; // redirect to profile page
+            router.push(`${locale}/account/profile`); // redirect to profile page
           }}
           sx={{
             backgroundColor: "#ff782d",

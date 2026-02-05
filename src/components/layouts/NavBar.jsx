@@ -1,274 +1,188 @@
- "use client";
+"use client";
 
-import { useState } from "react";
-import {
-  Search,
-  Bell,
-  Settings,
-  X,
-  Home,
-  User,
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Bell, ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { logoutUser } from "@/store/authActions";
-import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { useLocale } from "next-intl";
 
-export default function TopNavBar({ expanded = true }) {
-  const locale = useLocale();
-  const { user } = useSelector((state) => state.auth);
+// Component Components
+import NotificationSideBar from "./Notifications_Sidebar";
+import ProfileSidebar from "./ProfileSidebar";
 
+// Providers
+import { useNotification } from "@/providers/NotificationProvider";
+import { useLoading } from "@/contexts/LoadingContext";
+
+// Redux
+import { useSelector } from "react-redux";
+import { selectUnreadCount } from "@/features/NotificationSlice";
+
+export default function TopNavBar({ expanded = true }) {
+  const router = useRouter();
+  const locale = useLocale();
+  const { data: session } = useSession();
+  const { showNotification } = useNotification();
+  const { setLoading, setLoadingText } = useLoading();
+
+  // Redux State
+  const unreadCount = useSelector(selectUnreadCount) || 0;
+
+  // User from session
+  const user = session?.user;
+
+  // Sidebar States
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const searchInputRef = useRef(null);
 
-  const notifications = [
-    {
-      id: 1,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 2,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-    {
-      id: 3,
-      title: "Invoice",
-      desc: "Boost efficiency, save time & money",
-      time: "9:50 AM",
-    },
-  ];
+  // Shortcut logic: Ctrl+K or Cmd+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
 
-  const dispatch = useDispatch();
-  const router = useRouter();
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    router.push(`/${locale}/auth/login`);
+  const displayUser = user || {
+    username: "Guest",
+    email: "guest@example.com",
+    profileImage: "/images/user1.jpeg",
+  };
+
+  const displayName = user
+    ? user.username || `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : "Guest";
+
+  const handleLogout = async () => {
+    try {
+      setLoadingText("Logging out...");
+      setLoading(true);
+      setProfileOpen(false);
+
+      // Sign out from NextAuth
+      await signOut({ redirect: false });
+
+      router.push(`/${locale}/auth/login`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      showNotification({
+        severity: "error",
+        message: "Logout failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      {/* ================= TOP NAV ================= */}
+      {/* ======= TOP NAVBAR ======= */}
       <header
-        className={`
-          sticky top-0 z-40 flex items-center justify-between 
-          px-3 md:px-4 py-4 bg-white/80 backdrop-blur-sm 
-          transition-all duration-300 ease-in-out
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 transition-all duration-300 ease-in-out
+          ${expanded ? "md:left-[280px]" : "md:left-[72px]"}
         `}
-        style={{ marginLeft: expanded ? "16rem" : "5rem" }}
       >
-        {/* LEFT */}
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="ml-1 px-2 py-1 font-semibold text-lg text-gray-700">
-            Welcome {user?.username || "USER"}!
+        {/* Left Section - Logo (Visible on mobile or if needed) */}
+        <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+          <span className="font-bold text-xl text-gray-950 whitespace-nowrap">
+            INVEX<span className="text-orange-500 font-extrabold">IX</span>
           </span>
         </div>
 
-        <div className="flex-1" />
-
-        {/* RIGHT */}
-        <div className="flex items-center gap-4">
-          {/* ====== SEARCH ====== */}
-          <div className="relative hidden sm:block">
+        {/* Middle Section - Modern Search Bar */}
+        <div className="flex-1 max-w-2xl mx-8 hidden md:block">
+          <div className="relative group">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search"
-              className="pl-9 pr-3 py-3 rounded-xl bg-gray-100 text-sm 
-                         focus:outline-none focus:ring-2 focus:ring-orange-300 
-                         transition w-36 md:w-48 lg:w-64"
+              placeholder="Search anything..."
+              className="w-full pl-12 pr-4 py-2.5 rounded-2xl bg-gray-100/80 border border-transparent focus:bg-white focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 text-sm transition-all outline-none"
               aria-label="Search"
             />
-            <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
+                ⌘
+              </kbd>
+              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
+                K
+              </kbd>
+            </div>
           </div>
+        </div>
 
-          {/* ====== NOTIFICATIONS ====== */}
-          <div className="relative">
-            <Bell
-              className="w-7 h-7 text-gray-500 hover:text-orange-500 cursor-pointer transition"
-              onClick={() => setNotifOpen(true)}
-            />
-            {notifications.length > 0 && (
-              <span
-                className="absolute -top-1 -right-1 bg-orange-500 text-white 
-                           text-xs rounded-full px-1.5 py-0.5 animate-pulse"
-              >
-                {notifications.length}
+        {/* Right Section - Icons and Profile */}
+        <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+          {/* Notifications Trigger */}
+          <button
+            className="relative p-2.5 rounded-xl border border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition-all group overflow-visible"
+            onClick={() => setNotifOpen(true)}
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-orange-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
-          </div>
+          </button>
 
-          {/* ====== SETTINGS ====== */}
-          <Settings className="hidden md:block w-7 h-7 text-gray-500 hover:text-orange-500 cursor-pointer transition" />
+          <div className="h-8 w-[1px] bg-gray-200 hidden md:block" />
 
-          {/* ====== PROFILE AVATAR ====== */}
-          <div>
-            <Image
-              src={user?.profileImage || "/images/user3.jpg"}
-              alt={user?.username || "User Avatar"}
-              width={40}
-              height={40}
-              className="w-12 h-12 rounded-full border-2 border-orange-200 
-                         cursor-pointer object-cover"
-              onClick={() => setProfileOpen(true)}
+          {/* User Profile Trigger */}
+          <button
+            onClick={() => setProfileOpen(true)}
+            className="flex items-center gap-3 p-1.5 pl-1.5 pr-3 rounded-2xl border border-transparent hover:border-gray-200 hover:bg-gray-50/50 transition-all group active:scale-95"
+          >
+            <div className="relative">
+              <Image
+                src={
+                  displayUser.profilePicture ||
+                  displayUser.profileImage ||
+                  "/images/user1.jpeg"
+                }
+                alt={displayName}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full border-2 border-white group-hover:border-orange-200 shadow-sm object-cover"
+              />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div className="hidden lg:flex flex-col items-start translate-y-[1px]">
+              <p className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
+                {displayName}
+              </p>
+              <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-tight opacity-70">
+                {user?.role || "Team Member"}
+              </p>
+            </div>
+            <ChevronDown
+              size={16}
+              className="text-gray-400 group-hover:text-orange-500 transition-all hidden md:block"
             />
-          </div>
+          </button>
         </div>
       </header>
 
-      {/* ============================================================
-               PROFILE SIDEBAR
-      ============================================================ */}
-      <AnimatePresence>
-        {profileOpen && (
-          <>
-            {/* Overlay */}
-            <motion.div
-              className="fixed inset-0 bg-black/20 z-40"
-              onClick={() => setProfileOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
+      {/* SIDEBARS */}
+      <ProfileSidebar
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-            {/* Sidebar */}
-            <motion.div
-              className="fixed top-0 right-0 w-full sm:w-96 md:w-80 h-full 
-                         bg-white shadow-xl z-50 overflow-y-auto"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* HEADER */}
-              <div className="flex items-center justify-between p-5 border-b">
-                <h2 className="text-lg font-semibold">Profile</h2>
-                <button onClick={() => setProfileOpen(false)}>
-                  <X className="w-6 h-6 text-gray-600 hover:text-orange-500" />
-                </button>
-              </div>
-
-              {/* USER INFO */}
-              <div className="flex flex-col items-center mt-6">
-                <Image
-                  src={user?.profileImage || "/images/user3.jpg"}
-                  alt="Avatar"
-                  width={90}
-                  height={90}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-orange-500"
-                />
-
-                <h3 className="mt-3 text-lg font-bold">{user?.username}</h3>
-                <p className="text-sm text-gray-500">{user?.email}</p>
-
-                {/* TEAM */}
-                <div className="flex gap-2 mt-4">
-                  {(user?.team?.length ? user.team : [1, 2, 3]).map(
-                    (member, idx) => (
-                      <Image
-                        key={idx}
-                        src={member?.profileImage || "/images/default-avatar.png"}
-                        alt="Team"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                    )
-                  )}
-
-                  <button className="w-8 h-8 flex items-center justify-center border rounded-full text-gray-600 hover:bg-gray-200">
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* NAVIGATION */}
-              <nav className="mt-10 px-4 space-y-2">
-                <Link
-                  href={`/${locale}`}
-                  className="flex items-center gap-3 px-4 py-2 rounded hover:bg-gray-100"
-                >
-                  <Home className="w-5 h-5 text-gray-500" /> Home
-                </Link>
-
-                <Link
-                  href={`/${locale}/account/profile`}
-                  className="flex items-center gap-3 px-4 py-2 rounded hover:bg-gray-100"
-                >
-                  <User className="w-5 h-5 text-gray-500" /> Profile
-                </Link>
-              </nav>
-
-              {/* LOGOUT */}
-              <div className="px-4 py-10">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-2 bg-red-500 text-white font-semibold 
-                             rounded-lg hover:bg-red-600"
-                >
-                  Logout
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ============================================================
-                 NOTIFICATIONS SIDEBAR
-      ============================================================ */}
-      <AnimatePresence>
-        {notifOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/20 z-40"
-              onClick={() => setNotifOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-
-            <motion.div
-              className="fixed top-0 right-0 w-full sm:w-96 md:w-80 h-full 
-                         bg-white shadow-xl z-50 overflow-y-auto"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center justify-between p-5 border-b">
-                <h2 className="text-lg font-semibold">Notifications</h2>
-                <button onClick={() => setNotifOpen(false)}>
-                  <X className="w-6 h-6 text-gray-600 hover:text-orange-500" />
-                </button>
-              </div>
-
-              <div className="p-4 space-y-3">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 
-                               hover:bg-gray-100 transition"
-                  >
-                    <div className="w-12 h-12 bg-gray-300 rounded-lg" />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm">{n.title}</h4>
-                      <p className="text-xs text-gray-500">{n.desc}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">{n.time}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <NotificationSideBar
+        isOpen={notifOpen}
+        onClose={() => setNotifOpen(false)}
+      />
     </>
   );
 }

@@ -1,79 +1,43 @@
+export const dynamic = "force-dynamic";
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
+import DocumentsPageClient from "./DocumentsPageClient";
+import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
 
-'use client';
+export default async function DocumentsPage() {
+  const session = await getServerSession(authOptions);
+  const queryClient = getQueryClient();
 
-import { useState } from 'react';
-import { Provider } from 'react-redux';  
-import store from '@/store/store';        
-import Controls from '@/components/documents/Controls';
-import DataTable from '@/components/documents/DataTable';
-import Statistics from '@/components/documents/Statistics';
-import Pagination from '@/components/documents/Pagination';
-import DocumentModal from '@/components/documents/DocumentModal';
+  if (session?.accessToken) {
+    const user = session.user;
+    const companyObj = user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
-function DocumentsContent() {
-  const [showModal, setShowModal] = useState(null); // 'add', 'view', 'edit', null
-  const [selectedDoc, setSelectedDoc] = useState(null);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`
+      }
+    };
 
-  const handleAddNew = () => {
-    setSelectedDoc(null);
-    setShowModal('add');
-  };
-
-  const handleViewDocument = (doc) => {
-    setSelectedDoc(doc);
-    setShowModal('view');
-  };
-
-  const handleEditDocument = (doc) => {
-    setSelectedDoc(doc);
-    setShowModal('edit');
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(null);
-    setSelectedDoc(null);
-  };
+    // Prefetch invoices and inventory media
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: ['salesInvoices', companyId],
+        queryFn: () => getCompanySalesInvoices(companyId, options),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['inventoryMedia', companyId],
+        queryFn: () => getCompanyInventoryMedia(companyId, options),
+      })
+    ]);
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Document Management</h1>
-        <p className="text-gray-600">Manage and organize all your business documents</p>
-      </div>
-
-      {/* Statistics Cards */}
-      <Statistics />
-
-      {/* Controls (Search, Filters, Actions) */}
-      <Controls onAddNew={handleAddNew} />
-
-      {/* Data Table / Grid */}
-      <DataTable 
-        onViewDocument={handleViewDocument}
-        onEditDocument={handleEditDocument}
-      />
-
-      {/* Pagination */}
-      <Pagination />
-
-      {/* Modal for Add/Edit/View */}
-      {showModal && (
-        <DocumentModal
-          mode={showModal}
-          document={selectedDoc}
-          onClose={handleCloseModal}
-        />
-      )}
-    </div>
-  );
-}
-
-export default function DocumentsPage() {
-  return (
-    <Provider store={store}>
-      <DocumentsContent />
-    </Provider>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DocumentsPageClient />
+    </HydrationBoundary>
   );
 }

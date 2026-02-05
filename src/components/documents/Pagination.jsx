@@ -1,6 +1,6 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
-import { setPage, setPerPage, selectFilteredData } from "@/Data/dataSlice";
+import { setPage, setPerPage, selectFilteredData } from "@/features/documents/documentsSlice";
 
 export default function Pagination() {
   const dispatch = useDispatch();
@@ -87,11 +87,10 @@ export default function Pagination() {
             <button
               key={pageNum}
               onClick={() => dispatch(setPage(pageNum))}
-              className={`px-4 py-2 rounded-md transition-colors ${
-                page === pageNum
-                  ? "bg-orange-500 text-white font-semibold"
-                  : "border border-gray-300 hover:bg-orange-100 text-orange-700"
-              }`}
+              className={`px-4 py-2 rounded-md transition-colors ${page === pageNum
+                ? "bg-orange-500 text-white font-semibold"
+                : "border border-gray-300 hover:bg-orange-100 text-orange-700"
+                }`}
             >
               {pageNum}
             </button>

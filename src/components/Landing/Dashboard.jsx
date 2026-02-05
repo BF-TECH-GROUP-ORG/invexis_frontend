@@ -1,294 +1,508 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { 
-  ChevronDown, 
-  Filter, 
-  ChevronLeft, 
-  ChevronRight, 
-  Printer
-} from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { deleteProduct } from "@/services/productsService";
+import {
+  ChevronDown,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Printer,
+  Package,
+  TrendingUp,
+  AlertTriangle,
+  Check,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { toast, Toaster } from "react-hot-toast";
+import ProductTable from "@/components/inventory/products/ProductTable";
 
-export default function AnalyticsDashboard() {
-  const [selectedShop, setSelectedShop] = useState('All Shops');
-  const [currentDate] = useState('31/12/2025');
+export default function AnalyticsDashboard({
+  products = [],
+  shops = [],
+  stats = {
+    totalProducts: 0,
+    totalStockQuantity: 0,
+    lowStockCount: 0,
+    lowStockPercentage: 0,
+    outOfStockCount: 0,
+    shopName: "All Shops",
+    shopRevenue: 0,
+  },
+}) {
+  const [selectedShop, setSelectedShop] = useState(
+    shops.length > 0 ? shops[0].name || shops[0] : stats.shopName || "All Shops"
+  );
+  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [tempStatusFilter, setTempStatusFilter] = useState("All Statuses");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [openActionDropdown, setOpenActionDropdown] = useState(null);
+  const actionDropdownRefs = useRef({});
 
-  // Sample orders data
-  const ordersData = [
-    {
-      id: '#001',
-      customer: 'Alice M.',
-      date: 'Sep 2, 2025',
-      products: '3 items',
-      qty: 5,
-      totalAmount: '120 FRW',
-      sellingMethod: 'Ordered',
-      payment: 'Card',
-      status: 'Completed',
-      actionStatus: 'Invoice'
-    },
-    {
-      id: '#002',
-      customer: 'Alice M.',
-      date: 'Sep 2, 2025',
-      products: '3 items',
-      qty: 5,
-      totalAmount: '120 FRW',
-      sellingMethod: 'In hand',
-      payment: 'Phone',
-      status: 'Completed',
-      actionStatus: 'Invoice'
+  const today = new Date();
+  const formattedDate = `${today.getDate().toString().padStart(2, "0")}/${(
+    today.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}/${today.getFullYear()}`;
+  const [currentDate] = useState(formattedDate);
+
+  const shopDropdownRef = useRef(null);
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        shopDropdownRef.current &&
+        !shopDropdownRef.current.contains(event.target)
+      ) {
+        setIsShopDropdownOpen(false);
+      }
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsFilterOpen(false);
+      }
+      if (openActionDropdown !== null) {
+        const currentDropdownRef =
+          actionDropdownRefs.current[openActionDropdown];
+        if (currentDropdownRef && !currentDropdownRef.contains(event.target)) {
+          setOpenActionDropdown(null);
+        }
+      }
     }
-  ];
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openActionDropdown]);
 
-  const StatusBadge = ({ status, type = 'status' }) => {
-    const getStatusStyle = (status, type) => {
-      if (type === 'method') {
-        switch (status) {
-          case 'Ordered':
-            return 'bg-orange-100 text-orange-600 border border-orange-200';
-          case 'In hand':
-            return 'bg-blue-100 text-blue-600 border border-blue-200';
-          default:
-            return 'bg-gray-100 text-gray-600';
-        }
-      } else if (type === 'action') {
-        return 'bg-teal-100 text-teal-600 border border-teal-200 cursor-pointer hover:bg-teal-200';
-      } else {
-        switch (status) {
-          case 'Completed':
-            return 'bg-green-100 text-green-600';
-          default:
-            return 'bg-gray-100 text-gray-600';
-        }
+  const handleShopSelect = (shop) => {
+    setSelectedShop(shop.name || shop);
+    setIsShopDropdownOpen(false);
+    toast.success(`Switched to ${shop.name || shop}`);
+  };
+
+  const handleFilterApply = () => {
+    setStatusFilter(tempStatusFilter);
+    setIsFilterOpen(false);
+    toast.success("Filters applied successfully");
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const matchesStatus =
+      statusFilter === "All Statuses" || product.status === statusFilter;
+    const matchesShop =
+      selectedShop === "All Shops" ||
+      product.shop === selectedShop ||
+      product.warehouse === selectedShop ||
+      product.shop?.name === selectedShop ||
+      product.warehouse?.name === selectedShop;
+    return matchesStatus && matchesShop;
+  });
+
+  const getStock = (product) => {
+    return (
+      product.inventory?.quantity ??
+      product.stock?.available ??
+      product.stock?.total ??
+      Number(product.stock) ??
+      0
+    );
+  };
+
+  const dynamicStats = {
+    totalProducts: filteredProducts.length,
+    totalStockQuantity: filteredProducts.reduce(
+      (acc, product) => acc + (getStock(product) || 0),
+      0
+    ),
+    lowStockCount: filteredProducts.filter((product) => {
+      const qty = getStock(product);
+      const threshold =
+        product.lowStockThreshold ?? product.stock?.lowStockThreshold ?? 10;
+      return qty > 0 && qty <= threshold;
+    }).length,
+    outOfStockCount: filteredProducts.filter(
+      (product) => getStock(product) <= 0
+    ).length,
+    totalValue: filteredProducts.reduce((sum, p) => {
+      const price = Number(p.price) || 0;
+      const qty = getStock(p) || 0;
+      return sum + price * qty;
+    }, 0),
+  };
+
+  dynamicStats.lowStockPercentage =
+    dynamicStats.totalProducts > 0
+      ? Math.round(
+          (dynamicStats.lowStockCount / dynamicStats.totalProducts) * 100
+        )
+      : 0;
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredProducts.map((p) => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((sid) => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleViewProduct = (product) => {
+    setOpenActionDropdown(null);
+    toast.success(`Viewing product: ${product.name}`);
+    console.log("View product:", product);
+  };
+
+  const handleEditProduct = (product) => {
+    setOpenActionDropdown(null);
+    toast.success(`Editing product: ${product.name}`);
+    console.log("Edit product:", product);
+  };
+
+  const handleDeleteProduct = (product) => {
+    setOpenActionDropdown(null);
+    if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      toast.success(`Product deleted: ${product.name}`);
+      console.log("Delete product:", product);
+    }
+  };
+
+  const toggleActionDropdown = (productId) => {
+    setOpenActionDropdown(openActionDropdown === productId ? null : productId);
+  };
+
+  const StatusBadge = ({ status }) => {
+    const getStatusStyle = (status) => {
+      switch (status) {
+        case "In Stock":
+          return "bg-green-50 text-green-600 border border-green-100";
+        case "Low Stock":
+          return "bg-orange-50 text-orange-600 border border-orange-100";
+        case "Out of Stock":
+          return "bg-red-50 text-red-600 border border-red-100";
+        default:
+          return "bg-gray-50 text-gray-600 border border-gray-100";
       }
     };
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(status, type)}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+          status
+        )}`}
+      >
         {status}
       </span>
     );
   };
 
+  const statCards = [
+    {
+      title: "Total Products",
+      value: dynamicStats.totalProducts,
+      Icon: Package,
+      color: "#3b82f6",
+      bgColor: "#eff6ff",
+      key: "total",
+      delay: 0,
+    },
+    {
+      title: "Total Stock",
+      value: dynamicStats.totalStockQuantity.toLocaleString(),
+      Icon: TrendingUp,
+      color: "#10b981",
+      bgColor: "#ecfdf5",
+      key: "stock",
+      delay: 0.1,
+    },
+    {
+      title: "Low Stock",
+      value: dynamicStats.lowStockCount,
+      Icon: AlertTriangle,
+      color: "#f59e0b",
+      bgColor: "#fef3c7",
+      key: "low_stock",
+      delay: 0.2,
+    },
+    {
+      title: "Out of Stock",
+      value: dynamicStats.outOfStockCount,
+      Icon: () => (
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      ),
+      color: "#ef4444",
+      key: "out_of_stock",
+      delay: 0.3,
+    },
+    {
+      title: "Total Value",
+      value: dynamicStats.totalValue.toLocaleString("en-US", {
+        style: "currency",
+        currency: "RWF", // Or dynamic currency if available
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }),
+      Icon: () => (
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+      color: "#8b5cf6",
+      bgColor: "#f3f0ff",
+      key: "total_value",
+      delay: 0.4,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-white p-4 sm:p-6 font-sans">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-          <div className="text-sm text-gray-500">On {currentDate}</div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-2 sm:gap-0">
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">
+            Inventory Management
+          </h1>
+          <div className="text-sm font-medium text-gray-500">
+            As of {currentDate}
+          </div>
         </div>
 
-        {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Sold Product Today */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm text-gray-600 mb-2">Sold Product Today</h3>
-            <div className="flex items-baseline space-x-2 mb-3">
-              <span className="text-3xl font-bold text-gray-900">400</span>
-              <span className="text-lg font-medium text-orange-500">Pcs</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-600">Now We have Sold</span>
-              <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded font-medium">
-                65.7%
-              </span>
-            </div>
-          </div>
-
-          {/* Current Revenue Today */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm text-gray-600 mb-2">Current Revenue Today</h3>
-            <div className="text-3xl font-bold text-gray-900 mb-3">5,000,000</div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-teal-500">400</span>
-              <span className="text-xs text-gray-400">X</span>
-              <span className="text-xs text-teal-500">300</span>
-            </div>
-          </div>
-
-          {/* Low Stock Items */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm text-gray-600 mb-2">Low Stock Items</h3>
-            <div className="flex items-center justify-center mb-4">
-              <div className="relative w-16 h-16">
-                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
-                    fill="none"
-                    stroke="#f97316"
-                    strokeWidth="2"
-                    strokeDasharray="14, 86"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-900">14%</span>
+        {/* Metrics Cards - Clean Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {statCards.map((card) => {
+            const Icon = card.Icon;
+            return (
+              <div
+                key={card.key}
+                className="border-2 rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all cursor-pointer border-[#d1d5db]"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-[#6b7280] font-medium mb-1">
+                      {card.title}
+                    </p>
+                    <p className="text-2xl font-bold text-[#081422] mb-2">
+                      {card.value}
+                    </p>
+                  </div>
+                  {card.Icon && (
+                    <div
+                      className="p-3 rounded-xl shrink-0"
+                      style={{ backgroundColor: card.bgColor }}
+                    >
+                      <Icon size={24} style={{ color: card.color }} />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center text-xs">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-gray-600">Remaining Products</span>
-              </div>
-              <div className="flex items-center text-xs">
-                <div className="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
-                <span className="text-gray-600">Whole Stock</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Expected Income On Stock */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm text-gray-600 mb-2">Expected Income On Stock</h3>
-            <div className="text-3xl font-bold text-gray-900 mb-3">120,000,000</div>
-            <div className="text-xs text-teal-500">When We Find Our Stock</div>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Stock Status Analysis */}
-        <div className="bg-white rounded-lg shadow-sm mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Stock Status analysis</h3>
-                <p className="text-sm text-gray-600 mt-1">Overview of today's inventory and stock levels per product</p>
-              </div>
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+        {/* Main Content Card - Inventory Status Table */}
+        <div className="bg-white rounded-2xl border border-gray-300 overflow-hidden">
+          <div className="p-4 sm:p-6">
+            {/* Title Section */}
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-lg font-bold text-gray-900">
+                Inventory Status Overview
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Complete inventory tracking with stock levels and status
+              </p>
             </div>
-          </div>
-          
-          <div className="p-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">Total earned on ( Mukiko ) shop :</span>
-                <span className="font-semibold text-green-600">240 FRW</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Orders Table */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <select 
-                    value={selectedShop}
-                    onChange={(e) => setSelectedShop(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            {/* Toolbar Section */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 relative">
+              {/* Total Value Pill */}
+              <div className="w-full lg:w-auto inline-flex items-center px-4 sm:px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                <span className="text-sm font-medium text-gray-600 mr-2">
+                  Viewing inventory for:
+                </span>
+                <span className="text-sm font-bold text-orange-600 truncate max-w-[150px]">
+                  {selectedShop}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="w-full lg:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 relative">
+                {/* Shops Dropdown Trigger */}
+                <div
+                  className="relative w-full sm:w-auto"
+                  ref={shopDropdownRef}
+                >
+                  <button
+                    onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+                    className="flex w-full sm:w-auto justify-between sm:justify-start items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 border sm:border-none p-3 sm:p-0 rounded-lg sm:rounded-none"
                   >
-                    <option>All Shops</option>
-                    <option>Mukiko Shop</option>
-                    <option>Downtown Shop</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <span className="truncate">{selectedShop}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isShopDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isShopDropdownOpen && (
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                      <button
+                        onClick={() => handleShopSelect("All Shops")}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                      >
+                        All Shops
+                        {selectedShop === "All Shops" && (
+                          <Check className="w-4 h-4 text-orange-500" />
+                        )}
+                      </button>
+                      {shops.map((shop) => (
+                        <button
+                          key={shop.id || shop._id}
+                          onClick={() => handleShopSelect(shop)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                        >
+                          {shop.name}
+                          {selectedShop === shop.name && (
+                            <Check className="w-4 h-4 text-orange-500" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filters Trigger */}
+                <div className="relative w-full sm:w-auto" ref={filterRef}>
+                  <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex w-full sm:w-auto justify-between sm:justify-start items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 border sm:border-none p-3 sm:p-0 rounded-lg sm:rounded-none"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-gray-400" />
+                      <span>Filters</span>
+                    </div>
+                  </button>
+
+                  {/* Filter Popup */}
+                  {isFilterOpen && (
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-72 bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-10">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                        Filter Products
+                      </h3>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Stock Status
+                          </label>
+                          <select
+                            value={tempStatusFilter}
+                            onChange={(e) =>
+                              setTempStatusFilter(e.target.value)
+                            }
+                            className="w-full px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                          >
+                            <option>All Statuses</option>
+                            <option>In Stock</option>
+                            <option>Low Stock</option>
+                            <option>Out of Stock</option>
+                          </select>
+                        </div>
+
+                        <button
+                          onClick={handleFilterApply}
+                          className="w-full mt-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                        >
+                          Apply Filters
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                <Filter className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-700">Filters</span>
-              </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Products
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Qty
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Selling Method
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Payment
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {ordersData.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.customer}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.date}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.products}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.qty}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.totalAmount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={order.sellingMethod} type="method" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.payment}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={order.actionStatus} type="action" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Table */}
+          <div className="w-full overflow-x-auto">
+            <ProductTable
+              products={filteredProducts}
+              selectedIds={selectedIds}
+              onSelectIds={setSelectedIds}
+              onView={(id) => {
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
+                if (p) handleViewProduct(p);
+              }}
+              onEdit={(id) => {
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
+                if (p) handleEditProduct(p);
+              }}
+              onDelete={(id) => {
+                const p = filteredProducts.find(
+                  (prod) => (prod.id || prod._id) === id
+                );
+                if (p) handleDeleteProduct(p);
+              }}
+              pagination={{
+                page: 1, // Simple pagination for now as Dashboard seems single page or handled externally?
+                limit: 100, // Show all filtered
+                total: filteredProducts.length,
+              }}
+            />
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-end space-x-2">
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <ChevronRight className="w-4 h-4 text-gray-600" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Printer className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
+          <div className="p-4 border-t border-gray-100 flex justify-end items-center gap-2">
+            <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <Printer className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>

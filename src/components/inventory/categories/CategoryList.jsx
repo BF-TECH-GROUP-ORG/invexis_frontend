@@ -1,9 +1,9 @@
 "use client";
-
-import { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List } from "lucide-react";
-import { fetchCategories, deleteCategory } from "@/features/categories/categoriesSlice";
+import { useSession } from "next-auth/react";
+import { useState, useCallback, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { Plus, Download, Trash2, RefreshCw, Grid, List, Folder, CheckCircle, XCircle, Search } from "lucide-react";
+import { deleteCategory } from "@/features/categories/categoriesSlice";
 import { canManageCategories, hasPermission } from "@/lib/permissions";
 import CategoryTable from "./CategoryTable";
 import CategoryGrid from "./CategoryGrid";
@@ -12,65 +12,76 @@ import FilterModal from "./FilterModal";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import useAuth from '@/hooks/useAuth';
+import { useTranslations } from "next-intl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCategories } from "@/services/categoriesService";
 
 export default function CategoryList() {
+  const t = useTranslations("categories");
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { items, loading, pagination = {}, error } = useSelector((state) => state.categories);
+  const { data: session } = useSession();
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filters, setFilters] = useState({ level: null, parentCategory: null, search: "" });
   const [viewMode, setViewMode] = useState("table");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortByOrder] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 20;
 
   // Permissions
   const canManage = user ? canManageCategories(user.role) : false;
   const canView = user ? hasPermission(user.role, 'categories', 'view') : false;
 
-  // Safe pagination values (prevents undefined errors)
-  const currentPage = pagination?.page || 1;
-  const limit = pagination?.limit || 20;
+  const fetchParams = useMemo(() => ({
+    page: currentPage,
+    limit,
+    search: filters.search || undefined,
+    level: filters.level,
+    parentCategory: filters.parentCategory,
+    sortBy,
+    sortOrder,
+    companyId
+  }), [currentPage, limit, filters, sortBy, sortOrder, companyId]);
+
+  const options = useMemo(() => (session?.accessToken ? {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`
+    }
+  } : {}), [session?.accessToken]);
+
+  const { data: categoriesResponse, isLoading: loading, error } = useQuery({
+    queryKey: ["categories", fetchParams],
+    queryFn: () => getCategories(fetchParams, options),
+    enabled: canView && !!companyId && !!session?.accessToken,
+    staleTime: 60000,
+  });
+
+  const items = useMemo(() => categoriesResponse?.data || categoriesResponse || [], [categoriesResponse]);
+  const pagination = useMemo(() => categoriesResponse?.pagination || { page: 1, limit: 20, total: items.length, pages: 1 }, [categoriesResponse, items.length]);
   const totalPages = pagination?.pages || 1;
-
-  // Load categories with all current params
-  const loadCategories = useCallback(() => {
-    if (!canView) return;
-
-    dispatch(fetchCategories({
-      page: currentPage,
-      limit,
-      search: filters.search || undefined,
-      level: filters.level,
-      parentCategory: filters.parentCategory,
-      sortBy,
-      sortOrder,
-    }));
-  }, [dispatch, canView, currentPage, limit, filters, sortBy, sortOrder]);
-
-  // Initial load + react to changes
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
 
   // Refresh handler
   const handleRefresh = () => {
-    toast.success("Refreshing categories...");
-    loadCategories();
+    toast.success(t("toasts.refreshing"));
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
   };
 
   // Delete single
   const handleDelete = async (id) => {
-    if (!canManage) return toast.error("Only Super Admins can delete categories!");
-
-    if (!window.confirm("Delete this category? This cannot be undone.")) return;
-
+    if (!window.confirm(t("toasts.deleteConfirm"))) return;
     try {
       await dispatch(deleteCategory(id)).unwrap();
-      toast.success("Category deleted!");
+      toast.success(t("toasts.deleteSuccess"));
       setSelectedIds(prev => prev.filter(sid => sid !== id));
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (err) {
       toast.error(err.message || "Failed to delete category");
     }
@@ -78,37 +89,38 @@ export default function CategoryList() {
 
   // Bulk delete
   const handleBulkDelete = async () => {
-    if (!canManage) return toast.error("Only Super Admins can delete categories!");
     if (selectedIds.length === 0) return toast.error("Select categories first");
-
-    if (!window.confirm(`Delete ${selectedIds.length} categories permanently?`)) return;
-
+    if (!window.confirm(t("toasts.bulkDeleteConfirm", { count: selectedIds.length }))) return;
     try {
       await Promise.all(selectedIds.map(id => dispatch(deleteCategory(id)).unwrap()));
-      toast.success(`${selectedIds.length} categories deleted!`);
+      toast.success(t("toasts.bulkDeleteSuccess", { count: selectedIds.length }));
       setSelectedIds([]);
-      loadCategories();
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (err) {
       toast.error("Some categories could not be deleted");
     }
   };
 
   const handleAddNew = () => {
-    // Shop workers (not canManage) are allowed to add Level-3 categories only.
+    setEditingCategory(null);
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (category) => {
+    setEditingCategory(category);
     setShowAddModal(true);
   };
 
   const handleExport = () => {
     try {
       const csv = [
-        ["ID", "Name", "Slug", "Level", "Parent", "Products", "Status", "Created"],
+        ["ID", "Name", "Slug", "Level", "Parent", "Status", "Created"],
         ...items.map(cat => [
           cat._id || "",
           cat.name || "",
           cat.slug || "",
           cat.level || "",
           cat.parentCategory?.name || "-",
-          cat.statistics?.totalProducts || 0,
           cat.isActive ? "Active" : "Inactive",
           cat.createdAt ? new Date(cat.createdAt).toLocaleDateString() : ""
         ])
@@ -118,13 +130,13 @@ export default function CategoryList() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `categories-${new Date().toISOString().slice(0,10)}.csv`;
+      link.download = `categories-${new Date().toISOString().slice(0, 10)}.csv`;
       link.click();
       URL.revokeObjectURL(url);
 
-      toast.success("Exported successfully!");
+      toast.success(t("toasts.exportSuccess"));
     } catch (err) {
-      toast.error("Export failed");
+      toast.error(t("toasts.exportFailed"));
     }
   };
 
@@ -139,40 +151,25 @@ export default function CategoryList() {
 
   const handleSearch = (value) => {
     setFilters(prev => ({ ...prev, search: value }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setFilters({ level: null, parentCategory: null, search: "" });
-    toast("Filters cleared");
+    setCurrentPage(1);
+    toast(t("toasts.filtersCleared"));
   };
 
-  // Stats
-  const stats = {
+  const stats = useMemo(() => ({
     total: items.length,
-    level1: items.filter(c => c.level === 1).length,
-    level2: items.filter(c => c.level === 2).length,
-    level3: items.filter(c => c.level === 3).length,
     active: items.filter(c => c.isActive).length,
     inactive: items.filter(c => !c.isActive).length,
-  };
+  }), [items]);
 
   const activeFiltersCount = [filters.level, filters.parentCategory, filters.search].filter(Boolean).length;
 
-  if (!canView) {
-    return (
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm p-12 text-center">
-          <Lock className="mx-auto mb-4 text-gray-400" size={64} />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to view categories.</p>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 bg-white min-h-screen">
-
+    <div className="md:p-6 bg-white min-h-screen">
       {error && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <p className="font-semibold text-red-900">Error</p>
@@ -181,92 +178,117 @@ export default function CategoryList() {
       )}
 
       {/* Stats */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        {Object.entries(stats).map(([key, value]) => (
-          <div key={key} className="bg-white rounded-lg shadow-sm p-4 border-l-4" style={{
-            borderLeftColor: key === 'total' ? '#3B82F6' : key.includes('level') ? ['#10B981', '#F59E0B', '#8B5CF6'][parseInt(key.match(/\d+/)?.[0] || 0) - 1] : key === 'active' ? '#10B981' : '#EF4444'
-          }}>
-            <p className="text-xs text-gray-600 mb-1">{key.charAt(0).toUpperCase() + key.slice(1)}</p>
-            <p className="text-2xl font-bold" style={{ color: key === 'total' ? '#3B82F6' : key === 'active' ? '#10B981' : '#EF4444' }}>
-              {value}
-            </p>
-          </div>
-        ))}
-      </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-0">
+        {Object.entries(stats).map(([key, value]) => {
+          const config = {
+            total: { icon: Folder, color: "#ff782d", bgColor: "#fff8f5", label: t("list.totalCategories") },
+            active: { icon: CheckCircle, color: "#10b981", bgColor: "#f0fdf4", label: t("list.activeCategories") },
+            inactive: { icon: XCircle, color: "#ef4444", bgColor: "#fff1f2", label: t("list.inactiveCategories") },
+          }[key] || { icon: Folder, color: "#6b7280", bgColor: "#f9fafb", label: key };
 
-      <div className="bg-white rounded-xl shadow-sm">
+          const Icon = config.icon;
+
+          return (
+            <div
+              key={key}
+              className="border-2 border-[#d1d5db] rounded-2xl p-5 bg-white hover:border-[#ff782d] transition-all hover:shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-[#6b7280] font-medium mb-1">{config.label}</p>
+                  <p className="text-2xl font-bold text-[#081422] mb-2">{value}</p>
+                </div>
+                <div
+                  className="p-3 rounded-xl shrink-0"
+                  style={{ backgroundColor: config.bgColor }}
+                >
+                  <Icon size={24} style={{ color: config.color }} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-300 mx-2 md:mx-0">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 md:p-6 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">Master Categories</h1>
-                {!canManage && <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">Read-Only</span>}
+                <h1 className="text-2xl font-bold text-gray-900">{t("list.title")}</h1>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {items.length} categories
-                {activeFiltersCount > 0 && ` • ${activeFiltersCount} active filter${activeFiltersCount > 1 ? 's' : ''}`}
+                {t("list.categoriesCount", { count: items.length })}
+                {activeFiltersCount > 0 && ` • ${t("list.activeFilters", { count: activeFiltersCount })}`}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder={t("list.searchPlaceholder")}
+                  className="w-full sm:w-[312px] pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                />
+              </div>
+
               {selectedIds.length > 0 && canManage && (
-                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                  <Trash2 size={18} /> Delete ({selectedIds.length})
+                <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
+                  <Trash2 size={18} /> {t("list.deleteSelected", { count: selectedIds.length })}
                 </button>
               )}
 
-              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh
+              <button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50 transition text-gray-700">
+                <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> {t("list.refresh")}
               </button>
 
-              <button onClick={() => setShowFilterModal(true)} className="relative flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                <Filter size={18} /> Filters
-                {activeFiltersCount > 0 && <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFiltersCount}</span>}
+              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700">
+                <Download size={18} />
               </button>
 
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                <Download size={18} /> Export
-              </button>
-
-              <div className="flex border-2 border-gray-300 rounded-lg overflow-hidden">
-                <button onClick={() => setViewMode("table")} className={`px-3 py-2 ${viewMode === "table" ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}><List size={18} /></button>
-                <button onClick={() => setViewMode("grid")} className={`px-3 py-2 ${viewMode === "grid" ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}><Grid size={18} /></button>
+              <div className="flex border border-gray-300 rounded-full overflow-hidden p-0.5">
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`p-2 rounded-full transition-all ${viewMode === "table" ? "bg-orange-500 text-white shadow-sm" : "hover:bg-gray-100 text-gray-600"}`}
+                >
+                  <List size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-orange-500 text-white" : "hover:bg-gray-100 text-gray-600"}`}
+                >
+                  <Grid size={18} />
+                </button>
               </div>
 
-              {/* Allow shop workers to add Level-3 categories; Super Admins can add any level */}
               <button
                 onClick={handleAddNew}
-                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 shadow-md"
+                className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
               >
-                <Plus size={18} /> {canManage ? 'Add Category' : 'Add Level 3 Category'}
+                <Plus size={24} /> {!canManage ? t('list.addCategory') : t('list.addLevel3')}
               </button>
             </div>
-          </div>
-
-          <div className="mt-4">
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search categories..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            />
           </div>
 
           {activeFiltersCount > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600">Active:</span>
-              {filters.level && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Level {filters.level} <button onClick={() => setFilters(f => ({ ...f, level: null }))}>×</button></span>}
+              {filters.level && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">{t("table.levelLabel", { level: filters.level })} <button onClick={() => setFilters(f => ({ ...f, level: null }))}>×</button></span>}
               {filters.parentCategory && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Parent Selected <button onClick={() => setFilters(f => ({ ...f, parentCategory: null }))}>×</button></span>}
               {filters.search && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">"{filters.search}" <button onClick={() => setFilters(f => ({ ...f, search: "" }))}>×</button></span>}
-              <button onClick={clearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium ml-2">Clear all</button>
+              <button onClick={clearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium ml-2">{t("list.clearAll")}</button>
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-0 md:p-6">
           {viewMode === "table" ? (
             <CategoryTable
               categories={items}
@@ -274,6 +296,7 @@ export default function CategoryList() {
               selectedIds={selectedIds}
               onSelectIds={setSelectedIds}
               onDelete={handleDelete}
+              onEdit={handleEdit}
               canManage={canManage}
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -293,7 +316,7 @@ export default function CategoryList() {
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => dispatch(fetchCategories({ ...filters, page: currentPage - 1, sortBy, sortOrder }))}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -305,7 +328,7 @@ export default function CategoryList() {
                   return (
                     <button
                       key={pageNum}
-                      onClick={() => dispatch(fetchCategories({ ...filters, page: pageNum, sortBy, sortOrder }))}
+                      onClick={() => setCurrentPage(pageNum)}
                       className={`px-4 py-2 border rounded-lg ${currentPage === pageNum ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}
                     >
                       {pageNum}
@@ -313,7 +336,7 @@ export default function CategoryList() {
                   );
                 })}
                 <button
-                  onClick={() => dispatch(fetchCategories({ ...filters, page: currentPage + 1, sortBy, sortOrder }))}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -326,14 +349,24 @@ export default function CategoryList() {
       </div>
 
       {/* Modals */}
-      {showAddModal && <AddCategoryModal onClose={() => { setShowAddModal(false); loadCategories(); }} />}
+      {showAddModal && (
+        <AddCategoryModal
+          editData={editingCategory}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingCategory(null);
+            queryClient.invalidateQueries({ queryKey: ["categories"] });
+          }}
+        />
+      )}
       {showFilterModal && (
         <FilterModal
           filters={filters}
           onApply={(newFilters) => {
             setFilters(newFilters);
             setShowFilterModal(false);
-            toast.success("Filters applied!");
+            setCurrentPage(1);
+            toast.success(t("toasts.filtersApplied"));
           }}
           onClose={() => setShowFilterModal(false)}
         />

@@ -1,31 +1,37 @@
-"use client"
-import CurrentInventory from "./stockProducts"
-import { useRouter } from "next/navigation"
-import { ArrowBack } from "@mui/icons-material"
-import { useLocale } from "next-intl"
-import { useTranslations } from "next-intl"
+export const dynamic = "force-dynamic";
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
+import SaleProductClient from "./SaleProductClient";
+import { getAllProducts } from "@/services/salesService";
 
-const SaleProduct = () =>{
-    const router = useRouter()
-    const t = useTranslations('sales')
-    const locale = useLocale()
-    
-    
-    return(
-        <>
-        <div className="mb-5">
-            <button onClick={() => router.back()} className="border  px-4 py-2 flex items-center space-x-2 cursor-pointer rounded-xl  mb-3">
-            <ArrowBack /><span>{t('back')}</span>
-            </button>
-            <h1 className="text-2xl font-medium">{t('saleProducts')}</h1>
-            <p>{t('saleSubTitile')}</p>
-        </div>
-        <section>
-            <CurrentInventory />
-        </section>
-        </>
-    )
+export default async function SaleProductPage() {
+    const session = await getServerSession(authOptions);
+    const queryClient = getQueryClient();
+
+    if (session?.accessToken) {
+        const user = session.user;
+        const companyObj = user?.companies?.[0];
+        const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+        const options = {
+            headers: {
+                Authorization: `Bearer ${session.accessToken}`
+            }
+        };
+
+        // Prefetch all products
+        await queryClient.prefetchQuery({
+            queryKey: ["allProducts", companyId],
+            queryFn: () => getAllProducts(companyId, options),
+        });
+    }
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <SaleProductClient />
+        </HydrationBoundary>
+    );
 }
-
-export default SaleProduct
