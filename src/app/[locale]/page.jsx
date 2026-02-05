@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
 import {
   ArrowRight,
@@ -58,7 +58,7 @@ function CountingNumber({ value, duration = 2 }) {
   return <span ref={countRef}>{count.toLocaleString()}</span>;
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const t = useTranslations("landing");
   const locale = useLocale();
   const [billing, setBilling] = useState("monthly");
@@ -148,9 +148,8 @@ export default function HomePage() {
 
       {/* Smart Nav - Orange Theme */}
       <nav
-        className={`${styles.nav} ${navScrolled ? styles.navScrolled : ""} ${
-          !navVisible ? styles.navHidden : ""
-        }`}
+        className={`${styles.nav} ${navScrolled ? styles.navScrolled : ""} ${!navVisible ? styles.navHidden : ""
+          }`}
       >
         <div className="flex items-center gap-3">
           <Link href="#home" className="flex items-center gap-3">
@@ -405,17 +404,15 @@ export default function HomePage() {
             className={styles.pricingToggle}
           >
             <button
-              className={`${styles.toggleBtn} ${
-                billing === "monthly" ? styles.toggleBtnActive : ""
-              }`}
+              className={`${styles.toggleBtn} ${billing === "monthly" ? styles.toggleBtnActive : ""
+                }`}
               onClick={() => setBilling("monthly")}
             >
               Monthly
             </button>
             <button
-              className={`${styles.toggleBtn} ${
-                billing === "yearly" ? styles.toggleBtnActive : ""
-              }`}
+              className={`${styles.toggleBtn} ${billing === "yearly" ? styles.toggleBtnActive : ""
+                }`}
               onClick={() => setBilling("yearly")}
             >
               Yearly
@@ -470,9 +467,8 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`${styles.priceCard} ${
-                plan.featured ? styles.priceCardFeatured : ""
-              }`}
+              className={`${styles.priceCard} ${plan.featured ? styles.priceCardFeatured : ""
+                }`}
             >
               {plan.featured && (
                 <div className={styles.bestValue}>Most Popular</div>
@@ -489,9 +485,8 @@ export default function HomePage() {
                 ))}
               </ul>
               <button
-                className={`${styles.priceBtn} ${
-                  !plan.featured ? styles.priceBtnSecondary : ""
-                }`}
+                className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""
+                  }`}
               >
                 {plan.btn}
               </button>
@@ -911,5 +906,17 @@ export default function HomePage() {
         </motion.button>
       )}
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen bg-[#081422]">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <HomePageContent />
+    </Suspense>
   );
 }

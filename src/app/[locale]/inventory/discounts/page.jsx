@@ -1,7 +1,7 @@
 // src/app/[locale]/inventory/discounts/page.jsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import {
     Percent,
     Plus,
@@ -31,7 +31,7 @@ import {
     toggleDiscountStatus
 } from "@/services/discountService";
 
-export default function DiscountsPage() {
+function DiscountsPageContent() {
     const [discounts, setDiscounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -467,5 +467,17 @@ export default function DiscountsPage() {
                 loading={saving}
             />
         </div>
+    );
+}
+
+export default function DiscountsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center items-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+            </div>
+        }>
+            <DiscountsPageContent />
+        </Suspense>
     );
 }
