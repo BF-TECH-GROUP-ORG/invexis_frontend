@@ -33,7 +33,7 @@ const HomePage = async () => {
     };
 
     // Prefetch all queries used in AnalyticsPage
-    await Promise.all([
+    const prefetchPromises = [
       queryClient.prefetchQuery({
         queryKey: ['analytics', 'summary', params],
         queryFn: () => AnalyticsService.getDashboardSummary(params, options),
@@ -66,15 +66,22 @@ const HomePage = async () => {
         queryKey: ['analytics', 'employees', params],
         queryFn: () => AnalyticsService.getEmployeePerformance(params, options),
       }),
-      queryClient.prefetchQuery({
-        queryKey: ['branches', companyId],
-        queryFn: () => getBranches(companyId, options),
-      }),
-      queryClient.prefetchQuery({
-        queryKey: ['workers', companyId],
-        queryFn: () => getWorkersByCompanyId(companyId, options),
-      })
-    ]);
+    ];
+
+    if (companyId) {
+      prefetchPromises.push(
+        queryClient.prefetchQuery({
+          queryKey: ['branches', companyId],
+          queryFn: () => getBranches(companyId, options),
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['workers', companyId],
+          queryFn: () => getWorkersByCompanyId(companyId, options),
+        })
+      );
+    }
+
+    await Promise.all(prefetchPromises);
   }
 
   return (

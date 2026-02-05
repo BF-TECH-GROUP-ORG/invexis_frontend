@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import TransferStats from "./TransferStats";
 import TransferTable from "./TransferTable";
 import TransferFilters from "./TransferFilters";
@@ -18,6 +18,7 @@ import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import InventoryService from "@/services/inventoryService";
 import { getAllShops } from "@/services/shopService";
 import { getWorkersByCompanyId } from "@/services/workersService";
@@ -29,13 +30,6 @@ export default function TransferList() {
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
 
-    const [loading, setLoading] = useState(true);
-    const [transfers, setTransfers] = useState([]);
-    const [shops, setShops] = useState([]);
-    const [workers, setWorkers] = useState([]);
-    const [allCompanies, setAllCompanies] = useState([]);
-    const [companyInfo, setCompanyInfo] = useState(null);
-    const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [activeFilters, setActiveFilters] = useState({
@@ -48,102 +42,89 @@ export default function TransferList() {
         endDate: ""
     });
 
-    // Fetch shops and workers for mapping
-    useEffect(() => {
-        if (!companyId) return;
+    const options = useMemo(() => (session?.accessToken ? {
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`
+        }
+    } : {}), [session?.accessToken]);
 
-        const loadMetadata = async () => {
-            const options = session?.accessToken ? {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`
-                }
-            } : {};
+    // Fetch Metadata
+    const { data: shopsData } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getAllShops(companyId, options),
+        enabled: !!companyId && !!session?.accessToken,
+        staleTime: 60 * 60 * 1000,
+    });
 
-            try {
-                const [shopsData, workersData, orgData, allCompaniesData] = await Promise.all([
-                    getAllShops(companyId, options),
-                    getWorkersByCompanyId(companyId, options),
-                    getCompanyDetails(companyId, options).catch(() => null),
-                    getAllCompanies(options).catch(() => null)
-                ]);
+    const { data: workersData } = useQuery({
+        queryKey: ['companyWorkers', companyId],
+        queryFn: () => getWorkersByCompanyId(companyId, options),
+        enabled: !!companyId && !!session?.accessToken,
+        staleTime: 300000,
+    });
 
-                // Extract arrays robustly
-                const extractedShops = Array.isArray(shopsData) ? shopsData : (shopsData?.data || shopsData?.shops || []);
-                const extractedWorkers = Array.isArray(workersData) ? workersData : (workersData?.data || workersData?.workers || []);
-                const extractedCompanies = Array.isArray(allCompaniesData) ? allCompaniesData : (allCompaniesData?.data || []);
+    const { data: orgData } = useQuery({
+        queryKey: ['companyDetails', companyId],
+        queryFn: () => getCompanyDetails(companyId, options),
+        enabled: !!companyId && !!session?.accessToken,
+        staleTime: 3600000,
+    });
 
-                setShops(extractedShops);
-                setWorkers(extractedWorkers);
-                setAllCompanies(extractedCompanies);
-                setCompanyInfo(orgData?.data || orgData);
-            } catch (error) {
-                console.error("Failed to load metadata:", error);
-            }
+    const { data: allCompaniesData } = useQuery({
+        queryKey: ['allCompanies'],
+        queryFn: () => getAllCompanies(options),
+        enabled: !!session?.accessToken,
+        staleTime: 3600000,
+    });
+
+    const shops = useMemo(() => Array.isArray(shopsData) ? shopsData : (shopsData?.data || shopsData?.shops || []), [shopsData]);
+    const workers = useMemo(() => Array.isArray(workersData) ? workersData : (workersData?.data || workersData?.workers || []), [workersData]);
+    const allCompanies = useMemo(() => Array.isArray(allCompaniesData) ? allCompaniesData : (allCompaniesData?.data || []), [allCompaniesData]);
+    const companyInfo = useMemo(() => orgData?.data || orgData, [orgData]);
+
+    // Fetch Transfers
+    const fetchParams = useMemo(() => {
+        const params = {
+            page: page + 1,
+            limit: rowsPerPage,
+            search: activeFilters.search || undefined,
+            transferType: activeFilters.type !== "all" ? activeFilters.type : undefined,
+            performedBy: activeFilters.worker !== "all" ? activeFilters.worker : undefined,
+            startDate: activeFilters.startDate || undefined,
+            endDate: activeFilters.endDate || undefined,
         };
 
-        loadMetadata();
-    }, [companyId]);
-
-    // Fetch transfers with filtering and pagination
-    useEffect(() => {
-        if (!companyId) return;
-
-        const fetchData = async () => {
-            const options = session?.accessToken ? {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`
-                }
-            } : {};
-
-            setLoading(true);
-            try {
-                const params = {
-                    page: page + 1,
-                    limit: rowsPerPage,
-                    search: activeFilters.search || undefined,
-                    transferType: activeFilters.type !== "all" ? activeFilters.type : undefined,
-                    performedBy: activeFilters.worker !== "all" ? activeFilters.worker : undefined,
-                    startDate: activeFilters.startDate || undefined,
-                    endDate: activeFilters.endDate || undefined,
-                };
-
-                // Logic for direction and shop filters
-                if (activeFilters.shop !== "all") {
-                    if (activeFilters.direction === "outbound") {
-                        params.sourceShopId = activeFilters.shop;
-                    } else {
-                        // Default to destination for inbound or "all" (to show what's arriving)
-                        params.destinationShopId = activeFilters.shop;
-                    }
-                } else if (activeFilters.direction !== "all") {
-                    params.direction = activeFilters.direction;
-                }
-
-                const response = await InventoryService.getTransfers(companyId, params, options);
-
-                // Handle various API response structures
-                const data = response.data || response.transfers || (Array.isArray(response) ? response : []);
-                const total = response.pagination?.total || response.total || (Array.isArray(data) ? data.length : 0);
-
-                setTransfers(Array.isArray(data) ? data : []);
-                setTotalCount(total);
-            } catch (error) {
-                console.error("Failed to fetch transfers:", error);
-            } finally {
-                setLoading(false);
+        if (activeFilters.shop !== "all") {
+            if (activeFilters.direction === "outbound") {
+                params.sourceShopId = activeFilters.shop;
+            } else {
+                params.destinationShopId = activeFilters.shop;
             }
-        };
+        } else if (activeFilters.direction !== "all") {
+            params.direction = activeFilters.direction;
+        }
+        return params;
+    }, [page, rowsPerPage, activeFilters]);
 
-        fetchData();
-    }, [companyId, page, rowsPerPage, activeFilters]);
+    const { data: transfersResponse, isLoading: loading } = useQuery({
+        queryKey: ['transfers', companyId, fetchParams],
+        queryFn: () => InventoryService.getTransfers(companyId, fetchParams, options),
+        enabled: !!companyId && !!session?.accessToken,
+    });
 
-    // Map raw IDs to display names for High-Fidelity UI
-    const mappedTransfers = React.useMemo(() => {
+    const transfers = useMemo(() => {
+        const data = transfersResponse?.data || transfersResponse?.transfers || (Array.isArray(transfersResponse) ? transfersResponse : []);
+        return Array.isArray(data) ? data : [];
+    }, [transfersResponse]);
+
+    const totalCount = useMemo(() => transfersResponse?.pagination?.total || transfersResponse?.total || transfers.length, [transfersResponse, transfers]);
+
+    // Map raw IDs to display names
+    const mappedTransfers = useMemo(() => {
         return transfers.map(item => {
             const sId = item.sourceShopId || item.shopId;
             const dId = item.destinationShopId || item.destShopId;
 
-            // Robust worker ID detection to handle both new and legacy formats
             let uId = null;
             if (item.performedBy) {
                 if (typeof item.performedBy === 'string') {
@@ -152,18 +133,15 @@ export default function TransferList() {
                     uId = item.performedBy.userId || item.performedBy._id || item.performedBy.id;
                 }
             }
-            // Fallbacks
             if (!uId) uId = item.userId || item.workerId;
 
             const sourceShop = shops.find(s => s._id === sId || s.id === sId);
             const destShop = shops.find(s => s._id === dId || s.id === dId);
             const worker = workers.find(w => w._id === uId || w.id === uId);
 
-            // If intra-company, the destination company is effectively "Us"
             const companyNameLabel = item.transferType === 'intra_company' ? t("table.us") : (companyInfo?.name || t("table.us"));
             const targetCompany = item.toCompanyId ? allCompanies.find(c => c._id === item.toCompanyId || c.id === item.toCompanyId) : null;
 
-            // Build worker name from firstName and lastName
             const resolvedWorkerName = worker
                 ? `${worker.firstName} ${worker.lastName}`.trim()
                 : "N/A";
@@ -174,28 +152,25 @@ export default function TransferList() {
                 destShopName: destShop?.name || destShop?.shopName || item.destShopName || t("table.unknownShop"),
                 workerName: resolvedWorkerName,
                 destCompanyName: targetCompany?.name || targetCompany?.companyName || item.destCompanyName || t("table.unknown"),
-                companyName: companyNameLabel // Carry formatted company name for display
+                companyName: companyNameLabel
             };
         });
-    }, [transfers, shops, workers, companyInfo, allCompanies]);
+    }, [transfers, shops, workers, companyInfo, allCompanies, t]);
 
     const stats = {
         total: totalCount,
-        completed: transfers.filter(d => d.status === "completed").length, // Proxied for now
+        completed: transfers.filter(d => d.status === "completed").length,
         totalQuantity: transfers.reduce((sum, d) => sum + (d.quantity || 0), 0),
-        latestDay: 1 // Could be calculated from initiatedAt
+        latestDay: 1
     };
 
     const handleFilterChange = (newFilters) => {
         setActiveFilters(prev => ({ ...prev, ...newFilters }));
-        setPage(0); // Reset to first page on filter
+        setPage(0);
     };
-
-    // Final data for table is mappedTransfers, which are already filtered/paginated by server
 
     return (
         <Box sx={{ mx: "auto" }}>
-            {/* Page Header */}
             <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"
@@ -245,19 +220,16 @@ export default function TransferList() {
                 </motion.div>
             </Stack>
 
-            {/* Stats Section */}
             <Box sx={{ mb: 6 }}>
                 <TransferStats stats={stats} />
             </Box>
 
-            {/* Filters Section */}
             <TransferFilters
                 onFilterChange={handleFilterChange}
                 shops={shops}
                 workers={workers}
             />
 
-            {/* Table Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

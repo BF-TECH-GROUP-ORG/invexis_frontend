@@ -1,49 +1,55 @@
+export const dynamic = "force-dynamic";
 
-"use client";
-
-import { Provider } from "react-redux";
-import { Toaster } from "react-hot-toast";
-import { store } from "@/store";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
 import ProductList from "@/components/inventory/products/ProductList";
+import { getProducts } from "@/services/productsService";
+import { getCategories } from "@/services/categoriesService";
+import ClientProviders from "@/providers/ClientProviders";
 
-export default function InventoryStockPage() {
+export default async function InventoryStockPage() {
+  const session = await getServerSession(authOptions);
+  const queryClient = getQueryClient();
+
+  if (session?.accessToken) {
+    const user = session.user;
+    const companyObj = user?.companies?.[0];
+    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+    const options = {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`
+      }
+    };
+
+    const defaultParams = {
+      page: 1,
+      limit: 20,
+      companyId,
+    };
+
+    // Prefetch products and categories
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: ["products", defaultParams],
+        queryFn: () => getProducts(defaultParams, options),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ["categories", { companyId }],
+        queryFn: () => getCategories({ companyId }, options),
+      })
+    ]);
+  }
+
   return (
-    <Provider store={store}>
-      {/* Toaster – matches your orange/white theme */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#fff",
-            color: "#1F1F1F",
-            border: "1px solid #E5E5E5",
-            borderRadius: "12px",
-            boxShadow: "none",           // no shadow
-            padding: "15px 18px",
-          },
-          success: {
-            iconTheme: {
-              primary: "#16f974ff",
-              secondary: "#fff",
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: "#EF4444",
-              secondary: "#fff",
-            },
-          },
-        }}
-      />
-
-      
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="min-h-screen bg-white">
-        {/* Optional top padding so content doesn’t touch the edge */}
         <div className="pt-8">
           <ProductList />
         </div>
       </div>
-    </Provider>
+    </HydrationBoundary>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Plus, Filter, Download, Trash2, Lock, RefreshCw, Grid, List, Folder, CheckCircle, XCircle, Search } from "lucide-react";
-import { fetchCategories, deleteCategory } from "@/features/categories/categoriesSlice";
+import { useState, useCallback, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { Plus, Download, Trash2, RefreshCw, Grid, List, Folder, CheckCircle, XCircle, Search } from "lucide-react";
+import { deleteCategory } from "@/features/categories/categoriesSlice";
 import { canManageCategories, hasPermission } from "@/lib/permissions";
 import CategoryTable from "./CategoryTable";
 import CategoryGrid from "./CategoryGrid";
@@ -13,15 +13,17 @@ import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import useAuth from '@/hooks/useAuth';
 import { useTranslations } from "next-intl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCategories } from "@/services/categoriesService";
 
 export default function CategoryList() {
   const t = useTranslations("categories");
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-  const { items, loading, pagination = {}, error, lastFetched } = useSelector((state) => state.categories);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -31,63 +33,55 @@ export default function CategoryList() {
   const [viewMode, setViewMode] = useState("table");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortByOrder] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 20;
 
   // Permissions
   const canManage = user ? canManageCategories(user.role) : false;
   const canView = user ? hasPermission(user.role, 'categories', 'view') : false;
 
-  // Safe pagination values (prevents undefined errors)
-  const currentPage = pagination?.page || 1;
-  const limit = pagination?.limit || 20;
+  const fetchParams = useMemo(() => ({
+    page: currentPage,
+    limit,
+    search: filters.search || undefined,
+    level: filters.level,
+    parentCategory: filters.parentCategory,
+    sortBy,
+    sortOrder,
+    companyId
+  }), [currentPage, limit, filters, sortBy, sortOrder, companyId]);
+
+  const options = useMemo(() => (session?.accessToken ? {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`
+    }
+  } : {}), [session?.accessToken]);
+
+  const { data: categoriesResponse, isLoading: loading, error } = useQuery({
+    queryKey: ["categories", fetchParams],
+    queryFn: () => getCategories(fetchParams, options),
+    enabled: canView && !!companyId && !!session?.accessToken,
+    staleTime: 60000,
+  });
+
+  const items = useMemo(() => categoriesResponse?.data || categoriesResponse || [], [categoriesResponse]);
+  const pagination = useMemo(() => categoriesResponse?.pagination || { page: 1, limit: 20, total: items.length, pages: 1 }, [categoriesResponse, items.length]);
   const totalPages = pagination?.pages || 1;
 
-  // Load categories with all current params
-  const loadCategories = useCallback((force = false) => {
-    if (!canView) return;
-
-    // Only fetch if forced, data doesn't exist, or filters/pagination changed
-    // Don't auto-refetch if we already have data
-    if (!force && lastFetched && items.length > 0) {
-      return; // Skip fetching if we already have cached data
-    }
-
-    if (companyId) {
-      dispatch(fetchCategories({
-        page: currentPage,
-        limit,
-        search: filters.search || undefined,
-        level: filters.level,
-        parentCategory: filters.parentCategory,
-        sortBy,
-        sortOrder,
-        companyId
-      }));
-    }
-  }, [dispatch, canView, currentPage, limit, filters, sortBy, sortOrder, lastFetched, items.length, companyId]);
-
-  // Initial load - only fetch if no data exists
-  useEffect(() => {
-    if (!lastFetched || items.length === 0) {
-      loadCategories();
-    }
-  }, []); // Empty dependency array - only run on mount
-
-  // Refresh handler - force fetch
+  // Refresh handler
   const handleRefresh = () => {
     toast.success(t("toasts.refreshing"));
-    loadCategories(true); // Force refresh
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
   };
 
   // Delete single
   const handleDelete = async (id) => {
-    // if (!canManage) return toast.error("Only Super Admins can delete categories!");
-
     if (!window.confirm(t("toasts.deleteConfirm"))) return;
-
     try {
       await dispatch(deleteCategory(id)).unwrap();
       toast.success(t("toasts.deleteSuccess"));
       setSelectedIds(prev => prev.filter(sid => sid !== id));
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (err) {
       toast.error(err.message || "Failed to delete category");
     }
@@ -95,29 +89,24 @@ export default function CategoryList() {
 
   // Bulk delete
   const handleBulkDelete = async () => {
-    // if (!canManage) return toast.error("Only Super Admins can delete categories!");
     if (selectedIds.length === 0) return toast.error("Select categories first");
-
     if (!window.confirm(t("toasts.bulkDeleteConfirm", { count: selectedIds.length }))) return;
-
     try {
       await Promise.all(selectedIds.map(id => dispatch(deleteCategory(id)).unwrap()));
       toast.success(t("toasts.bulkDeleteSuccess", { count: selectedIds.length }));
       setSelectedIds([]);
-      loadCategories();
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (err) {
       toast.error("Some categories could not be deleted");
     }
   };
 
   const handleAddNew = () => {
-    // Shop workers (not canManage) are allowed to add Level-3 categories only.
     setEditingCategory(null);
     setShowAddModal(true);
   };
 
   const handleEdit = (category) => {
-    // if (!canManage) return toast.error("Only Super Admins can edit categories!");
     setEditingCategory(category);
     setShowAddModal(true);
   };
@@ -162,37 +151,25 @@ export default function CategoryList() {
 
   const handleSearch = (value) => {
     setFilters(prev => ({ ...prev, search: value }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setFilters({ level: null, parentCategory: null, search: "" });
+    setCurrentPage(1);
     toast(t("toasts.filtersCleared"));
   };
 
-  // Stats
-  const stats = {
+  const stats = useMemo(() => ({
     total: items.length,
     active: items.filter(c => c.isActive).length,
     inactive: items.filter(c => !c.isActive).length,
-  };
+  }), [items]);
 
   const activeFiltersCount = [filters.level, filters.parentCategory, filters.search].filter(Boolean).length;
 
-  // if (!canView) {
-  //   return (
-  //     <div className="p-6 bg-gray-50 min-h-screen">
-  //       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm p-12 text-center">
-  //         <Lock className="mx-auto mb-4 text-gray-400" size={64} />
-  //         <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-  //         <p className="text-gray-600">You don't have permission to view categories.</p>
-  //       </motion.div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="md:p-6 bg-white min-h-screen">
-
       {error && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <p className="font-semibold text-red-900">Error</p>
@@ -290,7 +267,6 @@ export default function CategoryList() {
                 </button>
               </div>
 
-              {/* Allow shop workers to add Level-3 categories; Super Admins can add any level */}
               <button
                 onClick={handleAddNew}
                 className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
@@ -340,7 +316,7 @@ export default function CategoryList() {
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => dispatch(fetchCategories({ ...filters, page: currentPage - 1, sortBy, sortOrder }))}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -352,7 +328,7 @@ export default function CategoryList() {
                   return (
                     <button
                       key={pageNum}
-                      onClick={() => dispatch(fetchCategories({ ...filters, page: pageNum, sortBy, sortOrder }))}
+                      onClick={() => setCurrentPage(pageNum)}
                       className={`px-4 py-2 border rounded-lg ${currentPage === pageNum ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}
                     >
                       {pageNum}
@@ -360,7 +336,7 @@ export default function CategoryList() {
                   );
                 })}
                 <button
-                  onClick={() => dispatch(fetchCategories({ ...filters, page: currentPage + 1, sortBy, sortOrder }))}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -379,7 +355,7 @@ export default function CategoryList() {
           onClose={() => {
             setShowAddModal(false);
             setEditingCategory(null);
-            loadCategories();
+            queryClient.invalidateQueries({ queryKey: ["categories"] });
           }}
         />
       )}
@@ -389,6 +365,7 @@ export default function CategoryList() {
           onApply={(newFilters) => {
             setFilters(newFilters);
             setShowFilterModal(false);
+            setCurrentPage(1);
             toast.success(t("toasts.filtersApplied"));
           }}
           onClose={() => setShowFilterModal(false)}

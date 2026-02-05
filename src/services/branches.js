@@ -4,6 +4,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const getBranches = async (companyId, options = {}) => {
   try {
+    if (!companyId) return [];
     const url = `${BASE_URL}/shop/`;
     console.log(`Fetching branches from: ${url} with companyId:`, companyId);
     const response = await apiClient.get(url, {

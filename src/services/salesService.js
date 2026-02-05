@@ -5,7 +5,7 @@ const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
 const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales`;
 const DEBT_URL = `/debt`;
 
-export const getAllProducts = async (companyId = null) => {
+export const getAllProducts = async (companyId = null, options = {}) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
 
@@ -15,7 +15,7 @@ export const getAllProducts = async (companyId = null) => {
       requestUrl = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/companies/${companyId}/products`;
     }
 
-    const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy });
+    const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy, ...options });
 
     console.log('Products fetched:', apiData.data);
 

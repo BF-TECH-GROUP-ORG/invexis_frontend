@@ -1,14 +1,47 @@
-"use client"
-import React from 'react';
-import ProtectedRoute from '@/lib/ProtectedRoute';
-import LogsDashboard from '@/components/logs/LogsDashboard';
+export const dynamic = "force-dynamic";
 
-const LogsPage = () => {
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
+import LogsPageClient from "./LogsPageClient";
+import { getAuditLogs } from "@/services/auditService";
+import { getWorkersByCompanyId } from "@/services/workersService";
+
+export default async function LogsPage() {
+    const session = await getServerSession(authOptions);
+    const queryClient = getQueryClient();
+
+    if (session?.accessToken) {
+        const user = session.user;
+        const companyObj = user?.companies?.[0];
+        const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+        const options = {
+            headers: {
+                Authorization: `Bearer ${session.accessToken}`
+            }
+        };
+
+        // Prefetch workers and audit logs (default filters)
+        await Promise.all([
+            queryClient.prefetchQuery({
+                queryKey: ["workers", companyId],
+                queryFn: () => getWorkersByCompanyId(companyId, options),
+            }),
+            queryClient.prefetchQuery({
+                queryKey: ["auditLogs", companyId, "", ""],
+                queryFn: () => getAuditLogs(companyId, {
+                    userId: "",
+                    event_type: ""
+                }, options),
+            })
+        ]);
+    }
+
     return (
-        <ProtectedRoute allowedRoles={["company_admin", "super_admin", "admin", "manager"]}>
-            <LogsDashboard />
-        </ProtectedRoute>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <LogsPageClient />
+        </HydrationBoundary>
     );
-};
-
-export default LogsPage;
+}

@@ -38,11 +38,12 @@ export default async function RootLayout({ children, params }) {
   setRequestLocale(locale);
 
   // Get messages for the locale
+  // const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="font-metropolis antialiased">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale}>
           <ClientProviders>
             <AuthProvider>
               <LoadingProvider>

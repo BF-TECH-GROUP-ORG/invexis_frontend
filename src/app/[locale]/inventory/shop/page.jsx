@@ -19,13 +19,11 @@ export default async function ShopInventoryPage() {
             }
         };
 
-        // Prefetching removed to prevent SSR crashes with apiClient.
-        /*
+        // Prefetch shop inventory
         await queryClient.prefetchQuery({
             queryKey: ['shop-inventory', shopId],
             queryFn: () => getShopInventory({ shopId }, options),
         });
-        */
     }
 
     return (

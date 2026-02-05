@@ -9,8 +9,8 @@ const getPaymentUrls = () => {
     return {};
   }
   try {
-    const module = require('./paymentUrls');
-    return module.default || {};
+    const paymentModule = require('./paymentUrls');
+    return paymentModule.default || {};
   } catch (error) {
     console.warn('Could not load payment URLs:', error);
     return {};
@@ -75,7 +75,7 @@ export const createPaymentTester = () => {
       console.group(`🔍 Endpoint: ${name}`);
       console.log('Description:', route.description);
       console.log('Method:', route.method);
-      
+
       if (typeof route.url === 'function') {
         console.log('URL Pattern:', route.url('YOUR_ID'));
       } else {
@@ -85,7 +85,7 @@ export const createPaymentTester = () => {
       if (route.sampleData) {
         console.log('Sample Payload:', route.sampleData);
       }
-      
+
       if (route.sampleUrl) {
         console.log('Example URL:', route.sampleUrl);
       }
@@ -117,14 +117,14 @@ export const createPaymentTester = () => {
       const data = route.sampleData ? JSON.stringify(route.sampleData) : '';
 
       let curlCmd = `curl -X ${route.method} "${url}"`;
-      
+
       if (route.method !== 'GET' && data) {
         curlCmd += `\n  -H "Content-Type: application/json"\n  -d '${data}'`;
       }
 
       console.log('📋 CURL Command:');
       console.log(curlCmd);
-      
+
       // Also copy to clipboard
       navigator.clipboard.writeText(curlCmd).then(() => {
         console.log('✅ Copied to clipboard!');
@@ -150,16 +150,16 @@ export const createPaymentTester = () => {
       console.log('Timestamp:', timestamp);
       console.log('Method:', route.method);
       console.log('URL:', typeof route.url === 'function' ? route.url('ID') : route.url);
-      
+
       if (payload) {
         console.log('Payload:', payload);
       }
 
       console.log('Expected Response:', route.expectedResponse || 'Check API documentation');
-      
+
       console.log('%c👉 Ready to make actual API call', 'color: blue; font-weight: bold');
       console.log('Use paymentTester.fetch() to execute');
-      
+
       console.groupEnd();
 
       return {
@@ -202,7 +202,7 @@ export const createPaymentTester = () => {
         }
 
         console.log('Options:', options);
-        
+
         const response = await fetch(url, options);
         const data = await response.json();
 

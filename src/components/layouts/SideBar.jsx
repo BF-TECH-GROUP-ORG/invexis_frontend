@@ -859,23 +859,6 @@ export default function SideBar({
         </nav>
 
         {/* LOGOUT SECTION */}
-        <div className={`shrink-0 border-t border-gray-100 py-2 m-3 ${expanded ? "mb-0" : "mb-0"}`}>
-          <button
-            onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2 bg-black rounded-lg transition-colors group ${expanded
-              ? "justify-start text-orange-500 hover:bg-black hover:text-white"
-              : "justify-center text-orange-500 hover:bg-black hover:text-white"
-              }`}
-            title={!expanded ? t("sidebar.logout") : ""}
-          >
-            <div className="flex items-center justify-center shrink-0 w-6">
-              <LogOut size={22} className="shrink-0 group-hover:stroke-orange-500" />
-            </div>
-            <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden font-medium group-hover:text-orange-500 ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-              {t("sidebar.logout")}
-            </span>
-          </button>
-        </div>
 
         {/* TOGGLE BUTTON - Bottom Right */}
         <button

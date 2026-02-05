@@ -3,15 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   Plus,
   Filter,
   Download,
   Trash2,
-  X,
-  ChevronDown,
-  Check,
   Search,
   RefreshCw,
 } from "lucide-react";
@@ -23,18 +20,21 @@ import autoTable from "jspdf-autotable";
 import { useSession } from "next-auth/react";
 import apiClient from "@/lib/apiClient";
 import {
-  fetchProducts,
   deleteProduct,
 } from "@/features/products/productsSlice";
-import { fetchCategories } from "@/features/categories/categoriesSlice";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getProducts } from "@/services/productsService";
+import { getCategories } from "@/services/categoriesService";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
+import { useSelector } from "react-redux";
 import ProductTable from "./ProductTable";
 import ProductStats from "./ProductStats";
 
 export default function ProductList() {
   const t = useTranslations("products");
   const dispatch = useDispatch();
-  const pathname = usePathname(); // Only this — no more useRouter()
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
   const { data: session } = useSession();
   const companyObj = session?.user?.companies?.[0];
   const companyId =
@@ -42,14 +42,84 @@ export default function ProductList() {
       ? companyObj
       : companyObj?.id || companyObj?._id;
 
-  // Redux state
-  const productsState = useSelector((state) => state.products || {});
-  const categoriesState = useSelector((state) => state.categories || {});
   const warehousesState = useSelector((state) => state.warehouses || {});
-
-  const allProducts = Array.isArray(productsState.items)
-    ? productsState.items
+  const warehouses = Array.isArray(warehousesState.items)
+    ? warehousesState.items
     : [];
+
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    warehouse: "",
+    status: "",
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 20;
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => {
+        if (prev.search === searchTerm) return prev;
+        return { ...prev, search: searchTerm };
+      });
+      setCurrentPage(1);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
+
+  const routes = {
+    add: `${basePath}/add-wizard`,
+    view: (id) => `${basePath}/${id}`,
+    edit: (id) => `${basePath}/${id}/edit`,
+  };
+
+  const options = useMemo(() => (session?.accessToken ? {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`
+    }
+  } : {}), [session?.accessToken]);
+
+  // React Query Fetching
+  const fetchParams = useMemo(() => ({
+    page: currentPage,
+    limit,
+    search: filters.search || undefined,
+    category: filters.category || undefined,
+    warehouse: filters.warehouse || undefined,
+    status: filters.status || undefined,
+    companyId,
+  }), [currentPage, limit, filters, companyId]);
+
+  const { data: productsResponse, isLoading: productsLoading } = useQuery({
+    queryKey: ["products", fetchParams],
+    queryFn: () => getProducts(fetchParams, options),
+    enabled: !!companyId && !!session?.accessToken,
+  });
+
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["categories", { companyId }],
+    queryFn: () => getCategories({ companyId }, options),
+    enabled: !!companyId && !!session?.accessToken,
+  });
+
+  const allProducts = useMemo(() => {
+    const rawItems = productsResponse?.data || productsResponse || [];
+    return Array.isArray(rawItems) ? rawItems.filter(
+      (item) =>
+        !item.isDeleted &&
+        (!item.status ||
+          typeof item.status !== "object" ||
+          !item.status.isDeleted)
+    ) : [];
+  }, [productsResponse]);
 
   const products = useMemo(() => {
     const userRole = session?.user?.role;
@@ -63,72 +133,15 @@ export default function ProductList() {
     return allProducts;
   }, [allProducts, session?.user]);
 
-  const categories = Array.isArray(categoriesState.items)
-    ? categoriesState.items
-    : [];
-  const warehouses = Array.isArray(warehousesState.items)
-    ? warehousesState.items
-    : [];
+  const categories = useMemo(() => Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : (Array.isArray(categoriesResponse) ? categoriesResponse : []), [categoriesResponse]);
 
-  const loading = productsState.loading || false;
-  const pagination = productsState.pagination || { page: 1, pages: 1 };
-
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const filterRef = useRef(null);
-
-  const [filters, setFilters] = useState({
-    search: "",
-    category: "",
-    warehouse: "",
-    status: "",
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // Debounce search term
-  useEffect(() => {
-    const maxWait = 1000; // Increased delay for better typing experience
-    const timer = setTimeout(() => {
-      setFilters((prev) => {
-        if (prev.search === searchTerm) return prev;
-        return { ...prev, search: searchTerm };
-      });
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
-
-  const routes = {
-    add: `${basePath}/add-wizard`,
-    view: (id) => `${basePath}/${id}`,
-    edit: (id) => `${basePath}/${id}/edit`,
-  };
+  const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
 
   useEffect(() => {
     if (companyId) {
-      // dispatch(fetchProducts({ page: 1, limit: 20, companyId })); // Handled by the second useEffect
-      dispatch(fetchCategories({ companyId }));
       dispatch(fetchWarehouses());
     }
   }, [dispatch, companyId]);
-
-  useEffect(() => {
-    const page = pagination?.page || 1;
-    if (companyId) {
-      dispatch(
-        fetchProducts({
-          page,
-          limit: 20,
-          search: filters.search || undefined,
-          category: filters.category || undefined,
-          warehouse: filters.warehouse || undefined,
-          status: filters.status || undefined,
-          companyId,
-        })
-      );
-    }
-  }, [dispatch, pagination?.page, filters, companyId]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -148,6 +161,7 @@ export default function ProductList() {
     try {
       await dispatch(deleteProduct(id)).unwrap();
       toast.success(t("toasts.deleteSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch {
       toast.error(t("toasts.deleteFailed"));
     }
@@ -161,6 +175,7 @@ export default function ProductList() {
       );
       toast.success(t("toasts.bulkDeleteSuccess"));
       setSelectedIds([]);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch {
       toast.error(t("toasts.bulkDeleteSomeFailed"));
     }
@@ -168,18 +183,14 @@ export default function ProductList() {
 
   const handleRefresh = () => {
     apiClient.clearCache();
-    if (companyId) {
-      dispatch(fetchProducts({ page: 1, limit: 20, companyId }));
-      toast.success(t("toasts.refreshSuccess"));
-    }
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    toast.success(t("toasts.refreshSuccess"));
   };
 
   const handleExportPDF = async () => {
     const doc = new jsPDF();
-
-    // Add Header
     doc.setFontSize(20);
-    doc.setTextColor(249, 115, 22); // Orange color
+    doc.setTextColor(249, 115, 22);
     doc.text(t("report.title"), 14, 22);
 
     doc.setFontSize(10);
@@ -233,9 +244,8 @@ export default function ProductList() {
       const status = stock > 0 ? t("report.inStock") : t("report.outOfStock");
       const discount = product.pricing?.discount || product.discount || 0;
 
-      // Format data for the table
       const rowData = [
-        "", // Placeholder for image
+        "",
         `${product.name}\n${product.description
           ? String(product.description).substring(0, 30) + "..."
           : ""
@@ -266,16 +276,14 @@ export default function ProductList() {
         overflow: "linebreak",
       },
       columnStyles: {
-        0: { cellWidth: 15 }, // Image column
-        1: { cellWidth: 50 }, // Product Details
+        0: { cellWidth: 15 },
+        1: { cellWidth: 50 },
       },
       didDrawCell: (data) => {
         if (data.column.index === 0 && data.cell.section === "body") {
           const product = products[data.row.index];
           if (product.image?.url) {
             try {
-              // Attempt to add image if URL is accessible
-              // Note: This might fail if CORS is not configured on the image server
               doc.addImage(
                 product.image.url,
                 "JPEG",
@@ -284,9 +292,7 @@ export default function ProductList() {
                 13,
                 13
               );
-            } catch (e) {
-              // Fallback or ignore
-            }
+            } catch (e) { }
           }
         }
       },
@@ -297,59 +303,60 @@ export default function ProductList() {
     toast.success(t("report.success"));
   };
 
-  // Calculate stats dynamically from actual product data
-  const stats = {
-    total: products.length,
-    inStock: products.filter((p) => {
-      const qty =
-        p.stock?.total ??
-        p.stock?.available ??
-        p.inventory?.quantity ??
-        p.stock ??
-        0;
-      return qty > 0;
-    }).length,
-    lowStock: products.filter((p) => {
-      const qty =
-        p.stock?.total ??
-        p.stock?.available ??
-        p.inventory?.quantity ??
-        p.stock ??
-        0;
-      const threshold = p.stock?.lowStockThreshold ?? 20;
-      return qty > 0 && qty < threshold;
-    }).length,
-    totalValue: products.reduce((sum, p) => {
-      // Extract basePrice with all fallback paths
-      const basePrice =
-        p.pricing?.basePrice ||
-        p.pricingId?.basePrice ||
-        p.basePrice ||
-        p.price ||
-        p.unitPrice ||
-        p.UnitPrice ||
-        p.cost ||
-        0;
+  const stats = useMemo(() => {
+    const s = {
+      total: products.length,
+      inStock: products.filter((p) => {
+        const qty =
+          p.stock?.total ??
+          p.stock?.available ??
+          p.inventory?.quantity ??
+          p.stock ??
+          0;
+        return qty > 0;
+      }).length,
+      lowStock: products.filter((p) => {
+        const qty =
+          p.stock?.total ??
+          p.stock?.available ??
+          p.inventory?.quantity ??
+          p.stock ??
+          0;
+        const threshold = p.stock?.lowStockThreshold ?? 20;
+        return qty > 0 && qty < threshold;
+      }).length,
+      totalValue: products.reduce((sum, p) => {
+        const basePrice =
+          p.pricing?.basePrice ||
+          p.pricingId?.basePrice ||
+          p.basePrice ||
+          p.price ||
+          p.unitPrice ||
+          p.UnitPrice ||
+          p.cost ||
+          0;
 
-      const salePrice =
-        p.pricing?.salePrice ??
-        p.pricingId?.salePrice ??
-        p.salePrice ??
-        0;
+        const salePrice =
+          p.pricing?.salePrice ??
+          p.pricingId?.salePrice ??
+          p.salePrice ??
+          0;
 
-      const effectivePrice =
-        salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+        const effectivePrice =
+          salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
 
-      const qty =
-        p.stock?.total ??
-        p.stock?.available ??
-        p.inventory?.quantity ??
-        p.stock ??
-        0;
+        const qty =
+          p.stock?.total ??
+          p.stock?.available ??
+          p.inventory?.quantity ??
+          p.stock ??
+          0;
 
-      return sum + effectivePrice * qty;
-    }, 0),
-  };
+        return sum + effectivePrice * qty;
+      }, 0),
+    };
+    return s;
+  }, [products]);
 
   return (
     <div className="space-y-6">
@@ -523,7 +530,7 @@ export default function ProductList() {
         {/* Product Table */}
         <ProductTable
           products={products}
-          loading={loading}
+          loading={productsLoading}
           selectedIds={selectedIds}
           onSelectIds={setSelectedIds}
           onDelete={handleDelete}

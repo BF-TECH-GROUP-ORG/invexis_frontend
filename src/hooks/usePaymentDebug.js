@@ -8,8 +8,8 @@ import { useCallback } from 'react';
  */
 const getPaymentUrls = () => {
   try {
-    const module = require('@/lib/api/paymentUrls');
-    return module.default || {};
+    const paymentModule = require('@/lib/api/paymentUrls');
+    return paymentModule.default || {};
   } catch (error) {
     console.warn('Could not load payment URLs:', error);
     return {};
@@ -29,9 +29,9 @@ export const usePaymentDebug = () => {
   const inspectEndpoint = useCallback((endpoint, id = null) => {
     const PAYMENT_URLS = getPaymentUrls();
     console.group(`🔍 Inspecting Endpoint: ${endpoint}`);
-    
+
     const route = PAYMENT_URLS[endpoint];
-    
+
     if (!route) {
       console.warn(`Endpoint "${endpoint}" not found`);
       console.groupEnd();
@@ -75,7 +75,7 @@ export const usePaymentDebug = () => {
     }
 
     console.group(`📚 Category: ${category}`);
-    
+
     if (typeof categoryData === 'object' && !categoryData.url) {
       // It's a nested category
       Object.entries(categoryData).forEach(([key, route]) => {
@@ -104,7 +104,7 @@ export const usePaymentDebug = () => {
   const mockApiCall = useCallback((endpoint, id = null, payload = null) => {
     const PAYMENT_URLS = getPaymentUrls();
     console.group(`🎭 Mock API Call: ${endpoint}`);
-    
+
     const route = PAYMENT_URLS[endpoint];
     const url = typeof route.url === 'function' ? route.url(id) : route.url;
 
@@ -146,7 +146,7 @@ export const usePaymentDebug = () => {
   const logEndpointsSummary = useCallback(() => {
     const PAYMENT_URLS = getPaymentUrls();
     console.group('📋 Payment Endpoints Summary');
-    
+
     const categories = {
       'Payment Management': ['initiatePayment', 'getPaymentStatus', 'cancelPayment'],
       'Payment Queries': ['getSellerPayments', 'getCompanyPayments', 'getShopPayments'],

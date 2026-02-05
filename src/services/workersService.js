@@ -30,6 +30,7 @@ const shopsCache = {};
 
 export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
+        if (!companyId) return [];
         const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
         console.log(`Fetching workers from: ${url}`);
 
