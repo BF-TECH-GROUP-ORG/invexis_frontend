@@ -30,7 +30,7 @@
 
 // const shopInventoryService = { getShopInventory, updateShopInventory };
 
-export default shopInventoryService;
+// export default shopInventoryService;
 
 
 import apiClient from "@/lib/apiClient";
@@ -81,7 +81,9 @@ export async function updateShopInventory(id, payload) {
   );
 }
 
-export default {
+const shopInventoryService = {
   getShopInventory,
   updateShopInventory,
 };
+
+export default shopInventoryService;

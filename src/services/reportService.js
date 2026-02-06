@@ -136,7 +136,7 @@ export async function exportReport({ reportId, format = 'pdf' }) {
     }
 }
 
-export default {
+const reportService = {
     getReports,
     getReportById,
     generateReport,
