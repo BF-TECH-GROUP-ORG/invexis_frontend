@@ -8,6 +8,8 @@ import { getBranches } from "@/services/branches";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import dayjs from "dayjs";
 
+export const dynamic = 'force-dynamic';
+
 const HomePage = async () => {
   const session = await getServerSession(authOptions);
   const queryClient = getQueryClient();

@@ -32,4 +32,6 @@ export async function getAdjustmentById(id) {
     }
 }
 
-export default { getAdjustments, createAdjustment, getAdjustmentById };
+const inventoryAdjustmentService = { getAdjustments, createAdjustment, getAdjustmentById };
+
+export default inventoryAdjustmentService;

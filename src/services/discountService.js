@@ -100,7 +100,7 @@ export async function applyDiscountToProducts(id, productIds) {
     }
 }
 
-export default {
+const discountService = {
     getDiscounts,
     getDiscountById,
     createDiscount,
@@ -109,3 +109,5 @@ export default {
     toggleDiscountStatus,
     applyDiscountToProducts
 };
+
+export default discountService;

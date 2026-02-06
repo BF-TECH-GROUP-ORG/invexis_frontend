@@ -82,7 +82,9 @@ export const getCurrencies = async () => {
   }
 };
 
-export default {
+const currencyService = {
   convertCurrency,
   getCurrencies,
 };
+
+export default currencyService;

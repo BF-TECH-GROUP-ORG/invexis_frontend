@@ -48,7 +48,9 @@ export const getCompanyInventoryMedia = async (companyId, options = {}) => {
     }
 };
 
-export default {
+const documentService = {
     getCompanySalesInvoices,
     getCompanyInventoryMedia,
 };
+
+export default documentService;

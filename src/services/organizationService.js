@@ -20,4 +20,6 @@ export async function updateOrganization(id, payload) {
     }
 }
 
-export default { getOrganization, updateOrganization };
+const organizationService = { getOrganization, updateOrganization };
+
+export default organizationService;

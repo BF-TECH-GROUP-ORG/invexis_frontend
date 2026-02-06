@@ -47,16 +47,10 @@ const nextConfig = {
 
     // Optimize CSS modules to reduce CSS-in-JS overhead
     optimizeCss: false,
-
-    // Parallel routes for independent page segments (faster route transitions)
-    parallelRoutesFallbacks: true,
   },
 
   // Enable React strict mode for safer component lifecycle
   reactStrictMode: true,
-
-  // Build optimization settings
-  swcMinify: true, // Use SWC for faster minification than Terser
 
   // Disable static generation warnings for non-SSG pages
   staticPageGenerationTimeout: 120,
@@ -80,8 +74,6 @@ const nextConfig = {
       cacheWithContext: true,
     };
 
-
-
     return config;
   },
 
@@ -93,6 +85,13 @@ const nextConfig = {
 
   // Disable sourcemaps in production for faster builds (enable only if needed)
   productionBrowserSourceMaps: false,
+
+  // Logging configuration for better debugging in development
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
 };
 
 export default createNextIntlPlugin()(nextConfig);

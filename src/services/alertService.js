@@ -140,7 +140,7 @@ export async function updateAlertSettings(companyId, settings) {
     }
 }
 
-export default {
+const alertService = {
     getAlerts,
     getAlertById,
     createAlert,
@@ -152,4 +152,6 @@ export default {
     getAlertSettings,
     updateAlertSettings
 };
+
+export default alertService;
     

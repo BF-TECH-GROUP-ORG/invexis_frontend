@@ -144,9 +144,11 @@ export function isToday(startDate, endDate) {
   return true; // No date specified = assume current
 }
 
-export default {
+const cacheConfig = {
   CACHE_STRATEGIES,
   getCacheStrategy,
   toFetchOptions,
   isToday,
 };
+
+export default cacheConfig;

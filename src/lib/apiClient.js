@@ -130,12 +130,12 @@ async function retryRequest(fn, retries = 1, delay = 100) {
  * Note: api already has interceptors for Auth. 
  * We add additional ones for error transformation and logging.
  */
-const apiClient = api;
+const apiInstance = api;
 
 /**
  * Request interceptor - Add common headers (chained after auth interceptor)
  */
-apiClient.interceptors.request.use(
+apiInstance.interceptors.request.use(
   (config) => {
     // Add ngrok skip header if needed
     if (config.url?.includes("ngrok") || config.baseURL?.includes("ngrok")) {
@@ -162,7 +162,7 @@ apiClient.interceptors.request.use(
 /**
  * Response interceptor - Transform errors (chained after auth interceptor)
  */
-apiClient.interceptors.response.use(
+apiInstance.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === "development") {
       console.log(`[API Response] ${response.config.url} - ${response.status}`);
@@ -220,7 +220,7 @@ async function get(url, options = {}) {
 
     // Make request
     const requestPromise = retryRequest(
-      () => apiClient.get(url, { params, ...axiosConfig }),
+      () => apiInstance.get(url, { params, ...axiosConfig }),
       retries
     )
       .then((response) => {
@@ -240,7 +240,7 @@ async function get(url, options = {}) {
 
   // No caching, direct request
   return retryRequest(
-    () => apiClient.get(url, { params, ...axiosConfig }),
+    () => apiInstance.get(url, { params, ...axiosConfig }),
     retries
   ).then((response) => response.data);
 }
@@ -251,7 +251,7 @@ async function get(url, options = {}) {
 async function post(url, data, options = {}) {
   const { retries = 2, ...axiosConfig } = options;
   return retryRequest(
-    () => apiClient.post(url, data, axiosConfig),
+    () => apiInstance.post(url, data, axiosConfig),
     retries
   ).then((response) => response.data);
 }
@@ -262,7 +262,7 @@ async function post(url, data, options = {}) {
 async function put(url, data, options = {}) {
   const { retries = 3, ...axiosConfig } = options;
   return retryRequest(
-    () => apiClient.put(url, data, axiosConfig),
+    () => apiInstance.put(url, data, axiosConfig),
     retries
   ).then((response) => response.data);
 }
@@ -273,7 +273,7 @@ async function put(url, data, options = {}) {
 async function patch(url, data, options = {}) {
   const { retries = 3, ...axiosConfig } = options;
   return retryRequest(
-    () => apiClient.patch(url, data, axiosConfig),
+    () => apiInstance.patch(url, data, axiosConfig),
     retries
   ).then((response) => response.data);
 }
@@ -283,7 +283,7 @@ async function patch(url, data, options = {}) {
  */
 async function del(url, options = {}) {
   const { retries = 1, ...axiosConfig } = options;
-  return retryRequest(() => apiClient.delete(url, axiosConfig), retries).then(
+  return retryRequest(() => apiInstance.delete(url, axiosConfig), retries).then(
     (response) => response.data
   );
 }
@@ -314,7 +314,7 @@ function clearCache(pattern) {
   }
 }
 
-export default {
+const apiClient = {
   get,
   post,
   put,
@@ -323,5 +323,7 @@ export default {
   clearCache,
 
   // Expose axios instance for advanced usage
-  axios: apiClient,
+  axios: apiInstance,
 };
+
+export default apiClient;

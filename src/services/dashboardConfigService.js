@@ -21,4 +21,6 @@ export async function updateDashboardConfig(companyId, payload) {
     }
 }
 
-export default { getDashboardConfig, updateDashboardConfig };
+const dashboardConfigService = { getDashboardConfig, updateDashboardConfig };
+
+export default dashboardConfigService;
