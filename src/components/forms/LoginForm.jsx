@@ -5,10 +5,11 @@ import { signIn } from "next-auth/react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
+import useAuth from "@/hooks/useAuth";
 import FormWrapper from "../shared/FormWrapper";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
@@ -26,19 +27,37 @@ const LoginPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Handle redirect if already authenticated (via bypass mode)
+  // Handle redirect if already authenticated
+  const { status } = useAuth();
+
   useEffect(() => {
     const BYPASS =
       process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
       (typeof window !== "undefined" &&
         localStorage.getItem("DEV_BYPASS_AUTH") === "true");
 
-    if (BYPASS) {
+    if (BYPASS || status === "authenticated") {
       const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory`;
-      router.replace(callbackUrl);
+      let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
+
+      // Sanitize absolute URLs to relative
+      try {
+        const urlObj = new URL(callbackUrl, window.location.origin);
+        if (urlObj.origin === window.location.origin) {
+          callbackUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+        }
+      } catch (e) {
+        // Fallback if URL is invalid
+      }
+
+      // Remove locale prefix if present (e.g., /en/path -> /path)
+      // next-intl's router.replace will re-add the current locale automatically
+      const localePrefixRegex = /^\/(en|fr|rw|sw)(\/|$)/;
+      const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
+
+      router.replace(sanitizedPath);
     }
-  }, [router, locale]);
+  }, [router, locale, status]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +66,18 @@ const LoginPage = () => {
     setSubmitting(true);
     try {
       const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get("callbackUrl") || `/${locale}/inventory/dashboard`;
+      let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
+
+      // Sanitize absolute URLs to relative
+      try {
+        const urlObj = new URL(callbackUrl, window.location.origin);
+        if (urlObj.origin === window.location.origin) {
+          callbackUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+        }
+      } catch (e) { }
+
+      const localePrefixRegex = /^\/(en|fr|rw|sw)(\/|$)/;
+      const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
 
       // Use next-auth credentials provider
       const result = await signIn("credentials", {
@@ -60,7 +90,7 @@ const LoginPage = () => {
         setError(result.error || "Login failed");
       } else {
         // Successful sign in — route to callbackUrl
-        router.push(callbackUrl);
+        router.push(sanitizedPath);
       }
     } catch (err) {
       setError(err?.message || "Login failed");
