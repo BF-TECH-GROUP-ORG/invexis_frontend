@@ -20,7 +20,7 @@ export default function LayoutWrapper({ children }) {
   // Use NextAuth session for auth
   // Use NextAuth session for auth
   const { user, status } = useAuth();
-  const { isLoading: globalLoading, loadingText } = useLoading();
+  const { isLoading: globalLoading, loadingText, setLoading } = useLoading();
   const { isNavigating } = useRouteLoading();
   useNotifications();
   const pathname = usePathname();
@@ -71,6 +71,18 @@ export default function LayoutWrapper({ children }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Automatically dismiss global loader once the navigation is complete
+  // This addresses the "stuck loader" after login/logout
+  useEffect(() => {
+    if (globalLoading) {
+      // Add a small delay to ensure the component has mounted before clearing
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, setLoading, globalLoading]);
 
   // pathname moved to top
 

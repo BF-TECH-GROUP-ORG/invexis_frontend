@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
@@ -32,13 +32,17 @@ const LoginPage = () => {
   // Handle redirect if already authenticated
   const { status } = useAuth();
 
+  // Track if we're handling a form submission to prevent duplicate redirects
+  const isFormSubmitting = useRef(false);
+
   useEffect(() => {
     const BYPASS =
       process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
       (typeof window !== "undefined" &&
         localStorage.getItem("DEV_BYPASS_AUTH") === "true");
 
-    if (BYPASS || status === "authenticated") {
+    // Only auto-redirect if already authenticated AND not in the middle of form submission
+    if ((BYPASS || status === "authenticated") && !isFormSubmitting.current) {
       const params = new URLSearchParams(window.location.search);
       let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
 
@@ -58,17 +62,18 @@ const LoginPage = () => {
       const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
 
       router.replace(sanitizedPath);
-      // Let global loader handle the redirect wait
-      setLoadingText("Redirecting...");
-      setLoading(true);
+      // Don't activate loader - let the natural navigation handle it
     }
-  }, [router, locale, status, setLoading, setLoadingText]);
+  }, [router, locale, status]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     setSubmitting(true);
+    // Mark that we're handling a form submission to prevent useEffect from redirecting
+    isFormSubmitting.current = true;
+
     try {
       const params = new URLSearchParams(window.location.search);
       let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
@@ -94,15 +99,25 @@ const LoginPage = () => {
       if (result?.error) {
         setError(result.error || "Login failed");
         setSubmitting(false);
+        // Reset flag on error to allow retry
+        isFormSubmitting.current = false;
       } else {
         // Successful sign in — route to callbackUrl
-        setLoadingText("Loading dashboard...");
-        setLoading(true);
+        // Don't activate global loader - let the top progress bar handle navigation
         router.push(sanitizedPath);
+
+        // Clean up the URL by removing the callbackUrl query parameter
+        // This prevents the callback URL from appearing in production
+        setTimeout(() => {
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, '', cleanUrl);
+        }, 100);
       }
     } catch (err) {
       setError(err?.message || "Login failed");
       setSubmitting(false);
+      // Reset flag on error to allow retry
+      isFormSubmitting.current = false;
     } finally {
       // Don't setSubmitting(false) here if successful, to avoid flicker
     }
