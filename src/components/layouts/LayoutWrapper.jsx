@@ -167,10 +167,10 @@ export default function LayoutWrapper({ children }) {
   const showTopProgress = isNavigating && !isComingFromAuth;
 
   // If logged in but on auth page (redirecting), show Full Screen
-  const isAuthRoute = /^\/[a-z]{2}\/auth\//.test(pathname || "");
-  if (isLoggedIn && isAuthRoute) {
-    return <GlobalLoader visible={true} text="Loading..." />;
-  }
+  // const isAuthRoute = /^\/[a-z]{2}\/auth\//.test(pathname || "");
+  // if (isLoggedIn && isAuthRoute) {
+  //   return <GlobalLoader visible={true} text="Loading..." />;
+  // }
 
   return (
     <>
