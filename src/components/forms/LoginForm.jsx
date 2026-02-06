@@ -10,6 +10,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import useAuth from "@/hooks/useAuth";
+import { useLoading } from "@/contexts/LoadingContext";
 import FormWrapper from "../shared/FormWrapper";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
@@ -26,6 +27,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { setLoading, setLoadingText } = useLoading();
 
   // Handle redirect if already authenticated
   const { status } = useAuth();
@@ -56,8 +58,11 @@ const LoginPage = () => {
       const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
 
       router.replace(sanitizedPath);
+      // Let global loader handle the redirect wait
+      setLoadingText("Redirecting...");
+      setLoading(true);
     }
-  }, [router, locale, status]);
+  }, [router, locale, status, setLoading, setLoadingText]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,14 +93,18 @@ const LoginPage = () => {
 
       if (result?.error) {
         setError(result.error || "Login failed");
+        setSubmitting(false);
       } else {
         // Successful sign in — route to callbackUrl
+        setLoadingText("Loading dashboard...");
+        setLoading(true);
         router.push(sanitizedPath);
       }
     } catch (err) {
       setError(err?.message || "Login failed");
-    } finally {
       setSubmitting(false);
+    } finally {
+      // Don't setSubmitting(false) here if successful, to avoid flicker
     }
   };
 

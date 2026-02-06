@@ -88,8 +88,9 @@ export default function LayoutWrapper({ children }) {
   // If so, we want to show the full screen loader, NOT the dashboard layout
   const isLoggingOut = globalLoading && loadingText?.toLowerCase().includes("logging out");
 
-  // If the current route is an error page, not-found, or unauthorized, render standalone
+  // If the current route is an auth page, error page, not-found, or unauthorized, render standalone
   const isErrorOrStandalonePage =
+    pathname?.includes("/auth/") ||
     pathname?.includes("/errors/") ||
     pathname?.includes("/not-found") ||
     pathname?.includes("/unauthorized");
