@@ -60,8 +60,10 @@ export async function createNotification(payload) {
     }
 }
 
-export default {
+const notificationService = {
     getNotifications,
     markNotificationsRead,
     createNotification,
 };
+
+export default notificationService;

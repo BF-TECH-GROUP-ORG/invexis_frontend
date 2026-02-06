@@ -28,7 +28,9 @@
 //     }
 // }
 
-// export default { getShopInventory, updateShopInventory };
+// const shopInventoryService = { getShopInventory, updateShopInventory };
+
+export default shopInventoryService;
 
 
 import apiClient from "@/lib/apiClient";

@@ -223,7 +223,7 @@ export const cancelDebt = async (debtId, payload) => {
   }
 };
 
-export default {
+const debts = {
   getDebts,
   getDebtById,
   getDebtHistory,
@@ -234,3 +234,5 @@ export default {
   markDebtAsPaid,
   cancelDebt,
 };
+
+export default debts;

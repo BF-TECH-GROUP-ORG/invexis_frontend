@@ -221,7 +221,7 @@ export async function createStockChange(payload) {
   return apiClient.post(`${API_BASE}/inventory/v1/stock/changes`, payload);
 }
 
-export default {
+const stockService = {
   lookupProduct,
   stockIn,
   stockOut,
@@ -238,6 +238,8 @@ export default {
   transferToShop,
   transferToCompany,
 };
+
+export default stockService;
 
 /**
  * Intra-Company Bulk Transfer (Shop to Shop)

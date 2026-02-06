@@ -163,7 +163,7 @@ export async function getCategoryWithParent(id) {
   );
 }
 
-export default {
+const categoriesService = {
   getCategories,
   createCategory,
   updateCategory,
@@ -172,3 +172,5 @@ export default {
   getCompanyId,
   getCategoryWithParent,
 };
+
+export default categoriesService;

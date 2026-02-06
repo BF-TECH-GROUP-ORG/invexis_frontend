@@ -101,9 +101,11 @@ export const createShop = async (shopData) => {
   }
 };
 
-export default {
+const shopService = {
   getAllShops,
   getShopById,
   createShop,
   deleteShop,
 };
+
+export default shopService;

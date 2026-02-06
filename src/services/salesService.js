@@ -310,7 +310,7 @@ export const createReturn = async (returnData) => {
   }
 };
 
-export default {
+const salesService = {
   getAllProducts,
   singleProductFetch,
   SellProduct,
@@ -322,3 +322,5 @@ export default {
   createReturn,
   getCustomers,
 };
+
+export default salesService;

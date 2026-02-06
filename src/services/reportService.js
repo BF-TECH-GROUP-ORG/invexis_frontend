@@ -120,7 +120,7 @@ export async function exportReport({ reportId, format = 'pdf' }) {
         // However, export expecting 'blob' might need special handling.
         // Let's use apiClient.axios (exposed in apiClient.js) for this specific call to set responseType: 'blob'
         // wait, apiClient.js: 
-        // export default { ..., axios: apiClient }
+        // const reportService = { ..., axios: apiClient }
         // The inner apiClient (axios instance) can be used.
 
         const res = await apiClient.axios.post(`${API_BASE}/inventory/v1/reports/export`,
@@ -146,3 +146,5 @@ export default {
     getAgingInventory,
     exportReport
 };
+
+export default reportService;
