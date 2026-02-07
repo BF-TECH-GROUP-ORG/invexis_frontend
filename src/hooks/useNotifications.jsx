@@ -208,42 +208,46 @@ export const useNotifications = () => {
         const checkPermissionAndSetup = async () => {
             if (typeof window === 'undefined' || !('Notification' in window)) return;
 
-            if (Notification.permission === 'default') {
-                // Show a clean, professional invitation via the notification provider
-                showNotification({
-                    message: (
-                        <div className="flex flex-col gap-3">
-                            <div>
-                                <h4 className="font-bold text-sm mb-1">Enable Real-Time Alerts</h4>
-                                <p className="text-xs opacity-90 leading-relaxed">Stay updated with stock movements, expirations, and critical system alerts instantly.</p>
+            try {
+                if (Notification.permission === 'default') {
+                    // Show a clean, professional invitation via the notification provider
+                    showNotification({
+                        message: (
+                            <div className="flex flex-col gap-3">
+                                <div>
+                                    <h4 className="font-bold text-sm mb-1">Enable Real-Time Alerts</h4>
+                                    <p className="text-xs opacity-90 leading-relaxed">Stay updated with stock movements, expirations, and critical system alerts instantly.</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setupPush();
+                                        }}
+                                        className="bg-[#FF6B00] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#E66000] transition-all shadow-md active:scale-95"
+                                    >
+                                        Enable
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            hideNotification();
+                                        }}
+                                        className="bg-black/5 text-[#FF6B00] border border-[#FF6B00]/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-black/10 transition-all active:scale-95"
+                                    >
+                                        Later
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setupPush();
-                                    }}
-                                    className="bg-[#FF6B00] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#E66000] transition-all shadow-md active:scale-95"
-                                >
-                                    Enable
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        hideNotification();
-                                    }}
-                                    className="bg-black/5 text-[#FF6B00] border border-[#FF6B00]/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-black/10 transition-all active:scale-95"
-                                >
-                                    Later
-                                </button>
-                            </div>
-                        </div>
-                    ),
-                    severity: 'info',
-                    duration: 0 // PERSISTENT: Won't disappear unless clicked
-                });
-            } else if (Notification.permission === 'granted') {
-                setupPush();
+                        ),
+                        severity: 'info',
+                        duration: 0 // PERSISTENT: Won't disappear unless clicked
+                    });
+                } else if (Notification.permission === 'granted') {
+                    await setupPush();
+                }
+            } catch (err) {
+                console.error("[Notifications] Permission check failed:", err);
             }
         };
 

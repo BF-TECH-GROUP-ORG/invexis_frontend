@@ -234,7 +234,7 @@ export default function NotificationProvider({ children }) {
                   >
                     {notification.severity}
                   </p>
-                  <p
+                  <div
                     style={{
                       margin: 0,
                       color: theme.color,
@@ -245,7 +245,7 @@ export default function NotificationProvider({ children }) {
                     }}
                   >
                     {notification.message}
-                  </p>
+                  </div>
                 </div>
 
                 <button

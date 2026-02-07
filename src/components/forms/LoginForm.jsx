@@ -104,6 +104,10 @@ const LoginPage = () => {
       } else {
         // Successful sign in — route to callbackUrl
         // Don't activate global loader - let the top progress bar handle navigation
+
+        // Reset submitting state after a short delay to prevent stuck spinner if navigation is slow
+        setTimeout(() => setSubmitting(false), 2000);
+
         router.push(sanitizedPath);
 
         // Clean up the URL by removing the callbackUrl query parameter
