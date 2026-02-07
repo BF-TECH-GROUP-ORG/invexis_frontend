@@ -38,7 +38,7 @@ const getQueryClient = () => {
   return queryClientInstance;
 };
 
-const ClientProviders = ({ children }) => {
+const ClientProviders = ({ children, session }) => {
   // Use memoized QueryClient to prevent recreation
   const queryClient = useMemo(() => getQueryClient(), []);
 
@@ -46,7 +46,7 @@ const ClientProviders = ({ children }) => {
     <Provider store={store}>
       {/* QueryClient with optimized defaults for faster response times */}
       <QueryClientProvider client={queryClient}>
-        <SessionProvider>
+        <SessionProvider session={session}>
           <NotificationProvider>{children}</NotificationProvider>
         </SessionProvider>
       </QueryClientProvider>

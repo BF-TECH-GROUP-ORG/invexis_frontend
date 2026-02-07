@@ -9,6 +9,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export const metadata = {
   title: {
@@ -41,11 +43,13 @@ export default async function RootLayout({ children, params }) {
   // Get messages for the locale
   // const messages = await getMessages();
 
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="font-metropolis antialiased">
         <NextIntlClientProvider locale={locale}>
-          <ClientProviders>
+          <ClientProviders session={session}>
             <AuthProvider>
               <LoadingProvider>
                 <ThemeRegistry>

@@ -136,9 +136,16 @@ export default function LayoutWrapper({ children }) {
   );
 
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
-  const isLoggedIn = BYPASS || Boolean(user);
+  const isLoggedIn = BYPASS || status === "authenticated";
 
-  // Allow unauthenticated access to public routes (home, welcome, auth pages, etc.)
+  // 1. If session is loading, show loader (don't render children yet to avoid flash of unauth content)
+  if (status === "loading" && !BYPASS) {
+    return (
+      <GlobalLoader visible={true} text={loadingText || "Loading..."} />
+    );
+  }
+
+  // 2. Allow unauthenticated access to public routes (home, welcome, auth pages, etc.)
   if (!isLoggedIn && isPublicRoute) {
     return (
       <>
@@ -153,17 +160,13 @@ export default function LayoutWrapper({ children }) {
     );
   }
 
-  // For protected routes, if not logged in, ProtectedRoute will handle redirect
+  // 3. For protected routes, if not logged in (and not public), we expect a redirect.
+  // We can show a loader while the redirect happens (handled by ProtectedRoute or Middleware).
+  // Or we can render the fallback just in case.
   if (!isLoggedIn) {
     return (
       <>
-        <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />
-        {!showLoader && (
-          <div className="min-h-screen bg-white">
-            {children}
-            {isDev && <DevBypassToggle />}
-          </div>
-        )}
+        <GlobalLoader visible={true} text="Redirecting..." />
       </>
     );
   }
