@@ -1,5 +1,0 @@
-  "Debtstable": {
-  "salesHistory": {
-  "sellProduct": {
-  "inventoryOverview": {
-  "categories": {
