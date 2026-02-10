@@ -44,6 +44,7 @@ const DataTable = ({
     };
 
     const uniqueEventTypes = useMemo(() => {
+        if (!logsData || !Array.isArray(logsData)) return [""];
         const types = logsData.map(log => log.event_type);
         return ["", ...new Set(types)];
     }, [logsData]);

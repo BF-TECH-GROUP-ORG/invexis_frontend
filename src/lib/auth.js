@@ -1,5 +1,15 @@
+/**
+ * NextAuth Configuration
+ * Handles authentication strategies including credentials login, OTP, token refresh, and session management
+ */
+
 import CredentialsProvider from "next-auth/providers/credentials";
 
+/**
+ * Get the API base URL from environment variables
+ * Handles conversion from WebSocket URLs to HTTP URLs if needed
+ * @returns {string} The API base URL
+ */
 const getApiBase = () => {
     // Prioritize the standard HTTP API URL
     let url =
@@ -19,6 +29,12 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+/**
+ * Robust refresh token strategy.
+ * Attempts to refresh the access token using the refresh endpoint
+ * @param {object} token - The JWT token object
+ * @returns {Promise<object>} Updated token object with new access token or error
+ */
 async function refreshAccessToken(token) {
     try {
         const res = await fetch(`${API_BASE}/auth/refresh`, {
@@ -27,10 +43,10 @@ async function refreshAccessToken(token) {
                 "Content-Type": "application/json",
                 Cookie: token.cookies || "",
             },
-            credentials: "include",
         });
 
         if (!res.ok) {
+            console.error(`[Auth] Refresh failed with status: ${res.status}`);
             throw new Error("Failed to refresh token");
         }
 
@@ -41,13 +57,12 @@ async function refreshAccessToken(token) {
             ...token,
             accessToken: data.accessToken,
             user: data.user || token.user,
-            accessTokenExpires:
-                Date.now() + (data.expiresIn ? data.expiresIn * 1000 : 15 * 60 * 1000),
+            accessTokenExpires: Date.now() + (data.expiresIn ? data.expiresIn * 1000 : 15 * 60 * 1000),
             cookies: setCookie || token.cookies,
             error: null,
         };
     } catch (error) {
-        console.error("RefreshAccessTokenError", error);
+        console.error("[Auth] RefreshAccessTokenError", error);
         return {
             ...token,
             error: "RefreshAccessTokenError",
@@ -55,6 +70,10 @@ async function refreshAccessToken(token) {
     }
 }
 
+/**
+ * NextAuth configuration options
+ * @type {import("next-auth").NextAuthOptions}
+ */
 export const authOptions = {
     providers: [
         CredentialsProvider({
@@ -63,38 +82,43 @@ export const authOptions = {
                 identifier: { label: "Email or Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
+            /**
+             * Authorize user credentials
+             * Supports both pre-seeded sessions and standard login
+             * @param {object} credentials - User credentials
+             * @returns {Promise<object|null>} User object or null
+             */
             async authorize(credentials) {
-                // allow client to re-seed a session after profile updates
-                // client may call signIn('credentials', { redirect:false, seedUser: JSON.stringify(user), accessToken })
+                // 1. Check for Pre-Seeded Session
                 if (credentials?.seedUser) {
                     try {
-                        const userPayload =
-                            typeof credentials.seedUser === "string"
-                                ? JSON.parse(credentials.seedUser)
-                                : credentials.seedUser;
-                        const accessToken =
-                            credentials.accessToken || userPayload?.accessToken || null;
+                        const userPayload = typeof credentials.seedUser === "string"
+                            ? JSON.parse(credentials.seedUser)
+                            : credentials.seedUser;
+
+                        const accessToken = credentials.accessToken || userPayload?.accessToken;
+
+                        if (!accessToken) throw new Error("Missing access token in seed");
 
                         return {
                             id: userPayload._id ?? userPayload.id ?? userPayload.username,
-                            name:
-                                `${userPayload.firstName ?? ""} ${userPayload.lastName ?? ""
-                                    }`.trim() ||
-                                userPayload.username ||
-                                userPayload.email,
+                            name: `${userPayload.firstName ?? ""} ${userPayload.lastName ?? ""}`.trim() || userPayload.username,
                             email: userPayload.email,
                             role: userPayload.role,
                             accessToken,
                             user: userPayload,
                             cookies: "",
+                            image: null
                         };
                     } catch (err) {
+                        console.error("[Auth] Invalid seedUser payload:", err);
                         throw new Error("Invalid seedUser payload");
                     }
                 }
+
+                // 2. Standard Login
                 try {
                     const loginUrl = `${API_BASE}/auth/login`;
-                    // Development logging removed for production safety/cleanliness
 
                     const res = await fetch(loginUrl, {
                         method: "POST",
@@ -107,21 +131,14 @@ export const authOptions = {
 
                     const data = await res.json().catch(() => ({}));
 
-                    if (
-                        !res.ok ||
-                        data.ok === false ||
-                        (!data.user && !data.accessToken)
-                    ) {
-                        const errorMessage =
-                            data.message ||
-                            data.error ||
-                            "Invalid credentials or backend error";
+                    if (!res.ok || data.ok === false || (!data.user && !data.accessToken)) {
+                        const errorMessage = data.message || data.error || "Invalid credentials or backend error";
                         throw new Error(errorMessage);
                     }
 
                     const { accessToken, user } = data;
 
-                    // Restrict roles: customer and super_admin varieties cannot login here
+                    // 3. RBAC Check at the Gate
                     const restrictedRoles = ["customer", "super_admin", "super-admin", "super admin"];
                     if (restrictedRoles.includes(user.role?.toLowerCase())) {
                         throw new Error("Access denied: Your role does not have permission to login here.");
@@ -131,55 +148,64 @@ export const authOptions = {
 
                     return {
                         id: user._id ?? user.id ?? user.username,
-                        name:
-                            `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
-                            user.username ||
-                            user.email,
+                        name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.username || user.email,
                         email: user.email,
-                        role: user.role,
                         accessToken: accessToken || data.token,
                         user,
                         cookies: setCookie,
+                        role: user.role,
                     };
                 } catch (e) {
-                    console.error("[NextAuth] Authorize Error:", e.message);
+                    console.error("[Auth] Authorize Error:", e.message);
                     throw new Error(e.message || "Login failed");
                 }
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user, account, profile }) {
-            // Initial sign in with credentials
+        /**
+         * JWT callback - handles token creation and refresh
+         * @param {object} params - Callback parameters
+         * @param {object} params.token - The JWT token
+         * @param {object} params.user - The user object (only on sign in)
+         * @param {object} params.account - The account object (only on sign in)
+         * @returns {Promise<object>} Updated token
+         */
+        async jwt({ token, user, account }) {
+            // Initial sign in
             if (user) {
                 return {
                     ...token,
                     accessToken: user.accessToken,
-                    user: user.user || {
-                        email: user.email,
-                        name: user.name,
-                        role: user.role,
-                    },
+                    user: user.user,
                     cookies: user.cookies,
                     accessTokenExpires: Date.now() + 15 * 60 * 1000,
                 };
             }
 
-            // Token still valid
+            // Return previous token if the access token has not expired yet
             if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
                 return token;
             }
 
-            // Token expired - refresh it
+            // Access token has expired, try to refresh it
             return refreshAccessToken(token);
         },
+        /**
+         * Session callback - populates the session object sent to the client
+         * @param {object} params - Callback parameters
+         * @param {object} params.session - The session object
+         * @param {object} params.token - The JWT token
+         * @returns {Promise<object>} Updated session
+         */
         async session({ session, token }) {
             session.accessToken = token.accessToken;
-            session.user = token.user || session.user;
+            session.user = token.user;
             session.error = token.error;
             session.expires = token.accessTokenExpires
                 ? new Date(token.accessTokenExpires).toISOString()
                 : session.expires;
+
             return session;
         },
     },
@@ -190,7 +216,8 @@ export const authOptions = {
     },
     session: {
         strategy: "jwt",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
     },
-    secret: process.env.NEXTAUTH_SECRET || "changeme",
+    secret: process.env.NEXTAUTH_SECRET,
     debug: process.env.NODE_ENV === "development",
 };

@@ -6,11 +6,11 @@ import { ThemeRegistry } from "../../providers/ThemeRegistry";
 import LayoutWrapper from "@/components/layouts/LayoutWrapper";
 import SettingsInitializer from "@/components/shared/SettingsInitializer";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
-import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { authOptions } from "@/lib/auth";
+import { routing } from "@/i18n/routing";
+import { setRequestLocale } from "next-intl/server";
 
 export const metadata = {
   title: {

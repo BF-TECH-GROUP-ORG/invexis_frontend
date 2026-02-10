@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
@@ -9,87 +9,28 @@ import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
-import useAuth from "@/hooks/useAuth";
-import { useLoading } from "@/contexts/LoadingContext";
 import FormWrapper from "../shared/FormWrapper";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
 const LoginPage = () => {
-  // keep redux user/theme selectors — auth will come from NextAuth now
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("auth");
   const tForm = useTranslations("form");
-  const theme = useSelector(selectTheme); // Get theme from Redux
+  const theme = useSelector(selectTheme);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { setLoading, setLoadingText } = useLoading();
-
-  // Handle redirect if already authenticated
-  const { status } = useAuth();
-
-  // Track if we're handling a form submission to prevent duplicate redirects
-  const isFormSubmitting = useRef(false);
-
-  useEffect(() => {
-    const BYPASS =
-      process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
-      (typeof window !== "undefined" &&
-        localStorage.getItem("DEV_BYPASS_AUTH") === "true");
-
-    // Only auto-redirect if already authenticated AND not in the middle of form submission
-    if ((BYPASS || status === "authenticated") && !isFormSubmitting.current) {
-      const params = new URLSearchParams(window.location.search);
-      let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
-
-      // Sanitize absolute URLs to relative
-      try {
-        const urlObj = new URL(callbackUrl, window.location.origin);
-        if (urlObj.origin === window.location.origin) {
-          callbackUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-        }
-      } catch (e) {
-        // Fallback if URL is invalid
-      }
-
-      // Remove locale prefix if present (e.g., /en/path -> /path)
-      // next-intl's router.replace will re-add the current locale automatically
-      const localePrefixRegex = /^\/(en|fr|rw|sw)(\/|$)/;
-      const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
-
-      router.replace(sanitizedPath);
-      // Don't activate loader - let the natural navigation handle it
-    }
-  }, [router, locale, status]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     setSubmitting(true);
-    // Mark that we're handling a form submission to prevent useEffect from redirecting
-    isFormSubmitting.current = true;
 
     try {
-      const params = new URLSearchParams(window.location.search);
-      let callbackUrl = params.get("callbackUrl") || "/inventory/dashboard";
-
-      // Sanitize absolute URLs to relative
-      try {
-        const urlObj = new URL(callbackUrl, window.location.origin);
-        if (urlObj.origin === window.location.origin) {
-          callbackUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-        }
-      } catch (e) { }
-
-      const localePrefixRegex = /^\/(en|fr|rw|sw)(\/|$)/;
-      const sanitizedPath = callbackUrl.replace(localePrefixRegex, "/");
-
-      // Use next-auth credentials provider
       const result = await signIn("credentials", {
         redirect: false,
         identifier,
@@ -97,33 +38,18 @@ const LoginPage = () => {
       });
 
       if (result?.error) {
-        setError(result.error || "Login failed");
+        setError("Invalid email or password");
         setSubmitting(false);
-        // Reset flag on error to allow retry
-        isFormSubmitting.current = false;
       } else {
-        // Successful sign in — route to callbackUrl
-        // Don't activate global loader - let the top progress bar handle navigation
-
-        // Reset submitting state after a short delay to prevent stuck spinner if navigation is slow
-        setTimeout(() => setSubmitting(false), 2000);
-
-        router.push(sanitizedPath);
-
-        // Clean up the URL by removing the callbackUrl query parameter
-        // This prevents the callback URL from appearing in production
-        setTimeout(() => {
-          const cleanUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, '', cleanUrl);
-        }, 100);
+        // Successful login
+        // Middleware will handle redirecting if user tries to visit login page again
+        // Here we just push to dashboard
+        router.push("/inventory/dashboard");
       }
     } catch (err) {
-      setError(err?.message || "Login failed");
+      console.error("Login Error:", err);
+      setError("An unexpected error occurred. Please try again.");
       setSubmitting(false);
-      // Reset flag on error to allow retry
-      isFormSubmitting.current = false;
-    } finally {
-      // Don't setSubmitting(false) here if successful, to avoid flicker
     }
   };
 
@@ -148,7 +74,7 @@ const LoginPage = () => {
             desc={t("login.subtitle")}
             onSubmit={handleSubmit}
             submitLabel={submitting ? "Signing In..." : t("loginButton")}
-            submitIcon={<HiArrowRight />}
+            submitIcon={!submitting && <HiArrowRight />}
             isLoading={submitting}
             error={error}
             oauthOptions={["otp"]}
