@@ -58,7 +58,39 @@
     "growDesc": "Débloquez l’e-commerce, l’IA et les outils marketing en grandissant."
   },
   "dashboard": {
-    "title": "Tableau de bord"
+    "title": "Tableau de bord",
+    "subtitle": "Aperçu en temps réel des performances de votre entreprise",
+    "totalSales": "Total des ventes",
+    "totalProfit": "Bénéfice total",
+    "totalOrders": "Total des commandes",
+    "topProduct": "Produit phare",
+    "salesPerformance": "Performance des ventes",
+    "comparing": "Comparaison",
+    "current": "Actuel",
+    "previous": "Précédent",
+    "vs": "vs",
+    "compareWith": "Comparer avec",
+    "revenue": "Revenu",
+    "cost": "Coût",
+    "profit": "Bénéfice",
+    "salesByPaymentMethod": "Ventes par mode de paiement",
+    "distributionByPayment": "Répartition par type de paiement",
+    "transactions": "transactions",
+    "topProductsTitle": "Meilleurs produits",
+    "bestPerformingItems": "Articles les plus performants",
+    "inventoryStatistics": "Statistiques d'inventaire",
+    "inbound": "Entrant",
+    "outbound": "Sortant",
+    "stockIn": "Entrée de stock",
+    "stockOut": "Sortie de stock",
+    "netFlow": "Flux net",
+    "shopPerformance": "Performance du magasin",
+    "revenueByBranch": "Répartition des revenus par succursale",
+    "employeeLeaderboard": "Classement des employés",
+    "topBySalesVolume": "Meilleurs performeurs par volume de ventes",
+    "sales": "Ventes",
+    "shopLabel": "Magasin",
+    "employeeLabel": "Employé"
   },
   "account": {
     "profile": {
@@ -219,7 +251,17 @@
   "common": {
     "noData": "Aucune donnée disponible",
     "loading": "Chargement...",
-    "ok": "OK"
+    "ok": "OK",
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "allStatuses": "Tous les Statuts",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "open": "Ouvert",
+    "closed": "Fermé"
   },
   "home": {
     "login": "Connexion",
@@ -432,6 +474,7 @@
       },
       "dialogs": {
         "deleteTitle": "Supprimer la vente",
+        "delete": "Supprimer",
         "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.",
         "returnTitle": "Retourner les produits - Vente #{id}",
         "selectItems": "Sélectionner les articles à retourner",
@@ -476,7 +519,9 @@
   "sellProduct": {
     "title": "Ventes et Inventaire",
     "subtitle": "Gérez les produits, suivez les stocks et traitez les ventes efficacement.",
-    "searchPlaceholder": "Rechercher des produits...",
+    "placeholders": {
+      "search": "Rechercher des produits..."
+    },
     "cards": {
       "totalProducts": "Total Produits",
       "lowStock": "Stock Faible",
@@ -523,12 +568,15 @@
       "transferToCompany": "Transférer vers Entreprise",
       "completeSale": "TERMINER VENTE",
       "debtSale": "Vente à Crédit",
-      "processing": "Traitement..."
+      "processing": "Traitement...",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
     },
     "modals": {
       "price": {
         "title": "Définir Prix - {productName}",
         "minPrice": "Prix Minimum : {price} FRW",
+        "minPriceLabel": "Prix Minimum",
         "sellingPriceLabel": "Prix de Vente (FRW)",
         "cancel": "Annuler",
         "save": "Enregistrer",
@@ -547,14 +595,17 @@
         "namePlaceholder": "ex: Jean Dupont",
         "existingCustomer": "Client Existant",
         "change": "Changer",
-        "paymentMethod": "Mode de Paiement",
+        "paymentMethodLabel": "Mode de Paiement",
+        "paymentMethods": {
+          "cash": "Espèces",
+          "mtn": "MoMo",
+          "airtel": "Airtel",
+          "bank": "Virement bancaire"
+        },
         "paymentPhone": "Téléphone de Paiement",
-        "cash": "Espèces",
-        "mtn": "MTN",
-        "airtel": "Airtel",
-        "bank": "Banque",
         "initialPayment": "Montant du Paiement Initial (FRW)",
         "cancel": "Annuler",
+        "completeSale": "Terminer la Vente",
         "confirm": "Confirmer la Vente",
         "errors": {
           "nameRequired": "Le nom du client est requis",
@@ -602,6 +653,11 @@
         "message": "Les produits ont été transférés avec succès vers {targetName}.",
         "close": "Fermer"
       }
+    },
+    "status": {
+      "selected": "{count} Sélectionné(s)",
+      "debtSale": "Vente à Crédit",
+      "paidInFull": "Payé Intégralement"
     },
     "alerts": {
       "outOfStock": "Impossible de vendre \"{productName}\" - Rupture de stock !",
@@ -717,7 +773,7 @@
     "risk": {
       "title": "Risques de rupture de stock",
       "subtitle": "Articles prévus d'être épuisés bientôt",
-      "viewAll": "Voir tout",
+      "viewAllLabel": "Voir tout",
       "table": {
         "product": "Produit",
         "remaining": "Restant",
@@ -731,6 +787,7 @@
     "topPerformers": {
       "title": "Meilleurs performeurs",
       "subtitle": "Produits les plus rentables ce mois-ci",
+      "viewAllLabel": "Voir tout",
       "unitsSold": "{count} unités vendues",
       "profit": "Profit"
     },
@@ -1307,5 +1364,202 @@
     "pending": "En attente",
     "failed": "Échoué",
     "cancelled": "Annulé"
+  },
+  "logs": {
+    "title": "Journaux et audits",
+    "inventory": "Inventaire",
+    "logs": "Journaux",
+    "search": "Rechercher dans les journaux...",
+    "filterWorker": "Filtrer par employé",
+    "eventType": "Type d'événement",
+    "allTypes": "Tous les types",
+    "table": {
+      "eventType": "Type d'événement",
+      "worker": "Employé",
+      "entity": "Entité",
+      "source": "Source",
+      "severity": "Gravité",
+      "date": "Date",
+      "noLogs": "Aucun journal trouvé"
+    }
+  },
+  "management": {
+    "companies": {
+      "hubTitle": "Hub de Gestion",
+      "hubDesc": "Aperçu de haut niveau de toutes vos succursales et de votre capacité opérationnelle.",
+      "addNewBranch": "Ajouter une Nouvelle Succursale",
+      "totalShops": "Total des Boutiques",
+      "activeShops": "Boutiques Actives",
+      "totalCapacity": "Capacité Totale",
+      "allBranches": "Toutes les Succursales",
+      "searchShops": "Rechercher par nom ou ville...",
+      "table": {
+        "branchInfo": "Info Succursale",
+        "city": "Ville",
+        "address": "Adresse",
+        "capacity": "Capacité",
+        "status": "Statut",
+        "createdBy": "Créé par",
+        "shopName": "Nom de la boutique",
+        "location": "Emplacement",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewDetails": "Voir les Détails",
+        "editBranch": "Modifier la Succursale",
+        "delete": "Supprimer"
+      },
+      "deleteConfirm": {
+        "title": "Confirmer la Suppression",
+        "message": "Êtes-vous sûr de vouloir supprimer cette succursale ? Cette action est irréversible."
+      }
+    },
+    "workers": {
+      "directoryTitle": "Annuaire du Personnel",
+      "directoryDesc": "Gérez le personnel de votre entreprise, les affectations et les rôles dans toutes les succursales.",
+      "addStaffMember": "Ajouter un Membre du Personnel",
+      "totalPersonnel": "Personnel Total",
+      "activeStaff": "Personnel Actif",
+      "management": "Gestion",
+      "operationalStaff": "Personnel Opérationnel",
+      "searchPersonnel": "Rechercher des employés...",
+      "table": {
+        "userProfile": "Profil de l'utilisateur",
+        "contactInfo": "Coordonnées",
+        "role": "Rôle",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "actions": {
+        "editProfile": "Modifier le Profil",
+        "deleteMember": "Supprimer le Membre"
+      },
+      "deleteConfirm": {
+        "title": "Supprimer le Membre du Personnel",
+        "message": "Cette action est permanente et révoquera immédiatement tout accès au système pour cet utilisateur."
+      }
+    }
+  },
+  "stockManagement": {
+    "header": {
+      "title": "Gestion des Stocks",
+      "subtitle": "Gérez les niveaux d'inventaire, scannez les produits et suivez les modifications"
+    },
+    "stats": {
+      "totalProducts": "Total des Produits",
+      "stockInToday": "Entrée de Stock Aujourd'hui",
+      "stockOutToday": "Sortie de Stock Aujourd'hui",
+      "lowStockAlerts": "Alertes de Stock Faible",
+      "viewAll": "Voir tout"
+    },
+    "tabs": {
+      "scanner": "Scanner",
+      "operations": "Opérations",
+      "history": "Historique"
+    },
+    "scanner": {
+      "title": "Recherche de Produit",
+      "subtitle": "Recherchez des produits mis en cache ou scannez un QR/Code-barres",
+      "placeholder": "Recherchez par nom de produit ou SKU, ou collez un code-barres...",
+      "searching": "Recherche en cours...",
+      "lookupBtn": "Rechercher le Produit",
+      "clearBtn": "Effacer",
+      "loadingProducts": "Chargement des produits...",
+      "error": "Erreur",
+      "productSelected": "Produit Sélectionné",
+      "sku": "SKU",
+      "stock": "Stock",
+      "shop": "Boutique",
+      "stockOutBtn": "Sortie de Stock",
+      "openProduct": "Ouvrir le produit",
+      "quickTips": {
+        "title": "Conseils Rapides",
+        "subtitle": "Comment utiliser le scanner",
+        "step1": "Connectez un scanner de codes-barres ou utilisez votre caméra",
+        "step2": "Scannez le code-barres ou le code QR du produit",
+        "step3": "Les détails du produit apparaîtront automatiquement",
+        "step4": "Procédez à l'ajout ou à la suppression de stock"
+      },
+      "scanMobile": {
+        "title": "Scanner avec Mobile",
+        "subtitle": "Pointez la caméra de votre application mobile vers le code QR ou le code-barres ci-dessous pour effectuer des actions de sortie de stock rapides depuis l'application mobile.",
+        "tipsTitle": "Conseils pour scanner avec un téléphone mobile",
+        "tip1": "Ouvrez l'application mobile et allez dans la section scanner.",
+        "tip2": "Pointez la caméra fixement vers le code QR ou le code-barres et laissez l'autofocus agir.",
+        "tip3": "Assurez un bon éclairage et évitez les reflets sur les étiquettes brillantes.",
+        "tip4": "Si vous scannez un code-barres, alignez-le horizontalement dans le cadre de la caméra."
+      }
+    },
+    "operations": {
+      "title": "Entrée de Stock (En masse)",
+      "subtitle": "Ajoutez des produits au lot ci-dessous puis soumettez une seule demande d'entrée de stock en masse",
+      "selectedProduct": "Produit Sélectionné",
+      "currentStock": "Stock Actuel",
+      "noProductSelected": "Veuillez d'abord scanner ou rechercher un produit",
+      "qtyLabel": "Quantité à ajouter *",
+      "qtyPlaceholder": "Entrez la quantité",
+      "addToBatch": "Ajouter au Lot",
+      "submitBatch": "Soumettre le Lot",
+      "processing": "Traitement en cours...",
+      "errors": {
+        "selectProduct": "Veuillez sélectionner un produit et entrer une quantité supérieure à 0 pour l'ajouter au lot.",
+        "addedToBatch": "{name} ajouté au lot",
+        "noBatchItems": "Aucun produit dans le lot à soumettre. Ajoutez des articles ou entrez une quantité pour réapprovisionner le produit sélectionné.",
+        "bulkSuccess": "Entrée de stock en masse terminée pour {count} groupe(s).",
+        "bulkPartial": "Certains groupes ont échoué : {error}",
+        "bulkFailed": "L'opération en masse a échoué"
+      }
+    },
+    "history": {
+      "title": "Historique du Stock",
+      "subtitle": "Voir tous les changements et ajustements de stock",
+      "searchPlaceholder": "Rechercher par nom de produit ou SKU...",
+      "refresh": "Rafraîchir",
+      "stats": {
+        "totalInflow": "Entrée Totale",
+        "totalOutflow": "Sortie Totale",
+        "netChange": "Changement Net",
+        "totalChanges": "Total des Changements"
+      },
+      "table": {
+        "type": "Type",
+        "product": "Produit",
+        "sku": "SKU",
+        "quantity": "Quantité",
+        "reason": "Raison",
+        "date": "Date",
+        "by": "Par",
+        "stockIn": "Entrée de Stock",
+        "stockOut": "Sortie de Stock",
+        "change": "Changements",
+        "system": "Système",
+        "na": "N/A"
+      },
+      "errors": {
+        "loadFailed": "Échec du chargement de l'historique du stock",
+        "tryAgain": "Réessayer",
+        "noChanges": "Aucun changement de stock trouvé"
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Confirmer la Sortie de Stock",
+        "qty": "Quantité",
+        "reason": "Raison",
+        "cancel": "Annuler",
+        "confirm": "Confirmer",
+        "processing": "Traitement en cours...",
+        "success": "Sortie de stock réussie",
+        "qtyError": "Veuillez entrer une quantité supérieure à 0",
+        "failed": "La sortie de stock a échoué",
+        "reasons": {
+          "sale": "Vente",
+          "damaged": "Endommagé",
+          "expired": "Expiré",
+          "transferOut": "Transfert Sortant",
+          "other": "Autre"
+        }
+      }
+    }
   }
 }

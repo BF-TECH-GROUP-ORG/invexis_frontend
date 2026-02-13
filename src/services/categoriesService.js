@@ -16,7 +16,7 @@ if (typeof window !== "undefined") {
  *
  * CACHING: Organization data cached for 1 hour (semi-static)
  */
-export async function getCompanyId(companyId) {
+export async function getCompanyId(companyId, options = {}) {
   if (!companyId)
     throw new Error("Company ID is required to fetch company details");
 
@@ -26,6 +26,7 @@ export async function getCompanyId(companyId) {
     `${API_BASE}/company/companies/${companyId}`,
     {
       cache: cacheStrategy,
+      ...options,
     }
   );
 
@@ -40,10 +41,10 @@ export async function getCompanyId(companyId) {
  *
  * CACHING: Categories cached for 30 minutes (semi-static, updated infrequently)
  */
-export async function ParentCategories(companyId) {
+export async function ParentCategories(companyId, options = {}) {
   console.log("ParentCategories service called with:", companyId);
 
-  const companyData = await getCompanyId(companyId);
+  const companyData = await getCompanyId(companyId, options);
   const categoryIds = companyData?.data?.category_ids || [];
 
   if (!categoryIds.length) {
@@ -55,7 +56,7 @@ export async function ParentCategories(companyId) {
   const data = await apiClient.post(
     `${API_BASE}/inventory/v1/categories/by-ids`,
     { ids: categoryIds },
-    { cache: cacheStrategy }
+    { cache: cacheStrategy, ...options }
   );
 
   console.log("received data", data);
@@ -70,7 +71,7 @@ export async function ParentCategories(companyId) {
  *
  * CACHING: Categories cached for 30 minutes
  */
-export async function getCategories(params = {}) {
+export async function getCategories(params = {}, options = {}) {
   const { companyId } = params;
   if (!companyId) throw new Error("Company ID is required");
 
@@ -79,7 +80,9 @@ export async function getCategories(params = {}) {
   return apiClient.get(
     `${API_BASE}/inventory/v1/categories/company/${companyId}/level3`,
     {
+      params,
       cache: cacheStrategy,
+      ...options,
     }
   );
 }
@@ -152,13 +155,14 @@ export async function deleteCategory(id) {
  *
  * CACHING: Category hierarchy cached for 1 hour
  */
-export async function getCategoryWithParent(id) {
+export async function getCategoryWithParent(id, options = {}) {
   const cacheStrategy = getCacheStrategy("CATEGORIES");
 
   return apiClient.get(
     `${API_BASE}/inventory/v1/categories/level3/${id}/with-parent`,
     {
       cache: cacheStrategy,
+      ...options,
     }
   );
 }

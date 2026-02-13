@@ -7,7 +7,7 @@ const SHOP_API_URL = process.env.NEXT_PUBLIC_API_URL;
  * Get all shops
  * CACHING: Shops cached for 1 hour (long revalidate)
  */
-export const getAllShops = async (companyId) => {
+export const getAllShops = async (companyId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SHOPS");
   const params = companyId ? { companyId } : {};
 
@@ -15,6 +15,7 @@ export const getAllShops = async (companyId) => {
     const data = await apiClient.get(`${SHOP_API_URL}/shop`, {
       cache: cacheStrategy,
       params,
+      ...options,
     });
 
     console.log("Shops fetched:", data);
@@ -43,9 +44,9 @@ export const getAllShops = async (companyId) => {
  * Delete a shop
  * CACHING: DELETE never cached. Clears shops cache.
  */
-export const deleteShop = async (shopId) => {
+export const deleteShop = async (shopId, options = {}) => {
   try {
-    const data = await apiClient.delete(`${SHOP_API_URL}/shop/${shopId}`);
+    const data = await apiClient.delete(`${SHOP_API_URL}/shop/${shopId}`, options);
 
     // Clear shops cache
     apiClient.clearCache("/shops");
@@ -63,12 +64,13 @@ export const deleteShop = async (shopId) => {
  * Get a single shop by ID
  * CACHING: Shop cached for 1 hour
  */
-export const getShopById = async (shopId) => {
+export const getShopById = async (shopId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SHOPS");
 
   try {
     const data = await apiClient.get(`${SHOP_API_URL}/shop/${shopId}`, {
       cache: cacheStrategy,
+      ...options,
     });
 
     console.log("Shop fetched:", data);
@@ -85,9 +87,9 @@ export const getShopById = async (shopId) => {
  * Create a shop
  * CACHING: POST never cached. Clears shops cache.
  */
-export const createShop = async (shopData) => {
+export const createShop = async (shopData, options = {}) => {
   try {
-    const data = await apiClient.post(`${SHOP_API_URL}/shop`, shopData);
+    const data = await apiClient.post(`${SHOP_API_URL}/shop`, shopData, options);
 
     // Clear shops cache
     apiClient.clearCache("/shops");

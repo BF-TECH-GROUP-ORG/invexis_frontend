@@ -84,8 +84,9 @@ const AnalyticsPage = () => {
     const { data: summaryRes, isLoading: summaryLoading } = useQuery({
         queryKey: ['analytics', 'summary', params],
         queryFn: () => AnalyticsService.getDashboardSummary(params, options),
-        staleTime: 60 * 1000, // 1 minute
-        retry: false,
+        staleTime: 10 * 60 * 1000, // 10 minutes persistence
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -93,8 +94,9 @@ const AnalyticsPage = () => {
     const { data: salesRes, isLoading: salesLoading } = useQuery({
         queryKey: ['analytics', 'sales', params],
         queryFn: () => AnalyticsService.getRevenueReport(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -102,8 +104,9 @@ const AnalyticsPage = () => {
     const { data: profitabilityRes, isLoading: profitabilityLoading } = useQuery({
         queryKey: ['analytics', 'profitability', params],
         queryFn: () => AnalyticsService.getProfitabilityReport(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -111,8 +114,9 @@ const AnalyticsPage = () => {
     const { data: productsRes, isLoading: productsLoading } = useQuery({
         queryKey: ['analytics', 'products', params],
         queryFn: () => AnalyticsService.getTopProducts(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -120,16 +124,18 @@ const AnalyticsPage = () => {
     const { data: inventoryRes, isLoading: inventoryLoading } = useQuery({
         queryKey: ['analytics', 'inventory', params],
         queryFn: () => AnalyticsService.getInventoryHealth(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
     const { data: movementRes, isLoading: movementLoading } = useQuery({
         queryKey: ['analytics', 'movement', params],
         queryFn: () => AnalyticsService.getStockMovement(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -137,8 +143,9 @@ const AnalyticsPage = () => {
     const { data: categoriesRes, isLoading: categoriesLoading } = useQuery({
         queryKey: ['analytics', 'paymentMethods', params],
         queryFn: () => AnalyticsService.getPaymentMethodStats(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -146,24 +153,27 @@ const AnalyticsPage = () => {
     const { data: acquisitionRes, isLoading: acquisitionLoading } = useQuery({
         queryKey: ['analytics', 'acquisition', params],
         queryFn: () => AnalyticsService.getNewCustomerStats(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
     const { data: activeUsersRes, isLoading: activeUsersLoading } = useQuery({
         queryKey: ['analytics', 'activeUsers', params],
         queryFn: () => AnalyticsService.getActiveUsers(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
     const { data: topCustomersRes, isLoading: topCustomersLoading } = useQuery({
         queryKey: ['analytics', 'topCustomers', params],
         queryFn: () => AnalyticsService.getTopCustomers(params, options),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
@@ -171,16 +181,18 @@ const AnalyticsPage = () => {
     const { data: shopRes, isLoading: shopLoading } = useQuery({
         queryKey: ['analytics', 'shops', params],
         queryFn: () => AnalyticsService.getShopPerformance(params, options),
-        staleTime: 10 * 60 * 1000, // 10 minutes
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 
     const { data: employeeRes, isLoading: employeeLoading } = useQuery({
         queryKey: ['analytics', 'employees', params],
         queryFn: () => AnalyticsService.getEmployeePerformance(params, options),
-        staleTime: 10 * 60 * 1000, // 10 minutes
-        retry: false,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
+        retry: 2,
         enabled: !!session?.accessToken,
     });
 

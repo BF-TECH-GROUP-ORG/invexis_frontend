@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useCallback, useMemo } from "react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Plus, RefreshCw, Search, AlertCircle, Loader2 } from "lucide-react"
 import Skeleton from "@/components/shared/Skeleton"
 import { ShopInventoryFormModal } from "@/components/inventory/shop"
@@ -13,28 +14,68 @@ import TableRow from '@mui/material/TableRow';
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
-export default function ShopInventoryPageClient() {
-    const [searchTerm, setSearchTerm] = useState("")
-    const [filterLow, setFilterLow] = useState("all")
+export default function ShopInventoryPageClient({ initialParams = {} }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { data: session } = useSession();
+
+    const {
+        page: initialPage = 1,
+        limit: initialLimit = 20,
+        search: initialSearch = "",
+        lowStock: initialLowStock = "all",
+        shopId: initialShopId
+    } = initialParams;
+
+    // Source of truth from URL
+    const page = parseInt(searchParams.get("page")) || initialPage;
+    const limit = parseInt(searchParams.get("limit")) || initialLimit;
+    const searchTerm = searchParams.get("search") || initialSearch;
+    const filterLow = searchParams.get("lowStock") || initialLowStock;
+    const userShopId = session?.user?.shops?.[0];
+    const shopId = searchParams.get("shopId") || initialShopId || userShopId || "demo-shop";
+
     const [showModal, setShowModal] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
     const [message, setMessage] = useState(null)
 
-    const { data: session } = useSession();
-    const user = session?.user;
-    const userShopId = user?.shops?.[0];
-    const shopId = typeof window !== "undefined" ? localStorage.getItem("shopId") || userShopId || "demo-shop" : userShopId || "demo-shop";
-
-    const options = session?.accessToken ? {
+    const options = useMemo(() => (session?.accessToken ? {
         headers: {
             Authorization: `Bearer ${session.accessToken}`
         }
-    } : {};
+    } : {}), [session?.accessToken]);
+
+    const updateFilters = useCallback((updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "" || value === "all") {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
+
+        // Reset to page 1 for any search/filter changes unless explicitly a page change
+        if (!updates.page) {
+            params.delete("page");
+        }
+
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [router, pathname, searchParams]);
+
+    const fetchParams = useMemo(() => ({
+        shopId,
+        page,
+        limit,
+        search: searchTerm || undefined,
+        lowStock: filterLow !== "all" ? filterLow : undefined
+    }), [shopId, page, limit, searchTerm, filterLow]);
 
     const { data: inventoryRes, isLoading: loading, refetch: fetchItems } = useQuery({
-        queryKey: ['shop-inventory', shopId],
-        queryFn: () => getShopInventory({ shopId }, options),
-        enabled: !!shopId,
+        queryKey: ['shop-inventory', shopId, fetchParams],
+        queryFn: () => getShopInventory(fetchParams, options),
+        enabled: !!shopId && !!session?.accessToken,
     });
 
     const items = inventoryRes?.data || [];
@@ -74,17 +115,12 @@ export default function ShopInventoryPageClient() {
         } catch { }
     }
 
-    const filtered = items.filter((i) => {
-        const matchesSearch = searchTerm === "" || i.product?.name.toLowerCase().includes(searchTerm.toLowerCase())
-        const matchesLow = filterLow === "all" || (filterLow === "low" && i.lowStock) || (filterLow === "ok" && !i.lowStock)
-        return matchesSearch && matchesLow
-    })
 
-    const stats = {
-        total: items.length,
+    const stats = useMemo(() => ({
+        total: inventoryRes?.totalItems || items.length,
         low: items.filter((i) => i.lowStock).length,
         ok: items.filter((i) => !i.lowStock).length
-    }
+    }), [inventoryRes, items]);
 
     return (
         <div className="min-h-screen bg-white p-6">
@@ -141,13 +177,13 @@ export default function ShopInventoryPageClient() {
                             type="text"
                             placeholder="Search products..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => updateFilters({ search: e.target.value })}
                             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
                     </div>
                     <select
                         value={filterLow}
-                        onChange={(e) => setFilterLow(e.target.value)}
+                        onChange={(e) => updateFilters({ lowStock: e.target.value })}
                         className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm"
                     >
                         <option value="all">All Stock</option>
@@ -196,7 +232,7 @@ export default function ShopInventoryPageClient() {
                         </TableBody>
                     </Table>
                 </div>
-            ) : filtered.length === 0 ? (
+            ) : items.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                     <AlertCircle size={48} className="mx-auto mb-4" />
                     No inventory items found.
@@ -215,7 +251,7 @@ export default function ShopInventoryPageClient() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filtered.map((item) => (
+                            {items.map((item) => (
                                 <TableRow key={item._id} hover>
                                     <TableCell>{item.product?.name || "-"}</TableCell>
                                     <TableCell>{item.product?.sku || "-"}</TableCell>

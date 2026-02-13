@@ -12,10 +12,14 @@ export default async function LogsPage() {
     const session = await getServerSession(authOptions);
     const queryClient = getQueryClient();
 
+    let initialData = { companyId: null, user: null };
+
     if (session?.accessToken) {
         const user = session.user;
         const companyObj = user?.companies?.[0];
         const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+        initialData = { companyId, user };
 
         const options = {
             headers: {
@@ -23,7 +27,6 @@ export default async function LogsPage() {
             }
         };
 
-        // Prefetch workers and audit logs (default filters)
         await Promise.all([
             queryClient.prefetchQuery({
                 queryKey: ["workers", companyId],
@@ -41,7 +44,7 @@ export default async function LogsPage() {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <LogsPageClient />
+            <LogsPageClient initialData={initialData} />
         </HydrationBoundary>
     );
 }

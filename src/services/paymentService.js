@@ -197,7 +197,9 @@ export const getCompanyInvoices = async (companyId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/invoices/company/${companyId}`, options);
+    const url = `/payment/company/${companyId}/invoices`;
+    console.log(`[DEBUG paymentService] Fetching invoices from: ${url}`);
+    return await apiClient.get(url, options);
   } catch (error) {
     console.error('Error fetching company invoices:', error);
     throw error;

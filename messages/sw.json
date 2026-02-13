@@ -58,7 +58,39 @@
     "growDesc": "Fungua e-commerce, maarifa ya AI na zana za masoko unapokua."
   },
   "dashboard": {
-    "title": "Dashibodi"
+    "title": "Dashibodi",
+    "subtitle": "Muhtasari wa utendaji wa biashara yako kwa wakati halisi",
+    "totalSales": "Jumla ya Mauzo",
+    "totalProfit": "Faida Jumla",
+    "totalOrders": "Jumla ya Maagizo",
+    "topProduct": "Bidhaa Bora",
+    "salesPerformance": "Utendaji wa Mauzo",
+    "comparing": "Kulinganisha",
+    "current": "Ya sasa",
+    "previous": "Iliyopita",
+    "vs": "dhidi ya",
+    "compareWith": "Linganisha na",
+    "revenue": "Mapato",
+    "cost": "Gharama",
+    "profit": "Faida",
+    "salesByPaymentMethod": "Mauzo kwa Njia ya Malipo",
+    "distributionByPayment": "Usambazaji katika aina za malipo",
+    "transactions": "miamala",
+    "topProductsTitle": "Bidhaa Bora",
+    "bestPerformingItems": "Vitu vinavyofanya vizuri zaidi",
+    "inventoryStatistics": "Takwimu za Hesabu",
+    "inbound": "Ingia",
+    "outbound": "Toka",
+    "stockIn": "Hisa Zilizoingia",
+    "stockOut": "Hisa Zilizotoka",
+    "netFlow": "Mtiririko Safi",
+    "shopPerformance": "Utendaji wa Duka",
+    "revenueByBranch": "Usambazaji wa mapato kwa tawi",
+    "employeeLeaderboard": "Ubao wa Wafanyakazi",
+    "topBySalesVolume": "Wafanyakazi bora kwa kiasi cha mauzo",
+    "sales": "Mauzo",
+    "shopLabel": "Duka",
+    "employeeLabel": "Mfanyakazi"
   },
   "account": {
     "profile": {
@@ -219,7 +251,17 @@
   "common": {
     "noData": "Hakuna data inapatikana",
     "loading": "Inapakia...",
-    "ok": "Sawa"
+    "ok": "Sawa",
+    "view": "Angalia",
+    "edit": "Hariri",
+    "delete": "Futa",
+    "cancel": "Ghairi",
+    "confirm": "Thibitisha",
+    "allStatuses": "Hali Zote",
+    "active": "Inatumika",
+    "inactive": "Haitumiki",
+    "open": "Wazi",
+    "closed": "Imefungwa"
   },
   "home": {
     "login": "Ingia",
@@ -433,6 +475,7 @@
       },
       "dialogs": {
         "deleteTitle": "Futa Mauzo",
+        "delete": "Futa",
         "deleteConfirm": "Una uhakika unataka kufuta mauzo haya? Kitendo hiki hakiwezi kubatilishwa.",
         "returnTitle": "Rudisha Bidhaa - Mauzo #{id}",
         "selectItems": "Chagua Bidhaa za Kurudisha",
@@ -477,7 +520,9 @@
   "sellProduct": {
     "title": "Mauzo na Hisa",
     "subtitle": "Simamia bidhaa, fuatilia hisa na uchakate mauzo kwa ufanisi.",
-    "searchPlaceholder": "Tafuta bidhaa...",
+    "placeholders": {
+      "search": "Tafuta bidhaa..."
+    },
     "cards": {
       "totalProducts": "Jumla ya Bidhaa",
       "lowStock": "Hisa Chache",
@@ -524,12 +569,15 @@
       "transferToCompany": "Hamishia Kampuni",
       "completeSale": "KAMILISHA MAUZO",
       "debtSale": "Mauzo ya Deni",
-      "processing": "Inachakata..."
+      "processing": "Inachakata...",
+      "cancel": "Ghairi",
+      "save": "Hifadhi"
     },
     "modals": {
       "price": {
         "title": "Weka Bei - {productName}",
         "minPrice": "Bei ya Chini: {price} FRW",
+        "minPriceLabel": "Bei ya Chini",
         "sellingPriceLabel": "Bei ya Kuuza (FRW)",
         "cancel": "Ghairi",
         "save": "Hifadhi",
@@ -548,14 +596,17 @@
         "namePlaceholder": "mf. Juma Hamisi",
         "existingCustomer": "Mteja Aliyepo",
         "change": "Badilisha",
-        "paymentMethod": "Njia ya Malipo",
+        "paymentMethodLabel": "Njia ya Malipo",
+        "paymentMethods": {
+          "cash": "Fedha Taslimu",
+          "mtn": "MoMo",
+          "airtel": "Airtel",
+          "bank": "Benki"
+        },
         "paymentPhone": "Simu ya Malipo",
-        "cash": "Fedha Taslimu",
-        "mtn": "MTN",
-        "airtel": "Airtel",
-        "bank": "Benki",
         "initialPayment": "Kiasi cha Malipo ya Awali (FRW)",
         "cancel": "Ghairi",
+        "completeSale": "Kamilisha Mauzo",
         "confirm": "Thibitisha Mauzo",
         "errors": {
           "nameRequired": "Jina la mteja linahitajika",
@@ -604,6 +655,11 @@
         "message": "Bidhaa zimehamishiwa kwa mafanikio kwa {targetName}.",
         "close": "Funga"
       }
+    },
+    "status": {
+      "selected": "{count} Zilizochaguliwa",
+      "debtSale": "Mauzo ya Deni",
+      "paidInFull": "Imelipwa Kikamilifu"
     },
     "alerts": {
       "outOfStock": "Haiwezi kuuza \"{productName}\" - Hisa imeisha!",
@@ -719,7 +775,7 @@
     "risk": {
       "title": "Hatari za Upungufu wa Hisa",
       "subtitle": "Vitu vinavyotabiriwa kuisha hivi karibuni",
-      "viewAll": "Tazama zote",
+      "viewAllLabel": "Tazama zote",
       "table": {
         "product": "Bidhaa",
         "remaining": "Zilizobaki",
@@ -733,6 +789,7 @@
     "topPerformers": {
       "title": "Wafanya Vizuri Zaidi",
       "subtitle": "Bidhaa zinazoleta faida zaidi mwezi huu",
+      "viewAllLabel": "Tazama zote",
       "unitsSold": "vitengo {count} vimeuzwa",
       "profit": "Faida"
     },
@@ -1309,5 +1366,199 @@
     "pending": "Inatarajia",
     "failed": "Imeshindwa",
     "cancelled": "Imeghairiwa"
+  },
+  "logs": {
+    "title": "Kumbukumbu na Uchunguzi",
+    "inventory": "Hesabu",
+    "logs": "Kumbukumbu",
+    "search": "Tafuta kumbukumbu...",
+    "filterWorker": "Chuja kwa mfanyakazi",
+    "eventType": "Aina ya Tukio",
+    "allTypes": "Aina Zote",
+    "table": {
+      "eventType": "Aina ya Tukio",
+      "worker": "Mfanyakazi",
+      "entity": "Hulusi",
+      "source": "Chanzo",
+      "severity": "Ukali",
+      "date": "Tarehe",
+      "noLogs": "Hakuna kumbukumbu zilizopatikana"
+    }
+  },
+  "management": {
+    "companies": {
+      "hubTitle": "Kituo cha Usimamizi",
+      "hubDesc": "Maelezo ya jumla ya matawi yote ya biashara na uwezo wa uendeshaji.",
+      "addNewBranch": "Ongeza Tawi Jipya",
+      "totalShops": "Jumla ya Maduka",
+      "activeShops": "Maduka Yanayotumika",
+      "totalCapacity": "Jumla ya Uwezo",
+      "allBranches": "Matawi Yote",
+      "searchShops": "Tafuta kwa jina au mji...",
+      "table": {
+        "branchInfo": "Maelezo ya Tawi",
+        "city": "Mji",
+        "address": "Anwani",
+        "capacity": "Uwezo",
+        "status": "Hali",
+        "actions": "Vitendo"
+      },
+      "actions": {
+        "viewDetails": "Angalia Maelezo",
+        "editBranch": "Hariri Tawi",
+        "delete": "Futa"
+      },
+      "deleteConfirm": {
+        "title": "Thibitisha Futa",
+        "message": "Una uhakika unataka kufuta tawi hili? Kitendo hiki hakiwezi kutofanywa."
+      }
+    },
+    "workers": {
+      "directoryTitle": "Orodha ya Watumishi",
+      "directoryDesc": "Simamia wafanyakazi wa kampuni, majukumu na nafasi katika matawi yote.",
+      "addStaffMember": "Ongeza Mtumishi",
+      "totalPersonnel": "Jumla ya Watumishi",
+      "activeStaff": "Watumishi Wanaotumika",
+      "management": "Usimamizi",
+      "operationalStaff": "Watumishi wa Operesheni",
+      "searchPersonnel": "Tafuta mtumishi, barua pepe au vitambulisho...",
+      "table": {
+        "userProfile": "Wasifu wa Mtumiaji",
+        "contactInfo": "Maelezo ya Mawasiliano",
+        "role": "Jukumu",
+        "status": "Hali",
+        "actions": "Vitendo"
+      },
+      "actions": {
+        "editProfile": "Hariri Wasifu",
+        "deleteMember": "Futa Mtumishi"
+      },
+      "deleteConfirm": {
+        "title": "Futa Mtumishi",
+        "message": "Kitendo hiki ni cha kudumu na kitaondoa ufikiaji wote wa mfumo kwa mtumiaji huyu mara moja."
+      }
+    }
+  },
+  "stockManagement": {
+    "header": {
+      "title": "Usimamizi wa Akiba",
+      "subtitle": "Dhibiti viwango vya hesabu, changanua bidhaa, na ufuatilie mabadiliko"
+    },
+    "stats": {
+      "totalProducts": "Jumla ya Bidhaa",
+      "stockInToday": "Akiba Iliyoingia Leo",
+      "stockOutToday": "Akiba Iliyotoka Leo",
+      "lowStockAlerts": "Tahadhari za Akiba ya Chini",
+      "viewAll": "Ona zote"
+    },
+    "tabs": {
+      "scanner": "Scanner",
+      "operations": "Shughuli",
+      "history": "Historia"
+    },
+    "scanner": {
+      "title": "Kutafuta Bidhaa",
+      "subtitle": "Tafuta bidhaa zilizohifadhiwa mshononi au soma QR/Barcode",
+      "placeholder": "Tafuta jina la bidhaa au SKU, au bandika msimbo pau...",
+      "searching": "Inatafuta...",
+      "lookupBtn": "Tafuta Bidhaa",
+      "clearBtn": "Futa",
+      "loadingProducts": "Inapakia bidhaa...",
+      "error": "Hitilafu",
+      "productSelected": "Bidhaa Imechaguliwa",
+      "sku": "SKU",
+      "stock": "Akiba",
+      "shop": "Duka",
+      "stockOutBtn": "Sema Akiba",
+      "openProduct": "Fungua bidhaa",
+      "quickTips": {
+        "title": "Vidokezo vya Haraka",
+        "subtitle": "Jinsi ya kutumia scanner",
+        "step1": "Unganisha skana ya msimbo pau au tumia kamera yako",
+        "step2": "Soma msimbo pau wa bidhaa au msimbo wa QR",
+        "step3": "Maelezo ya bidhaa yataonekana moja kwa moja",
+        "step4": "Endelea kuongeza au kuondoa akiba"
+      },
+      "scanMobile": {
+        "title": "Soma kwa Simu",
+        "subtitle": "Elekeza kamera ya programu yako ya simu kwenye msimbo wa QR au msimbo pau hapa chini ili kufanya vitendo vya haraka vya kutoa akiba kutoka kwenye programu ya simu.",
+        "tipsTitle": "Vidokezo vya kusoma kwa simu ya mkononi",
+        "tip1": "Fungua programu ya simu na uende kwenye sehemu ya skana.",
+        "tip2": "Elekeza kamera kwa uthabiti kwenye msimbo wa QR au msimbo pau na uiruhusu ifanye lengo (autofocus).",
+        "tip3": "Hakikisha mwanga ni mzuri na epuka mwangaza mkali kwenye lebo zinazong'aa.",
+        "tip4": "Ukisoma msimbo pau, uelekeze kwa mlalo kwenye fremu ya kamera."
+      }
+    },
+    "operations": {
+      "title": "Ingizo la Akiba la Jumla",
+      "subtitle": "Ongeza bidhaa kwenye kundi hapa chini kisha tuma ombi moja la jumla la kuingiza akiba",
+      "selectedProduct": "Bidhaa Imechaguliwa",
+      "currentStock": "Akiba ya Sasa",
+      "noProductSelected": "Tafadhali soma au tafuta bidhaa kwanza",
+      "qtyLabel": "Kiasi cha kuongeza *",
+      "qtyPlaceholder": "Ingiza kiasi",
+      "addToBatch": "Ongeza kwenye Kundi",
+      "submitBatch": "Tuma Kundi",
+      "processing": "Inachakata...",
+      "errors": {
+        "selectProduct": "Tafadhali chagua bidhaa na uingize kiasi kikubwa kuliko 0 ili kuongeza kwenye kundi.",
+        "addedToBatch": "{name} imeongezwa kwenye kundi",
+        "noBatchItems": "Hakuna bidhaa kwenye kundi za kutumwa. Ongeza vitu au ingiza kiasi ili kuongeza akiba ya bidhaa iliyochaguliwa.",
+        "bulkSuccess": "Ingizo la akiba la jumla limekamilika kwa kundi {count}.",
+        "bulkPartial": "Baadhi ya makundi yamefeli: {error}",
+        "bulkFailed": "Shughuli ya jumla imefeli"
+      }
+    },
+    "history": {
+      "title": "Historia ya Akiba",
+      "subtitle": "Angalia mabadiliko yote ya akiba na marekebisho",
+      "searchPlaceholder": "Tafuta kwa jina la bidhaa au SKU...",
+      "refresh": "Pakia upya",
+      "stats": {
+        "totalInflow": "Jumla ya Mapato",
+        "totalOutflow": "Jumla ya Matumizi",
+        "netChange": "Mabadiliko Halisi",
+        "totalChanges": "Jumla ya Mabadiliko"
+      },
+      "table": {
+        "type": "Aina",
+        "product": "Bidhaa",
+        "sku": "SKU",
+        "quantity": "Kiasi",
+        "reason": "Sababu",
+        "date": "Tarehe",
+        "by": "Na",
+        "stockIn": "Akiba Iliyoingia",
+        "stockOut": "Akiba Iliyotoka",
+        "change": "Mabadiliko",
+        "system": "Mfumo",
+        "na": "N/A"
+      },
+      "errors": {
+        "loadFailed": "Imeshindwa kupakia historia ya akiba",
+        "tryAgain": "Jaribu tena",
+        "noChanges": "Hakuna mabadiliko ya akiba yaliyopatikana"
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Thibitisha Akiba Iliyotoka",
+        "qty": "Kiasi",
+        "reason": "Sababu",
+        "cancel": "Ghairi",
+        "confirm": "Thibitisha",
+        "processing": "Inachakata...",
+        "success": "Akiba imetolewa kwa mafanikio",
+        "qtyError": "Tafadhali ingiza kiasi kikubwa kuliko 0",
+        "failed": "Kutoa akiba imefeli",
+        "reasons": {
+          "sale": "Uuzaji",
+          "damaged": "Imeharibika",
+          "expired": "Imeisha muda",
+          "transferOut": "Uhamisho wa Nje",
+          "other": "Nyingine"
+        }
+      }
+    }
   }
 }

@@ -266,11 +266,17 @@ const computeTrendPercent = (arr = []) => {
 // Generate sample sparkline data for demonstration
 const generateSampleSparkline = (key, baseValue = 100) => {
   const days = 10;
+  // Use a fixed base date for SSR consistency (start of the current day in RWF time)
+  const baseDate = new Date("2024-01-01T00:00:00Z");
+
   return Array.from({ length: days }, (_, i) => {
-    const variation = Math.sin(i / 2) * 0.3 + (Math.random() - 0.5) * 0.2;
+    // Deterministic variation based on index and key string length/hash
+    const seed = (key?.length || 0) + i;
+    const variation = Math.sin(seed / 2) * 0.3; // Removed Math.random()
+
     return {
       value: Math.max(0, Math.round(baseValue * (1 + variation))),
-      name: new Date(Date.now() - (days - i - 1) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      name: new Date(baseDate.getTime() + i * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     };
   });
 };

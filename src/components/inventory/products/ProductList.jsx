@@ -30,48 +30,51 @@ import { useSelector } from "react-redux";
 import ProductTable from "./ProductTable";
 import ProductStats from "./ProductStats";
 
-export default function ProductList() {
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+
+export default function ProductList({ initialParams = {} }) {
   const t = useTranslations("products");
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const companyObj = session?.user?.companies?.[0];
-  const companyId =
-    typeof companyObj === "string"
-      ? companyObj
-      : companyObj?.id || companyObj?._id;
 
-  const warehousesState = useSelector((state) => state.warehouses || {});
-  const warehouses = Array.isArray(warehousesState.items)
-    ? warehousesState.items
-    : [];
+  const {
+    page: initialPage = 1,
+    limit: initialLimit = 20,
+    search: initialSearch = "",
+    category: initialCategory = "",
+    warehouse: initialWarehouse = "",
+    status: initialStatus = "",
+    companyId: initialCompanyId
+  } = initialParams;
 
+  // Sync state with URL params
+  const currentPage = parseInt(searchParams.get("page")) || initialPage;
+  const limit = parseInt(searchParams.get("limit")) || initialLimit;
+  const searchTermFromUrl = searchParams.get("search") || initialSearch;
+  const currentCategory = searchParams.get("category") || initialCategory;
+  const currentWarehouse = searchParams.get("warehouse") || initialWarehouse;
+  const currentStatus = searchParams.get("status") || initialStatus;
+
+  const [searchTerm, setSearchTerm] = useState(searchTermFromUrl);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
 
-  const [filters, setFilters] = useState({
-    search: "",
-    category: "",
-    warehouse: "",
-    status: "",
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const limit = 20;
-
-  // Debounce search term
+  // Sync internal search field with URL if URL changes externally
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((prev) => {
-        if (prev.search === searchTerm) return prev;
-        return { ...prev, search: searchTerm };
-      });
-      setCurrentPage(1);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    setSearchTerm(searchTermFromUrl);
+  }, [searchTermFromUrl]);
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || initialCompanyId;
+
+  const warehousesState = useSelector((state) => state.warehouses || {});
+  const warehouses = Array.isArray(warehousesState.items) ? warehousesState.items : [];
 
   const basePath = pathname?.replace(/\/$/, "") || "/inventory/products";
 
@@ -87,16 +90,43 @@ export default function ProductList() {
     }
   } : {}), [session?.accessToken]);
 
-  // React Query Fetching
+  // Helper to update filters in URL
+  const updateFilters = useCallback((updates) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "" || value === "all") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    // Reset to page 1 for any search/filter changes unless explicitly a page change
+    if (!updates.page) {
+      params.delete("page");
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  // Debounce search term update to URL
+  useEffect(() => {
+    if (searchTerm === searchTermFromUrl) return;
+    const timer = setTimeout(() => {
+      updateFilters({ search: searchTerm });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [searchTerm, searchTermFromUrl, updateFilters]);
+
   const fetchParams = useMemo(() => ({
     page: currentPage,
     limit,
-    search: filters.search || undefined,
-    category: filters.category || undefined,
-    warehouse: filters.warehouse || undefined,
-    status: filters.status || undefined,
+    search: searchTermFromUrl || undefined,
+    category: currentCategory || undefined,
+    warehouse: currentWarehouse || undefined,
+    status: currentStatus || undefined,
     companyId,
-  }), [currentPage, limit, filters, companyId]);
+  }), [currentPage, limit, searchTermFromUrl, currentCategory, currentWarehouse, currentStatus, companyId]);
 
   const { data: productsResponse, isLoading: productsLoading } = useQuery({
     queryKey: ["products", fetchParams],
@@ -134,7 +164,6 @@ export default function ProductList() {
   }, [allProducts, session?.user]);
 
   const categories = useMemo(() => Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : (Array.isArray(categoriesResponse) ? categoriesResponse : []), [categoriesResponse]);
-
   const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
 
   useEffect(() => {
@@ -401,16 +430,16 @@ export default function ProductList() {
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className={`flex items-center gap-2 px-4 py-2.5 border rounded-full transition ${isFilterOpen ||
-                  filters.category ||
-                  filters.warehouse ||
-                  filters.status
+                  currentCategory ||
+                  currentWarehouse ||
+                  currentStatus
                   ? "border-orange-500 text-orange-600 bg-orange-50"
                   : "border-gray-300 hover:bg-gray-50 text-gray-700"
                   }`}
               >
                 <Filter size={18} />
                 <span>{t("header.filters")}</span>
-                {(filters.category || filters.warehouse || filters.status) && (
+                {(currentCategory || currentWarehouse || currentStatus) && (
                   <span className="flex h-2 w-2 rounded-full bg-orange-500 ml-1"></span>
                 )}
               </button>
@@ -423,8 +452,8 @@ export default function ProductList() {
                     </h3>
                     <button
                       onClick={() => {
-                        setFilters({
-                          search: filters.search,
+                        updateFilters({
+                          search: searchTerm,
                           category: "",
                           warehouse: "",
                           status: "",
@@ -443,9 +472,9 @@ export default function ProductList() {
                         {t("filters.category")}
                       </label>
                       <select
-                        value={filters.category}
+                        value={currentCategory}
                         onChange={(e) =>
-                          setFilters({ ...filters, category: e.target.value })
+                          updateFilters({ category: e.target.value })
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
@@ -463,9 +492,9 @@ export default function ProductList() {
                         {t("filters.shop")}
                       </label>
                       <select
-                        value={filters.warehouse}
+                        value={currentWarehouse}
                         onChange={(e) =>
-                          setFilters({ ...filters, warehouse: e.target.value })
+                          updateFilters({ warehouse: e.target.value })
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
@@ -483,9 +512,9 @@ export default function ProductList() {
                         {t("filters.status")}
                       </label>
                       <select
-                        value={filters.status}
+                        value={currentStatus}
                         onChange={(e) =>
-                          setFilters({ ...filters, status: e.target.value })
+                          updateFilters({ status: e.target.value })
                         }
                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                       >
@@ -536,6 +565,8 @@ export default function ProductList() {
           onDelete={handleDelete}
           viewUrl={routes.view}
           editUrl={routes.edit}
+          pagination={pagination}
+          onPageChange={(p, l) => updateFilters({ page: p, limit: l })}
         />
       </div>
     </div>

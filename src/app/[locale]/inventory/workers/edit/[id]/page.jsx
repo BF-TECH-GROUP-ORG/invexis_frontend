@@ -1,62 +1,42 @@
-"use client";
-import React, { useEffect, useState, Suspense } from "react";
-import AddWorkerForm from "@/components/forms/AddWorkerForm";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
 import { getWorkerById } from "@/services/workersService";
-import { Box, CircularProgress, Typography } from "@mui/material";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Loading from "./loading";
+import EditWorkerPageClient from "./EditWorkerPageClient";
 
-function EditWorkerPageContent({ params }) {
-    const { id } = React.use(params);
-    const { data: session } = useSession();
-    const [worker, setWorker] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+export const metadata = {
+    title: "Edit Worker",
+};
 
-    useEffect(() => {
-        const fetchWorker = async () => {
-            try {
-                const data = await getWorkerById(id);
-                console.log("Worker data received:", data);
+export default async function EditWorkerPage({ params }) {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    const queryClient = getQueryClient();
 
-                // Ensure data matches form structure if necessary
-                setWorker(data);
-            } catch (err) {
-                console.error("Failed to fetch worker:", err);
-                const errorMsg = err.message || "Failed to load worker details.";
-                setError(errorMsg);
-            } finally {
-                setLoading(false);
-            }
-        };
+    // Prefetch worker if authenticated
+    if (session?.accessToken && id) {
+        try {
+            const options = {
+                headers: {
+                    Authorization: `Bearer ${session.accessToken}`
+                }
+            };
 
-        if (id && session) {
-            fetchWorker();
-        } else if (!session) {
-            console.log("Waiting for session to load...");
+            await queryClient.prefetchQuery({
+                queryKey: ["worker", id],
+                queryFn: () => getWorkerById(id, options),
+            });
+
+            console.log(`✅ Successfully prefetched worker ${id} on server`);
+        } catch (error) {
+            console.error(`⚠️ Error prefetching worker ${id}:`, error);
         }
-    }, [id, session]);
-
-    if (loading) {
-        return <Loading />;
     }
 
-    if (error) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <Typography color="error">{error}</Typography>
-            </Box>
-        );
-    }
-
-    return <AddWorkerForm initialData={worker} isEditMode={true} />;
-}
-
-export default function EditWorkerPage() {
     return (
-        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-            <EditWorkerPageContent />
-        </Suspense>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <EditWorkerPageClient id={id} />
+        </HydrationBoundary>
     );
 }

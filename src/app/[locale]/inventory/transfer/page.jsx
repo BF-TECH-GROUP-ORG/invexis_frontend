@@ -10,9 +10,21 @@ import { getAllShops } from "@/services/shopService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getCompanyDetails, getAllCompanies } from "@/services/stockService";
 
-export default async function TransfersPage() {
+export default async function TransfersPage({ searchParams }) {
     const session = await getServerSession(authOptions);
     const queryClient = getQueryClient();
+
+    // Resolve searchParams (Next.js 15 behavior)
+    const resolvedParams = await (searchParams || {});
+    const page = parseInt(resolvedParams.page) || 1;
+    const limit = parseInt(resolvedParams.limit) || 10;
+    const search = resolvedParams.search || "";
+    const direction = resolvedParams.direction || "all";
+    const type = resolvedParams.type || "all";
+    const shop = resolvedParams.shop || "all";
+    const worker = resolvedParams.worker || "all";
+    const startDate = resolvedParams.startDate || "";
+    const endDate = resolvedParams.endDate || "";
 
     if (session?.accessToken) {
         const user = session.user;
@@ -25,16 +37,44 @@ export default async function TransfersPage() {
             }
         };
 
-        const defaultParams = {
-            page: 1,
-            limit: 10,
+        const fetchParams = {
+            page,
+            limit,
+            search: search || undefined,
+            transferType: type !== "all" ? type : undefined,
+            performedBy: worker !== "all" ? worker : undefined,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+        };
+
+        if (shop !== "all") {
+            if (direction === "outbound") {
+                fetchParams.sourceShopId = shop;
+            } else {
+                fetchParams.destinationShopId = shop;
+            }
+        } else if (direction !== "all") {
+            fetchParams.direction = direction;
+        }
+
+        const initialParams = {
+            page,
+            limit,
+            search,
+            direction,
+            type,
+            shop,
+            worker,
+            startDate,
+            endDate,
+            companyId
         };
 
         // Prefetch everything needed for the initial view
         await Promise.all([
             queryClient.prefetchQuery({
-                queryKey: ['transfers', companyId, defaultParams],
-                queryFn: () => InventoryService.getTransfers(companyId, defaultParams, options),
+                queryKey: ['transfers', companyId, fetchParams],
+                queryFn: () => InventoryService.getTransfers(companyId, fetchParams, options),
             }),
             queryClient.prefetchQuery({
                 queryKey: ['shops', companyId],
@@ -53,13 +93,22 @@ export default async function TransfersPage() {
                 queryFn: () => getAllCompanies(options),
             })
         ]);
+
+        return (
+            <HydrationBoundary state={dehydrate(queryClient)}>
+                <div className="min-h-screen bg-slate-50/50">
+                    <TransferList initialParams={initialParams} />
+                </div>
+            </HydrationBoundary>
+        );
     }
 
     return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            <div className="min-h-screen bg-slate-50/50">
-                <TransferList />
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <div className="text-center">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
+                <p className="text-gray-500">Please log in to view transfers.</p>
             </div>
-        </HydrationBoundary>
+        </div>
     );
 }

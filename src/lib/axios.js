@@ -25,17 +25,21 @@ const api = axios.create({
  * -----------------------------------------------------
  */
 function normalizeError(error) {
-  const message = error?.response?.data?.message ||
+  const responseData = error?.response?.data;
+  const message = responseData?.message ||
     error?.response?.statusText ||
     error?.message ||
     "Unexpected error";
 
   const status = error?.response?.status ?? (error?.request ? 0 : -1);
+  const code = error?.code || error?.originalError?.code;
 
   return {
-    message,
+    message: status === 0 ? `Network Error: ${code || 'Unknown'} (${message})` : message,
     status,
-    data: error?.response?.data || null,
+    code,
+    data: responseData || null,
+    config: error?.config || error?.originalError?.config,
     stack: process.env.NODE_ENV === "development" ? error?.stack : undefined,
     originalError: process.env.NODE_ENV === "development" ? error : undefined,
   };

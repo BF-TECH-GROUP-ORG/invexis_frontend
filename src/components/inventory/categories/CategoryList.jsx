@@ -16,25 +16,65 @@ import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCategories } from "@/services/categoriesService";
 
-export default function CategoryList() {
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+
+export default function CategoryList({ initialParams = {} }) {
   const t = useTranslations("categories");
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { data: session } = useSession();
-  const companyObj = session?.user?.companies?.[0];
-  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  const {
+    page: initialPage = 1,
+    limit: initialLimit = 20,
+    search: initialSearch = "",
+    level: initialLevel = null,
+    parentCategory: initialParentCategory = null,
+    sortBy: initialSortBy = "name",
+    sortOrder: initialSortOrder = "asc",
+    companyId: initialCompanyId
+  } = initialParams;
+
+  // Sync state with URL params
+  const currentPage = parseInt(searchParams.get("page")) || initialPage;
+  const currentSearch = searchParams.get("search") || initialSearch;
+  const currentLevel = searchParams.get("level") || initialLevel;
+  const currentParentCategory = searchParams.get("parentCategory") || initialParentCategory;
+  const currentSortBy = searchParams.get("sortBy") || initialSortBy;
+  const currentSortOrder = searchParams.get("sortOrder") || initialSortOrder;
+  const limit = initialLimit;
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [filters, setFilters] = useState({ level: null, parentCategory: null, search: "" });
   const [viewMode, setViewMode] = useState("table");
-  const [sortBy, setSortBy] = useState("name");
-  const [sortOrder, setSortByOrder] = useState("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const limit = 20;
+
+  // Helper to update filters in URL
+  const updateFilters = useCallback((updates) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    // Reset to page 1 for any search/filter changes unless explicitly a page change
+    if (!updates.page && updates.page !== 0) {
+      params.delete("page");
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   // Permissions
   const canManage = user ? canManageCategories(user.role) : false;
@@ -43,13 +83,13 @@ export default function CategoryList() {
   const fetchParams = useMemo(() => ({
     page: currentPage,
     limit,
-    search: filters.search || undefined,
-    level: filters.level,
-    parentCategory: filters.parentCategory,
-    sortBy,
-    sortOrder,
-    companyId
-  }), [currentPage, limit, filters, sortBy, sortOrder, companyId]);
+    search: currentSearch || undefined,
+    level: currentLevel,
+    parentCategory: currentParentCategory,
+    sortBy: currentSortBy,
+    sortOrder: currentSortOrder,
+    companyId: companyId || initialCompanyId
+  }), [currentPage, limit, currentSearch, currentLevel, currentParentCategory, currentSortBy, currentSortOrder, companyId, initialCompanyId]);
 
   const options = useMemo(() => (session?.accessToken ? {
     headers: {
@@ -60,7 +100,7 @@ export default function CategoryList() {
   const { data: categoriesResponse, isLoading: loading, error } = useQuery({
     queryKey: ["categories", fetchParams],
     queryFn: () => getCategories(fetchParams, options),
-    enabled: canView && !!companyId && !!session?.accessToken,
+    enabled: canView && !!(companyId || initialCompanyId) && !!session?.accessToken,
     staleTime: 60000,
   });
 
@@ -141,22 +181,19 @@ export default function CategoryList() {
   };
 
   const handleSort = (field) => {
-    if (sortBy === field) {
-      setSortByOrder(prev => prev === "asc" ? "desc" : "asc");
+    if (currentSortBy === field) {
+      updateFilters({ sortOrder: currentSortOrder === "asc" ? "desc" : "asc" });
     } else {
-      setSortBy(field);
-      setSortByOrder("asc");
+      updateFilters({ sortBy: field, sortOrder: "asc" });
     }
   };
 
   const handleSearch = (value) => {
-    setFilters(prev => ({ ...prev, search: value }));
-    setCurrentPage(1);
+    updateFilters({ search: value });
   };
 
   const clearFilters = () => {
-    setFilters({ level: null, parentCategory: null, search: "" });
-    setCurrentPage(1);
+    updateFilters({ level: null, parentCategory: null, search: "" });
     toast(t("toasts.filtersCleared"));
   };
 
@@ -166,7 +203,7 @@ export default function CategoryList() {
     inactive: items.filter(c => !c.isActive).length,
   }), [items]);
 
-  const activeFiltersCount = [filters.level, filters.parentCategory, filters.search].filter(Boolean).length;
+  const activeFiltersCount = [currentLevel, currentParentCategory, currentSearch].filter(Boolean).length;
 
   return (
     <div className="md:p-6 bg-white min-h-screen">
@@ -231,7 +268,7 @@ export default function CategoryList() {
                 </div>
                 <input
                   type="text"
-                  value={filters.search}
+                  value={currentSearch}
                   onChange={(e) => handleSearch(e.target.value)}
                   placeholder={t("list.searchPlaceholder")}
                   className="w-full sm:w-[312px] pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
@@ -279,9 +316,9 @@ export default function CategoryList() {
           {activeFiltersCount > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600">Active:</span>
-              {filters.level && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">{t("table.levelLabel", { level: filters.level })} <button onClick={() => setFilters(f => ({ ...f, level: null }))}>×</button></span>}
-              {filters.parentCategory && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Parent Selected <button onClick={() => setFilters(f => ({ ...f, parentCategory: null }))}>×</button></span>}
-              {filters.search && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">"{filters.search}" <button onClick={() => setFilters(f => ({ ...f, search: "" }))}>×</button></span>}
+              {currentLevel && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">{t("table.levelLabel", { level: currentLevel })} <button onClick={() => updateFilters({ level: null })}>×</button></span>}
+              {currentParentCategory && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Parent Selected <button onClick={() => updateFilters({ parentCategory: null })}>×</button></span>}
+              {currentSearch && <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">"{currentSearch}" <button onClick={() => updateFilters({ search: "" })}>×</button></span>}
               <button onClick={clearFilters} className="text-sm text-orange-600 hover:text-orange-700 font-medium ml-2">{t("list.clearAll")}</button>
             </div>
           )}
@@ -298,8 +335,8 @@ export default function CategoryList() {
               onDelete={handleDelete}
               onEdit={handleEdit}
               canManage={canManage}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
+              sortBy={currentSortBy}
+              sortOrder={currentSortOrder}
               onSort={handleSort}
             />
           ) : (
@@ -316,7 +353,7 @@ export default function CategoryList() {
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() => updateFilters({ page: currentPage - 1 })}
                   disabled={currentPage === 1}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -328,7 +365,7 @@ export default function CategoryList() {
                   return (
                     <button
                       key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
+                      onClick={() => updateFilters({ page: pageNum })}
                       className={`px-4 py-2 border rounded-lg ${currentPage === pageNum ? "bg-orange-500 text-white" : "hover:bg-gray-50"}`}
                     >
                       {pageNum}
@@ -336,7 +373,7 @@ export default function CategoryList() {
                   );
                 })}
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() => updateFilters({ page: currentPage + 1 })}
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -361,11 +398,10 @@ export default function CategoryList() {
       )}
       {showFilterModal && (
         <FilterModal
-          filters={filters}
+          filters={{ level: currentLevel, parentCategory: currentParentCategory, search: currentSearch }}
           onApply={(newFilters) => {
-            setFilters(newFilters);
+            updateFilters(newFilters);
             setShowFilterModal(false);
-            setCurrentPage(1);
             toast.success(t("toasts.filtersApplied"));
           }}
           onClose={() => setShowFilterModal(false)}

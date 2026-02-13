@@ -19,13 +19,27 @@ import {
     Grid
 } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-const DebtsPageContent = () => {
+const DebtsPageContent = ({ initialParams = {} }) => {
     const t = useTranslations("debtsPage");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
     const [errorDialogOpen, setErrorDialogOpen] = useState(false);
     const { data: session } = useSession();
+
+    const {
+        soldBy: initialSoldBy = "",
+        shopId: initialShopId = "",
+        companyId: initialCompanyId
+    } = initialParams;
+
+    // Sync filters with URL params
+    const selectedWorkerId = searchParams.get("soldBy") ?? initialSoldBy;
+    const selectedShopId = searchParams.get("shopId") ?? initialShopId;
 
     const user = session?.user;
     const companyObj = user?.companies?.[0];
@@ -34,28 +48,31 @@ const DebtsPageContent = () => {
     const assignedDepartments = user?.assignedDepartments || [];
     const isWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
 
-    const [selectedWorkerId, setSelectedWorkerId] = useState("");
-    const [selectedShopId, setSelectedShopId] = useState("");
-
-    // Set default worker ID for all roles (Admin/Manager start with their own debts)
-    useEffect(() => {
-        if (user?._id || user?.id) {
-            setSelectedWorkerId(user?._id || user?.id);
-        }
-    }, [user?._id, user?.id]);
+    // Helper to update filters in URL
+    const updateFilters = useCallback((updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "") {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [router, pathname, searchParams]);
 
     // Fetch workers for the filter (only for admins/managers)
     const { data: workers = [] } = useQuery({
-        queryKey: ["workers", companyId],
-        queryFn: () => getWorkersByCompanyId(companyId),
-        enabled: !!companyId && !isWorker,
+        queryKey: ["workers", companyId || initialCompanyId],
+        queryFn: () => getWorkersByCompanyId(companyId || initialCompanyId),
+        enabled: !!(companyId || initialCompanyId) && !isWorker,
     });
 
     // Fetch shops for the filter (only for admins/managers)
     const { data: shopsData = null } = useQuery({
-        queryKey: ["shops", companyId],
-        queryFn: () => getBranches(companyId),
-        enabled: !!companyId && !isWorker,
+        queryKey: ["shops", companyId || initialCompanyId],
+        queryFn: () => getBranches(companyId || initialCompanyId),
+        enabled: !!(companyId || initialCompanyId) && !isWorker,
     });
 
     // Handle both array and object response structures from getBranches
@@ -73,27 +90,14 @@ const DebtsPageContent = () => {
         });
     }, [workers, selectedShopId]);
 
-    // Reset worker selection if they don't belong to the selected shop
-    useEffect(() => {
-        if (selectedShopId && selectedWorkerId) {
-            const currentUserId = user?._id || user?.id;
-            if (selectedWorkerId === currentUserId) return;
-
-            const isWorkerInShop = filteredWorkers.some(w => (w._id || w.id) === selectedWorkerId);
-            if (!isWorkerInShop) {
-                setSelectedWorkerId("");
-            }
-        }
-    }, [selectedShopId, filteredWorkers, selectedWorkerId, user]);
-
     // Fetch debts data from backend
     const { data: debtsData = [], isLoading, error, refetch, isFetching } = useQuery({
-        queryKey: ["debts", companyId, selectedWorkerId, selectedShopId],
-        queryFn: () => getDebts(companyId, {
+        queryKey: ["debts", companyId || initialCompanyId, selectedWorkerId, selectedShopId],
+        queryFn: () => getDebts(companyId || initialCompanyId, {
             soldBy: selectedWorkerId,
             shopId: selectedShopId
         }),
-        enabled: !!companyId,
+        enabled: !!(companyId || initialCompanyId),
         select: (response) => {
             // API returns paginated data: { items: [...], total: N, page: N, limit: N }
             if (response?.items && Array.isArray(response.items)) return response.items;
@@ -142,10 +146,10 @@ const DebtsPageContent = () => {
                 debts={debtsData}
                 workers={filteredWorkers}
                 selectedWorkerId={selectedWorkerId}
-                setSelectedWorkerId={setSelectedWorkerId}
+                setSelectedWorkerId={(id) => updateFilters({ soldBy: id })}
                 shops={shops}
                 selectedShopId={selectedShopId}
-                setSelectedShopId={setSelectedShopId}
+                setSelectedShopId={(id) => updateFilters({ shopId: id, soldBy: "" })}
                 isWorker={isWorker}
             />
 

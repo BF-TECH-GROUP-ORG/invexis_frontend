@@ -1,138 +1,114 @@
-"use client";
-import React, { useState } from 'react';
-import { ShoppingBag, TrendingUp, DollarSign, CreditCard } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { useSession } from "next-auth/react";
-import SalesPerformance from '@/components/visuals/sales/salesPerformance';
-import ShopEmployeeReports from '@/components/visuals/reports/ShopEmployeeReports';
+import React from 'react';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import SalesReportsClient from './SalesReportsClient';
 import AnalyticsService from '@/services/analyticsService';
 import { getBranches } from '@/services/branches';
 import { getWorkersByCompanyId } from '@/services/workersService';
 import dayjs from 'dayjs';
+import { unstable_cache } from 'next/cache';
 
-const SalesReportsPage = () => {
-    const [timeRange, setTimeRange] = useState('7d');
-    const [selectedDate, setSelectedDate] = useState(dayjs());
-    const { data: session } = useSession();
-    const user = session?.user;
+export const dynamic = 'force-dynamic';
+
+const SalesReportsPage = async ({ searchParams }) => {
+    const session = await getServerSession(authOptions);
+
+    // Await searchParams if it's a promise (Next.js 15 behavior)
+    const resolvedParams = await (searchParams || {});
+    const timeRange = resolvedParams.timeRange || '7d';
+    const customDate = resolvedParams.date || dayjs().format('YYYY-MM-DD');
+
+    if (!session?.accessToken) {
+        return <div>Please log in to view sales reports.</div>;
+    }
+
+    const user = session.user;
     const companyObj = user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
-    // Calculate backend params based on timeRange
-    const getQueryParams = () => {
-        const end = selectedDate;
-        let start;
-        let interval;
-
-        switch (timeRange) {
-            case '24h':
-                start = end.subtract(1, 'day');
-                interval = 'hour';
-                break;
-            case '7d':
-                start = end.subtract(7, 'day');
-                interval = 'day';
-                break;
-            case '30d':
-                start = end.subtract(30, 'day');
-                interval = 'day';
-                break;
-            case '90d':
-                start = end.subtract(90, 'day');
-                interval = 'day';
-                break;
-            case '1y':
-                start = end.subtract(1, 'year');
-                interval = 'month';
-                break;
-            default:
-                start = end.subtract(7, 'day');
-                interval = 'day';
+    const options = {
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`
         }
-
-        return {
-            startDate: start.format('YYYY-MM-DD'),
-            endDate: end.format('YYYY-MM-DD'),
-            interval
-        };
     };
 
-    const params = getQueryParams();
+    // Calculate dates on the server
+    const end = dayjs(customDate);
+    let start;
+    let interval;
 
-    // --- Queries ---
+    switch (timeRange) {
+        case '24h':
+            start = end.subtract(1, 'day');
+            interval = 'hour';
+            break;
+        case '7d':
+            start = end.subtract(7, 'day');
+            interval = 'day';
+            break;
+        case '30d':
+            start = end.subtract(30, 'day');
+            interval = 'day';
+            break;
+        case '90d':
+            start = end.subtract(90, 'day');
+            interval = 'day';
+            break;
+        case '1y':
+            start = end.subtract(1, 'year');
+            interval = 'month';
+            break;
+        default:
+            start = end.subtract(7, 'day');
+            interval = 'day';
+    }
 
-    // 1. Dashboard Summary
-    const { data: summaryRes, isLoading: summaryLoading } = useQuery({
-        queryKey: ['analytics', 'summary', params],
-        queryFn: () => AnalyticsService.getDashboardSummary(params),
-        staleTime: 60 * 1000,
-        retry: false,
-    });
+    const params = {
+        startDate: start.format('YYYY-MM-DD'),
+        endDate: end.format('YYYY-MM-DD'),
+        interval
+    };
 
-    // 2. Sales Revenue
-    const { data: salesRes, isLoading: salesLoading } = useQuery({
-        queryKey: ['analytics', 'sales', params],
-        queryFn: () => AnalyticsService.getRevenueReport(params),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
-    });
+    // Helper for server-side persistence using unstable_cache
+    const getCachedAnalytics = (key, fetcher) =>
+        unstable_cache(
+            async () => fetcher(),
+            [`reports-${key}`, companyId, JSON.stringify(params)],
+            { revalidate: 300, tags: ['analytics', `company-${companyId}`] }
+        )();
 
-    // 3. Profitability
-    const { data: profitabilityRes, isLoading: profitabilityLoading } = useQuery({
-        queryKey: ['analytics', 'profitability', params],
-        queryFn: () => AnalyticsService.getProfitabilityReport(params),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
-    });
-
-    // 4. Top Products
-    const { data: productsRes, isLoading: productsLoading } = useQuery({
-        queryKey: ['analytics', 'products', params],
-        queryFn: () => AnalyticsService.getTopProducts(params),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
-    });
-
-    // 5. Payment Methods
-    const { data: categoriesRes, isLoading: categoriesLoading } = useQuery({
-        queryKey: ['analytics', 'paymentMethods', params],
-        queryFn: () => AnalyticsService.getPaymentMethodStats(params),
-        staleTime: 5 * 60 * 1000,
-        retry: false,
-    });
-
-    // 6. Shop & Employee Performance
-    const { data: shopRes, isLoading: shopLoading } = useQuery({
-        queryKey: ['analytics', 'shops', params],
-        queryFn: () => AnalyticsService.getShopPerformance(params),
-        staleTime: 10 * 60 * 1000,
-        retry: false,
-    });
-
-    const { data: employeeRes, isLoading: employeeLoading } = useQuery({
-        queryKey: ['analytics', 'employees', params],
-        queryFn: () => AnalyticsService.getEmployeePerformance(params),
-        staleTime: 10 * 60 * 1000,
-        retry: false,
-    });
-
-    // Fetch Shops and Workers for name mapping
-    const { data: branchesRes } = useQuery({
-        queryKey: ['branches', companyId],
-        queryFn: () => getBranches(companyId),
-        enabled: !!companyId,
-    });
-
-    const { data: workersRes } = useQuery({
-        queryKey: ['workers', companyId],
-        queryFn: () => getWorkersByCompanyId(companyId),
-        enabled: !!companyId,
-    });
-
-    const loading = summaryLoading || salesLoading || profitabilityLoading || productsLoading || categoriesLoading || shopLoading || employeeLoading;
+    // Fetch all required data in parallel on the server
+    const [
+        summaryRes,
+        salesRes,
+        profitabilityRes,
+        productsRes,
+        categoriesRes,
+        shopRes,
+        employeeRes,
+        branchesRes,
+        workersRes
+    ] = await Promise.all([
+        getCachedAnalytics('summary', () => AnalyticsService.getDashboardSummary(params, options)),
+        getCachedAnalytics('sales', () => AnalyticsService.getRevenueReport(params, options)),
+        getCachedAnalytics('profitability', () => AnalyticsService.getProfitabilityReport(params, options)),
+        getCachedAnalytics('products', () => AnalyticsService.getTopProducts(params, options)),
+        getCachedAnalytics('categories', () => AnalyticsService.getPaymentMethodStats(params, options)),
+        getCachedAnalytics('shops', () => AnalyticsService.getShopPerformance(params, options)),
+        getCachedAnalytics('employees', () => AnalyticsService.getEmployeePerformance(params, options)),
+        unstable_cache(
+            async () => getBranches(companyId, options),
+            [`shops`, companyId],
+            { revalidate: 600, tags: ['shops', `company-${companyId}`] }
+        )(),
+        unstable_cache(
+            async () => getWorkersByCompanyId(companyId, options),
+            [`workers`, companyId],
+            { revalidate: 600, tags: ['workers', `company-${companyId}`] }
+        )()
+    ]);
 
     // --- Data Transformation ---
-
     const summary = summaryRes?.data || summaryRes || {};
 
     const rawSales = salesRes?.data || salesRes || [];
@@ -183,81 +159,19 @@ const SalesReportsPage = () => {
         };
     });
 
-    const headerCards = [
-        {
-            title: "Total Daily Sales",
-            value: summary.totalDailySales || 0,
-            icon: <ShoppingBag size={24} className="text-orange-500" />,
-            bgColor: "bg-orange-50"
-        },
-        {
-            title: "Total Revenue",
-            value: `$${(summary.totalRevenue || 0).toLocaleString()}`,
-            icon: <DollarSign size={24} className="text-emerald-500" />,
-            bgColor: "bg-emerald-50"
-        },
-        {
-            title: "Total Profit",
-            value: `$${(summary.totalProfit || 0).toLocaleString()}`,
-            icon: <TrendingUp size={24} className="text-blue-500" />,
-            bgColor: "bg-blue-50"
-        },
-        {
-            title: "Transactions",
-            value: summary.totalOrders || 0,
-            icon: <CreditCard size={24} className="text-purple-500" />,
-            bgColor: "bg-purple-50"
-        }
-    ];
+    const initialData = {
+        summary,
+        salesPerformance,
+        profitabilityData,
+        topProducts,
+        categories,
+        shopPerformance,
+        employeePerformance,
+        timeRange,
+        selectedDate: customDate
+    };
 
-    return (
-        <div className="min-h-screen bg-gray-50/30 p-4 md:p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Sales Reports</h1>
-                        <p className="text-gray-500 mt-1">Detailed analysis of sales performance and trends</p>
-                    </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {headerCards.map((card, idx) => (
-                        <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-                            <div className={`p-3 rounded-xl ${card.bgColor}`}>
-                                {card.icon}
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">{card.title}</p>
-                                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Main Performance Charts */}
-                <SalesPerformance
-                    timeRange={timeRange}
-                    setTimeRange={setTimeRange}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                    salesData={salesPerformance}
-                    profitabilityData={profitabilityData}
-                    topProductsData={topProducts}
-                    categoryData={categories}
-                    loading={loading}
-                />
-
-                {/* Shop & Employee Performance */}
-                <ShopEmployeeReports
-                    shopPerformance={shopPerformance}
-                    employeePerformance={employeePerformance}
-                    loading={loading}
-                />
-            </div>
-        </div>
-    );
+    return <SalesReportsClient initialData={initialData} />;
 };
 
 export default SalesReportsPage;

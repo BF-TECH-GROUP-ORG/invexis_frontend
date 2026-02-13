@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import TransferStats from "./TransferStats";
 import TransferTable from "./TransferTable";
 import TransferFilters from "./TransferFilters";
@@ -24,29 +24,68 @@ import { getAllShops } from "@/services/shopService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getCompanyDetails, getAllCompanies } from "@/services/stockService";
 
-export default function TransferList() {
-    const t = useTranslations("transfers");
-    const { data: session } = useSession();
-    const companyObj = session?.user?.companies?.[0];
-    const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id;
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [activeFilters, setActiveFilters] = useState({
-        search: "",
-        direction: "all",
-        type: "all",
-        shop: "all",
-        worker: "all",
-        startDate: "",
-        endDate: ""
-    });
+export default function TransferList({ initialParams = {} }) {
+    const t = useTranslations("transfers");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { data: session } = useSession();
+
+    const {
+        page: initialPage = 1,
+        limit: initialLimit = 10,
+        search: initialSearch = "",
+        direction: initialDirection = "all",
+        type: initialType = "all",
+        shop: initialShop = "all",
+        worker: initialWorker = "all",
+        startDate: initialStartDate = "",
+        endDate: initialEndDate = "",
+        companyId: initialCompanyId
+    } = initialParams;
+
+    // Sync state with URL params
+    const page = parseInt(searchParams.get("page")) || initialPage;
+    const rowsPerPage = parseInt(searchParams.get("limit")) || initialLimit;
+    const activeFilters = {
+        search: searchParams.get("search") || initialSearch,
+        direction: searchParams.get("direction") || initialDirection,
+        type: searchParams.get("type") || initialType,
+        shop: searchParams.get("shop") || initialShop,
+        worker: searchParams.get("worker") || initialWorker,
+        startDate: searchParams.get("startDate") || initialStartDate,
+        endDate: searchParams.get("endDate") || initialEndDate
+    };
+
+    const companyObj = session?.user?.companies?.[0];
+    const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || initialCompanyId;
 
     const options = useMemo(() => (session?.accessToken ? {
         headers: {
             Authorization: `Bearer ${session.accessToken}`
         }
     } : {}), [session?.accessToken]);
+
+    // Helper to update filters in URL
+    const updateFilters = useCallback((updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "" || value === "all") {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
+
+        // Reset to page 1 for any search/filter changes unless explicitly a page change
+        if (!updates.page && updates.page !== 0) {
+            params.delete("page");
+        }
+
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [router, pathname, searchParams]);
 
     // Fetch Metadata
     const { data: shopsData } = useQuery({
@@ -85,7 +124,7 @@ export default function TransferList() {
     // Fetch Transfers
     const fetchParams = useMemo(() => {
         const params = {
-            page: page + 1,
+            page,
             limit: rowsPerPage,
             search: activeFilters.search || undefined,
             transferType: activeFilters.type !== "all" ? activeFilters.type : undefined,
@@ -165,8 +204,7 @@ export default function TransferList() {
     };
 
     const handleFilterChange = (newFilters) => {
-        setActiveFilters(prev => ({ ...prev, ...newFilters }));
-        setPage(0);
+        updateFilters(newFilters);
     };
 
     return (
@@ -228,6 +266,7 @@ export default function TransferList() {
                 onFilterChange={handleFilterChange}
                 shops={shops}
                 workers={workers}
+                activeFilters={activeFilters}
             />
 
             <motion.div
@@ -257,11 +296,10 @@ export default function TransferList() {
                             component="div"
                             count={totalCount}
                             rowsPerPage={rowsPerPage}
-                            page={page}
-                            onPageChange={(e, p) => setPage(p)}
+                            page={page - 1}
+                            onPageChange={(e, p) => updateFilters({ page: p + 1 })}
                             onRowsPerPageChange={(e) => {
-                                setRowsPerPage(parseInt(e.target.value, 10));
-                                setPage(0);
+                                updateFilters({ limit: parseInt(e.target.value, 10), page: 1 });
                             }}
                             sx={{
                                 border: "none",

@@ -1,62 +1,36 @@
 "use client";
-
 import React from "react";
-import { Box, Typography, Breadcrumbs, Link, Button } from "@mui/material";
+import { Breadcrumbs, Link, Button } from "@mui/material";
 import { HiUserAdd } from "react-icons/hi";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function UsersPageHeader({ onAddUser }) {
-  return (
-    <Box mb={3}>
-      {/* === Breadcrumbs Navigation === */}
-      <Breadcrumbs
-        separator="›"
-        aria-label="breadcrumb"
-        sx={{
-          fontFamily: "Metropolis, sans-serif",
-          fontSize: 14,
-          color: "#7a7a7a",
-          mb: 1,
-        }}
-      >
-        <Link
-          underline="hover"
-          color="#7a7a7a"
-          href="/dashboard"
-          sx={{
-            fontWeight: 500,
-            "&:hover": { color: "#081422" },
-          }}
-        >
-          Dashboard
-        </Link>
-        <Link
-          underline="hover"
-          color="#7a7a7a"
-          href="/dashboard/workers"
-          sx={{
-            fontWeight: 500,
-            "&:hover": { color: "#081422" },
-          }}
-        >
-          Workers
-        </Link>
-        <Typography color="#081422" fontWeight={600}>
-          List
-        </Typography>
-      </Breadcrumbs>
+  const locale = useLocale();
+  const t = useTranslations("management.workers");
+  const navT = useTranslations("nav");
 
-      {/* === Title + Button Row === */}
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: "#081422",
-            fontFamily: "Metropolis, sans-serif",
-          }}
-        >
-          Workers List
-        </Typography>
+  return (
+    <div className="space-y-4 mb-8">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center text-xs md:text-sm text-[#7a7a7a] space-x-2 font-medium">
+        <Link href={`/${locale}/dashboard`} underline="none" className="hover:text-[#081422] transition text-[#7a7a7a]">
+          {navT("dashboard") || "Dashboard"}
+        </Link>
+        <span className="text-[#d1d5db]">/</span>
+        <span className="text-[#081422] font-bold">
+          {t("directoryTitle") || "Personnel Directory"}
+        </span>
+      </nav>
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-4xl font-black text-[#081422] tracking-tight">
+            {t("directoryTitle") || "Personnel Directory"}
+          </h1>
+          <p className="text-[#6b7280] text-sm md:text-base font-medium mt-1">
+            {t("directoryDesc") || "Manage your company staff, assignments, and roles across all branches."}
+          </p>
+        </div>
 
         <Button
           variant="contained"
@@ -66,19 +40,21 @@ export default function UsersPageHeader({ onAddUser }) {
             backgroundColor: "#081422",
             color: "#fff",
             textTransform: "none",
-            borderRadius: "10px",
-            fontFamily: "Metropolis, sans-serif",
-            fontWeight: 500,
-            px: 2.5,
-            py: 1,
+            borderRadius: "16px",
+            fontWeight: 700,
+            px: 4,
+            py: 1.5,
+            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
             "&:hover": {
               backgroundColor: "#0b2036",
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
             },
+            width: { xs: '100%', md: 'auto' }
           }}
         >
-          Add Worker
+          {t("addStaffMember") || "Add Staff Member"}
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

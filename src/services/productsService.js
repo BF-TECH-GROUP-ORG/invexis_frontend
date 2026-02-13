@@ -20,7 +20,7 @@ export async function getProducts({
   category,
   search,
   companyId,
-} = {}) {
+} = {}, options = {}) {
   if (!companyId) return [];
 
   const params = { page, limit };
@@ -29,7 +29,7 @@ export async function getProducts({
 
   return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/products`, {
     params,
-
+    ...options,
     cache: { noStore: true },
   });
 }
@@ -39,11 +39,12 @@ export async function getProducts({
  * Featured products
  * -----------------------------------------------------
  */
-export async function getFeaturedProducts() {
+export async function getFeaturedProducts(options = {}) {
   const cache = getCacheStrategy("INVENTORY", "METADATA");
 
   return apiClient.get(`${INVENTORY_BASE}/products/featured`, {
     cache,
+    ...options,
   });
 }
 
@@ -52,13 +53,14 @@ export async function getFeaturedProducts() {
  * Product by ID
  * -----------------------------------------------------
  */
-export async function getProductById(id) {
+export async function getProductById(id, options = {}) {
   if (!id) throw new Error("Product ID is required");
 
   const cache = getCacheStrategy("INVENTORY", "METADATA");
 
   return apiClient.get(`${INVENTORY_BASE}/products/${id}`, {
     cache,
+    ...options,
   });
 }
 
@@ -67,17 +69,14 @@ export async function getProductById(id) {
  * Create product
  * -----------------------------------------------------
  */
-export async function createProduct(payload) {
+export async function createProduct(payload, options = {}) {
   const isFormData =
     typeof FormData !== "undefined" && payload instanceof FormData;
 
   const data = await apiClient.post(
     `${INVENTORY_BASE}/products`,
     payload,
-
-    {
-      // Headers will be automatically set by the browser/axios for FormData
-    }
+    options
   );
 
   apiClient.clearCache("/inventory");
@@ -89,10 +88,10 @@ export async function createProduct(payload) {
  * Update product
  * -----------------------------------------------------
  */
-export async function updateProduct(id, updates) {
+export async function updateProduct(id, updates, options = {}) {
   if (!id) throw new Error("Product ID is required");
 
-  const data = await apiClient.put(`${INVENTORY_BASE}/products/${id}`, updates);
+  const data = await apiClient.put(`${INVENTORY_BASE}/products/${id}`, updates, options);
 
   apiClient.clearCache("/inventory");
   return data;
@@ -103,10 +102,10 @@ export async function updateProduct(id, updates) {
  * Delete product
  * -----------------------------------------------------
  */
-export async function deleteProduct(id) {
+export async function deleteProduct(id, options = {}) {
   if (!id) throw new Error("Product ID is required");
 
-  const data = await apiClient.delete(`${INVENTORY_BASE}/products/${id}`);
+  const data = await apiClient.delete(`${INVENTORY_BASE}/products/${id}`, options);
 
   apiClient.clearCache("/inventory");
   return data;
@@ -117,12 +116,13 @@ export async function deleteProduct(id) {
  * Update stock
  * -----------------------------------------------------
  */
-export async function updateStock(id, stockData) {
+export async function updateStock(id, stockData, options = {}) {
   if (!id) throw new Error("Product ID is required");
 
   const data = await apiClient.patch(
     `${INVENTORY_BASE}/products/${id}/stock`,
-    stockData
+    stockData,
+    options
   );
 
   apiClient.clearCache("/inventory");
@@ -134,12 +134,12 @@ export async function updateStock(id, stockData) {
  * Search products (real-time)
  * -----------------------------------------------------
  */
-export async function searchProducts(query) {
+export async function searchProducts(query, options = {}) {
   if (!query) return [];
 
   return apiClient.get(`${INVENTORY_BASE}/products/search`, {
     params: { q: query },
-
+    ...options,
     cache: { noStore: true },
   });
 }

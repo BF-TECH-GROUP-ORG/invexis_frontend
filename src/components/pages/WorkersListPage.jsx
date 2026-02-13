@@ -1,9 +1,9 @@
 import WorkersTable from "../layouts/WorkersTable";
 
-export default function WorkersListPage({ companyId }) {
+export default function WorkersListPage({ initialParams }) {
   return (
-    <div className="p-6">
-      <WorkersTable companyId={companyId} />
+    <div className="pt-2 mx-auto">
+      <WorkersTable initialParams={initialParams} />
     </div>
   );
 }

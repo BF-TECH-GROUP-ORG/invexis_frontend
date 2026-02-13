@@ -28,32 +28,60 @@ import {
 import dayjs from "dayjs";
 import InvoiceGenerator from "./InvoiceGenerator";
 import InvoicePreviewModal from "./InvoicePreviewModal";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-export default function InvoiceExplorer({ invoices }) {
-    const [viewState, setViewState] = useState({
-        view: "years", // 'years' | 'months' | 'list'
-        year: null,
-        month: null
-    });
+export default function InvoiceExplorer({ invoices, initialParams = {} }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
+    const {
+        shop: initialShop = "All",
+        worker: initialWorker = "All",
+        type: initialType = "All",
+        startDate: initialStartDate = "",
+        endDate: initialEndDate = "",
+        view: initialView = "years",
+        year: initialYear = null,
+        month: initialMonth = null
+    } = initialParams;
+
+    // Sync state with URL params
+    const selectedView = searchParams.get("view") || initialView;
+    const currentYear = searchParams.get("year") || initialYear;
+    const currentMonth = searchParams.get("month") || initialMonth;
+    const selectedShop = searchParams.get("shop") || initialShop;
+    const selectedWorker = searchParams.get("worker") || initialWorker;
+    const selectedType = searchParams.get("type") || initialType;
+    const startDate = searchParams.get("startDate") || initialStartDate;
+    const endDate = searchParams.get("endDate") || initialEndDate;
 
     const [selectedPreviewInvoice, setSelectedPreviewInvoice] = useState(null);
 
-    const [dateRange, setDateRange] = useState({ start: "", end: "" });
-    const [selectedShop, setSelectedShop] = useState("All");
-    const [selectedWorker, setSelectedWorker] = useState("All");
-    const [selectedType, setSelectedType] = useState("All");
+    // Helper to update filters/state in URL
+    const updateFilters = (updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "" || value === "All") {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
 
     // 1. Filtered Data Logic
     const filteredInvoices = useMemo(() => {
         return (invoices || []).filter(inv => {
-            const dateMatch = (!dateRange.start || dayjs(inv.date).isAfter(dayjs(dateRange.start).subtract(1, 'day'))) &&
-                (!dateRange.end || dayjs(inv.date).isBefore(dayjs(dateRange.end).add(1, 'day')));
+            const dateMatch = (!startDate || dayjs(inv.date).isAfter(dayjs(startDate).subtract(1, 'day'))) &&
+                (!endDate || dayjs(inv.date).isBefore(dayjs(endDate).add(1, 'day')));
             const shopMatch = selectedShop === "All" || (inv.shopName || "Default Shop") === selectedShop;
             const workerMatch = selectedWorker === "All" || (inv.workerName || "System") === selectedWorker;
             const typeMatch = selectedType === "All" || (inv.type || "Income") === selectedType;
             return dateMatch && shopMatch && workerMatch && typeMatch;
         });
-    }, [invoices, dateRange, selectedShop, selectedWorker, selectedType]);
+    }, [invoices, startDate, endDate, selectedShop, selectedWorker, selectedType]);
 
     // 2. Group Data Logic
     const groupedData = useMemo(() => {
@@ -77,18 +105,18 @@ export default function InvoiceExplorer({ invoices }) {
 
     // Navigation Handlers
     const handleSelectYear = (year) => {
-        setViewState({ view: "months", year, month: null });
+        updateFilters({ view: "months", year, month: null });
     };
 
     const handleSelectMonth = (month) => {
-        setViewState(prev => ({ ...prev, view: "list", month }));
+        updateFilters({ view: "list", month });
     };
 
     const handleBack = () => {
-        if (viewState.view === "list") {
-            setViewState(prev => ({ ...prev, view: "months", month: null }));
-        } else if (viewState.view === "months") {
-            setViewState({ view: "years", year: null, month: null });
+        if (selectedView === "list") {
+            updateFilters({ view: "months", month: null });
+        } else if (selectedView === "months") {
+            updateFilters({ view: "years", year: null, month: null });
         }
     };
 
@@ -96,26 +124,26 @@ export default function InvoiceExplorer({ invoices }) {
     const Breadcrumb = () => (
         <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-8">
             <button
-                onClick={() => setViewState({ view: "years", year: null, month: null })}
+                onClick={() => updateFilters({ view: "years", year: null, month: null })}
                 className="hover:text-indigo-600 transition-colors"
             >
                 Archive Root
             </button>
-            {viewState.year && (
+            {currentYear && (
                 <>
                     <ChevronRight size={12} className="text-slate-300" />
                     <button
-                        onClick={() => setViewState(prev => ({ ...prev, view: "months", month: null }))}
-                        className={`transition-colors ${viewState.view === 'months' ? 'text-slate-900 border-b-2 border-indigo-500' : 'hover:text-indigo-600'}`}
+                        onClick={() => updateFilters({ view: "months", month: null })}
+                        className={`transition-colors ${selectedView === 'months' ? 'text-slate-900 border-b-2 border-indigo-500' : 'hover:text-indigo-600'}`}
                     >
-                        FY {viewState.year}
+                        FY {currentYear}
                     </button>
                 </>
             )}
-            {viewState.month && (
+            {currentMonth && (
                 <>
                     <ChevronRight size={12} className="text-slate-300" />
-                    <span className="text-slate-900 border-b-2 border-indigo-500">{viewState.month}</span>
+                    <span className="text-slate-900 border-b-2 border-indigo-500">{currentMonth}</span>
                 </>
             )}
         </div>
@@ -128,7 +156,7 @@ export default function InvoiceExplorer({ invoices }) {
                 <Select
                     label="Shop"
                     value={selectedShop}
-                    onChange={(e) => setSelectedShop(e.target.value)}
+                    onChange={(e) => updateFilters({ shop: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     {shops.map(shop => <MenuItem key={shop} value={shop} sx={{ fontSize: '0.75rem' }}>{shop}</MenuItem>)}
@@ -140,7 +168,7 @@ export default function InvoiceExplorer({ invoices }) {
                 <Select
                     label="Worker"
                     value={selectedWorker}
-                    onChange={(e) => setSelectedWorker(e.target.value)}
+                    onChange={(e) => updateFilters({ worker: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     {workers.map(worker => <MenuItem key={worker} value={worker} sx={{ fontSize: '0.75rem' }}>{worker}</MenuItem>)}
@@ -152,7 +180,7 @@ export default function InvoiceExplorer({ invoices }) {
                 <Select
                     label="Type"
                     value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
+                    onChange={(e) => updateFilters({ type: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All Types</MenuItem>
@@ -165,8 +193,8 @@ export default function InvoiceExplorer({ invoices }) {
                 size="small"
                 type="date"
                 label="From"
-                value={dateRange.start}
-                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                value={startDate}
+                onChange={(e) => updateFilters({ startDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: 130, "& .MuiInputBase-input": { fontSize: '0.75rem' }, "& .MuiOutlinedInput-root": { borderRadius: '8px' } }}
             />
@@ -174,8 +202,8 @@ export default function InvoiceExplorer({ invoices }) {
                 size="small"
                 type="date"
                 label="To"
-                value={dateRange.end}
-                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                value={endDate}
+                onChange={(e) => updateFilters({ endDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: 130, "& .MuiInputBase-input": { fontSize: '0.75rem' }, "& .MuiOutlinedInput-root": { borderRadius: '8px' } }}
             />
@@ -193,7 +221,7 @@ export default function InvoiceExplorer({ invoices }) {
                     </h2>
                     <p className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-1">Multi-dimensional document archive</p>
                 </div>
-                {viewState.view !== "years" && (
+                {selectedView !== "years" && (
                     <Button
                         onClick={handleBack}
                         variant="outlined"
@@ -218,7 +246,7 @@ export default function InvoiceExplorer({ invoices }) {
             <Breadcrumb />
 
             {/* VIEW: YEARS */}
-            {viewState.view === "years" && (
+            {selectedView === "years" && (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     {years.map(year => (
                         <button
@@ -245,9 +273,9 @@ export default function InvoiceExplorer({ invoices }) {
             )}
 
             {/* VIEW: MONTHS */}
-            {viewState.view === "months" && (
+            {selectedView === "months" && currentYear && groupedData[currentYear] && (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    {Object.keys(groupedData[viewState.year]).map(month => (
+                    {Object.keys(groupedData[currentYear]).map(month => (
                         <button
                             key={month}
                             onClick={() => handleSelectMonth(month)}
@@ -258,7 +286,7 @@ export default function InvoiceExplorer({ invoices }) {
                             </div>
                             <span className="font-extrabold text-slate-700 text-lg group-hover:text-blue-900">{month}</span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-tighter">
-                                {groupedData[viewState.year][month].length} Documents
+                                {groupedData[currentYear][month].length} Documents
                             </span>
                         </button>
                     ))}
@@ -266,16 +294,16 @@ export default function InvoiceExplorer({ invoices }) {
             )}
 
             {/* VIEW: LIST (Invoices) */}
-            {viewState.view === "list" && (
+            {selectedView === "list" && currentYear && currentMonth && groupedData[currentYear]?.[currentMonth] && (
                 <div className="grid grid-cols-1 gap-6 animate-in slide-in-from-right-4 duration-400">
-                    {groupedData[viewState.year][viewState.month].map(invoice => (
+                    {groupedData[currentYear][currentMonth].map(invoice => (
                         <InvoiceGenerator
                             key={invoice.id}
                             invoice={invoice}
                             onPreview={() => setSelectedPreviewInvoice(invoice)}
                         />
                     ))}
-                    {groupedData[viewState.year][viewState.month].length === 0 && (
+                    {groupedData[currentYear][currentMonth].length === 0 && (
                         <div className="py-20 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-3xl">
                             <Search size={48} className="mb-4 opacity-20" />
                             <p className="text-sm font-bold uppercase tracking-widest">No documents matching filters</p>

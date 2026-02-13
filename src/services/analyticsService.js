@@ -61,7 +61,7 @@ const AnalyticsService = {
 
         const response = await apiClient.get(fullPath, {
             params,
-            retries: 0,
+            retries: 2, // Enable retries for analytics reports
             cache: { ttl: 60 * 1000 }, // Default 1 min cache for analytics
             ...options
         });
@@ -77,28 +77,28 @@ const AnalyticsService = {
      * Response: [{ date, revenue, orderCount }]
      * Chart: Dual-Axis Line/Bar Chart
      */
-    getRevenueReport: (filters) => AnalyticsService.getReport('sales/revenue', filters),
+    getRevenueReport: (filters, options = {}) => AnalyticsService.getReport('sales/revenue', filters, options),
 
     /**
      * Revenue, Cost, Profit, Margin
      * Response: [{ date, revenue, cost, profit, grossMarginPercent }]
      * Chart: Stacked Bar Chart with Margin Line
      */
-    getProfitabilityReport: (filters) => AnalyticsService.getReport('sales/profitability', filters),
+    getProfitabilityReport: (filters, options = {}) => AnalyticsService.getReport('sales/profitability', filters, options),
 
     /**
      * Payment Methods Distribution (Cash, Card, Mobile)
      * Response: [{ method, count, totalAmount }]
      * Chart: Donut Chart
      */
-    getPaymentMethodStats: (filters) => AnalyticsService.getReport('sales/payment-methods', filters),
+    getPaymentMethodStats: (filters, options = {}) => AnalyticsService.getReport('sales/payment-methods', filters, options),
 
     /**
      * Best performing payment method
      * Response: { method, count, percentage }
      * Display: Highlight Card
      */
-    getBestPaymentMethod: (filters) => AnalyticsService.getReport('sales/payment-methods/best', filters),
+    getBestPaymentMethod: (filters, options = {}) => AnalyticsService.getReport('sales/payment-methods/best', filters, options),
 
     // ========== 3. Inventory & Operations ==========
 
@@ -107,21 +107,21 @@ const AnalyticsService = {
      * Response: [{ date, stockIn, stockOut, netFlow }]
      * Chart: Grouped Bar Chart or Diverging Bar Chart
      */
-    getStockMovement: (filters) => AnalyticsService.getReport('inventory/movement', filters),
+    getStockMovement: (filters, options = {}) => AnalyticsService.getReport('inventory/movement', filters, options),
 
     /**
      * Units sold by category
      * Response: [{ category, unitsSold, revenue }]
      * Chart: Treemap
      */
-    getTrendingCategories: (filters) => AnalyticsService.getReport('categories/trending', filters),
+    getTrendingCategories: (filters, options = {}) => AnalyticsService.getReport('categories/trending', filters, options),
 
     /**
      * Sales Velocity & Total Stock
      * Response: { salesVelocity, totalStock, turnoverRate }
      * Chart: Gauge / Speedometer Chart
      */
-    getInventoryHealth: (filters) => AnalyticsService.getReport('inventory/health', filters),
+    getInventoryHealth: (filters, options = {}) => AnalyticsService.getReport('inventory/health', filters, options),
 
     // ========== 4. Customer & Growth ==========
 
@@ -130,21 +130,21 @@ const AnalyticsService = {
      * Response: [{ date, dau, mau }]
      * Chart: Smooth Area Chart
      */
-    getActiveUsers: (filters) => AnalyticsService.getReport('customers/active', filters),
+    getActiveUsers: (filters, options = {}) => AnalyticsService.getReport('customers/active', filters, options),
 
     /**
      * New customer signups over time
      * Response: [{ date, newCustomers }]
      * Chart: Vertical Bar Chart
      */
-    getNewCustomerStats: (filters) => AnalyticsService.getReport('customers/acquisition', filters),
+    getNewCustomerStats: (filters, options = {}) => AnalyticsService.getReport('customers/acquisition', filters, options),
 
     /**
      * Top spending customers
      * Response: [{ customerId, customerName, orders, totalSpent }]
      * Display: Interactive Table with sorting & pagination
      */
-    getTopCustomers: (filters) => AnalyticsService.getReport('customers/top', filters),
+    getTopCustomers: (filters, options = {}) => AnalyticsService.getReport('customers/top', filters, options),
 
     // ========== 5. Staff & Shops Performance ==========
 
@@ -153,14 +153,14 @@ const AnalyticsService = {
      * Response: [{ shopId, shopName, totalRevenue, orderCount }]
      * Chart: Vertical Bar Chart
      */
-    getShopPerformance: (filters) => AnalyticsService.getReport('shops/performance', filters),
+    getShopPerformance: (filters, options = {}) => AnalyticsService.getReport('shops/performance', filters, options),
 
     /**
      * Sales per employee
      * Response: [{ employeeId, employeeName, totalSales, orderCount }]
      * Display: Leaderboard / Ranked List
      */
-    getEmployeePerformance: (filters) => AnalyticsService.getReport('employees/performance', filters),
+    getEmployeePerformance: (filters, options = {}) => AnalyticsService.getReport('employees/performance', filters, options),
 
     // ========== Product Analytics ==========
 
@@ -169,14 +169,14 @@ const AnalyticsService = {
      * Response: [{ productId, productName, totalQuantity, totalRevenue }]
      * Chart: Horizontal Bar Chart
      */
-    getTopProducts: (filters) => AnalyticsService.getReport('products/top', filters),
+    getTopProducts: (filters, options = {}) => AnalyticsService.getReport('products/top', filters, options),
 
     /**
      * Product return rates
      * Response: [{ productId, productName, returnCount, returnRate }]
      * Chart: Bar Chart or Table
      */
-    getReturnRates: (filters) => AnalyticsService.getReport('products/returns', filters),
+    getReturnRates: (filters, options = {}) => AnalyticsService.getReport('products/returns', filters, options),
 
     // ========== Dashboard Summary ==========
 
@@ -184,19 +184,25 @@ const AnalyticsService = {
      * Dashboard Overview (uses Revenue Report as Company Admin summary)
      * For company admins, this provides key metrics for the selected period
      */
-    getDashboardSummary: async (filters) => {
+    getDashboardSummary: async (filters, options = {}) => {
         try {
             // Fetch multiple quick stats in parallel for the dashboard cards
             const [revenue, profitability, returns, categories] = await Promise.all([
-                AnalyticsService.getRevenueReport(filters),
-                AnalyticsService.getProfitabilityReport(filters),
-                AnalyticsService.getReturnRates(filters).catch((err) => {
-                    console.warn('[AnalyticsService] Return Rates statistics failed:', err.message || err);
-                    return { data: [] };
+                AnalyticsService.getRevenueReport(filters, options).catch((err) => {
+                    console.warn('[AnalyticsService] Revenue report failed:', err.message || err);
+                    return [];
                 }),
-                AnalyticsService.getPaymentMethodStats(filters).catch((err) => {
+                AnalyticsService.getProfitabilityReport(filters, options).catch((err) => {
+                    console.warn('[AnalyticsService] Profitability report failed:', err.message || err);
+                    return [];
+                }),
+                AnalyticsService.getReturnRates(filters, options).catch((err) => {
+                    console.warn('[AnalyticsService] Return Rates statistics failed:', err.message || err);
+                    return [];
+                }),
+                AnalyticsService.getPaymentMethodStats(filters, options).catch((err) => {
                     console.warn('[AnalyticsService] Payment Method statistics failed:', err.message || err);
-                    return { data: [] };
+                    return [];
                 })
             ]);
 
@@ -232,7 +238,7 @@ const AnalyticsService = {
      * Export analytics report
      * Response: File download or export URL
      */
-    exportReport: (filters) => AnalyticsService.getReport('export', filters),
+    exportReport: (filters, options = {}) => AnalyticsService.getReport('export', filters, options),
 };
 
 export default AnalyticsService;

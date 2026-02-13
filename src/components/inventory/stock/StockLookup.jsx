@@ -21,14 +21,17 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useSnackbar } from "@/contexts/SnackbarContext";
+import { useTranslations } from "next-intl";
 
 export default function StockLookup({
-  onProductFound = () => {},
+  onProductFound = () => { },
   productsCache = [],
   productsLoading = false,
   companyId = null,
   displayMode = "default", // 'scanner' will render larger QR/barcode
 }) {
+  const t = useTranslations("stockManagement.scanner");
+  const td = useTranslations("stockManagement.dialogs.confirmStockOut");
   const [scanInput, setScanInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -41,7 +44,7 @@ export default function StockLookup({
   const [outQty, setOutQty] = useState("");
   const [outReason, setOutReason] = useState("Sale");
   const [outLoading, setOutLoading] = useState(false);
-  const outReasons = ["Sale", "Damaged", "Expired", "Transfer Out", "Other"];
+  const outReasons = ["sale", "damaged", "expired", "transferOut", "other"];
 
   const { showSnackbar } = useSnackbar();
   // Filter suggestions from cached products by name / sku
@@ -112,7 +115,7 @@ export default function StockLookup({
       setProduct(foundProduct);
       onProductFound(foundProduct);
     } catch (err) {
-      setError(err.response?.data?.message || "Product not found");
+      setError(err.response?.data?.message || t("error"));
     } finally {
       setLoading(false);
     }
@@ -147,11 +150,11 @@ export default function StockLookup({
         reason: outReason,
       });
       setOutQty("");
-      setOutReason("Sale");
+      setOutReason("sale");
       setError(null);
-      alert("Stock out successful");
+      alert(td("success"));
     } catch (err) {
-      setError(err.response?.data?.message || "Stock out failed");
+      setError(err.response?.data?.message || td("failed"));
     } finally {
       setOutLoading(false);
     }
@@ -165,10 +168,10 @@ export default function StockLookup({
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Product Lookup
+            {t("title")}
           </h3>
           <p className="text-sm text-gray-500">
-            Search cached products or scan QR/Barcode
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -184,7 +187,7 @@ export default function StockLookup({
               setSearchResults([]);
               setError(null);
             }}
-            placeholder="Search product name or SKU, or paste a barcode..."
+            placeholder={t("placeholder")}
             className="w-full px-4 py-3 pl-12 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
             autoFocus
           />
@@ -248,7 +251,7 @@ export default function StockLookup({
                         {s.identifiers?.sku || s.sku || ""}
                       </div>
                       <div className="text-xs text-gray-400">
-                        Shop: {s.shopId || s.metadata?.shopId || "-"}
+                        {t("shop")}: {s.shopId || s.metadata?.shopId || "-"}
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -270,12 +273,12 @@ export default function StockLookup({
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Searching...
+                {t("searching")}
               </>
             ) : (
               <>
                 <Search size={18} />
-                Lookup Product
+                {t("lookupBtn")}
               </>
             )}
           </button>
@@ -285,7 +288,7 @@ export default function StockLookup({
               onClick={handleClear}
               className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
             >
-              Clear
+              {t("clearBtn")}
             </button>
           )}
         </div>
@@ -293,7 +296,7 @@ export default function StockLookup({
 
       {/* Loading cached products indicator */}
       {productsLoading && (
-        <div className="mt-4 text-sm text-gray-500">Loading products...</div>
+        <div className="mt-4 text-sm text-gray-500">{t("loadingProducts")}</div>
       )}
 
       {/* Error State */}
@@ -301,7 +304,7 @@ export default function StockLookup({
         <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3">
           <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
           <div>
-            <p className="text-sm font-medium text-red-800">Error</p>
+            <p className="text-sm font-medium text-red-800">{t("error")}</p>
             <p className="text-sm text-red-600">{error}</p>
           </div>
         </div>
@@ -313,7 +316,7 @@ export default function StockLookup({
           <div className="flex items-start gap-3 mb-3">
             <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
             <p className="text-sm font-medium text-green-800">
-              Product Selected
+              {t("productSelected")}
             </p>
           </div>
 
@@ -326,7 +329,7 @@ export default function StockLookup({
                 {product.name || product.ProductName}
               </h4>
               <p className="text-sm text-gray-500">
-                SKU:{" "}
+                {t("sku")}:{" "}
                 {product.identifiers?.sku ||
                   product.sku ||
                   product.SKU ||
@@ -334,13 +337,13 @@ export default function StockLookup({
               </p>
               <div className="flex items-center gap-4 mt-1">
                 <span className="text-sm text-gray-600">
-                  Stock:{" "}
+                  {t("stock")}:{" "}
                   <strong className="text-gray-900">
                     {product.stock?.available ?? product.stock ?? 0}
                   </strong>
                 </span>
                 <span className="text-sm text-gray-600">
-                  Shop:{" "}
+                  {t("shop")}:{" "}
                   <strong className="text-gray-900">
                     {product.shopId || product.metadata?.shopId || "-"}
                   </strong>
@@ -352,16 +355,14 @@ export default function StockLookup({
                 {product.codes?.qrPayload && (
                   <img
                     alt="QR"
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=${
-                      encodeURIComponent(product.codes.qrPayload)
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=${encodeURIComponent(product.codes.qrPayload)
                         ? displayMode === "scanner"
                           ? "400x400"
                           : "120x120"
                         : "120x120"
-                    }&data=${encodeURIComponent(product.codes.qrPayload)}`}
-                    className={`${
-                      displayMode === "scanner" ? "w-56 h-56" : "w-24 h-24"
-                    } bg-white p-1 rounded-md border object-contain`}
+                      }&data=${encodeURIComponent(product.codes.qrPayload)}`}
+                    className={`${displayMode === "scanner" ? "w-56 h-56" : "w-24 h-24"
+                      } bg-white p-1 rounded-md border object-contain`}
                   />
                 )}
                 {product.codes?.barcodePayload && (
@@ -381,19 +382,19 @@ export default function StockLookup({
                   onClick={() => setOutDialogOpen(true)}
                   className="w-full py-2.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
                 >
-                  Stock Out
+                  {t("stockOutBtn")}
                 </button>
 
                 <Dialog
                   open={outDialogOpen}
                   onClose={() => setOutDialogOpen(false)}
                 >
-                  <DialogTitle>Confirm Stock Out</DialogTitle>
+                  <DialogTitle>{td("title")}</DialogTitle>
                   <DialogContent>
                     <div className="space-y-3 mt-2">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Quantity
+                          {td("qty")}
                         </label>
                         <TextField
                           value={outQty}
@@ -407,7 +408,7 @@ export default function StockLookup({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Reason
+                          {td("reason")}
                         </label>
                         <TextField
                           select
@@ -418,7 +419,7 @@ export default function StockLookup({
                         >
                           {outReasons.map((r) => (
                             <MenuItem key={r} value={r}>
-                              {r}
+                              {td(`reasons.${r}`)}
                             </MenuItem>
                           ))}
                         </TextField>
@@ -431,14 +432,14 @@ export default function StockLookup({
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={() => setOutDialogOpen(false)}>
-                      Cancel
+                      {td("cancel")}
                     </Button>
                     <Button
                       variant="contained"
                       color="error"
                       onClick={async () => {
                         if (!Number(outQty) || Number(outQty) <= 0) {
-                          setError("Please enter a quantity greater than 0");
+                          setError(td("qtyError"));
                           return;
                         }
                         setOutLoading(true);
@@ -456,17 +457,17 @@ export default function StockLookup({
                             reason: outReason,
                           });
                           setOutQty("");
-                          setOutReason("Sale");
+                          setOutReason("sale");
                           setOutDialogOpen(false);
-                          showSnackbar("Stock out successful", "success");
+                          showSnackbar(td("success"), "success");
                           // Inform parent
                           onProductFound && onProductFound(product);
                         } catch (err) {
                           setError(
-                            err.response?.data?.message || "Stock out failed"
+                            err.response?.data?.message || td("failed")
                           );
                           showSnackbar(
-                            err.response?.data?.message || "Stock out failed",
+                            err.response?.data?.message || td("failed"),
                             "error"
                           );
                         } finally {
@@ -474,7 +475,7 @@ export default function StockLookup({
                         }
                       }}
                     >
-                      {outLoading ? "Processing..." : "Confirm"}
+                      {outLoading ? td("processing") : td("confirm")}
                     </Button>
                   </DialogActions>
                 </Dialog>

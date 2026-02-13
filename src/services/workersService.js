@@ -12,9 +12,9 @@ const ensureUrl = (url, name) => {
     return url;
 };
 
-export const createWorker = async (workerData) => {
+export const createWorker = async (workerData, options = {}) => {
     try {
-        const response = await apiClient.post(`${AUTH_URL}/auth/register`, workerData);
+        const response = await apiClient.post(`${AUTH_URL}/auth/register`, workerData, options);
         console.log("Worker created successfully:", response);
         console.log('payload is' + workerData)
         console.log('response is' + response)
@@ -66,19 +66,19 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
     }
 };
 
-export const getShopsByCompanyId = async (companyId) => {
+export const getShopsByCompanyId = async (companyId, options = {}) => {
     if (!companyId) return [];
 
     // Check cache first
-    if (shopsCache[companyId]) {
-        console.log("Returning cached shops for company:", companyId);
-        return shopsCache[companyId];
-    }
+    // if (shopsCache[companyId]) {
+    //     console.log("Returning cached shops for company:", companyId);
+    //     return shopsCache[companyId];
+    // }
 
     try {
         const url = `${WORKERS_URL}/auth/company/${companyId}/shops`;
         console.log(`Fetching shops from: ${url}`);
-        const response = await apiClient.get(url);
+        const response = await apiClient.get(url, options);
         console.log("Shops API Raw Response:", response);
 
         // Axios response.data contains the actual response body
@@ -101,10 +101,10 @@ export const getShopsByCompanyId = async (companyId) => {
     }
 };
 
-export const deleteWorker = async (workerId, companyId) => {
+export const deleteWorker = async (workerId, companyId, options = {}) => {
     try {
         const url = `${WORKERS_URL}/auth/company/${companyId}/workers/${workerId}`;
-        const response = await apiClient.delete(url);
+        const response = await apiClient.delete(url, options);
         console.log("Worker deleted successfully:", response);
         return response;
     } catch (error) {
@@ -113,10 +113,10 @@ export const deleteWorker = async (workerId, companyId) => {
     }
 };
 
-export const updateWorker = async (workerId, workerData) => {
+export const updateWorker = async (workerId, workerData, options = {}) => {
     try {
         // Note: Adjust endpoint if needed based on backend API
-        const response = await apiClient.put(`${AUTH_URL}/auth/users/${workerId}`, workerData);
+        const response = await apiClient.put(`${AUTH_URL}/auth/users/${workerId}`, workerData, options);
         console.log("Worker updated successfully:", response);
         return response;
     } catch (error) {
@@ -125,7 +125,7 @@ export const updateWorker = async (workerId, workerData) => {
     }
 };
 
-export const getWorkerById = async (workerId) => {
+export const getWorkerById = async (workerId, options = {}) => {
     try {
         if (!AUTH_URL) {
             throw new Error('API URL is not configured. Please check NEXT_PUBLIC_API_URL environment variable.');
@@ -134,7 +134,7 @@ export const getWorkerById = async (workerId) => {
         const url = `${AUTH_URL}/auth/users/${workerId}`;
         console.log("Fetching worker from:", url);
 
-        const response = await apiClient.get(url);
+        const response = await apiClient.get(url, options);
         console.log("Worker fetched successfully:", response);
 
         // Axios response.data contains the actual response body

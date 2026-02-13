@@ -14,8 +14,8 @@ const getApiBase = () => {
     // Prioritize the standard HTTP API URL
     let url =
         process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_API_URL_SW ||
-        "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL_SW
+
 
     // Safety: If for some reason we got a WebSocket URL (wss:// or ws://), convert it to HTTP for fetch
     if (url.startsWith("wss://")) {
@@ -36,22 +36,40 @@ const API_BASE = getApiBase();
  * @returns {Promise<object>} Updated token object with new access token or error
  */
 async function refreshAccessToken(token) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
-        const res = await fetch(`${API_BASE}/auth/refresh`, {
+        const refreshUrl = `${API_BASE}/auth/refresh`;
+        console.log(`[Auth] Attempting token refresh at: ${refreshUrl}`);
+
+        const res = await fetch(refreshUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Cookie: token.cookies || "",
+                "ngrok-skip-browser-warning": "true",
             },
+            signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
         if (!res.ok) {
-            console.error(`[Auth] Refresh failed with status: ${res.status}`);
-            throw new Error("Failed to refresh token");
+            const errorText = await res.text().catch(() => "Unknown error");
+            console.error(`[Auth] Refresh failed. Status: ${res.status} (${res.statusText}), URL: ${refreshUrl}, Body: ${errorText}`);
+
+            // DON'T THROW - Return a token with an error flag so NextAuth can handle it gracefully
+            return {
+                ...token,
+                error: "RefreshAccessTokenError",
+            };
         }
 
         const data = await res.json();
         const setCookie = res.headers.get("set-cookie");
+
+        console.log(`[Auth] Token refreshed successfully. Expires in: ${data.expiresIn || '15 min'}`);
 
         return {
             ...token,
@@ -62,7 +80,12 @@ async function refreshAccessToken(token) {
             error: null,
         };
     } catch (error) {
-        console.error("[Auth] RefreshAccessTokenError", error);
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            console.error("[Auth] RefreshAccessTokenError: Request timed out after 10s");
+        } else {
+            console.error("[Auth] RefreshAccessTokenError", error.message);
+        }
         return {
             ...token,
             error: "RefreshAccessTokenError",

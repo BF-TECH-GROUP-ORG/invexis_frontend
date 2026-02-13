@@ -1,7 +1,7 @@
 // src/components/inventory/stock/StockHistoryTable.jsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -19,38 +19,41 @@ import TablePagination from "@mui/material/TablePagination";
 import Skeleton from "@mui/material/Skeleton";
 import { getStockChangeHistory } from "@/services/stockService";
 import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
-export default function StockHistoryTable({ companyId, initialFilter = null }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+export default function StockHistoryTable({ companyId, initialParams = {}, updateFilters }) {
+  const t = useTranslations("stockManagement.history");
+  const { data: session } = useSession();
+  const searchParams = useSearchParams();
 
-  // Debounce the search input to improve UX
+  // Sync state with URL params
+  const searchTerm = searchParams.get("search") || initialParams.search || "";
+  const filterType = searchParams.get("type") || initialParams.type || "all";
+  const page = parseInt(searchParams.get("page") || initialParams.page || "0");
+  const rowsPerPage = parseInt(searchParams.get("limit") || initialParams.limit || "10");
+
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+  // Debounce the search input to update the URL
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    const t = setTimeout(() => {
+      if (debouncedSearch !== searchTerm) {
+        updateFilters({ search: debouncedSearch, page: 0 });
+      }
+    }, 500);
     return () => clearTimeout(t);
+  }, [debouncedSearch, updateFilters, searchTerm]);
+
+  // Sync debounced search if URL changes externally
+  useEffect(() => {
+    setDebouncedSearch(searchTerm);
   }, [searchTerm]);
 
-  // Reset to first page when debounced search changes
-  useEffect(() => {
-    setPage(0);
-  }, [debouncedSearch]);
-
-  // Apply any initial filter passed from parent (for example, when a KPI card navigates to history)
-  useEffect(() => {
-    if (!initialFilter) return;
-    if (initialFilter.search) setSearchTerm(initialFilter.search);
-    if (initialFilter.type) setFilterType(initialFilter.type);
-    // request a refetch to ensure filter applies promptly
-    // refetch is defined below via useQuery - use a tiny timeout to ensure query exists
-    setTimeout(() => {
-      try {
-        refetch && refetch();
-      } catch (e) { }
-    }, 100);
-  }, [initialFilter]);
+  const options = useMemo(() => session?.accessToken ? {
+    headers: { Authorization: `Bearer ${session.accessToken}` }
+  } : {}, [session?.accessToken]);
 
   // Use React Query for data fetching
   const {
@@ -60,52 +63,26 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: [
-      "stock-change-history",
-      { page: page + 1, limit: rowsPerPage, companyId },
-    ],
-    queryFn: () =>
-      getStockChangeHistory({
-        page: page + 1,
-        limit: rowsPerPage,
-        companyId,
-      }),
-    keepPreviousData: true,
-    enabled: !!companyId, // Only fetch if companyId is available
+    queryKey: ["stock-change-history", { page: page + 1, limit: rowsPerPage, companyId }],
+    queryFn: () => getStockChangeHistory({ page: page + 1, limit: rowsPerPage, companyId }, options),
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 5 * 1000 * 60,
   });
 
-  // The analytics endpoint returns { history: [...], pagination: { total, page, limit }, stats: {...} }
   const stats = result?.data?.stats || result?.stats || null;
-  const changes =
-    result?.data?.history || result?.history || result?.data || result || [];
-  const total =
-    result?.data?.pagination?.total ||
-    result?.pagination?.total ||
-    result?.length ||
-    0;
+  const changes = result?.data?.history || result?.history || result?.data || result || [];
+  const total = result?.data?.pagination?.total || result?.pagination?.total || 0;
 
-  // Cache for resolved user details (userId -> user object)
+  // Cache for resolved user details
   const [userMap, setUserMap] = useState({});
 
   useEffect(() => {
     let mounted = true;
-    const idsFromChanges = Array.from(
-      new Set(
-        changes
-          .map(
-            (c) => c.userId || (c.user && (c.user.id || c.user)) || c.createdBy
-          )
-          .filter(Boolean)
-      )
-    );
-
-    const idsFromStats = Array.from(
-      new Set((stats?.topUsers || []).map((u) => u.userId).filter(Boolean))
-    );
-
+    const idsFromChanges = Array.from(new Set(changes.map((c) => c.userId || (c.user && (c.user.id || c.user)) || c.createdBy).filter(Boolean)));
+    const idsFromStats = Array.from(new Set((stats?.topUsers || []).map((u) => u.userId).filter(Boolean)));
     const ids = Array.from(new Set([...idsFromChanges, ...idsFromStats]));
-
     const missing = ids.filter((id) => !userMap[id]);
+
     if (missing.length === 0) return;
 
     (async () => {
@@ -119,53 +96,33 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
         if (!mounted) return;
         setUserMap((prev) => {
           const copy = { ...prev };
-          results.forEach((r) => {
-            if (r.user) copy[r.id] = r.user;
-          });
+          results.forEach((r) => { if (r.user) copy[r.id] = r.user; });
           return copy;
         });
-      } catch (e) {
-        // ignore errors
-      }
+      } catch (e) { }
     })();
-
     return () => (mounted = false);
-  }, [changes, stats]);
+  }, [changes, stats, userMap]);
 
-  const filteredChanges = changes.filter((change) => {
-    const productName = (
-      change.product?.name ||
-      change.productName ||
-      ""
-    ).toLowerCase();
-    const sku = (
-      change.sku ||
-      change.product?.sku ||
-      change.productSku ||
-      ""
-    ).toLowerCase();
+  // Client-side filtering logic (in case API doesn't filter perfectly)
+  const filteredChanges = useMemo(() => {
+    return changes.filter((change) => {
+      const productName = (change.product?.name || change.productName || "").toLowerCase();
+      const sku = (change.sku || change.product?.sku || change.productSku || "").toLowerCase();
+      const q = searchTerm.trim().toLowerCase();
+      const matchesSearch = q === "" || productName.includes(q) || sku.includes(q);
 
-    const q = debouncedSearch.trim().toLowerCase();
-    const matchesSearch =
-      q === "" || productName.includes(q) || sku.includes(q);
+      const isIn = ["in", "restock", "return"].includes(change.type);
+      const isOut = ["out", "sale"].includes(change.type);
 
-    const isIn = ["in", "restock", "return"].includes(change.type);
-    const isOut = ["out", "sale"].includes(change.type);
-
-    const matchesFilter =
-      filterType === "all" ||
-      (filterType === "in" && isIn) ||
-      (filterType === "out" && isOut);
-
-    return matchesSearch && matchesFilter;
-  });
+      const matchesFilter = filterType === "all" || (filterType === "in" && isIn) || (filterType === "out" && isOut);
+      return matchesSearch && matchesFilter;
+    });
+  }, [changes, searchTerm, filterType]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    if (!dateString) return t("table.na");
+    return new Date(dateString).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   };
 
   return (
@@ -177,12 +134,8 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
             <History size={20} className="text-orange-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Stock History
-            </h3>
-            <p className="text-sm text-gray-500">
-              View all stock changes and adjustments
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">{t("title")}</h3>
+            <p className="text-sm text-gray-500">{t("subtitle")}</p>
           </div>
         </div>
 
@@ -191,37 +144,31 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Search by product name or SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              value={debouncedSearch}
+              onChange={(e) => setDebouncedSearch(e.target.value)}
               className="w-full px-4 py-2.5 pl-10 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
             />
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           </div>
 
           <div className="flex gap-2">
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+              onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
               className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
             >
-              <option value="all">All Types</option>
-              <option value="in">Stock In</option>
-              <option value="out">Stock Out</option>
+              <option value="all">{t("history.allTypes") || "All Types"}</option>
+              <option value="in">{t("table.stockIn")}</option>
+              <option value="out">{t("table.stockOut")}</option>
             </select>
 
             <button
               onClick={() => refetch()}
               className="px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
             >
-              <RefreshCw
-                size={16}
-                className={isFetching ? "animate-spin" : ""}
-              />
-              Refresh
+              <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+              {t("refresh")}
             </button>
           </div>
         </div>
@@ -230,40 +177,20 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 my-4">
             <div className="p-4 border rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Total Inflow</p>
-              <p className="text-lg font-semibold text-green-700">
-                {stats.totalInflow ?? 0}
-              </p>
+              <p className="text-xs text-gray-500">{t("stats.totalInflow")}</p>
+              <p className="text-lg font-semibold text-green-700">{stats.totalInflow ?? 0}</p>
             </div>
             <div className="p-4 border rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Total Outflow</p>
-              <p className="text-lg font-semibold text-red-700">
-                {stats.totalOutflow ?? 0}
-              </p>
+              <p className="text-xs text-gray-500">{t("stats.totalOutflow")}</p>
+              <p className="text-lg font-semibold text-red-700">{stats.totalOutflow ?? 0}</p>
             </div>
             <div className="p-4 border rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Net Change</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {stats.netChange ?? 0}
-              </p>
+              <p className="text-xs text-gray-500">{t("stats.netChange")}</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.netChange ?? 0}</p>
             </div>
             <div className="p-4 border rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Total Changes</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {stats.totalChanges ?? 0}
-              </p>
-              {stats.topUsers && stats.topUsers.length > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Top:{" "}
-                  {userMap[stats.topUsers[0].userId]
-                    ? userMap[stats.topUsers[0].userId].firstName
-                      ? `${userMap[stats.topUsers[0].userId].firstName} ${userMap[stats.topUsers[0].userId].lastName || ""
-                        }`.trim()
-                      : userMap[stats.topUsers[0].userId].name ||
-                      userMap[stats.topUsers[0].userId].email
-                    : stats.topUsers[0].userId}
-                </p>
-              )}
+              <p className="text-xs text-gray-500">{t("stats.totalChanges")}</p>
+              <p className="text-lg font-semibold text-gray-900">{stats.totalChanges ?? 0}</p>
             </div>
           </div>
         )}
@@ -275,61 +202,25 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
           <Table size="small">
             <TableHead>
               <TableRow className="bg-gray-50">
-                <TableCell className="font-semibold text-gray-700">
-                  Type
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Product
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  SKU
-                </TableCell>
-                <TableCell
-                  align="center"
-                  className="font-semibold text-gray-700"
-                >
-                  Quantity
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Reason
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Date
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  By
-                </TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.type")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.product")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.sku")}</TableCell>
+                <TableCell align="center" className="font-semibold text-gray-700">{t("table.quantity")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.reason")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.date")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.by")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {[1, 2, 3, 4, 5].map((i) => (
                 <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton
-                      variant="rectangular"
-                      width={80}
-                      height={24}
-                      sx={{ borderRadius: 1 }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton variant="text" width={120} />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton variant="text" width={80} />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Skeleton variant="text" width={40} sx={{ mx: "auto" }} />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton variant="text" width={100} />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton variant="text" width={120} />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton variant="text" width={80} />
-                  </TableCell>
+                  <TableCell><Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1 }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                  <TableCell align="center"><Skeleton variant="text" width={40} sx={{ mx: "auto" }} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                  <TableCell><Skeleton variant="text" width={80} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -337,95 +228,48 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
         </div>
       ) : error ? (
         <div className="p-12 text-center">
-          <p className="text-red-500">
-            {error.message || "Failed to load stock history"}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="mt-2 text-orange-600 hover:underline"
-          >
-            Try again
-          </button>
+          <p className="text-red-500">{error.message || t("errors.loadFailed")}</p>
+          <button onClick={() => refetch()} className="mt-2 text-orange-600 hover:underline">{t("errors.tryAgain")}</button>
         </div>
       ) : filteredChanges.length === 0 ? (
         <div className="p-12 text-center">
           <History size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500">No stock changes found</p>
+          <p className="text-gray-500">{t("errors.noChanges")}</p>
         </div>
       ) : (
         <>
           <Table size="small">
             <TableHead>
               <TableRow className="bg-gray-50">
-                <TableCell className="font-semibold text-gray-700">
-                  Type
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Product
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  SKU
-                </TableCell>
-                <TableCell
-                  align="center"
-                  className="font-semibold text-gray-700"
-                >
-                  Quantity
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Reason
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  Date
-                </TableCell>
-                <TableCell className="font-semibold text-gray-700">
-                  By
-                </TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.type")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.product")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.sku")}</TableCell>
+                <TableCell align="center" className="font-semibold text-gray-700">{t("table.quantity")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.reason")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.date")}</TableCell>
+                <TableCell className="font-semibold text-gray-700">{t("table.by")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredChanges.map((change, index) => {
                 const isIn = ["in", "restock", "return"].includes(change.type);
                 const isOut = ["out", "sale"].includes(change.type);
-                const displayLabel = isIn
-                  ? "Stock In"
-                  : isOut
-                    ? "Stock Out"
-                    : change.type
-                      ? change.type.replace(/[_-]/g, " ")
-                      : "Change";
-                const qty =
-                  typeof change.qty !== "undefined"
-                    ? change.qty
-                    : change.quantity ?? 0;
-                const qtyText =
-                  typeof qty === "number"
-                    ? qty >= 0
-                      ? `+${qty}`
-                      : `${qty}`
-                    : String(qty);
-                const productName =
-                  change.product?.name || change.productName || "Unknown";
-                const sku =
-                  change.sku ||
-                  change.product?.sku ||
-                  change.productSku ||
-                  "N/A";
-                // Resolve user display name: prefer provided user object, then userMap lookup by id, fallback to id or 'System'
-                let by = "System";
+                const displayLabel = isIn ? t("table.stockIn") : isOut ? t("table.stockOut") : change.type ? t("table.change") : t("table.change");
+                const qty = typeof change.qty !== "undefined" ? change.qty : change.quantity ?? 0;
+                const qtyText = typeof qty === "number" ? (qty >= 0 ? `+${qty}` : `${qty}`) : String(qty);
+                const productName = change.product?.name || change.productName || "Unknown";
+                const sku = change.sku || change.product?.sku || change.productSku || "N/A";
+
+                let by = t("table.system");
                 if (change.user && typeof change.user === "object") {
                   if (change.user.name) by = change.user.name;
-                  else if (change.user.firstName)
-                    by = `${change.user.firstName} ${change.user.lastName || ""
-                      }`.trim();
-                  else by = change.user.id || change.user.name || "System";
+                  else if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
+                  else by = change.user.id || change.user.name || t("table.system");
                 } else {
                   const id = change.userId || change.user || change.createdBy;
                   if (id && userMap[id]) {
                     const u = userMap[id];
-                    by = u?.firstName
-                      ? `${u.firstName} ${u.lastName || ""}`.trim()
-                      : u?.name || u?.email || id;
+                    by = u?.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u?.name || u?.email || id;
                   } else if (id) {
                     by = id;
                   }
@@ -434,53 +278,17 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
                 return (
                   <TableRow key={change._id || index} hover>
                     <TableCell>
-                      <div
-                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isIn
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                          }`}
-                      >
-                        {isIn ? (
-                          <ArrowDownCircle size={14} />
-                        ) : (
-                          <ArrowUpCircle size={14} />
-                        )}
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isIn ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        {isIn ? <ArrowDownCircle size={14} /> : <ArrowUpCircle size={14} />}
                         {displayLabel}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-gray-900">
-                        {productName}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-600 font-mono text-sm">
-                        {sku}
-                      </span>
-                    </TableCell>
-                    <TableCell align="center">
-                      <span
-                        className={`font-semibold ${isIn ? "text-green-600" : "text-red-600"
-                          }`}
-                      >
-                        {qtyText}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-600">
-                        {change.reason ||
-                          (change.meta && change.meta.reason) ||
-                          "—"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-500 text-sm">
-                        {formatDate(change.createdAt)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-600">{by}</span>
-                    </TableCell>
+                    <TableCell><span className="font-medium text-gray-900">{productName}</span></TableCell>
+                    <TableCell><span className="text-gray-600 font-mono text-sm">{sku}</span></TableCell>
+                    <TableCell align="center"><span className={`font-semibold ${isIn ? "text-green-600" : "text-red-600"}`}>{qtyText}</span></TableCell>
+                    <TableCell><span className="text-gray-600">{change.reason || (change.meta && change.meta.reason) || "—"}</span></TableCell>
+                    <TableCell><span className="text-gray-500 text-sm">{formatDate(change.createdAt)}</span></TableCell>
+                    <TableCell><span className="text-gray-600">{by}</span></TableCell>
                   </TableRow>
                 );
               })}
@@ -492,13 +300,10 @@ export default function StockHistoryTable({ companyId, initialFilter = null }) {
               component="div"
               count={total}
               page={page}
-              onPageChange={(e, newPage) => setPage(newPage)}
+              onPageChange={(e, newPage) => updateFilters({ page: newPage })}
               rowsPerPage={rowsPerPage}
               rowsPerPageOptions={[10, 25, 50]}
-              onRowsPerPageChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setPage(0);
-              }}
+              onRowsPerPageChange={(e) => updateFilters({ limit: Number(e.target.value), page: 0 })}
             />
           </div>
         </>

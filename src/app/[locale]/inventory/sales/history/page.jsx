@@ -1,24 +1,26 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getQueryClient } from "@/lib/queryClient";
 import SalesPageClient from "./SalesPageClient";
 import { getSalesHistory } from "@/services/salesService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
+import { unstable_cache } from "next/cache";
 
-export default async function SalesPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function SalesPage({ searchParams }) {
   const session = await getServerSession(authOptions);
-  const queryClient = getQueryClient();
+
+  // Await searchParams if it's a promise (Next.js 15 behavior)
+  const resolvedParams = await (searchParams || {});
+  const soldBy = resolvedParams.soldBy || "";
+  const shopId = resolvedParams.shopId || "";
+  const month = resolvedParams.month || "";
 
   if (session?.accessToken) {
     const user = session.user;
     const companyObj = user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-    const userRole = user?.role;
-    const assignedDepartments = user?.assignedDepartments || [];
-    const isWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
-    const currentUserId = user?._id || user?.id;
 
     const options = {
       headers: {
@@ -26,37 +28,47 @@ export default async function SalesPage() {
       }
     };
 
-    // Prefetch queries for the initial view
-    const prefetchPromises = [
-      queryClient.prefetchQuery({
-        queryKey: ["salesHistory", companyId, currentUserId, ""],
-        queryFn: () => getSalesHistory(companyId, {
-          soldBy: currentUserId,
-          shopId: ""
-        }, options),
-      }),
-      // Always fetch shops for visibility (for all roles)
-      queryClient.prefetchQuery({
-        queryKey: ["shops", companyId],
-        queryFn: () => getBranches(companyId, options),
-      })
-    ];
+    const filters = {
+      soldBy: soldBy || user?.id || user?._id || "",
+      shopId: shopId || ""
+    };
 
-    if (!isWorker) {
-      prefetchPromises.push(
-        queryClient.prefetchQuery({
-          queryKey: ["workers", companyId],
-          queryFn: () => getWorkersByCompanyId(companyId, options),
-        })
-      );
-    }
+    // Helper for server-side persistence using unstable_cache
+    const getCachedData = (key, fetcher) =>
+      unstable_cache(
+        async () => fetcher(),
+        [`sales-${key}`, companyId, JSON.stringify(filters)],
+        { revalidate: 300, tags: ['sales', `company-${companyId}`] }
+      )();
 
-    await Promise.all(prefetchPromises);
+    // Fetch all required data in parallel on the server
+    const [sales, shops, workers] = await Promise.all([
+      getCachedData('history', () => getSalesHistory(companyId, filters, options)),
+      unstable_cache(
+        async () => getBranches(companyId, options),
+        [`shops`, companyId],
+        { revalidate: 600, tags: ['shops', `company-${companyId}`] }
+      )(),
+      unstable_cache(
+        async () => getWorkersByCompanyId(companyId, options),
+        [`workers`, companyId],
+        { revalidate: 600, tags: ['workers', `company-${companyId}`] }
+      )()
+    ]);
+
+    const initialData = {
+      sales: sales || [],
+      shops: shops || [],
+      workers: workers || [],
+      soldBy: filters.soldBy,
+      shopId: filters.shopId,
+      month: month
+    };
+
+    return (
+      <SalesPageClient initialData={initialData} />
+    );
   }
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <SalesPageClient />
-    </HydrationBoundary>
-  );
+  return <div>Please log in to view sales history.</div>;
 }

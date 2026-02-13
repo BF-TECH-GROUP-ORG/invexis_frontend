@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Download, Calendar, RefreshCw, Loader } from "lucide-react";
-import html2pdf from "html2pdf.js";
 import { useTranslations } from "next-intl";
 
 const InventoryHeader = ({ onRefresh, lastUpdated }) => {
@@ -8,6 +7,11 @@ const InventoryHeader = ({ onRefresh, lastUpdated }) => {
   const tErrors = useTranslations("inventoryOverview.errors");
   const contentRef = useRef(null);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const formatLast = (d) => {
     if (!isClient) return "";
@@ -17,16 +21,14 @@ const InventoryHeader = ({ onRefresh, lastUpdated }) => {
     return date.toLocaleString();
   };
 
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const handleExportPDF = async () => {
     if (isExporting) return;
     setIsExporting(true);
 
     try {
+      // Dynamic import to avoid SSR errors
+      const html2pdf = (await import("html2pdf.js")).default;
+
       // Get the entire content container
       const element = document.getElementById("inventory-overview-content");
       if (!element) {

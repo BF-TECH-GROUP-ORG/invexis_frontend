@@ -3,8 +3,6 @@
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
-import SideBar from "@/components/layouts/SideBar";
-import TopNavBar from "@/components/layouts/NavBar";
 import DevBypassToggle from "@/components/shared/DevBypassToggle";
 import DashboardLayout from "./DashboardLayout";
 import ProtectedRoute from "@/lib/ProtectedRoute";

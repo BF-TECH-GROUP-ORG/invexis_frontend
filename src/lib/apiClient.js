@@ -84,14 +84,20 @@ function transformError(error) {
   const message = responseData?.message || error.message || "An unexpected error occurred";
   const status = error.response?.status ?? (error.request ? 0 : -1);
 
+  // Extract more technical details for "Status 0" debugging
+  const code = error.code || error.originalError?.code;
+  const syscall = error.syscall || error.originalError?.syscall;
+
   return {
-    message,
+    message: status === 0 ? `Network Error: ${code || 'Unknown'} (${message})` : message,
     status,
+    code,
+    syscall,
     data: responseData || null,
-    config: error.config ? {
-      url: error.config.url,
-      method: error.config.method,
-      params: error.config.params
+    config: (error.config || error.originalError?.config) ? {
+      url: error.config?.url || error.originalError?.config?.url,
+      method: error.config?.method || error.originalError?.config?.method,
+      params: error.config?.params || error.originalError?.config?.params
     } : null
   };
 }
@@ -172,7 +178,7 @@ apiInstance.interceptors.response.use(
   (error) => {
     const transformedError = transformError(error);
     if (process.env.NODE_ENV === "development") {
-      const { method, url } = error.config || {};
+      const { method, url } = transformedError.config || {};
       console.error(
         `[API Error Interceptor] ${method?.toUpperCase()} ${url} | Status: ${transformedError.status} | Message: ${transformedError.message}`,
         transformedError

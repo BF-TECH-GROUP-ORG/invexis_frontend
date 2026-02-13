@@ -20,6 +20,9 @@ import {
   X,
   Bell,
   LogOut,
+  BarChart3,
+  Files,
+  History,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useLoading } from "@/contexts/LoadingContext";
@@ -49,7 +52,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.reports"),
-    icon: <FileSpreadsheet size={22} />,
+    icon: <BarChart3 size={22} />,
     path: "/inventory/reports",
     roles: ["worker", "company_admin"],
     prefetch: true,
@@ -120,7 +123,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.documents"),
-    icon: <FileText size={22} />,
+    icon: <Files size={22} />,
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
     prefetch: true,
@@ -128,7 +131,7 @@ const getNavItems = (t) => [
   // company_admin-only logs link
   {
     title: t("sidebar.logsAndAudits"),
-    icon: <FileSpreadsheet size={22} />,
+    icon: <History size={22} />,
     path: "/inventory/logs",
     roles: ["company_admin"],
     prefetch: true,
@@ -513,7 +516,7 @@ export default function SideBar({
                       : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
-                    <FileSpreadsheet size={24} />
+                    <BarChart3 size={24} />
                   </div>
                   {isActive("/inventory/reports") && (
                     <div className="w-1 h-1 bg-orange-500 rounded-full"></div>

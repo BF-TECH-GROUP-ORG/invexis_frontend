@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import Skeleton from '@/components/shared/Skeleton';
 import {
     BarChart,
@@ -53,6 +54,7 @@ const ModernLegend = (props) => {
 };
 
 const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], loading = false }) => {
+    const t = useTranslations('dashboard');
     if (loading) {
         return (
             <div className="space-y-6 mt-6">
@@ -76,8 +78,8 @@ const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], l
                 {/* Shop Performance */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-gray-800">Shop Performance</h3>
-                        <p className="text-sm text-gray-500">Revenue distribution by branch</p>
+                        <h3 className="text-lg font-bold text-gray-800">{t('shopPerformance')}</h3>
+                        <p className="text-sm text-gray-500">{t('revenueByBranch')}</p>
                     </div>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -103,7 +105,7 @@ const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], l
                                     tickFormatter={(val) => (val >= 1000 ? `${val / 1000}k` : val)}
                                 />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(241, 245, 249, 0.4)" }} />
-                                <Bar dataKey="value" name="Revenue" radius={[10, 10, 0, 0]} barSize={40} fill="url(#shopGradient)" />
+                                <Bar dataKey="value" name={t('revenue')} radius={[10, 10, 0, 0]} barSize={40} fill="url(#shopGradient)" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -112,8 +114,8 @@ const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], l
                 {/* Employee Performance */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-gray-800">Employee Leaderboard</h3>
-                        <p className="text-sm text-gray-500">Top performers by sales volume</p>
+                        <h3 className="text-lg font-bold text-gray-800">{t('employeeLeaderboard')}</h3>
+                        <p className="text-sm text-gray-500">{t('topBySalesVolume')}</p>
                     </div>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -139,7 +141,7 @@ const ShopEmployeeReports = ({ shopPerformance = [], employeePerformance = [], l
                                     tick={{ fill: '#475569', fontSize: 13, fontWeight: 500 }}
                                 />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(241, 245, 249, 0.4)" }} />
-                                <Bar dataKey="value" name="Sales" radius={[0, 10, 10, 0]} fill="url(#employeeGradient)" />
+                                <Bar dataKey="value" name={t('sales')} radius={[0, 10, 10, 0]} fill="url(#employeeGradient)" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

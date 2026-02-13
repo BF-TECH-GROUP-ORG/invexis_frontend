@@ -18,6 +18,9 @@ export const metadata = {
     template: "%s | Invexis",
   },
   description: "Inventory and business management dashboard",
+  icons: {
+    icon: "/images/Invexix Logo-Light Mode.png",
+  },
 };
 
 export function generateStaticParams() {

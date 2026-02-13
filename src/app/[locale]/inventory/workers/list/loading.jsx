@@ -1,48 +1,57 @@
-import { Box, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import Skeleton from "@/components/shared/Skeleton";
 
-export default function Loading() {
+export default function WorkersLoading() {
     return (
-        <div className="p-6">
-            {/* Header Skeleton */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-                <Box>
-                    <Skeleton variant="text" width={200} height={40} />
-                    <Skeleton variant="text" width={300} height={20} />
-                </Box>
-                <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
-            </Box>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+                <div>
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-4 w-64" />
+                </div>
+                <Skeleton className="h-10 w-32" />
+            </div>
 
-            {/* Controls Skeleton */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" px={2.5} py={1.5} gap={2}>
-                <Skeleton variant="rectangular" width={300} height={40} sx={{ borderRadius: 1 }} />
-                <Skeleton variant="rectangular" width={160} height={40} sx={{ borderRadius: 1 }} />
-            </Box>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <Skeleton className="h-4 w-24 mb-2" />
+                        <Skeleton className="h-8 w-16" />
+                    </div>
+                ))}
+            </div>
 
-            {/* Table Skeleton */}
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-                                <TableCell key={i}>
-                                    <Skeleton variant="text" width="80%" />
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <TableRow key={i}>
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((j) => (
-                                    <TableCell key={j}>
-                                        <Skeleton variant="text" width="100%" />
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            {/* Filters */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4">
+                <Skeleton className="h-10 w-full md:w-64" />
+                <Skeleton className="h-10 w-32" />
+            </div>
+
+            {/* Workers Table/List */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-100">
+                    <Skeleton className="h-8 w-32" />
+                </div>
+                <div className="divide-y divide-gray-100">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div>
+                                    <Skeleton className="h-4 w-32 mb-1" />
+                                    <Skeleton className="h-3 w-40" />
+                                </div>
+                            </div>
+                            <div className="flex gap-8">
+                                <Skeleton className="h-6 w-20 rounded-full" />
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-8 w-8 rounded-lg" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

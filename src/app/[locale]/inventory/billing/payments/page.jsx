@@ -8,9 +8,20 @@ import PaymentDashboard from "./dashboard";
 import * as PaymentService from "@/services/paymentService";
 import { getAllShops } from "@/services/shopService";
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({ searchParams }) {
     const session = await getServerSession(authOptions);
     const queryClient = getQueryClient();
+
+    // Resolve searchParams (Next.js 15 behavior)
+    const resolvedParams = await (searchParams || {});
+    const search = resolvedParams.search || "";
+    const startDate = resolvedParams.startDate || null;
+    const endDate = resolvedParams.endDate || null;
+    const shop = resolvedParams.shop || "";
+    const method = resolvedParams.method || "";
+    const status = resolvedParams.status || "";
+    const page = resolvedParams.page || "0";
+    const limit = resolvedParams.limit || "10";
 
     if (session?.accessToken) {
         const user = session.user;
@@ -31,14 +42,25 @@ export default async function PaymentsPage() {
             }),
             queryClient.prefetchQuery({
                 queryKey: ['shops', companyId],
-                queryFn: () => getAllShops(companyId),
+                queryFn: () => getAllShops(companyId, options),
             })
         ]);
     }
 
+    const initialParams = {
+        search,
+        startDate,
+        endDate,
+        shop,
+        method,
+        status,
+        page: parseInt(page),
+        limit: parseInt(limit)
+    };
+
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <PaymentDashboard />
+            <PaymentDashboard initialParams={initialParams} />
         </HydrationBoundary>
     );
 }

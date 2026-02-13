@@ -6,13 +6,15 @@ import { ArrowDownCircle, Package, Loader2, X } from "lucide-react";
 import { bulkStockIn } from "@/services/stockService";
 import useAuth from "@/hooks/useAuth";
 import { useSnackbar } from "@/contexts/SnackbarContext";
+import { useTranslations } from "next-intl";
 
 export default function StockOperationForm({
   product = null,
-  onSuccess = () => {},
+  onSuccess = () => { },
   companyId,
   productsCache = [],
 }) {
+  const t = useTranslations("stockManagement.operations");
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
   const [quantity, setQuantity] = useState("");
@@ -36,7 +38,7 @@ export default function StockOperationForm({
     if (!product || !Number(quantity) || Number(quantity) <= 0) {
       setMessage({
         type: "error",
-        text: "Please select a product and enter quantity greater than 0 to add to batch.",
+        text: t("errors.selectProduct"),
       });
       return;
     }
@@ -60,7 +62,7 @@ export default function StockOperationForm({
 
     // Clear form after adding
     setQuantity("");
-    setMessage({ type: "success", text: `${item.productName} added to batch` });
+    setMessage({ type: "success", text: t("errors.addedToBatch", { name: item.productName }) });
   };
 
   const removeFromBatch = (productId) => {
@@ -84,7 +86,7 @@ export default function StockOperationForm({
       if (!product || !Number(quantity) || Number(quantity) <= 0)
         return setMessage({
           type: "error",
-          text: "No products in batch to submit. Add items or enter quantity to restock the selected product.",
+          text: t("errors.noBatchItems"),
         });
 
       itemsToSubmit = [
@@ -144,32 +146,32 @@ export default function StockOperationForm({
 
       if (failed.length === 0) {
         showSnackbar(
-          `Bulk stock in completed for ${successCount} group(s).`,
+          t("errors.bulkSuccess", { count: successCount }),
           "success"
         );
         setMessage({
           type: "success",
-          text: `Bulk stock in completed for ${successCount} group(s).`,
+          text: t("errors.bulkSuccess", { count: successCount }),
         });
         setBatchItems([]);
         setQuantity("");
         onSuccess();
       } else {
         const firstErr = failed[0];
-        showSnackbar(`Some groups failed: ${firstErr.error}`, "error");
+        showSnackbar(t("errors.bulkPartial", { error: firstErr.error }), "error");
         setMessage({
           type: "error",
-          text: `Some groups failed: ${firstErr.error}`,
+          text: t("errors.bulkPartial", { error: firstErr.error }),
         });
       }
     } catch (err) {
       showSnackbar(
-        err.response?.data?.message || "Bulk operation failed",
+        err.response?.data?.message || t("errors.bulkFailed"),
         "error"
       );
       setMessage({
         type: "error",
-        text: err.response?.data?.message || "Bulk operation failed",
+        text: err.response?.data?.message || t("errors.bulkFailed"),
       });
     } finally {
       setLoading(false);
@@ -184,11 +186,10 @@ export default function StockOperationForm({
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Stock In (Bulk)
+            {t("title")}
           </h3>
           <p className="text-sm text-gray-500">
-            Add products to the batch below then submit a single bulk stock-in
-            request
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -223,12 +224,12 @@ export default function StockOperationForm({
       {/* Selected Product */}
       {product ? (
         <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-          <p className="text-sm text-gray-500">Selected Product</p>
+          <p className="text-sm text-gray-500">{t("selectedProduct")}</p>
           <p className="font-medium text-gray-900">
             {product.name || product.ProductName}
           </p>
           <p className="text-xs text-gray-500">
-            Current Stock:{" "}
+            {t("currentStock")}:{" "}
             {product.inventory?.quantity ??
               product.stock?.available ??
               product.stock?.total ??
@@ -239,7 +240,7 @@ export default function StockOperationForm({
       ) : (
         <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg mb-4 text-center">
           <p className="text-sm text-orange-700">
-            Please scan or lookup a product first
+            {t("noProductSelected")}
           </p>
         </div>
       )}
@@ -247,25 +248,24 @@ export default function StockOperationForm({
       <form onSubmit={handleSubmitBatch} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Quantity to add *
+            {t("qtyLabel")}
           </label>
           <input
             type="number"
             min="1"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            placeholder="Enter quantity"
+            placeholder={t("qtyPlaceholder")}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
           />
         </div>
 
         {message && (
           <div
-            className={`p-3 rounded-lg text-sm ${
-              message.type === "success"
+            className={`p-3 rounded-lg text-sm ${message.type === "success"
                 ? "bg-green-50 text-green-700 border border-green-100"
                 : "bg-red-50 text-red-700 border border-red-100"
-            }`}
+              }`}
           >
             {message.text}
           </div>
@@ -276,11 +276,10 @@ export default function StockOperationForm({
             type="button"
             onClick={addToBatch}
             disabled={!product || !Number(quantity) || Number(quantity) <= 0}
-            className={`flex-1 py-2.5 ${
-              !product || !Number(quantity) || Number(quantity) <= 0
+            className={`flex-1 py-2.5 ${!product || !Number(quantity) || Number(quantity) <= 0
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-orange-500 hover:bg-orange-600"
-            } text-white rounded-lg transition-colors`}
+              } text-white rounded-lg transition-colors`}
           >
             Add to Batch
           </button>
@@ -291,20 +290,19 @@ export default function StockOperationForm({
               (batchItems.length === 0 &&
                 (!product || !Number(quantity) || Number(quantity) <= 0))
             }
-            className={`flex-1 py-2.5 ${
-              loading ||
-              (batchItems.length === 0 &&
-                (!product || !Number(quantity) || Number(quantity) <= 0))
+            className={`flex-1 py-2.5 ${loading ||
+                (batchItems.length === 0 &&
+                  (!product || !Number(quantity) || Number(quantity) <= 0))
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
-            } text-white rounded-lg transition-colors`}
+              } text-white rounded-lg transition-colors`}
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin" /> Processing...
+                <Loader2 size={16} className="animate-spin" /> {t("processing")}
               </>
             ) : (
-              "Submit Batch"
+              t("submitBatch")
             )}
           </button>
         </div>

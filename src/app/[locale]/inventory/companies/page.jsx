@@ -7,9 +7,16 @@ import { getQueryClient } from "@/lib/queryClient";
 import CompaniesPageClient from "./CompaniesPageClient";
 import { getBranches } from "@/services/branches";
 
-export default async function CompaniesPage() {
+export default async function CompaniesPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const queryClient = getQueryClient();
+
+  // Resolve searchParams (Next.js 15 behavior)
+  const resolvedParams = await (searchParams || {});
+  const search = resolvedParams.search || "";
+  const filterColumn = resolvedParams.filterColumn || "city";
+  const filterOperator = resolvedParams.filterOperator || "contains";
+  const filterValue = resolvedParams.filterValue || "";
 
   if (session?.accessToken) {
     const user = session.user;
@@ -22,7 +29,7 @@ export default async function CompaniesPage() {
       }
     };
 
-    // Prefetch shops only if companyId is available
+    // Prefetch shops
     if (companyId) {
       await queryClient.prefetchQuery({
         queryKey: ["branches", companyId],
@@ -31,9 +38,16 @@ export default async function CompaniesPage() {
     }
   }
 
+  const initialParams = {
+    search,
+    filterColumn,
+    filterOperator,
+    filterValue
+  };
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <CompaniesPageClient />
+      <CompaniesPageClient initialParams={initialParams} />
     </HydrationBoundary>
   );
 }

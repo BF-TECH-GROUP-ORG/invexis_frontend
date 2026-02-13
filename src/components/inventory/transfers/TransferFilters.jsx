@@ -31,52 +31,49 @@ import {
 export default function TransferFilters({
     onFilterChange,
     shops = [],
-    workers = []
+    workers = [],
+    activeFilters = {}
 }) {
     const t = useTranslations("transfers.filters");
-    const [search, setSearch] = useState("");
-    const [filters, setFilters] = useState({
-        direction: "all",
-        type: "all",
-        shop: "all",
-        worker: "all",
-        startDate: "",
-        endDate: "",
-    });
-
     const [anchorEl, setAnchorEl] = useState(null);
 
+    // Default filters if not provided (should be handled by parent but safe-guarded here)
+    const {
+        search = "",
+        direction = "all",
+        type = "all",
+        shop = "all",
+        worker = "all",
+        startDate = "",
+        endDate = ""
+    } = activeFilters;
+
     const handleSearchChange = (e) => {
-        setSearch(e.target.value);
-        onFilterChange({ ...filters, search: e.target.value });
+        onFilterChange({ ...activeFilters, search: e.target.value });
     };
 
     const handleFilterChange = (name, value) => {
-        const newFilters = { ...filters, [name]: value };
-        setFilters(newFilters);
-        onFilterChange({ ...newFilters, search });
+        onFilterChange({ ...activeFilters, [name]: value });
     };
 
     const clearFilters = () => {
-        const reset = {
+        onFilterChange({
             direction: "all",
             type: "all",
             shop: "all",
             worker: "all",
             startDate: "",
             endDate: "",
-        };
-        setFilters(reset);
-        setSearch("");
-        onFilterChange({ ...reset, search: "" });
+            search: ""
+        });
     };
 
     const activeAdvancedCount = [
-        filters.type !== "all",
-        filters.shop !== "all",
-        filters.worker !== "all",
-        filters.startDate !== "",
-        filters.endDate !== ""
+        type !== "all",
+        shop !== "all",
+        worker !== "all",
+        startDate !== "",
+        endDate !== ""
     ].filter(Boolean).length;
 
     return (
@@ -129,7 +126,7 @@ export default function TransferFilters({
                 >
                     <FormControl size="small">
                         <Select
-                            value={filters.direction}
+                            value={direction}
                             onChange={(e) => handleFilterChange("direction", e.target.value)}
                             displayEmpty
                             sx={{ borderRadius: "12px", bgcolor: "#f9fafb" }}
@@ -198,7 +195,7 @@ export default function TransferFilters({
                         <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("transferType")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
-                                value={filters.type}
+                                value={type}
                                 onChange={(e) => handleFilterChange("type", e.target.value)}
                                 sx={{ borderRadius: "8px" }}
                             >
@@ -213,7 +210,7 @@ export default function TransferFilters({
                         <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("shopLocation")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
-                                value={filters.shop}
+                                value={shop}
                                 onChange={(e) => handleFilterChange("shop", e.target.value)}
                                 sx={{ borderRadius: "8px" }}
                                 startAdornment={<Store size={14} className="mr-2 text-gray-400" />}
@@ -230,7 +227,7 @@ export default function TransferFilters({
                         <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: "block" }}>{t("performedBy")}</Typography>
                         <FormControl fullWidth size="small">
                             <Select
-                                value={filters.worker}
+                                value={worker}
                                 onChange={(e) => handleFilterChange("worker", e.target.value)}
                                 sx={{ borderRadius: "8px" }}
                                 startAdornment={<Users size={14} className="mr-2 text-gray-400" />}
@@ -253,14 +250,14 @@ export default function TransferFilters({
                             <TextField
                                 type="date"
                                 size="small"
-                                value={filters.startDate}
+                                value={startDate}
                                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
                                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
                             />
                             <TextField
                                 type="date"
                                 size="small"
-                                value={filters.endDate}
+                                value={endDate}
                                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
                                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
                             />

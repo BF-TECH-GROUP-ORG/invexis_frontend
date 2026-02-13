@@ -91,7 +91,7 @@ export const StatsCard = memo(({
     value,
     trend,
     history = [],
-    icon: Icon,
+    icon,
     color = "#8b5cf6",
     bgColor = "#f3e8ff",
     isCurrency = false,
@@ -190,7 +190,7 @@ export const StatsCard = memo(({
                     className="p-3 rounded-xl shrink-0 transition-transform group-hover:scale-110"
                     style={{ backgroundColor: bgColor }}
                 >
-                    {Icon && <Icon size={24} style={{ color: color }} />}
+                    {icon}
                 </motion.div>
             </div>
 

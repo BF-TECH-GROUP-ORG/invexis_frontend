@@ -7,13 +7,12 @@ import Loading from "./loading";
 import { getCompanyInvoices } from "@/services/paymentService";
 import { Alert } from "@mui/material";
 
-export default function InvoicesPageClient() {
+export default function InvoicesPageClient({ initialData, initialParams }) {
     const { data: session } = useSession();
 
-    // Robust companyId extraction matching SalesPageClient
-    const user = session?.user;
-    const companyObj = user?.companies?.[0];
-    const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+    // Stabilize initial render state by using passed props
+    const user = initialData?.user || session?.user;
+    const companyId = initialData?.companyId || (user?.companies?.[0] ? (typeof user.companies[0] === 'string' ? user.companies[0] : (user.companies[0].id || user.companies[0]._id)) : null);
 
     // Prepare options with auth header
     const options = session?.accessToken ? {
@@ -26,7 +25,8 @@ export default function InvoicesPageClient() {
         queryKey: ['companyInvoices', companyId],
         queryFn: () => getCompanyInvoices(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
-        staleTime: 60000, // 1 minute
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 30 * 60 * 1000, // 30 minutes
     });
 
     const formattedInvoices = useMemo(() => {
@@ -72,9 +72,7 @@ export default function InvoicesPageClient() {
         });
     }, [invoicesData]);
 
-    if (isLoading) {
-        return <Loading />;
-    }
+    const showSkeleton = isLoading && !formattedInvoices.length;
 
     if (isError) {
         return (
@@ -96,7 +94,23 @@ export default function InvoicesPageClient() {
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <InvoiceExplorer invoices={formattedInvoices} />
+                {showSkeleton ? (
+                    <div className="space-y-4">
+                        <div className="h-[400px] w-full bg-gray-50 rounded-2xl animate-pulse border border-gray-100 flex flex-col p-6 space-y-4">
+                            <div className="flex justify-between items-center">
+                                <div className="h-10 w-64 bg-gray-200 rounded-lg" />
+                                <div className="h-10 w-32 bg-gray-200 rounded-lg" />
+                            </div>
+                            <div className="space-y-3">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i} className="h-12 w-full bg-gray-200 rounded-lg opacity-60" />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <InvoiceExplorer invoices={formattedInvoices} initialParams={initialParams} />
+                )}
             </div>
         </div>
     );

@@ -53,7 +53,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               href="/inventory/products"
               className="text-xs text-indigo-600 hover:underline"
             >
-              View all
+              {tRisk("viewAllLabel")}
             </Link>
           </div>
         </div>
@@ -157,7 +157,7 @@ const ProductRiskSection = ({ topProducts = [], riskProducts = [] }) => {
               href="/inventory/products"
               className="text-xs text-indigo-600 hover:underline"
             >
-              {tTop("viewAll") || tRisk("viewAll")}
+              {tTop("viewAllLabel") || tRisk("viewAllLabel")}
             </Link>
           </div>
         </div>

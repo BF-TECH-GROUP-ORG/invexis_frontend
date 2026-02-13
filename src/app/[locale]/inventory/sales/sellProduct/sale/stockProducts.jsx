@@ -8,6 +8,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@/components/shared/button";
 import { Package } from "lucide-react";
+import Skeleton from "@/components/shared/Skeleton";
 import { useState, useMemo, useCallback } from "react";
 import { getAllProducts, getCustomers } from "@/services/salesService";
 import { SellProduct } from "@/services/salesService";
@@ -797,12 +798,34 @@ const CurrentInventory = () => {
 
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} align="center" sx={{ py: 10 }}>
-                      <CircularProgress />
-                      <Typography sx={{ mt: 2 }}>{tTable('loading')}</Typography>
-                    </TableCell>
-                  </TableRow>
+                  // Skeleton Loading State
+                  [...Array(10)].map((_, index) => (
+                    <TableRow key={`skeleton-${index}`}>
+                      <TableCell padding="checkbox"><Skeleton className="h-4 w-4 rounded" /></TableCell>
+                      <TableCell padding="checkbox"><Skeleton className="h-5 w-5 rounded" /></TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={2}>
+                          <Skeleton className="h-10 w-10 rounded-lg" />
+                          <Box sx={{ width: '100%' }}>
+                            <Skeleton className="h-4 w-3/4 mb-1" />
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-12 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Skeleton className="h-6 w-6 rounded" />
+                          <Skeleton className="h-8 w-12 rounded" />
+                          <Skeleton className="h-6 w-6 rounded" />
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center"><Skeleton className="h-8 w-24 rounded-lg" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : filteredProducts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} align="center" sx={{ py: 10, color: "gray" }}>
@@ -1074,7 +1097,7 @@ const CurrentInventory = () => {
           fontWeight: "bold",
           fontSize: "1.25rem"
         }}>
-          {tPrice('title', { name: priceModal.product?.ProductName })}
+          {tPrice('title', { productName: priceModal.product?.ProductName })}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 2 }}>
           <Box sx={{ mb: 2 }}>

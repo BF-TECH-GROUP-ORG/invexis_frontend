@@ -37,8 +37,6 @@ import dayjs from "dayjs";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { PAYMENT_METHODS } from "./sampleData";
-
 // =======================================
 // STATUS CHIP COMPONENT
 // =======================================
@@ -114,27 +112,27 @@ const PaymentTable = ({
   shops = [],
   isLoading = false,
   filteredPayments = [],
-  search, setSearch,
-  startDate, setStartDate,
-  endDate, setEndDate,
-  selectedShop, setSelectedShop,
-  selectedPaymentMethod, setSelectedPaymentMethod,
-  selectedStatus, setSelectedStatus
+  search,
+  startDate,
+  endDate,
+  selectedShop,
+  selectedPaymentMethod,
+  selectedStatus,
+  pagination,
+  updateFilters
 }) => {
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [exportAnchor, setExportAnchor] = useState(null);
 
-  // Pagination state
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const page = pagination?.page || 0;
+  const rowsPerPage = pagination?.limit || 10;
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    updateFilters({ page: newPage });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    updateFilters({ limit: parseInt(event.target.value, 10), page: 0 });
   };
 
   const handleOpenFilter = (e) => setFilterAnchor(e.currentTarget);
@@ -144,11 +142,14 @@ const PaymentTable = ({
 
   // Clear all filters
   const handleClearFilters = () => {
-    setStartDate(null);
-    setEndDate(null);
-    setSelectedShop("");
-    setSelectedPaymentMethod("");
-    setSelectedStatus("");
+    updateFilters({
+      startDate: null,
+      endDate: null,
+      shop: "",
+      method: "",
+      status: "",
+      search: ""
+    });
   };
 
   // Generate dynamic filter options from payment data
@@ -213,8 +214,6 @@ const PaymentTable = ({
     doc.save("payment_history_report.pdf");
   };
 
-  // No local filtering logic anymore - all handled by parent
-
   const paginatedPayments = useMemo(() => {
     return filteredPayments.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   }, [filteredPayments, page, rowsPerPage]);
@@ -246,7 +245,7 @@ const PaymentTable = ({
     return shop?.name || shopId;
   };
 
-  const hasActiveFilters = startDate || endDate || selectedShop || selectedPaymentMethod || selectedStatus;
+  const hasActiveFilters = startDate || endDate || selectedShop || selectedPaymentMethod || selectedStatus || search;
 
   return (
     <Paper
@@ -259,7 +258,6 @@ const PaymentTable = ({
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
       }}
     >
-      {/* Consolidated Header */}
       <Box
         sx={{
           p: 3,
@@ -270,7 +268,6 @@ const PaymentTable = ({
           bgcolor: "#fff",
         }}
       >
-        {/* Top Row: Title & Search */}
         <Box
           sx={{
             display: "flex",
@@ -294,7 +291,7 @@ const PaymentTable = ({
               size="small"
               placeholder="Search payments..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateFilters({ search: e.target.value, page: 0 })}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -316,11 +313,11 @@ const PaymentTable = ({
             <IconButton
               onClick={handleOpenFilter}
               sx={{
-                bgcolor: hasActiveFilters ? "#FFF3E0" : "#f3f4f6",
-                color: hasActiveFilters ? "#FF6D00" : "#4b5563",
+                bgcolor: (startDate || endDate) ? "#FFF3E0" : "#f3f4f6",
+                color: (startDate || endDate) ? "#FF6D00" : "#4b5563",
                 borderRadius: "8px",
                 p: 1,
-                "&:hover": { bgcolor: hasActiveFilters ? "#FFE0B2" : "#e5e7eb" },
+                "&:hover": { bgcolor: (startDate || endDate) ? "#FFE0B2" : "#e5e7eb" },
               }}
             >
               <FilterAltRoundedIcon />
@@ -358,7 +355,6 @@ const PaymentTable = ({
           </Box>
         </Box>
 
-        {/* Bottom Row: Filters */}
         <Box
           sx={{
             display: "flex",
@@ -383,7 +379,7 @@ const PaymentTable = ({
               labelId="shop-filter-label"
               value={selectedShop}
               label="Filter by Shop"
-              onChange={(e) => setSelectedShop(e.target.value)}
+              onChange={(e) => updateFilters({ shop: e.target.value, page: 0 })}
             >
               <MenuItem value="">
                 <em>All Shops</em>
@@ -412,7 +408,7 @@ const PaymentTable = ({
               labelId="method-filter-label"
               value={selectedPaymentMethod}
               label="Payment Method"
-              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+              onChange={(e) => updateFilters({ method: e.target.value, page: 0 })}
             >
               <MenuItem value="">
                 <em>All Methods</em>
@@ -441,7 +437,7 @@ const PaymentTable = ({
               labelId="status-filter-label"
               value={selectedStatus}
               label="Status"
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => updateFilters({ status: e.target.value, page: 0 })}
             >
               <MenuItem value="">
                 <em>All Status</em>
@@ -473,7 +469,6 @@ const PaymentTable = ({
         </Box>
       </Box>
 
-      {/* Filter Popover */}
       <Popover
         open={Boolean(filterAnchor)}
         anchorEl={filterAnchor}
@@ -489,32 +484,30 @@ const PaymentTable = ({
             <DatePicker
               label="From"
               value={startDate}
-              onChange={setStartDate}
+              onChange={(val) => updateFilters({ startDate: val, page: 0 })}
               sx={{ mt: 2, width: "100%" }}
             />
-            <DatePicker label="To" value={endDate} onChange={setEndDate} sx={{ mt: 2, width: "100%" }} />
+            <DatePicker
+              label="To"
+              value={endDate}
+              onChange={(val) => updateFilters({ endDate: val, page: 0 })}
+              sx={{ mt: 2, width: "100%" }}
+            />
           </LocalizationProvider>
         </Box>
       </Popover>
 
-      {/* Table */}
       <TableContainer sx={{ maxHeight: 600 }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-              <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>
-                Transaction ID
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Transaction ID</TableCell>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Date</TableCell>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Payer</TableCell>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Phone</TableCell>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Shop</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>
-                Payment Method
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>
-                Amount
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Payment Method</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Amount</TableCell>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Status</TableCell>
             </TableRow>
           </TableHead>
@@ -529,14 +522,7 @@ const PaymentTable = ({
                     transition: "background-color 0.2s",
                   }}
                 >
-                  <TableCell
-                    sx={{
-                      fontFamily: "monospace",
-                      fontSize: "12px",
-                      color: "#111827",
-                      fontWeight: 600,
-                    }}
-                  >
+                  <TableCell sx={{ fontFamily: "monospace", fontSize: "12px", color: "#111827", fontWeight: 600 }}>
                     {payment.payment_id || payment.transactionId}
                   </TableCell>
                   <TableCell sx={{ color: "#6b7280", fontSize: "13px" }}>
@@ -571,7 +557,6 @@ const PaymentTable = ({
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
       <TablePagination
         rowsPerPageOptions={[10, 25, 50, 100]}
         component="div"
@@ -580,10 +565,7 @@ const PaymentTable = ({
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          borderTop: "1px solid #e5e7eb",
-          backgroundColor: "#f9fafb",
-        }}
+        sx={{ borderTop: "1px solid #e5e7eb", backgroundColor: "#f9fafb" }}
       />
     </Paper>
   );

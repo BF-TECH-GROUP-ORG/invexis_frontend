@@ -35,6 +35,7 @@ import {
 import DataTable from "@/components/shared/EcommerceDataTable";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 const methodIcons = {
     mobile_money: <Smartphone size={18} className="text-yellow-600" />,
@@ -49,69 +50,68 @@ const gatewayColors = {
     manual: "bg-gray-100 text-gray-800",
 };
 
-export default function TransactionsList({ transactions, shops = [], workers = [] }) {
-    const [dateRange, setDateRange] = useState({ start: "", end: "" });
-    const [selectedStatus, setSelectedStatus] = useState("All");
-    const [selectedMethod, setSelectedMethod] = useState("All");
-    const [selectedShop, setSelectedShop] = useState("All");
-    const [selectedWorker, setSelectedWorker] = useState("All");
+export default function TransactionsList({ transactions, shops = [], workers = [], initialParams = {} }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
+    // Sync state with URL params
+    const selectedStatus = searchParams.get("status") || initialParams.status || "All";
+    const selectedMethod = searchParams.get("method") || initialParams.method || "All";
+    const selectedShop = searchParams.get("shop") || initialParams.shop || "All";
+    const selectedWorker = searchParams.get("worker") || initialParams.worker || "All";
+    const startDate = searchParams.get("startDate") || initialParams.startDate || "";
+    const endDate = searchParams.get("endDate") || initialParams.endDate || "";
+
     const [exportAnchorEl, setExportAnchorEl] = useState(null);
+
+    // Helper to update filters/state in URL
+    const updateFilters = (updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "" || value === "All") {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
 
     // Helpers for name resolution
     const getShopName = (id) => {
         if (!id) return "N/A";
         const targetId = String(id);
-        // Primary check: Shops
         const shop = shops?.find(s => String(s.id || s._id) === targetId);
         if (shop) return shop.name || shop.shopName || "Unnamed Shop";
-
-        // Secondary check: Workers (in case of field mixup)
         const worker = workers?.find(w => String(w.id || w._id) === targetId);
         if (worker) return worker.fullName || `${worker.firstName || ''} ${worker.lastName || ''}`.trim() || "Worker";
-
         return `Shop ${targetId.slice(0, 6)}...`;
     };
 
     const getWorkerName = (id) => {
         if (!id) return "System";
         const targetId = String(id);
-        // Primary check: Workers
         const worker = workers?.find(w => String(w.id || w._id) === targetId);
         if (worker) return worker.fullName || `${worker.firstName || ''} ${worker.lastName || ''}`.trim() || worker.email || "Worker";
-
-        // Secondary check: Shops (in case of field mixup)
         const shop = shops?.find(s => String(s.id || s._id) === targetId);
         if (shop) return shop.name || shop.shopName || "Shop";
-
         return `Worker ${targetId.slice(0, 6)}...`;
     };
 
-    // Normalize raw prop: handle array vs wrapped response structure
+    // Normalize raw prop
     const dataArray = useMemo(() => {
         let arr = [];
         if (!transactions) arr = [];
         else if (Array.isArray(transactions)) arr = transactions;
         else if (transactions.data && Array.isArray(transactions.data)) arr = transactions.data;
-
         return arr;
     }, [transactions]);
 
-    // Debug Data Structure
-    React.useEffect(() => {
-        if (dataArray.length > 0) {
-            console.log("[TransactionsList] Resolution Audit:", {
-                txCount: dataArray.length,
-                shopsSample: shops?.map(s => ({ id: s.id || s._id, name: s.name })),
-                workersSample: workers?.map(w => ({ id: w.id || w._id, name: w.fullName })),
-                firstTx: dataArray[0]
-            });
-        }
-    }, [dataArray, shops, workers]);
-
     const filteredTransactions = useMemo(() => {
         return dataArray.filter(tx => {
-            const dateMatch = (!dateRange.start || dayjs(tx.created_at).isAfter(dayjs(dateRange.start).subtract(1, 'day'))) &&
-                (!dateRange.end || dayjs(tx.created_at).isBefore(dayjs(dateRange.end).add(1, 'day')));
+            const dateMatch = (!startDate || dayjs(tx.created_at).isAfter(dayjs(startDate).subtract(1, 'day'))) &&
+                (!endDate || dayjs(tx.created_at).isBefore(dayjs(endDate).add(1, 'day')));
             const statusMatch = selectedStatus === "All" || tx.status === selectedStatus;
             const methodMatch = selectedMethod === "All" || tx.payment_method === selectedMethod;
 
@@ -123,13 +123,14 @@ export default function TransactionsList({ transactions, shops = [], workers = [
 
             return dateMatch && statusMatch && methodMatch && shopMatch && workerMatch;
         });
-    }, [dataArray, dateRange, selectedStatus, selectedMethod, selectedShop, selectedWorker]);
+    }, [dataArray, startDate, endDate, selectedStatus, selectedMethod, selectedShop, selectedWorker]);
 
+    // Export logic
     const handleExportPDF = () => {
         const doc = new jsPDF();
         doc.text("Company Transactions Report", 14, 15);
         const tableData = filteredTransactions.map(tx => [
-            tx.transaction_id.slice(0, 8).toUpperCase(),
+            tx.transaction_id ? tx.transaction_id.slice(0, 8).toUpperCase() : (tx.id?.slice(0, 8) || 'N/A'),
             tx.type,
             `${tx.amount} ${tx.currency}`,
             tx.payment_method,
@@ -148,7 +149,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
     const handleExportCSV = () => {
         const headers = ["ID,Type,Amount,Currency,Method,Date,Status"];
         const rows = filteredTransactions.map(tx =>
-            `"${tx.transaction_id}","${tx.type}",${tx.amount},"${tx.currency}","${tx.payment_method}","${dayjs(tx.created_at).format('YYYY-MM-DD')}","${tx.status}"`
+            `"${tx.transaction_id || tx.id}","${tx.type}",${tx.amount},"${tx.currency}","${tx.payment_method}","${dayjs(tx.created_at).format('YYYY-MM-DD')}","${tx.status}"`
         );
         const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
         const encodedUri = encodeURI(csvContent);
@@ -214,7 +215,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                         {methodIcons[row.payment_method] || <Banknote size={16} />}
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight">{row.payment_method.replace('_', ' ')}</span>
+                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight">{(row.payment_method || '').replace('_', ' ')}</span>
                         <span className={`text-[9px] font-medium px-1.5 rounded-full ${gatewayColors[row.gateway] || 'bg-slate-100 text-slate-600'}`}>
                             {row.gateway}
                         </span>
@@ -290,7 +291,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 <Select
                     label="Status"
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    onChange={(e) => updateFilters({ status: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All Statuses</MenuItem>
@@ -304,7 +305,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 <Select
                     label="Method"
                     value={selectedMethod}
-                    onChange={(e) => setSelectedMethod(e.target.value)}
+                    onChange={(e) => updateFilters({ method: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All Methods</MenuItem>
@@ -319,7 +320,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 <Select
                     label="Shop"
                     value={selectedShop}
-                    onChange={(e) => setSelectedShop(e.target.value)}
+                    onChange={(e) => updateFilters({ shop: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All Shops</MenuItem>
@@ -336,7 +337,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 <Select
                     label="Worker"
                     value={selectedWorker}
-                    onChange={(e) => setSelectedWorker(e.target.value)}
+                    onChange={(e) => updateFilters({ worker: e.target.value })}
                     sx={{ borderRadius: '8px', fontSize: '0.75rem' }}
                 >
                     <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All Workers</MenuItem>
@@ -352,8 +353,8 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 size="small"
                 type="date"
                 label="From"
-                value={dateRange.start}
-                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                value={startDate}
+                onChange={(e) => updateFilters({ startDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: 130, "& .MuiInputBase-input": { fontSize: '0.75rem' }, "& .MuiOutlinedInput-root": { borderRadius: '8px' } }}
             />
@@ -362,8 +363,8 @@ export default function TransactionsList({ transactions, shops = [], workers = [
                 size="small"
                 type="date"
                 label="To"
-                value={dateRange.end}
-                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                value={endDate}
+                onChange={(e) => updateFilters({ endDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: 130, "& .MuiInputBase-input": { fontSize: '0.75rem' }, "& .MuiOutlinedInput-root": { borderRadius: '8px' } }}
             />

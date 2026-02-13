@@ -1,5 +1,6 @@
 "use client";
 import React, { memo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
     LineChart,
     Line,
@@ -95,6 +96,7 @@ const SalesPerformance = ({
     profitabilityData = [],
     loading = false
 }) => {
+    const t = useTranslations('dashboard');
     // ... (rest of the component logic remains same until return)
 
     const safeCategoryData = Array.isArray(categoryData) ? categoryData : [];
@@ -161,15 +163,15 @@ const SalesPerformance = ({
             <div className="bg-white p-6 rounded-2xl border border-gray-300 ">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-800">Sales Performance</h2>
+                        <h2 className="text-lg font-bold text-gray-800">{t('salesPerformance')}</h2>
                         <p className="text-sm text-gray-500">
-                            Comparing <span className="text-indigo-500 font-medium">Current</span> vs <span className="text-orange-400 font-medium">Previous</span> {timeRange}
+                            {t('comparing')} <span className="text-indigo-500 font-medium">{t('current')}</span> {t('vs')} <span className="text-orange-400 font-medium">{t('previous')}</span> {timeRange}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
-                                label="Compare with"
+                                label={t('compareWith')}
                                 value={selectedDate}
                                 onChange={(newValue) => setSelectedDate(newValue)}
                                 slotProps={{
@@ -250,14 +252,14 @@ const SalesPerformance = ({
 
                             <Bar
                                 dataKey="revenue"
-                                name="Revenue"
+                                name={t('revenue')}
                                 barSize={32}
                                 fill="url(#barGradient)"
                                 radius={[12, 12, 0, 0]}
                             />
                             <Bar
                                 dataKey="cost"
-                                name="Cost"
+                                name={t('cost')}
                                 barSize={32}
                                 fill="#081422"
                                 radius={[12, 12, 0, 0]}
@@ -273,7 +275,7 @@ const SalesPerformance = ({
                             </Bar>
                             <Bar
                                 dataKey="cost"
-                                name="Cost"
+                                name={t('cost')}
                                 barSize={32}
                                 fill="url(#striped-pattern)"
                                 radius={[12, 12, 0, 0]}
@@ -285,7 +287,7 @@ const SalesPerformance = ({
                             <Line
                                 type="monotone"
                                 dataKey="profit"
-                                name="Profit"
+                                name={t('profit')}
                                 stroke="#fb923c"
                                 strokeWidth={4}
                                 dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#fb923c" }}
@@ -300,8 +302,8 @@ const SalesPerformance = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center">
                     <div className="w-full mb-6">
-                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">Sales by Payment Method</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Distribution across payment types</p>
+                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">{t('salesByPaymentMethod')}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('distributionByPayment')}</p>
                     </div>
                     <div className="flex flex-col md:flex-row items-center w-full justify-around gap-8">
                         <div className="h-64 w-64 flex-shrink-0 relative">
@@ -336,7 +338,7 @@ const SalesPerformance = ({
                                                                 style={{ backgroundColor: payload[0].payload.fill }}
                                                             ></span>
                                                             <span className="text-gray-600 dark:text-gray-300">
-                                                                {payload[0].value.toLocaleString()} transactions
+                                                                {payload[0].value.toLocaleString()} {t('transactions')}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -352,7 +354,7 @@ const SalesPerformance = ({
                                     {processedCategoryData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString()}
                                 </span>
                                 <span className="text-xs text-gray-400 font-bold tracking-widest uppercase mt-1">
-                                    Total Sales
+                                    {t('totalSales')}
                                 </span>
                             </div>
                         </div>
@@ -383,8 +385,8 @@ const SalesPerformance = ({
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center">
                     <div className="w-full mb-6 flex justify-between items-center">
                         <div>
-                            <h2 className="text-lg font-bold text-gray-800">Top Products</h2>
-                            <p className="text-sm text-gray-500">Best performing items</p>
+                            <h2 className="text-lg font-bold text-gray-800">{t('topProductsTitle')}</h2>
+                            <p className="text-sm text-gray-500">{t('bestPerformingItems')}</p>
                         </div>
                     </div>
                     <div className="h-[250px] w-full">
@@ -427,9 +429,9 @@ const SalesPerformance = ({
             <div className="bg-white p-6 rounded-2xl border border-gray-300">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-800">Inventory Statistics</h2>
+                        <h2 className="text-lg font-bold text-gray-800">{t('inventoryStatistics')}</h2>
                         <p className="text-sm text-gray-500">
-                            Inbound <span className="text-emerald-500 font-medium">Stock In</span> vs Outbound <span className="text-orange-400 font-medium">Stock Out</span>
+                            {t('inbound')} <span className="text-emerald-500 font-medium">{t('stockIn')}</span> {t('vs')} {t('outbound')} <span className="text-orange-400 font-medium">{t('stockOut')}</span>
                         </p>
                     </div>
                 </div>
@@ -479,14 +481,14 @@ const SalesPerformance = ({
 
                             <Bar
                                 dataKey="in"
-                                name="Stock In"
+                                name={t('stockIn')}
                                 barSize={36}
                                 fill="url(#stockInGradient)"
                                 radius={[12, 12, 0, 0]}
                             />
                             <Bar
                                 dataKey="out"
-                                name="Stock Out"
+                                name={t('stockOut')}
                                 barSize={36}
                                 fill="url(#stockOutGradient)"
                                 radius={[12, 12, 0, 0]}
@@ -494,7 +496,7 @@ const SalesPerformance = ({
                             <Line
                                 type="monotone"
                                 dataKey="net"
-                                name="Net Flow"
+                                name={t('netFlow')}
                                 stroke="#081422"
                                 strokeWidth={4}
                                 dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#081422" }}

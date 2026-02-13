@@ -4,14 +4,30 @@ import { getCacheStrategy } from "@/lib/cacheConfig";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /**
+ * Standardized URL builder for stock service
+ */
+const buildUrl = (path) => {
+  const base = (API_BASE || "").replace(/\/+$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+
+  // Prevent double /api if it exists in base
+  if (base.endsWith("/api") && p.startsWith("/api")) {
+    return base + p.substring(4);
+  }
+
+  return `${base}${p}`;
+};
+
+/**
  * Lookup product by scanned QR/Barcode data
  * POST /v1/stock/lookup
  */
-export async function lookupProduct(scanData) {
+export async function lookupProduct(scanData, options = {}) {
   try {
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/lookup`,
-      scanData
+      buildUrl(`/inventory/v1/stock/lookup`),
+      scanData,
+      options
     );
     return res.data;
   } catch (err) {
@@ -26,11 +42,12 @@ export async function lookupProduct(scanData) {
  * @param {Object} payload - The inventory data to add
  * @returns {Promise<Object>} The response data from the API
  */
-export async function stockIn(payload) {
+export async function stockIn(payload, options = {}) {
   try {
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/bulk-in`,
-      payload
+      buildUrl(`/inventory/v1/stock/bulk-in`),
+      payload,
+      options
     );
     return res.data;
   } catch (err) {
@@ -45,11 +62,12 @@ export async function stockIn(payload) {
  * @param {Object} payload - The inventory data to remove
  * @returns {Promise<Object>} The response data from the API
  */
-export async function stockOut(payload) {
+export async function stockOut(payload, options = {}) {
   try {
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/out`,
-      payload
+      buildUrl(`/inventory/v1/stock/out`),
+      payload,
+      options
     );
     return res.data;
   } catch (err) {
@@ -64,13 +82,14 @@ export async function stockOut(payload) {
  * @param {Array<Object>} items - An array of items to add to inventory
  * @returns {Promise<Object>} The response data from the API
  */
-export async function bulkStockIn(payload) {
+export async function bulkStockIn(payload, options = {}) {
   try {
     // payload may be either an array of items or an object { companyId, shopId, userId, items }
     const body = Array.isArray(payload) ? { items: payload } : payload;
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/bulk-in`,
-      body
+      buildUrl(`/inventory/v1/stock/bulk-in`),
+      body,
+      options
     );
     return res.data;
   } catch (err) {
@@ -85,11 +104,12 @@ export async function bulkStockIn(payload) {
  * @param {Array<Object>} items - An array of items to remove from inventory
  * @returns {Promise<Object>} The response data from the API
  */
-export async function bulkStockOut(items) {
+export async function bulkStockOut(items, options = {}) {
   try {
     const res = await apiClient.post(
-      `${API_BASE}/inventory/v1/stock/bulk-out`,
-      { items }
+      buildUrl(`/inventory/v1/stock/bulk-out`),
+      { items },
+      options
     );
     return res.data;
   } catch (err) {
@@ -120,7 +140,7 @@ export async function getAllStockChanges(
   if (companyId) params.companyId = companyId;
   if (productId) params.productId = productId;
 
-  return apiClient.get(`${API_BASE}/inventory/v1/stock/changes`, {
+  return apiClient.get(buildUrl(`/inventory/v1/stock/changes`), {
     params,
     cache: cacheStrategy, // NO-STORE
     ...options,
@@ -143,15 +163,16 @@ export async function getStockHistory({
   productId,
   page = 1,
   limit = 20,
-} = {}) {
+} = {}, options = {}) {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
   const params = { page, limit };
   if (productId) params.productId = productId;
 
-  return apiClient.get(`${API_BASE}/inventory/v1/stock/history`, {
+  return apiClient.get(buildUrl(`/inventory/v1/stock/history`), {
     params,
     cache: cacheStrategy, // 1 hour cache
+    ...options
   });
 }
 
@@ -172,7 +193,7 @@ export async function getStockChangeHistory(
   if (companyId) params.companyId = companyId;
 
   return apiClient.get(
-    `${API_BASE}/inventory/v1/analytics/stock-change-history`,
+    buildUrl(`/inventory/v1/analytics/stock-change-history`),
     {
       params,
       cache: cacheStrategy,
@@ -192,7 +213,7 @@ export async function getDailySummary({ companyId } = {}, options = {}) {
   const params = {};
   if (companyId) params.companyId = companyId;
 
-  return apiClient.get(`${API_BASE}/inventory/v1/stock/daily-summary`, {
+  return apiClient.get(buildUrl(`/inventory/v1/stock/daily-summary`), {
     params,
     cache: cacheStrategy,
     ...options,
@@ -206,8 +227,8 @@ export async function getDailySummary({ companyId } = {}, options = {}) {
  * @param {string} id - The ID of the stock change to retrieve
  * @returns {Promise<Object>} The stock change data
  */
-export async function getStockChangeById(id) {
-  return apiClient.get(`${API_BASE}/inventory/v1/stock/changes/${id}`);
+export async function getStockChangeById(id, options = {}) {
+  return apiClient.get(buildUrl(`/inventory/v1/stock/changes/${id}`), options);
 }
 
 /**
@@ -217,8 +238,8 @@ export async function getStockChangeById(id) {
  * @param {Object} payload - Stock change data
  * @returns {Promise<Object>} Created stock change data
  */
-export async function createStockChange(payload) {
-  return apiClient.post(`${API_BASE}/inventory/v1/stock/changes`, payload);
+export async function createStockChange(payload, options = {}) {
+  return apiClient.post(buildUrl(`/inventory/v1/stock/changes`), payload, options);
 }
 
 const stockService = {
@@ -245,10 +266,11 @@ export default stockService;
  * Intra-Company Bulk Transfer (Shop to Shop)
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-transfer
  */
-export async function transferToShop(companyId, shopId, payload) {
+export async function transferToShop(companyId, shopId, payload, options = {}) {
   return apiClient.post(
-    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`,
-    payload
+    buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`),
+    payload,
+    options
   );
 }
 
@@ -256,10 +278,11 @@ export async function transferToShop(companyId, shopId, payload) {
  * Cross-Company Bulk Transfer
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
  */
-export async function transferToCompany(companyId, shopId, payload) {
+export async function transferToCompany(companyId, shopId, payload, options = {}) {
   return apiClient.post(
-    `${API_BASE}/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`,
-    payload
+    buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`),
+    payload,
+    options
   );
 }
 
@@ -270,8 +293,8 @@ export async function transferToCompany(companyId, shopId, payload) {
  * @param {string} id - Company ID
  * @returns {Promise<Object>} Company details
  */
-export async function getCompanyDetails(id) {
-  return apiClient.get(`${API_BASE}/company/companies/${id}`);
+export async function getCompanyDetails(id, options = {}) {
+  return apiClient.get(buildUrl(`/company/companies/${id}`), options);
 }
 
 /**
@@ -280,27 +303,27 @@ export async function getCompanyDetails(id) {
  *
  * @returns {Promise<Object>} List of companies
  */
-export async function getAllCompanies() {
+export async function getAllCompanies(options = {}) {
   try {
-    const response = await apiClient.get(`${API_BASE}/company/companies`);
+    const response = await apiClient.get(buildUrl(`/company/companies`), options);
     console.log("getAllCompanies raw response:", response);
-    
+
     // Axios wraps response in response.data
     // Backend may return: {data: Array(...), ...} or just Array
     const apiResponse = response.data;
-    
+
     // Return the structured response so components can access via .data
     // This maintains consistency with React Query
     if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
       console.log("✓ Companies extracted:", apiResponse.data.length, "companies");
       return { data: apiResponse.data };
     }
-    
+
     if (Array.isArray(apiResponse)) {
       console.log("✓ Companies (direct array):", apiResponse.length, "companies");
       return { data: apiResponse };
     }
-    
+
     console.warn("Unexpected companies response:", apiResponse);
     return { data: [] };
   } catch (error) {

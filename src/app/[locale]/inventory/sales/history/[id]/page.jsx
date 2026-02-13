@@ -10,6 +10,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import PaymentIcon from '@mui/icons-material/Payment';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import Skeleton from "@/components/shared/Skeleton";
 import Link from "next/link";
 
 const OrderDetails = () => {
@@ -59,9 +60,98 @@ const OrderDetails = () => {
 
   if (loading) {
     return (
-      <section className="flex items-center justify-center min-h-screen">
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading sale details...</Typography>
+      <section className="space-y-6 p-2 sm:p-4 w-full max-w-7xl mx-auto">
+        {/* Back Button Skeleton */}
+        <div className="flex items-center space-x-3">
+          <Skeleton className="h-6 w-32" />
+        </div>
+
+        {/* Sale Header Skeleton */}
+        <div className="p-3 rounded-lg ring-1 ring-gray-200">
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Box className="space-y-2">
+              <Skeleton className="h-10 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </Box>
+            <Box className="flex gap-2">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </Box>
+          </Box>
+        </div>
+
+        {/* Items Section Skeleton */}
+        <div className="p-3 rounded-lg ring-1 ring-gray-200">
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-32" />
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {[...Array(6)].map((_, i) => (
+                    <TableCell key={i}><Skeleton className="h-4 w-full" /></TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...Array(3)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-12 w-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-10 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Box className="w-full sm:w-64 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Divider sx={{ my: 1 }} />
+              <Skeleton className="h-8 w-full" />
+            </Box>
+          </Box>
+        </div>
+
+        {/* Customer Information Skeleton */}
+        <div className="p-3 rounded-lg ring-1 ring-gray-200">
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-48" />
+          </Box>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Payment Information Skeleton */}
+        <div className="p-3 rounded-lg ring-1 ring-gray-200">
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-48" />
+          </Box>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     );
   }

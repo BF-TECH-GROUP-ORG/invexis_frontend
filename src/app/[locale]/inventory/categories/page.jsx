@@ -8,9 +8,19 @@ import CategoryList from "@/components/inventory/categories/CategoryList";
 import { getCategories } from "@/services/categoriesService";
 import ClientProviders from "@/providers/ClientProviders";
 
-export default async function InventoryCategoriesPage() {
+export default async function InventoryCategoriesPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const queryClient = getQueryClient();
+
+  // Resolve searchParams (Next.js 15 behavior)
+  const resolvedParams = await (searchParams || {});
+  const page = parseInt(resolvedParams.page) || 1;
+  const limit = parseInt(resolvedParams.limit) || 20;
+  const search = resolvedParams.search || "";
+  const sortBy = resolvedParams.sortBy || "name";
+  const sortOrder = resolvedParams.sortOrder || "asc";
+  const level = resolvedParams.level || null;
+  const parentCategory = resolvedParams.parentCategory || null;
 
   if (session?.accessToken) {
     const user = session.user;
@@ -23,26 +33,38 @@ export default async function InventoryCategoriesPage() {
       }
     };
 
-    const defaultParams = {
-      page: 1,
-      limit: 20,
-      sortBy: "name",
-      sortOrder: "asc",
+    const fetchParams = {
+      page,
+      limit,
+      search: search || undefined,
+      level,
+      parentCategory,
+      sortBy,
+      sortOrder,
       companyId
     };
 
-    // Prefetch categories
+    // Prefetch categories server-side
     await queryClient.prefetchQuery({
-      queryKey: ["categories", defaultParams],
-      queryFn: () => getCategories(defaultParams, options),
+      queryKey: ["categories", fetchParams],
+      queryFn: () => getCategories(fetchParams, options),
     });
+
+    return (
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <div className="min-h-screen bg-gray-50">
+          <CategoryList initialParams={fetchParams} />
+        </div>
+      </HydrationBoundary>
+    );
   }
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="min-h-screen bg-gray-50">
-        <CategoryList />
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
+        <p className="text-gray-500">Please log in to view categories.</p>
       </div>
-    </HydrationBoundary>
+    </div>
   );
 }

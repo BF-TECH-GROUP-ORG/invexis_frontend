@@ -107,11 +107,12 @@ const OverviewService = {
    * Get inventory adjustment report
    * GET /report/adjustments
    */
-  getAdjustments: async (params = {}) => {
+  getAdjustments: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("INVENTORY", "REPORTS");
     return apiClient.get(buildUrl(`/inventory/v1/report/adjustments`), {
       params,
       cache: cacheStrategy,
+      ...options
     });
   },
 
@@ -163,13 +164,14 @@ const OverviewService = {
    * Get profit comparison graph data
    * GET /analytics/graphs/profit-comparison
    */
-  getProfitComparison: async (params = {}) => {
+  getProfitComparison: async (params = {}, options = {}) => {
     const cacheStrategy = getCacheStrategy("ANALYTICS", "WIDGET");
     return apiClient.get(
       buildUrl(`/inventory/v1/analytics/graphs/profit-comparison`),
       {
         params,
         cache: cacheStrategy,
+        ...options
       }
     );
   },
@@ -228,18 +230,43 @@ const OverviewService = {
   },
 
   // ==================== OPTIMIZED COMBINED CALLS ====================
+  /**
+   * Safe fetch with retries
+   */
+  safeFetch: async (fetcher, retries = 2) => {
+    let lastError;
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fetcher();
+      } catch (err) {
+        lastError = err;
+        // Only retry on potential network/transient errors
+        const isTransient = err.message?.includes('socket') || err.message?.includes('ETIMEDOUT') || err.status === 502 || err.status === 503 || err.status === 504;
+        if (!isTransient || i === retries) break;
+        console.warn(`[OverviewService] Retry ${i + 1}/${retries} after error:`, err.message);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+      }
+    }
+    throw lastError;
+  },
 
   /**
    * Fetch core dashboard data in parallel
    * This is an optimization to reduce sequential waterfall requests
    */
   getDashboardData: async (companyId, params = {}, options = {}) => {
-    const [summary, metrics, trends, lowStock] = await Promise.all([
-      OverviewService.getInventorySummary(companyId, options),
-      OverviewService.getCompanyMetrics({ companyId, ...params }, options),
-      OverviewService.getInventoryTrends({ companyId, ...params }, options),
-      OverviewService.getLowStock(companyId, options),
+    const results = await Promise.allSettled([
+      OverviewService.safeFetch(() => OverviewService.getInventorySummary(companyId, options)),
+      OverviewService.safeFetch(() => OverviewService.getCompanyMetrics({ companyId, ...params }, options)),
+      OverviewService.safeFetch(() => OverviewService.getInventoryTrends({ companyId, ...params }, options)),
+      OverviewService.safeFetch(() => OverviewService.getLowStock(companyId, options)),
     ]);
+
+    const [summary, metrics, trends, lowStock] = results.map((res, idx) => {
+      if (res.status === 'fulfilled') return res.value;
+      console.error(`[OverviewService] Dashboard metric ${idx} failed after retries:`, res.reason?.message);
+      return null; // Return null to allow partial data rendering
+    });
 
     return {
       summary,
