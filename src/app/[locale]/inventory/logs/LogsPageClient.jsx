@@ -75,6 +75,26 @@ const LogsPageClient = ({ initialData }) => {
                             <span className="text-gray-500">{t("logs")}</span>
                         </p>
                     </div>
+                    <button
+                        onClick={() => {
+                            const csvContent = "data:text/csv;charset=utf-8,"
+                                + "Event Type,User,Entity,Source,Severity,Date\n"
+                                + logs.map(e => `"${e.event_type}","${e.userId}","${e.entityType}","${e.source_service}","${e.severity}","${e.occurred_at}"`).join("\n");
+                            const encodedUri = encodeURI(csvContent);
+                            const link = document.createElement("a");
+                            link.setAttribute("href", encodedUri);
+                            link.setAttribute("download", `audit_logs_${companyId}.csv`);
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }}
+                        className="bg-white text-[#FF6D00] border-2 border-[#FF6D00] px-6 py-2.5 rounded-2xl font-black hover:bg-orange-50 transition-all shadow-none flex items-center gap-2 group"
+                    >
+                        <svg className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        {t("export") || "Export Logs"}
+                    </button>
                 </div>
                 <DataTable
                     logsData={logs}

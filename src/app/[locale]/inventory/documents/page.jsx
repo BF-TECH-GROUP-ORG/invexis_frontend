@@ -6,6 +6,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 import DocumentsPageClient from "./DocumentsPageClient";
 import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
+import { unstable_cache } from 'next/cache';
 
 export default async function DocumentsPage() {
   const session = await getServerSession(authOptions);
@@ -22,15 +23,23 @@ export default async function DocumentsPage() {
       }
     };
 
-    // Prefetch invoices and inventory media
+    // Helper for server-side persistence using unstable_cache
+    const getCached = (key, fetcher) =>
+      unstable_cache(
+        async () => fetcher(),
+        [`documents-${key}`, companyId],
+        { revalidate: 300, tags: ['documents', `company-${companyId}`] }
+      )();
+
+    // Prefetch invoices and inventory media with caching
     await Promise.all([
       queryClient.prefetchQuery({
         queryKey: ['salesInvoices', companyId],
-        queryFn: () => getCompanySalesInvoices(companyId, options),
+        queryFn: () => getCached('invoices', () => getCompanySalesInvoices(companyId, options)),
       }),
       queryClient.prefetchQuery({
         queryKey: ['inventoryMedia', companyId],
-        queryFn: () => getCompanyInventoryMedia(companyId, options),
+        queryFn: () => getCached('media', () => getCompanyInventoryMedia(companyId, options)),
       })
     ]);
   }
