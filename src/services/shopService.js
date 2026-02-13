@@ -12,7 +12,7 @@ export const getAllShops = async (companyId, options = {}) => {
   const params = companyId ? { companyId } : {};
 
   try {
-    const data = await apiClient.get(`${SHOP_API_URL}/shop`, {
+    const data = await apiClient.get(`/shop`, {
       cache: cacheStrategy,
       params,
       ...options,
@@ -46,7 +46,7 @@ export const getAllShops = async (companyId, options = {}) => {
  */
 export const deleteShop = async (shopId, options = {}) => {
   try {
-    const data = await apiClient.delete(`${SHOP_API_URL}/shop/${shopId}`, options);
+    const data = await apiClient.delete(`/shop/${shopId}`, options);
 
     // Clear shops cache
     apiClient.clearCache("/shops");
@@ -68,7 +68,7 @@ export const getShopById = async (shopId, options = {}) => {
   const cacheStrategy = getCacheStrategy("SHOPS");
 
   try {
-    const data = await apiClient.get(`${SHOP_API_URL}/shop/${shopId}`, {
+    const data = await apiClient.get(`/shop/${shopId}`, {
       cache: cacheStrategy,
       ...options,
     });
@@ -89,7 +89,7 @@ export const getShopById = async (shopId, options = {}) => {
  */
 export const createShop = async (shopData, options = {}) => {
   try {
-    const data = await apiClient.post(`${SHOP_API_URL}/shop`, shopData, options);
+    const data = await apiClient.post(`/shop`, shopData, options);
 
     // Clear shops cache
     apiClient.clearCache("/shops");

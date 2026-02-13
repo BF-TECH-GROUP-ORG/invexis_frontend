@@ -53,6 +53,9 @@ export default async function TransactionsPage({ searchParams }) {
         ]);
     }
 
+    // Next.js automatically wraps async pages with loading.jsx while this await resolves.
+    // This provides the "instant navigation" behavior with skeletons.
+
     const initialParams = {
         shop,
         worker,
