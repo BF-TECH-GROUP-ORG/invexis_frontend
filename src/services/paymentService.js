@@ -12,7 +12,7 @@ export const getCompanyPayments = async (companyId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/company/${companyId}`, options);
+    return await apiClient.get(`/payments/company/${companyId}`, options);
   } catch (error) {
     console.error('Error fetching company payments:', error);
     throw error;
@@ -31,7 +31,7 @@ export const getSellerPayments = async (sellerId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/seller/${sellerId}`, options);
+    return await apiClient.get(`/payments/seller/${sellerId}`, options);
   } catch (error) {
     console.error('Error fetching seller payments:', error);
     throw error;
@@ -50,7 +50,7 @@ export const getShopPayments = async (shopId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/shop/${shopId}`, options);
+    return await apiClient.get(`/payments/shop/${shopId}`, options);
   } catch (error) {
     console.error('Error fetching shop payments:', error);
     throw error;
@@ -69,7 +69,7 @@ export const getPaymentStatus = async (paymentId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/status/${paymentId}`, options);
+    return await apiClient.get(`/payments/status/${paymentId}`, options);
   } catch (error) {
     console.error('Error fetching payment status:', error);
     throw error;
@@ -83,7 +83,7 @@ export const getPaymentStatus = async (paymentId, options = {}) => {
  */
 export const getPaymentStats = async (options = {}) => {
   try {
-    return await apiClient.get('/payment/reports/stats', options);
+    return await apiClient.get('/payments/reports/stats', options);
   } catch (error) {
     console.error('Error fetching payment stats:', error);
     throw error;
@@ -97,7 +97,7 @@ export const getPaymentStats = async (options = {}) => {
  */
 export const getGatewayPerformance = async (options = {}) => {
   try {
-    return await apiClient.get('/payment/reports/gateway-performance', options);
+    return await apiClient.get('/payments/reports/gateway-performance', options);
   } catch (error) {
     console.error('Error fetching gateway performance:', error);
     throw error;
@@ -112,7 +112,7 @@ export const getGatewayPerformance = async (options = {}) => {
  */
 export const getPaymentTrends = async (params = {}, options = {}) => {
   try {
-    return await apiClient.get('/payment/reports/trends', { params, ...options });
+    return await apiClient.get('/payments/reports/trends', { params, ...options });
   } catch (error) {
     console.error('Error fetching payment trends:', error);
     throw error;
@@ -126,7 +126,7 @@ export const getPaymentTrends = async (params = {}, options = {}) => {
  */
 export const getRevenueSummary = async (options = {}) => {
   try {
-    return await apiClient.get('/payment/reports/revenue-summary', options);
+    return await apiClient.get('/payments/reports/revenue-summary', options);
   } catch (error) {
     console.error('Error fetching revenue summary:', error);
     throw error;
@@ -145,7 +145,7 @@ export const getCompanyTransactions = async (companyId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/transactions/company/${companyId}`, options);
+    return await apiClient.get(`/payments/transactions/company/${companyId}`, options);
   } catch (error) {
     console.error('Error fetching company transactions:', error);
     throw error;
@@ -164,7 +164,7 @@ export const getCompanyAnalytics = async (companyId, options = {}) => {
   }
 
   try {
-    return await apiClient.get(`/payment/reports/company/${companyId}/analytics`, options);
+    return await apiClient.get(`/payments/reports/company/${companyId}/analytics`, options);
   } catch (error) {
     console.error('Error fetching company analytics:', error);
     throw error;
@@ -178,7 +178,7 @@ export const getCompanyAnalytics = async (companyId, options = {}) => {
  */
 export const getDashboardCharts = async (options = {}) => {
   try {
-    return await apiClient.get('/payment/reports/charts/dashboard', options);
+    return await apiClient.get('/payments/reports/charts/dashboard', options);
   } catch (error) {
     console.error('Error fetching dashboard charts:', error);
     throw error;
@@ -197,7 +197,7 @@ export const getCompanyInvoices = async (companyId, options = {}) => {
   }
 
   try {
-    const url = `/payment/company/${companyId}/invoices`;
+    const url = `/payments/invoices/company/${companyId}`;
     console.log(`[DEBUG paymentService] Fetching invoices from: ${url}`);
     return await apiClient.get(url, options);
   } catch (error) {

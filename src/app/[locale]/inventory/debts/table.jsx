@@ -663,130 +663,117 @@ const DebtsTable = ({
         p: 3,
         borderBottom: "1px solid #e5e7eb",
         display: "flex",
-        flexDirection: "column",
-        gap: 3,
+        flexDirection: { xs: "column", md: "row" },
+        justifyContent: "space-between",
+        alignItems: { xs: "stretch", md: "center" },
+        gap: 2,
         bgcolor: "#fff"
       }}>
-        {/* Top Row: Title & Search */}
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box>
-              <Typography variant="h5" fontWeight="800" sx={{ color: "#111827", letterSpacing: "-0.5px" }}>
-                {tPage("title") || "Debts Management"}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {tPage("subtitle") || "Track and manage customer debts and repayments."}
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
-            <TextField
-              size="small"
-              placeholder={tPage("searchPlaceholder") || "Search debtor or phone..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
-              }}
-              sx={{
-                width: { xs: "100%", md: 320 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  bgcolor: "#f9fafb",
-                  "& fieldset": { borderColor: "#e5e7eb" },
-                  "&:hover fieldset": { borderColor: "#d1d5db" },
-                  "&.Mui-focused fieldset": { borderColor: "#FF6D00" }
-                }
-              }}
-            />
-            <IconButton
-              onClick={handleOpenFilter}
-              sx={{
-                bgcolor: (startDate || endDate) ? "#FFF3E0" : "#f3f4f6",
-                color: (startDate || endDate) ? "#FF6D00" : "#4b5563",
+        {/* LEFT: Search & Action Icons */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
+          <TextField
+            size="small"
+            placeholder={tPage("searchPlaceholder") || "Search debtor or phone..."}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: "gray" }} />,
+            }}
+            sx={{
+              width: { xs: "100%", md: 320 },
+              "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
-                p: 1,
-                "&:hover": { bgcolor: (startDate || endDate) ? "#FFE0B2" : "#e5e7eb" }
-              }}
-            >
-              <FilterAltRoundedIcon />
-            </IconButton>
-            <IconButton
-              onClick={handleExportMenuOpen}
-              sx={{
-                bgcolor: "#f3f4f6",
-                color: "#4b5563",
-                borderRadius: "8px",
-                p: 1,
-                "&:hover": { bgcolor: "#e5e7eb" }
-              }}
-            >
-              <CloudDownloadRoundedIcon />
-            </IconButton>
-            <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
-              <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
-              <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
-            </Menu>
-          </Box>
+                bgcolor: "#f9fafb",
+                "& fieldset": { borderColor: "#e5e7eb" },
+                "&:hover fieldset": { borderColor: "#d1d5db" },
+                "&.Mui-focused fieldset": { borderColor: "#FF6D00" }
+              }
+            }}
+          />
+          <IconButton
+            onClick={handleOpenFilter}
+            sx={{
+              bgcolor: (startDate || endDate) ? "#FFF3E0" : "#f3f4f6",
+              color: (startDate || endDate) ? "#FF6D00" : "#4b5563",
+              borderRadius: "8px",
+              p: 1,
+              "&:hover": { bgcolor: (startDate || endDate) ? "#FFE0B2" : "#e5e7eb" }
+            }}
+          >
+            <FilterAltRoundedIcon />
+          </IconButton>
+          <IconButton
+            onClick={handleExportMenuOpen}
+            sx={{
+              bgcolor: "#f3f4f6",
+              color: "#4b5563",
+              borderRadius: "8px",
+              p: 1,
+              "&:hover": { bgcolor: "#e5e7eb" }
+            }}
+          >
+            <CloudDownloadRoundedIcon />
+          </IconButton>
+          <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)} onClose={handleExportMenuClose}>
+            <MenuItem onClick={() => { exportCSV(filteredRows); handleExportMenuClose(); }}>Export CSV</MenuItem>
+            <MenuItem onClick={() => { exportPDF(filteredRows); handleExportMenuClose(); }}>Export PDF</MenuItem>
+          </Menu>
         </Box>
 
-        {/* Bottom Row: Filters */}
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
-          {!isWorker && (
-            <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { xs: "stretch", md: "center" }, gap: 2, width: { xs: "100%", md: "auto" } }}>
-              <FormControl variant="outlined" size="small" sx={{
-                minWidth: { xs: "100%", md: 200 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  bgcolor: "#f9fafb",
-                }
-              }}>
-                <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
-                <Select
-                  labelId="worker-filter-label"
-                  value={selectedWorkerId}
-                  label="Filter by Worker"
-                  onChange={(e) => setSelectedWorkerId(e.target.value)}
-                >
-                  <MenuItem value="">
-                    <em>All Workers</em>
+        {/* RIGHT: Dropdown Filters */}
+        {!isWorker && (
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { xs: "stretch", md: "center" }, gap: 2, width: { xs: "100%", md: "auto" } }}>
+            <FormControl variant="outlined" size="small" sx={{
+              minWidth: { xs: "100%", md: 200 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                bgcolor: "#f9fafb",
+              }
+            }}>
+              <InputLabel id="worker-filter-label">Filter by Worker</InputLabel>
+              <Select
+                labelId="worker-filter-label"
+                value={selectedWorkerId}
+                label="Filter by Worker"
+                onChange={(e) => setSelectedWorkerId(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>All Workers</em>
+                </MenuItem>
+                {workers.map((worker) => (
+                  <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
+                    {worker.name || worker.email}
                   </MenuItem>
-                  {workers.map((worker) => (
-                    <MenuItem key={worker._id || worker.id} value={worker._id || worker.id}>
-                      {worker.name || worker.email}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                ))}
+              </Select>
+            </FormControl>
 
-              <FormControl variant="outlined" size="small" sx={{
-                minWidth: { xs: "100%", md: 200 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  bgcolor: "#f9fafb",
-                }
-              }}>
-                <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
-                <Select
-                  labelId="shop-filter-label"
-                  value={selectedShopId}
-                  label="Filter by Shop"
-                  onChange={(e) => setSelectedShopId(e.target.value)}
-                >
-                  <MenuItem value="">
-                    <em>All Shops</em>
+            <FormControl variant="outlined" size="small" sx={{
+              minWidth: { xs: "100%", md: 200 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                bgcolor: "#f9fafb",
+              }
+            }}>
+              <InputLabel id="shop-filter-label">Filter by Shop</InputLabel>
+              <Select
+                labelId="shop-filter-label"
+                value={selectedShopId}
+                label="Filter by Shop"
+                onChange={(e) => setSelectedShopId(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>All Shops</em>
+                </MenuItem>
+                {shops.map((shop) => (
+                  <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
+                    {shop.name}
                   </MenuItem>
-                  {shops.map((shop) => (
-                    <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>
-                      {shop.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          )}
-        </Box>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
       </Box>
 
       {/* Filter Popover */}

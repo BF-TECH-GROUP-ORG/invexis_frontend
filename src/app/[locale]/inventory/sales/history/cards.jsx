@@ -133,7 +133,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
             value={card.value}
             trend={card.trend}
             history={card.history}
-            icon={card.Icon}
+            icon={<card.Icon size={24} color={card.color} />}
             color={card.color}
             bgColor={card.bgColor}
             isCurrency={card.isCurrency}

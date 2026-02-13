@@ -58,7 +58,7 @@ export default function InvoiceGenerator({ invoice, onPreview }) {
             doc.setTextColor(100);
             doc.setFont("helvetica", "normal");
             doc.text("Kigali, Rwanda", 14, 32);
-            doc.text("support@invexis.rw", 14, 37);
+            doc.text("support@invexix.com", 14, 37);
 
             // --- Invoice Info ---
             doc.setFontSize(30);

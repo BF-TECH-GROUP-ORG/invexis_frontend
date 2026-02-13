@@ -254,7 +254,7 @@ const PAYMENT_API_ENDPOINTS = {
       params: { invoice_id: 'invoice_001' },
       responseStructure: {
         message: 'PDF generated successfully',
-        downloadUrl: 'https://api.invexis.com/downloads/invoice_001.pdf',
+        downloadUrl: 'https://api.invexix.com/downloads/invoice_001.pdf',
         fileName: 'invoice_001.pdf',
       },
     },
@@ -408,7 +408,7 @@ const PAYMENT_API_ENDPOINTS = {
       description: 'Export transaction history',
       responseStructure: {
         message: 'Export generated',
-        downloadUrl: 'https://api.invexis.com/downloads/transactions_2026_01.csv',
+        downloadUrl: 'https://api.invexix.com/downloads/transactions_2026_01.csv',
         fileName: 'transactions_2026_01.csv',
         recordCount: 2000,
       },
