@@ -58,6 +58,11 @@ export default async function PaymentsPage({ searchParams }) {
         limit: parseInt(limit)
     };
 
+    // We don't need a custom Suspense boundary here because Next.js automatically wraps async pages 
+    // with the nearest loading.jsx. By *awaiting* the prefetch, we trigger the loading state 
+    // for the entire page duration until data is ready. This is "Instant Navigation" behavior 
+    // because the browser shows the skeleton immediately instead of hanging.
+
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
             <PaymentDashboard initialParams={initialParams} />

@@ -14,7 +14,7 @@ const ensureUrl = (url, name) => {
 
 export const createWorker = async (workerData, options = {}) => {
     try {
-        const response = await apiClient.post(`${AUTH_URL}/auth/register`, workerData, options);
+        const response = await apiClient.post(`/auth/register`, workerData, options);
         console.log("Worker created successfully:", response);
         console.log('payload is' + workerData)
         console.log('response is' + response)
@@ -31,7 +31,7 @@ const shopsCache = {};
 export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
         if (!companyId) return [];
-        const url = `${AUTH_URL}/auth/company/${companyId}/workers`;
+        const url = `/auth/company/${companyId}/workers`;
         console.log(`Fetching workers from: ${url}`);
 
         // Merge options to include headers if provided
@@ -76,7 +76,7 @@ export const getShopsByCompanyId = async (companyId, options = {}) => {
     // }
 
     try {
-        const url = `${WORKERS_URL}/auth/company/${companyId}/shops`;
+        const url = `/auth/company/${companyId}/shops`;
         console.log(`Fetching shops from: ${url}`);
         const response = await apiClient.get(url, options);
         console.log("Shops API Raw Response:", response);
@@ -103,7 +103,7 @@ export const getShopsByCompanyId = async (companyId, options = {}) => {
 
 export const deleteWorker = async (workerId, companyId, options = {}) => {
     try {
-        const url = `${WORKERS_URL}/auth/company/${companyId}/workers/${workerId}`;
+        const url = `/auth/company/${companyId}/workers/${workerId}`;
         const response = await apiClient.delete(url, options);
         console.log("Worker deleted successfully:", response);
         return response;
@@ -116,7 +116,7 @@ export const deleteWorker = async (workerId, companyId, options = {}) => {
 export const updateWorker = async (workerId, workerData, options = {}) => {
     try {
         // Note: Adjust endpoint if needed based on backend API
-        const response = await apiClient.put(`${AUTH_URL}/auth/users/${workerId}`, workerData, options);
+        const response = await apiClient.put(`/auth/users/${workerId}`, workerData, options);
         console.log("Worker updated successfully:", response);
         return response;
     } catch (error) {
@@ -131,7 +131,7 @@ export const getWorkerById = async (workerId, options = {}) => {
             throw new Error('API URL is not configured. Please check NEXT_PUBLIC_API_URL environment variable.');
         }
 
-        const url = `${AUTH_URL}/auth/users/${workerId}`;
+        const url = `/auth/users/${workerId}`;
         console.log("Fetching worker from:", url);
 
         const response = await apiClient.get(url, options);
