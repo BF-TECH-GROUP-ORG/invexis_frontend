@@ -15,7 +15,7 @@ export default function WorkersLoading() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[...Array(3)].map((_, i) => (
-                    <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <div key={i} className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
                         <Skeleton className="h-4 w-24 mb-2" />
                         <Skeleton className="h-8 w-16" />
                     </div>
