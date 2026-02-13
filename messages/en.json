@@ -1437,6 +1437,7 @@
     "title": "Audit Logs",
     "inventory": "Inventory",
     "logs": "Logs",
+    "export": "Export Logs",
     "search": "Search logs...",
     "filterWorker": "Filter by Worker",
     "eventType": "Event Type",

@@ -1367,10 +1367,11 @@
     "cancelled": "Rakatibye"
   },
   "logs": {
-    "title": "Ikibatizo n'Ubukemurezi",
-    "inventory": "Ububiko",
-    "logs": "Ikibatizo",
-    "search": "Shakisha mu madosiye...",
+    "title": "Inyandiko z'ubugenzuzi",
+    "inventory": "Ibikoresho",
+    "logs": "Ibitabo",
+    "export": "Sohora Raporo",
+    "search": "Shakisha ibitabo...",
     "filterWorker": "Shungura ukoresheje umukozi",
     "eventType": "Ubwoko bw'icyabaye",
     "allTypes": "Ibyabaye byose",

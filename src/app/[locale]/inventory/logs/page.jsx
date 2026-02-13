@@ -7,6 +7,7 @@ import { getQueryClient } from "@/lib/queryClient";
 import LogsPageClient from "./LogsPageClient";
 import { getAuditLogs } from "@/services/auditService";
 import { getWorkersByCompanyId } from "@/services/workersService";
+import { unstable_cache } from 'next/cache';
 
 export default async function LogsPage() {
     const session = await getServerSession(authOptions);
@@ -27,17 +28,25 @@ export default async function LogsPage() {
             }
         };
 
+        // Helper for server-side persistence using unstable_cache
+        const getCached = (key, fetcher) =>
+            unstable_cache(
+                async () => fetcher(),
+                [`logs-${key}`, companyId], // Simple key for prefetch (empty filters)
+                { revalidate: 300, tags: ['logs', `company-${companyId}`] }
+            )();
+
         await Promise.all([
             queryClient.prefetchQuery({
                 queryKey: ["workers", companyId],
-                queryFn: () => getWorkersByCompanyId(companyId, options),
+                queryFn: () => getCached('workers', () => getWorkersByCompanyId(companyId, options)),
             }),
             queryClient.prefetchQuery({
                 queryKey: ["auditLogs", companyId, "", ""],
-                queryFn: () => getAuditLogs(companyId, {
+                queryFn: () => getCached('audit', () => getAuditLogs(companyId, {
                     userId: "",
                     event_type: ""
-                }, options),
+                }, options)),
             })
         ]);
     }

@@ -1368,9 +1368,10 @@
     "cancelled": "Imeghairiwa"
   },
   "logs": {
-    "title": "Kumbukumbu na Uchunguzi",
-    "inventory": "Hesabu",
+    "title": "Kumbukumbu za Ukaguzi",
+    "inventory": "Vifaa",
     "logs": "Kumbukumbu",
+    "export": "Hamisha Kumbukumbu",
     "search": "Tafuta kumbukumbu...",
     "filterWorker": "Chuja kwa mfanyakazi",
     "eventType": "Aina ya Tukio",
