@@ -1436,8 +1436,57 @@
         "deleteMember": "Supprimer le Membre"
       },
       "deleteConfirm": {
-        "title": "Supprimer le Membre du Personnel",
+        "title": "Supprimer le membre",
         "message": "Cette action est permanente et révoquera immédiatement tout accès au système pour cet utilisateur."
+      },
+      "form": {
+        "addTitle": "Ajouter un nouvel employé",
+        "editTitle": "Modifier l'employé",
+        "addDesc": "Suivez toutes les étapes pour créer un nouveau compte d'employé",
+        "editDesc": "Mettre à jour les informations de l'employé",
+        "personalInfo": "Informations personnelles",
+        "jobInfo": "Informations sur l'emploi",
+        "contactAddress": "Contact & Adresse",
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "gender": "Genre",
+        "dob": "Date de naissance",
+        "nationalId": "ID National",
+        "department": "Département",
+        "shop": "Boutique",
+        "emerContact": "Contact d'urgence",
+        "emerName": "Nom du contact d'urgence",
+        "emerPhone": "Téléphone du contact d'urgence",
+        "address": "Adresse",
+        "street": "Rue",
+        "city": "Ville",
+        "state": "État",
+        "postalCode": "Code postal",
+        "country": "Pays",
+        "genders": {
+          "male": "Homme",
+          "female": "Femme",
+          "other": "Autre"
+        },
+        "buttons": {
+          "back": "Retour",
+          "next": "Suivant",
+          "create": "Créer l'employé",
+          "update": "Mettre à jour l'employé",
+          "creating": "Création...",
+          "updating": "Mise à jour..."
+        },
+        "validation": {
+          "required": "{field} est requis",
+          "invalidEmail": "L'adresse e-mail n'est pas valide",
+          "invalidPhone": "Format de téléphone invalide (ex. +250...)",
+          "invalidId": "L'ID national doit comporter de 5 à 20 caractères alphanumériques majuscules"
+        },
+        "placeholders": {
+          "noDept": "Aucun département disponible"
+        }
       }
     }
   },
@@ -1561,6 +1610,177 @@
           "other": "Autre"
         }
       }
+    }
+  },
+  "reports": {
+    "header": {
+      "title": "Rapports et Analyses du Système",
+      "subtitle": "Aperçu consolidé de toutes vos opérations commerciales"
+    },
+    "controls": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "selectDate": "Sélectionner la Date",
+      "exportOptions": "Options d'Exportation",
+      "exportPDF": "Exporter en PDF",
+      "printReport": "Imprimer le Rapport",
+      "exportExcel": "Exporter vers Excel"
+    },
+    "tabs": {
+      "general": "Vue d'Ensemble Générale",
+      "inventory": "Analyse de l'Inventaire",
+      "sales": "Performance des Ventes",
+      "debts": "Dettes et Crédits",
+      "payments": "Modes de Paiement",
+      "staff": "Personnel et Succursales"
+    },
+    "common": {
+      "date": "Date",
+      "branch": "Succursale",
+      "all": "Tout",
+      "none": "Aucun",
+      "product": "Produit",
+      "category": "Catégorie",
+      "invoiceNo": "N° de Facture",
+      "customer": "Client",
+      "type": "Type",
+      "status": "Statut",
+      "recordedBy": "Enregistré par",
+      "receivedBy": "Reçu par",
+      "soldBy": "Vendu par",
+      "time": "Heure",
+      "loading": "Chargement des rapports...",
+      "error": "Erreur lors du chargement du contenu. Veuillez réessayer.",
+      "noContent": "Contenu de l'onglet non trouvé",
+      "subtotal": "Sous-total {name}",
+      "total": "Total",
+      "recommendation": "Recommandation"
+    },
+    "general": {
+      "title": "Rapport Commercial Général – Vue d'Ensemble Complète",
+      "kpis": {
+        "revenue": "Chiffre d'Affaires Total",
+        "costs": "Coûts Totaux",
+        "profit": "Bénéfice Net",
+        "debts": "Dettes Restantes",
+        "returns": "Retour Total"
+      },
+      "table": {
+        "inventory": "Inventaire",
+        "sales": "Ventes",
+        "payments": "Paiements",
+        "debts": "Dettes",
+        "cost": "Coût",
+        "profit": "Profit",
+        "initialStock": "Stock Initial",
+        "remaining": "Restant",
+        "stockValue": "Valeur du Stock",
+        "grossSales": "Ventes Brutes",
+        "discounts": "Remises",
+        "received": "Reçu",
+        "pending": "En attente",
+        "debtAmount": "Montant de la Dette",
+        "paidAmount": "Montant Payé",
+        "netProfit": "Bénéfice Net",
+        "margin": "Marge %"
+      },
+      "recommendationText": "Concentrez-vous sur la réduction des paiements en attente pour améliorer le flux de trésorerie et envisagez des stratégies pour augmenter les marges de bénéfice net de manière constante."
+    },
+    "inventory": {
+      "title": "Rapport d'Inventaire",
+      "kpis": {
+        "totalValue": "Valeur Totale du Stock",
+        "totalItems": "Total des Articles",
+        "lowStock": "Articles en Stock Faible",
+        "outOfStock": "Rupture de Stock"
+      },
+      "table": {
+        "movement": "Mouvement de l'Inventaire",
+        "value": "Valeur de l'Inventaire",
+        "status": "Statut du Stock",
+        "tracking": "Suivi",
+        "open": "Ouverture",
+        "in": "Entrée",
+        "out": "Sortie",
+        "close": "Fermeture",
+        "unitCost": "Coût Unitaire",
+        "totalValue": "Valeur Totale",
+        "reorder": "Réapprovisionnement",
+        "age": "Âge (J)",
+        "lastRestock": "Dernier Réappro.",
+        "lastMove": "Dernier Mouvement"
+      }
+    },
+    "sales": {
+      "title": "Rapport des Ventes",
+      "kpis": {
+        "revenue": "Chiffre d'Affaires de Ventes",
+        "transactions": "Transactions de Ventes Total",
+        "avgValue": "Valeur Moyenne des Ventes",
+        "topProduct": "Produit le Plus Vendu",
+        "growth": "Croissance / Baisse des Ventes"
+      },
+      "table": {
+        "quantity": "Quantité de Ventes",
+        "value": "Valeur de Ventes",
+        "customer": "Infos Client",
+        "tracking": "Suivi",
+        "qtySold": "Qté Vendue",
+        "returns": "Retours",
+        "netQty": "Qté Nette",
+        "unitPrice": "Prix Unitaire",
+        "totalAmount": "Montant Total",
+        "customerName": "Client",
+        "saleTime": "Heure de Vente"
+      }
+    },
+    "debts": {
+      "title": "Rapport des Dettes",
+      "kpis": {
+        "totalOutstanding": "Total Restant",
+        "overdueAmount": "Montant en Retard",
+        "activeDebtors": "Débiteurs Actifs",
+        "avgDebtAge": "Âge Moyen de la Dette"
+      },
+      "table": {
+        "debtAmount": "Montant de la Dette",
+        "paymentInfo": "Infos de Paiement",
+        "tracking": "Suivi",
+        "name": "Nom",
+        "phone": "Téléphone",
+        "original": "Original",
+        "paid": "Payé",
+        "balance": "Solde",
+        "lastPaid": "Dernier Paiement",
+        "dueDate": "Date d'Échéance",
+        "age": "Âge (J)",
+        "saleDate": "Date de Vente"
+      }
+    },
+    "payments": {
+      "title": "Rapport des Paiements",
+      "kpis": {
+        "totalReceived": "Total Reçu",
+        "pending": "Paiements en Attente",
+        "failed": "Paiements Échoués",
+        "avgSize": "Taille Moyenne des Paiements"
+      },
+      "table": {
+        "paymentInfo": "Infos de Paiement",
+        "reference": "Référence",
+        "amount": "Montant",
+        "method": "Méthode",
+        "saleDebtRef": "Réf. Vente/Dette"
+      }
+    },
+    "export": {
+      "pdfTitle": "Rapport {tab}",
+      "pdfSystemTitle": "Rapports du Système",
+      "pdfSystemFullTitle": "Rapports et Analyses du Système",
+      "excelSystemTitle": "Rapports-du-Systeme",
+      "excelTabTitle": "Rapport-{tab}"
     }
   }
 }

@@ -14,12 +14,14 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const PaymentsTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
@@ -31,8 +33,8 @@ const PaymentsTab = ({ dateRange }) => {
     });
 
     // Header Selection State
-    const [selectedBranch, setSelectedBranch] = useState('All');
-    const [selectedActor, setSelectedActor] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
+    const [selectedActor, setSelectedActor] = useState(t('common.all'));
 
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
@@ -85,7 +87,7 @@ const PaymentsTab = ({ dateRange }) => {
                             },
                             {
                                 name: 'South Branch',
-                                payments: [
+                                branches: [
                                     {
                                         customer: { name: 'Jacques Lemaire', phone: '0788777666' },
                                         invoiceNo: 'INV-2022-004',
@@ -140,7 +142,7 @@ const PaymentsTab = ({ dateRange }) => {
 
                 mockPayments.forEach(day => {
                     day.branches.forEach(branch => {
-                        branch.payments.forEach(payment => {
+                        branch.payments?.forEach(payment => {
                             paymentCount++;
                             if (payment.status === 'Completed') {
                                 totalReceived += payment.amount;
@@ -162,18 +164,18 @@ const PaymentsTab = ({ dateRange }) => {
 
                 // Filter by selected branch
                 const filteredData = mockPayments.map(day => {
-                    if (selectedBranch === 'None') return { ...day, branches: [] };
-                    if (selectedBranch === 'All') return day;
+                    if (selectedBranch === t('common.none')) return { ...day, branches: [] };
+                    if (selectedBranch === t('common.all')) return day;
                     const filteredBranches = day.branches.filter(b => b.name === selectedBranch);
                     return { ...day, branches: filteredBranches };
                 }).map(day => {
                     // Filter by actor (receivedBy)
-                    if (selectedActor === 'All') return day;
+                    if (selectedActor === t('common.all')) return day;
                     return {
                         ...day,
                         branches: day.branches.map(b => ({
                             ...b,
-                            payments: b.payments.filter(p => p.receivedBy === selectedActor)
+                            payments: b.payments?.filter(p => p.receivedBy === selectedActor) || []
                         }))
                     };
                 });
@@ -184,8 +186,7 @@ const PaymentsTab = ({ dateRange }) => {
         };
 
         fetchData();
-        fetchData();
-    }, [companyId, dateRange, selectedBranch, selectedActor]);
+    }, [companyId, dateRange, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (
@@ -218,13 +219,20 @@ const PaymentsTab = ({ dateRange }) => {
         return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' };
     };
 
+    const getTranslatedStatus = (status) => {
+        if (status === 'Completed') return t('payments.status.completed');
+        if (status === 'Pending') return t('payments.status.pending');
+        if (status === 'Failed') return t('payments.status.failed');
+        return status;
+    };
+
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
                 {/* Header with Title, Toggle, and Date Picker */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
-                        Payments Report
+                        {t('payments.title')}
                     </Typography>
 
                 </Box>
@@ -240,7 +248,7 @@ const PaymentsTab = ({ dateRange }) => {
                     className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     <ReportKPI
-                        title="Total Received"
+                        title={t('payments.kpis.received')}
                         value={(() => {
                             const val = kpis?.totalReceived || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -253,7 +261,7 @@ const PaymentsTab = ({ dateRange }) => {
                         index={0}
                     />
                     <ReportKPI
-                        title="Pending Payments"
+                        title={t('payments.kpis.pending')}
                         value={(() => {
                             const val = kpis?.pendingAmount || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -266,7 +274,7 @@ const PaymentsTab = ({ dateRange }) => {
                         index={1}
                     />
                     <ReportKPI
-                        title="Failed Payments"
+                        title={t('payments.kpis.failed')}
                         value={(() => {
                             const val = kpis?.failedAmount || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -279,7 +287,7 @@ const PaymentsTab = ({ dateRange }) => {
                         index={2}
                     />
                     <ReportKPI
-                        title="Avg Payment Size"
+                        title={t('payments.kpis.avgSize')}
                         value={(() => {
                             const val = kpis?.avgPaymentSize || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -303,37 +311,37 @@ const PaymentsTab = ({ dateRange }) => {
                                     {dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
-                                        'Date'
+                                        t('common.date')
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleActorClick}>
-                                        {selectedActor === 'All' ? 'Received By' : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedActor === t('common.all') ? t('payments.table.receivedBy') : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center" colSpan={2}>Customer Info</TableCell>
-                                <TableCell align="center">Invoice No</TableCell>
-                                <TableCell align="center" colSpan={2}>Payment Info</TableCell>
-                                <TableCell align="center">Status</TableCell>
-                                <TableCell align="center" colSpan={3}>Reference</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
+                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
+                                <TableCell align="center">{t('common.status')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('payments.table.reference')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">Name</TableCell>
-                                <TableCell align="center">Phone</TableCell>
+                                <TableCell align="center">{t('common.name')}</TableCell>
+                                <TableCell align="center">{t('common.phone')}</TableCell>
                                 <TableCell align="center">-</TableCell>
-                                <TableCell align="center">Amount</TableCell>
-                                <TableCell align="center">Method</TableCell>
+                                <TableCell align="center">{t('common.amount')}</TableCell>
+                                <TableCell align="center">{t('common.method')}</TableCell>
                                 <TableCell align="center">-</TableCell>
-                                <TableCell align="center">Sale/Debt Ref</TableCell>
-                                <TableCell align="center">Status</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>Time</TableCell>
+                                <TableCell align="center">{t('payments.table.saleDebtRef')}</TableCell>
+                                <TableCell align="center">{t('common.status')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.time')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -352,7 +360,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                 <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{branch.name}</TableCell>
                                                 <TableCell colSpan={9} />
                                             </TableRow>
-                                            {branch.payments.map((payment, pIdx) => {
+                                            {branch.payments?.map((payment, pIdx) => {
                                                 const statusColor = getStatusColor(payment.status);
                                                 return (
                                                     <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
@@ -372,7 +380,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                                 fontWeight: '700', fontSize: '0.65rem',
                                                                 border: `1px solid ${statusColor.border}`
                                                             }}>
-                                                                {payment.status}
+                                                                {getTranslatedStatus(payment.status)}
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.saleDebtRef}</TableCell>
@@ -399,8 +407,8 @@ const PaymentsTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
@@ -413,7 +421,7 @@ const PaymentsTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleActorSelect('All')}>All</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleActorSelect('Alice')}>Alice</MenuItem>
                     <MenuItem onClick={() => handleActorSelect('Bob')}>Bob</MenuItem>

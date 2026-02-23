@@ -1415,27 +1415,76 @@
     },
     "workers": {
       "directoryTitle": "Urutonde rw'Abakozi",
-      "directoryDesc": "Icunga abakozi b'ikigo, inshingano n'imyanya mu mashami yose.",
-      "addStaffMember": "Kongeramo Umukozi",
-      "totalPersonnel": "Abakozi Bose",
-      "activeStaff": "Abakozi Bakora",
+      "directoryDesc": "Genzura abakozi b'ikigo cyawe, imirimo n'inshingano bafite mu mashami yose.",
+      "addStaffMember": "Ongeramo Umukozi",
+      "totalPersonnel": "Abakozi bose",
+      "activeStaff": "Abakozi bakora",
       "management": "Ubuyobozi",
-      "operationalStaff": "Abakozi b'Imirimo",
-      "searchPersonnel": "Shakisha umukozi, imeri cyangwa ibiranga...",
+      "operationalStaff": "Abakozi bakora",
+      "searchPersonnel": "Shakisha...",
       "table": {
-        "userProfile": "Umwirondoro w'Umukoresha",
-        "contactInfo": "Amakuru y'itumanaho",
+        "userProfile": "Umwirondoro",
+        "contactInfo": "Ibituma baboneka",
         "role": "Inshingano",
         "status": "Imiterere",
         "actions": "Ibikorwa"
       },
       "actions": {
         "editProfile": "Hindura Umwirondoro",
-        "deleteMember": "Siba Umunyamuryango"
+        "deleteMember": "Siba Umukozi"
       },
       "deleteConfirm": {
         "title": "Siba Umukozi",
-        "message": "Iki gikorwa ni burundu kandi kigahagarika uburyo bwo kwinjira muri sisitemu kuri uyu mukoresha ako kanya."
+        "message": "Ibi bikorwa ntibisubirwaho kandi bizahita bivanaho uburyo uyu muntu yakoreshaga sisitemu."
+      },
+      "form": {
+        "addTitle": "Ongeramo Umukozi Mushya",
+        "editTitle": "Hindura Umukozi",
+        "addDesc": "Uzuza intambwe zose kugira ngo ufungure konti nshya y'umukozi",
+        "editDesc": "Vugurura amakuru y'umukozi",
+        "personalInfo": "Amakuru y'umuntu",
+        "jobInfo": "Amakuru y'akazi",
+        "contactAddress": "Aho akomoka & Aho ataha",
+        "firstName": "Izina rya mbere",
+        "lastName": "Izina rya kabiri",
+        "email": "Imeyili",
+        "phone": "Terefone",
+        "gender": "Igitsina",
+        "dob": "Itariki y'amavuko",
+        "nationalId": "Nomero y'indangamuntu",
+        "department": "Ishami",
+        "shop": "Iduka",
+        "emerContact": "Umuntu watabarizwa",
+        "emerName": "Izina ry'uwatabarizwa",
+        "emerPhone": "Terefone y'uwatabarizwa",
+        "address": "Aho ataha",
+        "street": "Umuhanda",
+        "city": "Umujyi",
+        "state": "Intara",
+        "postalCode": "Icyerekezo cy'iposta",
+        "country": "Igihugu",
+        "genders": {
+          "male": "Gabo",
+          "female": "Gore",
+          "other": "Ikindi"
+        },
+        "buttons": {
+          "back": "Subira inyuma",
+          "next": "Komeza",
+          "create": "Fungura konti",
+          "update": "Vugurura umukozi",
+          "creating": "Birimo gufungurwa...",
+          "updating": "Birimo kuvugururwa..."
+        },
+        "validation": {
+          "required": "{field} irakenewe",
+          "invalidEmail": "Imeyili siyo",
+          "invalidPhone": "Terefone siyo (urugero. +250...)",
+          "invalidId": "Indangamuntu igomba kuba hagati y'inyuguti 5 na 20"
+        },
+        "placeholders": {
+          "noDept": "Nta mashami ahari"
+        }
       }
     }
   },
@@ -1559,6 +1608,177 @@
           "other": "Ikindi"
         }
       }
+    }
+  },
+  "reports": {
+    "header": {
+      "title": "Raporo n'Imibare bya Sisitemu",
+      "subtitle": "Incanyamahanga y'ibikorwa byose by'ubucuruzi bwawe"
+    },
+    "controls": {
+      "daily": "Buri Munsi",
+      "weekly": "Buri Cyumweru",
+      "monthly": "Buri Kwezi",
+      "yearly": "Buri Mwaka",
+      "selectDate": "Hitamo Itariki",
+      "exportOptions": "Gusohora Raporo",
+      "exportPDF": "Sohora muri PDF",
+      "printReport": "Sohora Raporo",
+      "exportExcel": "Sohora muri Excel"
+    },
+    "tabs": {
+      "general": "Incamake Rusange",
+      "inventory": "Isesengura ry'Ibubiko",
+      "sales": "Imiyoborere y'Igurisha",
+      "debts": "Imyenda n'Inguzanyo",
+      "payments": "Uburyo bwo Kwishyura",
+      "staff": "Abakozi n'Amashami"
+    },
+    "common": {
+      "date": "Itariki",
+      "branch": "Ishami",
+      "all": "Byose",
+      "none": "Nta na kimwe",
+      "product": "Igicuruzwa",
+      "category": "Icyiciro",
+      "invoiceNo": "No ya fagitire",
+      "customer": "Umukiriya",
+      "type": "Ubwoko",
+      "status": "Imiterere",
+      "recordedBy": "Yanditswe na",
+      "receivedBy": "Yakiriwe na",
+      "soldBy": "Yagurishijwe na",
+      "time": "Isaha",
+      "loading": "Raporo zirimo gutunganywa...",
+      "error": "Habaye ikibazo mu gutunganya raporo. Ongera ugerageze.",
+      "noContent": "Ibirimo ntibyasanzwe",
+      "subtotal": "Iterateranyo rya {name}",
+      "total": "Iterateranyo",
+      "recommendation": "Inama"
+    },
+    "general": {
+      "title": "Raporo y'Ubucuruzi Rusange – Incamake Yuzuye",
+      "kpis": {
+        "revenue": "Amafaranga Yinjiye Yose",
+        "costs": "Igiciro cyose",
+        "profit": "Inyungu Isigaye",
+        "debts": "Imyenda Itegerejwe",
+        "returns": "Ibyagarunzwe Yose"
+      },
+      "table": {
+        "inventory": "Ibubiko",
+        "sales": "Igurisha",
+        "payments": "Ibwishyura",
+        "debts": "Imyenda",
+        "cost": "Igiciro",
+        "profit": "Inyungu",
+        "initialStock": "Ibyari bihari",
+        "remaining": "Ibisigaye",
+        "stockValue": "Agaciro k'ibihasigaye",
+        "grossSales": "Igurisha ryose",
+        "discounts": "Ibigabanyirijwe",
+        "received": "Yakiriwe",
+        "pending": "Bitegerejwe",
+        "debtAmount": "Umubare w'umwenda",
+        "paidAmount": "Ayishyuwe",
+        "netProfit": "Inyungu isigaye",
+        "margin": "Inyungu %"
+      },
+      "recommendationText": "Ibande ku kugabanya imyenda iteregejwe kwishyurwa kugira ngo amafaranga aboneke mu bucuruzi, kandi utekereze uburyo bwo kuzamura inyungu mu buryo buhoraho."
+    },
+    "inventory": {
+      "title": "Raporo y'Ibubiko",
+      "kpis": {
+        "totalValue": "Agaciro k'Ibubiko Kose",
+        "totalItems": "Ibicuruzwa Byose",
+        "lowStock": "Ibicuruzwa Bigiye Gushira",
+        "outOfStock": "Ibicuruzwa Byashize"
+      },
+      "table": {
+        "movement": "Ingendo z'Ibicuruzwa",
+        "value": "Agaciro k'Ibubiko",
+        "status": "Imiterere y'Ibubiko",
+        "tracking": "Ikurikiranwa",
+        "open": "Ifungura",
+        "in": "Injiramo",
+        "out": "Sohokamo",
+        "close": "Ifunga",
+        "unitCost": "Igiciro kuri kimwe",
+        "totalValue": "Agaciro kose",
+        "reorder": "Odara nshya",
+        "age": "Iminsi",
+        "lastRestock": "Iyongerwa riheruka",
+        "lastMove": "Ingendo iheruka"
+      }
+    },
+    "sales": {
+      "title": "Raporo y'Igurisha",
+      "kpis": {
+        "revenue": "Amafaranga y'Igurisha",
+        "transactions": "Umubare w'Inshuro zagurishijwe",
+        "avgValue": "Impuzandengo y'Agaciro k'Igurisha",
+        "topProduct": "Igicuruzwa Cyagurishijwe Cyane",
+        "growth": "Izamuka / Igabanuka ry'Igurisha"
+      },
+      "table": {
+        "quantity": "Ingano y'Ibyagurishijwe",
+        "value": "Agaciro k'Ibyagurishijwe",
+        "customer": "Amakuru y'Umukiriya",
+        "tracking": "Ikurikiranwa",
+        "qtySold": "Ingano yagurishijwe",
+        "returns": "Ibyagarunzwe",
+        "netQty": "Ingano nyayo",
+        "unitPrice": "Igiciro kuri kimwe",
+        "totalAmount": "Umubare wose",
+        "customerName": "Umukiriya",
+        "saleTime": "Isaha yagurishijwe"
+      }
+    },
+    "debts": {
+      "title": "Raporo y'Imyenda",
+      "kpis": {
+        "totalOutstanding": "Imyenda Yose Itegerejwe",
+        "overdueAmount": "Agaciro k'Ibiraje",
+        "activeDebtors": "Abafite Imyenda Bakora",
+        "avgDebtAge": "Impuzandengo y'Iminsi y'Umwenda"
+      },
+      "table": {
+        "debtAmount": "Umubare w'Umwenda",
+        "paymentInfo": "Amakuru yo Kwishyura",
+        "tracking": "Ikurikiranwa",
+        "name": "Izina",
+        "phone": "Telefoni",
+        "original": "Umwimerere",
+        "paid": "Ayishyuwe",
+        "balance": "Igisigaye",
+        "lastPaid": "Ayishyuwe biheruka",
+        "dueDate": "Itariki ntarengwa",
+        "age": "Iminsi",
+        "saleDate": "Itariki yagurishijwe"
+      }
+    },
+    "payments": {
+      "title": "Raporo yo Kwishyura",
+      "kpis": {
+        "totalReceived": "Amafaranga Yakiriwe Yose",
+        "pending": "Ayo Kwishyura Ategerejwe",
+        "failed": "Ayatabashije Kwishyurwa",
+        "avgSize": "Impuzandengo yo Kwishyura"
+      },
+      "table": {
+        "paymentInfo": "Amakuru yo Kwishyura",
+        "reference": "Icyerekezo",
+        "amount": "Umubare",
+        "method": "Uburyo",
+        "saleDebtRef": "Réf y'Igurisha/Umwenda"
+      }
+    },
+    "export": {
+      "pdfTitle": "Raporo rya {tab}",
+      "pdfSystemTitle": "Raporo za Sisitemu",
+      "pdfSystemFullTitle": "Raporo n'Imibare bya Sisitemu",
+      "excelSystemTitle": "Raporo-za-Sisitemu",
+      "excelTabTitle": "Raporo-{tab}"
     }
   }
 }

@@ -1,23 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Box, Button, TextField, MenuItem, Typography, CircularProgress, Stepper, Step, StepLabel, StepConnector, Card, InputAdornment, Select } from "@mui/material";
 import Link from "next/link";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createWorker, updateWorker } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { getDepartmentsByCompany } from "@/services/departmentsService";
 
 const genders = ["male", "female", "other"];
-const stepLabels = [
-  "Personal Information",
-  "Job Information",
-  "Contact & Address",
-];
 
 // Helper function to ensure all fields have default values
 const getDefaultWorker = () => ({
@@ -25,13 +20,10 @@ const getDefaultWorker = () => ({
   lastName: "",
   email: "",
   phone: "",
-  // countryCode: "+250",
-
   role: "worker",
   dateOfBirth: "",
   gender: "",
   nationalId: "",
-  // position: "",
   department: "",
   companies: [],
   shops: [],
@@ -71,14 +63,50 @@ const initializeWorkerData = (data) => {
 };
 
 export default function AddWorkerForm({ initialData, isEditMode = false }) {
+  const t = useTranslations("workers.form");
   const router = useRouter();
   const locale = useLocale();
   const { data: session } = useSession();
   const [activeStep, setActiveStep] = useState(0);
   const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
-  const [availableShops, setAvailableShops] = useState([]);
-  const [availableDepartments, setAvailableDepartments] = useState([]);
+  const stepLabels = useMemo(() => [
+    t("personalInfo"),
+    t("jobInfo"),
+    t("contactAddress"),
+  ], [t]);
+
+  const companyObj = session?.user?.companies?.[0];
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
+
+  // React Query for branches
+  const { data: branchesData } = useQuery({
+    queryKey: ["branches", companyId],
+    queryFn: () => getBranches(companyId),
+    enabled: !!companyId,
+  });
+
+  const availableShops = useMemo(() => {
+    const response = branchesData;
+    const list = Array.isArray(response)
+      ? response
+      : response?.shops || response?.branches || response?.data || [];
+    return Array.isArray(list) ? list : [];
+  }, [branchesData]);
+
+  // React Query for departments
+  const { data: departmentsData } = useQuery({
+    queryKey: ["departments", companyId],
+    queryFn: () => getDepartmentsByCompany(companyId),
+    enabled: !!companyId,
+  });
+
+  const availableDepartments = useMemo(() => {
+    return Array.isArray(departmentsData) ? departmentsData : [];
+  }, [departmentsData]);
 
   // Update worker state when initialData changes (e.g., after fetching in edit mode)
   React.useEffect(() => {
@@ -87,46 +115,15 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
   }, [initialData]);
 
-  // Fetch shops and departments when component mounts or company changes
+  // Ensure companyId is in worker state
   React.useEffect(() => {
-    const fetchShopsAndDepartments = async () => {
-      const companyObj = session?.user?.companies?.[0];
-      const companyId =
-        typeof companyObj === "string"
-          ? companyObj
-          : companyObj?.id || companyObj?._id;
-
-      if (companyId) {
-        // Update worker state with companyId if not already set
-        setWorker((prev) => {
-          if (
-            prev.companies &&
-            Array.isArray(prev.companies) &&
-            prev.companies.includes(companyId)
-          )
-            return prev;
-          return { ...prev, companies: [companyId] };
-        });
-
-        // Fetch shops
-        const response = await getBranches(companyId);
-        const shopsList = Array.isArray(response)
-          ? response
-          : response?.shops || response?.branches || response?.data || [];
-
-        console.log("Processed shops list:", shopsList);
-        setAvailableShops(Array.isArray(shopsList) ? shopsList : []);
-
-        // Fetch departments
-        const departments = await getDepartmentsByCompany(companyId);
-        console.log("Fetched departments:", departments);
-        setAvailableDepartments(Array.isArray(departments) ? departments : []);
-      }
-    };
-    if (session) {
-      fetchShopsAndDepartments();
+    if (companyId) {
+      setWorker((prev) => {
+        if (prev.companies?.includes(companyId)) return prev;
+        return { ...prev, companies: [companyId] };
+      });
     }
-  }, [session]);
+  }, [companyId]);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [errorDialog, setErrorDialog] = useState({
@@ -158,49 +155,45 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const getStepErrors = (step) => {
     const errors = {};
     if (step === 0) {
-      if (!worker.firstName.trim()) errors.firstName = "First name is required";
-      if (!worker.lastName.trim()) errors.lastName = "Last name is required";
-      if (!worker.email.trim()) errors.email = "Email is required";
+      if (!worker.firstName.trim()) errors.firstName = t("validation.required", { field: t("firstName") });
+      if (!worker.lastName.trim()) errors.lastName = t("validation.required", { field: t("lastName") });
+      if (!worker.email.trim()) errors.email = t("validation.required", { field: t("email") });
       else if (!/\S+@\S+\.\S+/.test(worker.email))
-        errors.email = "Email is invalid";
-      if (!worker.phone.trim()) errors.phone = "Phone is required";
+        errors.email = t("validation.invalidEmail");
+      if (!worker.phone.trim()) errors.phone = t("validation.required", { field: t("phone") });
       else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, "")))
-        errors.phone = "Invalid phone format (e.g., +250...)";
+        errors.phone = t("validation.invalidPhone");
 
-      if (!worker.gender) errors.gender = "Gender is required";
+      if (!worker.gender) errors.gender = t("validation.required", { field: t("gender") });
     }
 
     if (step === 1) {
-      // if (!worker.position) errors.position = "Position is required";
-      if (!worker.department) errors.department = "Department is required";
+      if (!worker.department) errors.department = t("validation.required", { field: t("department") });
       if (worker.nationalId && !/^[A-Z0-9]{5,20}$/.test(worker.nationalId))
-        errors.nationalId =
-          "National ID must be 5-20 uppercase alphanumeric characters";
+        errors.nationalId = t("validation.invalidId");
     }
 
     if (step === 2) {
       if (!worker.emergencyContact.name.trim())
-        errors["emergencyContact.name"] = "Emergency contact name is required";
+        errors["emergencyContact.name"] = t("validation.required", { field: t("emerName") });
       if (!worker.emergencyContact.phone.trim())
-        errors["emergencyContact.phone"] =
-          "Emergency contact phone is required";
+        errors["emergencyContact.phone"] = t("validation.required", { field: t("emerPhone") });
       else if (
         !/^\+?[1-9]\d{1,14}$/.test(
           worker.emergencyContact.phone.replace(/[\s-]/g, "")
         )
       )
-        errors["emergencyContact.phone"] =
-          "Invalid phone format (e.g., +250...)";
+        errors["emergencyContact.phone"] = t("validation.invalidPhone");
       if (!worker.address.street.trim())
-        errors["address.street"] = "Street is required";
+        errors["address.street"] = t("validation.required", { field: t("street") });
       if (!worker.address.city.trim())
-        errors["address.city"] = "City is required";
+        errors["address.city"] = t("validation.required", { field: t("city") });
       if (!worker.address.state.trim())
-        errors["address.state"] = "State is required";
+        errors["address.state"] = t("validation.required", { field: t("state") });
       if (!worker.address.postalCode.trim())
-        errors["address.postalCode"] = "Postal code is required";
+        errors["address.postalCode"] = t("validation.required", { field: t("postalCode") });
       if (!worker.address.country.trim())
-        errors["address.country"] = "Country is required";
+        errors["address.country"] = t("validation.required", { field: t("country") });
     }
 
     return errors;
@@ -241,8 +234,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       setSnackbar({
         open: true,
         message: isEditMode
-          ? "Worker updated successfully!"
-          : "Worker created successfully!",
+          ? t("buttons.update") + " - Success"
+          : t("buttons.create") + " - Success",
         severity: "success",
       });
       router.refresh();
@@ -272,7 +265,6 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
 
     const payload = { ...worker };
 
-    // Find the selected department object to get its display name
     const selectedDept = availableDepartments.find(
       (dept) => (dept.id || dept._id || dept.department_id) === worker.department
     );
@@ -310,11 +302,11 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               color="#081422"
               gutterBottom
             >
-              Personal Information
+              {t("personalInfo")}
             </Typography>
             <div className="flex gap-4 w-full">
               <TextField
-                label="First Name"
+                label={t("firstName")}
                 value={worker.firstName}
                 onChange={(e) => handleChange("firstName", e.target.value)}
                 required
@@ -323,7 +315,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                 fullWidth
               />
               <TextField
-                label="Last Name"
+                label={t("lastName")}
                 value={worker.lastName}
                 onChange={(e) => handleChange("lastName", e.target.value)}
                 required
@@ -334,7 +326,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             </div>
 
             <TextField
-              label="Email"
+              label={t("email")}
               type="email"
               value={worker.email}
               onChange={(e) => handleChange("email", e.target.value)}
@@ -345,7 +337,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             />
 
             <TextField
-              label="Phone"
+              label={t("phone")}
               value={
                 (worker.phone || "").startsWith(worker.countryCode || "+250")
                   ? (worker.phone || "").slice(
@@ -424,10 +416,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               }}
             />
 
-
-
             <TextField
-              label="Date of Birth"
+              label={t("dob")}
               type="date"
               InputLabelProps={{ shrink: true }}
               value={worker.dateOfBirth}
@@ -437,7 +427,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
 
             <TextField
               select
-              label="Gender"
+              label={t("gender")}
               value={worker.gender}
               onChange={(e) => handleChange("gender", e.target.value)}
               required
@@ -447,7 +437,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             >
               {genders.map((g) => (
                 <MenuItem key={g} value={g}>
-                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                  {t(`genders.${g}`)}
                 </MenuItem>
               ))}
             </TextField>
@@ -463,10 +453,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               color="#081422"
               gutterBottom
             >
-              Job Information
+              {t("jobInfo")}
             </Typography>
             <TextField
-              label="National ID"
+              label={t("nationalId")}
               value={worker.nationalId}
               onChange={(e) =>
                 handleChange("nationalId", e.target.value.toUpperCase())
@@ -475,25 +465,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               helperText={fieldErrors.nationalId}
               fullWidth
             />
-            {/* <TextField
-              select
-              label="Position"
-              value={worker.position}
-              onChange={(e) => handleChange("position", e.target.value)}
-              required
-              error={!!fieldErrors.position}
-              helperText={fieldErrors.position}
-              fullWidth
-            >
-              {positions.map((pos) => (
-                <MenuItem key={pos} value={pos}>
-                  {pos}
-                </MenuItem>
-              ))}
-            </TextField> */}
             <TextField
               select
-              label="Department"
+              label={t("department")}
               value={worker.department}
               onChange={(e) => handleChange("department", e.target.value)}
               required
@@ -512,14 +486,14 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                 ))
               ) : (
                 <MenuItem value="" disabled>
-                  No departments available
+                  {t("placeholders.noDept")}
                 </MenuItem>
               )}
             </TextField>
 
             <TextField
               select
-              label="Shop"
+              label={t("shop")}
               value={worker.shops[0] || ""}
               onChange={(e) => handleChange("shops", [e.target.value])}
               fullWidth
@@ -542,10 +516,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               color="#081422"
               gutterBottom
             >
-              Emergency Contact
+              {t("emerContact")}
             </Typography>
             <TextField
-              label="Emergency Contact Name"
+              label={t("emerName")}
               value={worker.emergencyContact.name}
               onChange={(e) =>
                 handleNestedChange("emergencyContact", "name", e.target.value)
@@ -556,7 +530,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               fullWidth
             />
             <TextField
-              label="Emergency Contact Phone"
+              label={t("emerPhone")}
               value={worker.emergencyContact.phone}
               onChange={(e) =>
                 handleNestedChange("emergencyContact", "phone", e.target.value)
@@ -573,10 +547,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               gutterBottom
               sx={{ mt: 2 }}
             >
-              Address
+              {t("address")}
             </Typography>
             <TextField
-              label="Street"
+              label={t("street")}
               value={worker.address.street}
               onChange={(e) =>
                 handleNestedChange("address", "street", e.target.value)
@@ -587,7 +561,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               fullWidth
             />
             <TextField
-              label="City"
+              label={t("city")}
               value={worker.address.city}
               onChange={(e) =>
                 handleNestedChange("address", "city", e.target.value)
@@ -598,7 +572,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               fullWidth
             />
             <TextField
-              label="State"
+              label={t("state")}
               value={worker.address.state}
               onChange={(e) =>
                 handleNestedChange("address", "state", e.target.value)
@@ -609,7 +583,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               fullWidth
             />
             <TextField
-              label="Postal Code"
+              label={t("postalCode")}
               value={worker.address.postalCode}
               onChange={(e) =>
                 handleNestedChange("address", "postalCode", e.target.value)
@@ -620,7 +594,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               fullWidth
             />
             <TextField
-              label="Country"
+              label={t("country")}
               value={worker.address.country}
               onChange={(e) =>
                 handleNestedChange("address", "country", e.target.value)
@@ -665,12 +639,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               color="#081422"
               sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
             >
-              {isEditMode ? "Edit Worker" : "Add New Worker"}
+              {isEditMode ? t("editTitle") : t("addTitle")}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              {isEditMode
-                ? "Update worker information"
-                : "Complete all steps to create a new worker account"}
+              {isEditMode ? t("editDesc") : t("addDesc")}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
               inventory /
@@ -718,7 +690,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                 color: "#081422",
               }}
             >
-              Back
+              {t("buttons.back")}
             </Button>
 
             <Button
@@ -735,8 +707,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               }
               disabled={createWorkerMutation.isLoading}
               sx={{
-                bgcolor: "#",
-                "&:hover": { bgcolor: "#fe6600ff" },
+                bgcolor: "#fe6600",
+                "&:hover": { bgcolor: "#cc5200" },
                 borderRadius: "12px",
                 textTransform: "none",
                 px: 5,
@@ -746,23 +718,24 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             >
               {createWorkerMutation.isLoading
                 ? isEditMode
-                  ? "Updating..."
-                  : "Creating..."
+                  ? t("buttons.updating")
+                  : t("buttons.creating")
                 : activeStep === stepLabels.length - 1
                   ? isEditMode
-                    ? "Update Worker"
-                    : "Create Worker"
-                  : "Next"}
+                    ? t("buttons.update")
+                    : t("buttons.create")
+                  : t("buttons.next")}
             </Button>
           </Box>
         </Box>
 
         <Box
           sx={{
-            width: { xs: "100%", lg: 500 },
-            borderTop: { xs: "1px solid #e0e0e0", lg: "none" },
-            py: { xs: 4, lg: 6 },
-            px: { xs: 2, lg: 0 },
+            width: { xs: "0", lg: 500 },
+            display: { xs: 'none', lg: 'block' },
+            borderLeft: "1px solid #e0e0e0",
+            py: 6,
+            px: 4,
           }}
         >
           <Stepper
@@ -803,7 +776,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "1 rem",
+                        fontSize: "1rem",
                         fontWeight: 700,
                         transition: "all 0.3s ease",
                       }}

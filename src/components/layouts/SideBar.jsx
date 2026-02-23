@@ -46,9 +46,8 @@ const getNavItems = (t) => [
   {
     title: t("sidebar.notifications"),
     icon: <Bell size={22} />,
-    children: [
-      { title: t("sidebar.inbox"), path: "/inventory/notifications", prefetch: true },
-    ],
+    path: "/inventory/notifications",
+    prefetch: true,
   },
   {
     title: t("sidebar.reports"),

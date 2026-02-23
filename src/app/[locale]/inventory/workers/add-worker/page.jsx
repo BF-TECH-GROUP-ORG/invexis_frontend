@@ -1,35 +1,52 @@
-"use client"
 
-import React, { Suspense } from 'react'
-import AddWorkerForm from '@/components/forms/AddWorkerForm'
-import { useRouter } from 'next/navigation'
-import { createWorker } from '@/services/workersService'
+import AddWorkerForm from "@/components/forms/AddWorkerForm";
+import { Suspense } from "react";
+import { getBranches } from "@/services/branches";
+import { getDepartmentsByCompany } from "@/services/departmentsService";
+import { unstable_cache } from "next/cache";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
 
-function AddWorkerContent() {
-  const router = useRouter()
+export default async function AddWorker({ params }) {
+  const session = await getServerSession(authOptions);
+  const companyObj = session?.user?.companies?.[0];
+  const companyId =
+    typeof companyObj === "string"
+      ? companyObj
+      : companyObj?.id || companyObj?._id;
 
-  const handleOnSubmit = async (workerData) => {
-    try {
-      await createWorker(workerData);
-      // Optionally show success message or wait a bit
-      router.push('/inventory/workers/list')
-    } catch (error) {
-      console.error("Failed to create worker", error);
-      throw error; // Form will handle the error display
-    }
+  const queryClient = new QueryClient();
+
+  if (companyId) {
+    const getCached = (key, fetcher) =>
+      unstable_cache(
+        async () => fetcher(),
+        [`add-worker-${key}`, companyId],
+        { revalidate: 300, tags: ['workers', `company-${companyId}`] }
+      )();
+
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: ["branches", companyId],
+        queryFn: () => getCached('branches', () => getBranches(companyId)),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ["departments", companyId],
+        queryFn: () => getCached('departments', () => getDepartmentsByCompany(companyId)),
+      }),
+    ]);
   }
 
   return (
-    <div>
-      <AddWorkerForm onSubmit={handleOnSubmit} />
-    </div>
-  )
-}
-
-export default function AddWorker() {
-  return (
-    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
-      <AddWorkerContent />
-    </Suspense>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Suspense fallback={null}>
+        <AddWorkerForm />
+      </Suspense>
+    </HydrationBoundary>
   );
 }

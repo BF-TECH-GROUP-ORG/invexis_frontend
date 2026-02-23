@@ -1435,8 +1435,57 @@
         "deleteMember": "Futa Mtumishi"
       },
       "deleteConfirm": {
-        "title": "Futa Mtumishi",
+        "title": "Futa Mwanachama",
         "message": "Kitendo hiki ni cha kudumu na kitaondoa ufikiaji wote wa mfumo kwa mtumiaji huyu mara moja."
+      },
+      "form": {
+        "addTitle": "Ongeza Mfanyakazi Mpya",
+        "editTitle": "Hariri Mfanyakazi",
+        "addDesc": "Kamilisha hatua zote ili kuunda akaunti mpya ya mfanyakazi",
+        "editDesc": "Sasisha maelezo ya mfanyakazi",
+        "personalInfo": "Habari za Kibinafsi",
+        "jobInfo": "Habari za Kazi",
+        "contactAddress": "Mawasiliano na Anwani",
+        "firstName": "Jina la kwanza",
+        "lastName": "Jina la ukoo",
+        "email": "Barua pepe",
+        "phone": "Simu",
+        "gender": "Jinsia",
+        "dob": "Tarehe ya kuzaliwa",
+        "nationalId": "Kitambulisho cha Taifa",
+        "department": "Idara",
+        "shop": "Duka",
+        "emerContact": "Mawasiliano ya dharura",
+        "emerName": "Jina la mawasiliano ya dharura",
+        "emerPhone": "Simu ya mawasiliano ya dharura",
+        "address": "Anwani",
+        "street": "Barabara",
+        "city": "Mji",
+        "state": "Mkoa",
+        "postalCode": "Sanduku la barua",
+        "country": "Nchi",
+        "genders": {
+          "male": "Mwanaume",
+          "female": "Mwanamke",
+          "other": "Nyingine"
+        },
+        "buttons": {
+          "back": "Rudi",
+          "next": "Inayofuata",
+          "create": "Unda Mfanyakazi",
+          "update": "Sasisha Mfanyakazi",
+          "creating": "Inatengeneza...",
+          "updating": "Inasasisha..."
+        },
+        "validation": {
+          "required": "{field} inahitajika",
+          "invalidEmail": "Barua pepe si sahihi",
+          "invalidPhone": "Muundo wa simu si sahihi (mfano +250...)",
+          "invalidId": "Kitambulisho cha Taifa lazima kiwe na herufi 5-20 za alphanumeric kubwa"
+        },
+        "placeholders": {
+          "noDept": "Hakuna idara zinazopatikana"
+        }
       }
     }
   },
@@ -1560,6 +1609,177 @@
           "other": "Nyingine"
         }
       }
+    }
+  },
+  "reports": {
+    "header": {
+      "title": "Ripoti na Uchambuzi wa Mfumo",
+      "subtitle": "Mtandao jumuishi wa shughuli zako zote za biashara"
+    },
+    "controls": {
+      "daily": "Kila Siku",
+      "weekly": "Kila Wiki",
+      "monthly": "Kila Mwezi",
+      "yearly": "Kila Mwaka",
+      "selectDate": "Chagua Tarehe",
+      "exportOptions": "Chaguo za Kusafirisha",
+      "exportPDF": "Hamisha kama PDF",
+      "printReport": "Chapisha Ripoti",
+      "exportExcel": "Hamisha kwenda Excel"
+    },
+    "tabs": {
+      "general": "Muhtasari wa Jumla",
+      "inventory": "Uchambuzi wa Akiba",
+      "sales": "Utendaji wa Mauzo",
+      "debts": "Madeni na Mikopo",
+      "payments": "Njia za Malipo",
+      "staff": "Wafanyakazi na Matawi"
+    },
+    "common": {
+      "date": "Tarehe",
+      "branch": "Tawi",
+      "all": "Zote",
+      "none": "Huna",
+      "product": "Bidhaa",
+      "category": "Kundi",
+      "invoiceNo": "Nambari ya Ankara",
+      "customer": "Mteja",
+      "type": "Aina",
+      "status": "Hali",
+      "recordedBy": "Imerekodiwa na",
+      "receivedBy": "Imepokelewa na",
+      "soldBy": "Iliuzwa na",
+      "time": "Muda",
+      "loading": "Inapakia ripoti...",
+      "error": "Hitilafu imetokea wakati wa kupakia ripoti. Tafadhali jaribu tena.",
+      "noContent": "Maudhui ya tab hiyo hayajapatikana",
+      "subtotal": "Jumla Ndogo ya {name}",
+      "total": "Jumla",
+      "recommendation": "Pendekezo"
+    },
+    "general": {
+      "title": "Ripoti ya Biashara ya Jumla – Muhtasari Kamili",
+      "kpis": {
+        "revenue": "Jumla ya Mapato",
+        "costs": "Jumla ya Gharama",
+        "profit": "Faida Halisi",
+        "debts": "Madeni Yanayodaiwa",
+        "returns": "Jumla ya Marejesho"
+      },
+      "table": {
+        "inventory": "Akiba",
+        "sales": "Mauzo",
+        "payments": "Malipo",
+        "debts": "Madeni",
+        "cost": "Gharama",
+        "profit": "Faida",
+        "initialStock": "Akiba ya Kwanza",
+        "remaining": "Iliyobaki",
+        "stockValue": "Thamani ya Akiba",
+        "grossSales": "Mauzo ya Jumla",
+        "discounts": "Punguzo",
+        "received": "Imepokelewa",
+        "pending": "Inasubiri",
+        "debtAmount": "Kiasi cha Deni",
+        "paidAmount": "Kiasi Kilicholipwa",
+        "netProfit": "Faida Halisi",
+        "margin": "Asilimia ya Faida"
+      },
+      "recommendationText": "Lenga kupunguza malipo yanayosubiri ili kuongeza mzunguko wa pesa na fikiria mikakati ya kuimarisha kiwango cha faida halisi kila wakati."
+    },
+    "inventory": {
+      "title": "Ripoti ya Akiba",
+      "kpis": {
+        "totalValue": "Jumla ya Thamani ya Akiba",
+        "totalItems": "Jumla ya Bidhaa",
+        "lowStock": "Bidhaa Zenye Akiba ya Chini",
+        "outOfStock": "Bidhaa Zilizokwisha"
+      },
+      "table": {
+        "movement": "Mzunguko wa Akiba",
+        "value": "Thamani ya Akiba",
+        "status": "Hali ya Akiba",
+        "tracking": "Ufuatiliaji",
+        "open": "Mwanzo",
+        "in": "Ingia",
+        "out": "Toka",
+        "close": "Mwisho",
+        "unitCost": "Gharama kwa Unit",
+        "totalValue": "Jumla ya Thamani",
+        "reorder": "Agiza Tena",
+        "age": "Muda (Siku)",
+        "lastRestock": "Ongezeko la Mwisho",
+        "lastMove": "Mzunguko wa Mwisho"
+      }
+    },
+    "sales": {
+      "title": "Ripoti ya Mauzo",
+      "kpis": {
+        "revenue": "Mapato ya Mauzo",
+        "transactions": "Jumla ya Miamala",
+        "avgValue": "Wastani wa Thamani ya Mauzo",
+        "topProduct": "Bidhaa Inayouza Zaidi",
+        "growth": "Kukua / Kupungua kwa Mauzo"
+      },
+      "table": {
+        "quantity": "Kiasi cha Mauzo",
+        "value": "Thamani ya Mauzo",
+        "customer": "Taarifa za Mteja",
+        "tracking": "Ufuatiliaji",
+        "qtySold": "Kiasi Kilichouzwa",
+        "returns": "Marejesho",
+        "netQty": "Kiasi Halisi",
+        "unitPrice": "Bei kwa Unit",
+        "totalAmount": "Jumla ya Kiasi",
+        "customerName": "Mteja",
+        "saleTime": "Muda wa Mauzo"
+      }
+    },
+    "debts": {
+      "title": "Ripoti ya Madeni",
+      "kpis": {
+        "totalOutstanding": "Jumla ya Madeni",
+        "overdueAmount": "Madeni Yaliyochelewa",
+        "activeDebtors": "Wadaiwa Amilifu",
+        "avgDebtAge": "Wastani wa Muda wa Deni"
+      },
+      "table": {
+        "debtAmount": "Kiasi cha Deni",
+        "paymentInfo": "Taarifa za Malipo",
+        "tracking": "Ufuatiliaji",
+        "name": "Jina",
+        "phone": "Simu",
+        "original": "Asili",
+        "paid": "Imelipwa",
+        "balance": "Bakaa",
+        "lastPaid": "Malipo ya Mwisho",
+        "dueDate": "Tarehe ya Mwisho",
+        "age": "Muda (Siku)",
+        "saleDate": "Tarehe ya Mauzo"
+      }
+    },
+    "payments": {
+      "title": "Ripoti ya Malipo",
+      "kpis": {
+        "totalReceived": "Jumla ya Malipo",
+        "pending": "Malipo Yanayosubiri",
+        "failed": "Malipo Yaliyofeli",
+        "avgSize": "Wastani wa Kiasi cha Malipo"
+      },
+      "table": {
+        "paymentInfo": "Taarifa za Malipo",
+        "reference": "Rejea",
+        "amount": "Kiasi",
+        "method": "Njia ya Malipo",
+        "saleDebtRef": "Rejea ya Mauzo/Deni"
+      }
+    },
+    "export": {
+      "pdfTitle": "Ripoti ya {tab}",
+      "pdfSystemTitle": "Ripoti za Mfumo",
+      "pdfSystemFullTitle": "Ripoti na Uchambuzi wa Mfumo",
+      "excelSystemTitle": "Ripoti-za-Mfumo",
+      "excelTabTitle": "Ripoti ya {tab}"
     }
   }
 }

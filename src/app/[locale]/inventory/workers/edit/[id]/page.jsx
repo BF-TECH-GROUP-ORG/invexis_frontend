@@ -1,8 +1,10 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { getQueryClient } from "@/lib/queryClient";
+import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
 import { getWorkerById } from "@/services/workersService";
+import { getBranches } from "@/services/branches";
+import { getDepartmentsByCompany } from "@/services/departmentsService";
+import { unstable_cache } from "next/cache";
 import EditWorkerPageClient from "./EditWorkerPageClient";
 
 export const metadata = {
@@ -12,26 +14,43 @@ export const metadata = {
 export default async function EditWorkerPage({ params }) {
     const { id } = await params;
     const session = await getServerSession(authOptions);
-    const queryClient = getQueryClient();
+    const queryClient = new QueryClient();
 
-    // Prefetch worker if authenticated
+    const companyObj = session?.user?.companies?.[0];
+    const companyId =
+        typeof companyObj === "string"
+            ? companyObj
+            : companyObj?.id || companyObj?._id;
+
     if (session?.accessToken && id) {
-        try {
-            const options = {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`
-                }
-            };
+        const options = {
+            headers: {
+                Authorization: `Bearer ${session.accessToken}`,
+            },
+        };
 
-            await queryClient.prefetchQuery({
+        const getCached = (key, fetcher, tags = []) =>
+            unstable_cache(async () => fetcher(), [key, companyId || "global"], {
+                revalidate: 300,
+                tags: [...tags, `company-${companyId}`],
+            })();
+
+        await Promise.all([
+            // Prefetch specific worker
+            queryClient.prefetchQuery({
                 queryKey: ["worker", id],
                 queryFn: () => getWorkerById(id, options),
-            });
-
-            console.log(`✅ Successfully prefetched worker ${id} on server`);
-        } catch (error) {
-            console.error(`⚠️ Error prefetching worker ${id}:`, error);
-        }
+            }),
+            // Prefetch dependencies (shops/depts)
+            companyId && queryClient.prefetchQuery({
+                queryKey: ["branches", companyId],
+                queryFn: () => getCached("branches", () => getBranches(companyId), ["branches"]),
+            }),
+            companyId && queryClient.prefetchQuery({
+                queryKey: ["departments", companyId],
+                queryFn: () => getCached("departments", () => getDepartmentsByCompany(companyId), ["departments"]),
+            }),
+        ]);
     }
 
     return (

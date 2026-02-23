@@ -15,19 +15,21 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
 const InventoryTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
     const [summary, setSummary] = useState(null);
 
     // Header Selection State
-    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
 
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
@@ -89,8 +91,8 @@ const InventoryTab = ({ dateRange }) => {
 
                 // Filter by selected branch
                 let filteredData = allMockData.map(day => {
-                    if (selectedBranch === 'None') return { ...day, shops: [] };
-                    if (selectedBranch === 'All') return day;
+                    if (selectedBranch === t('common.none')) return { ...day, shops: [] };
+                    if (selectedBranch === t('common.all')) return day;
                     const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
                     return { ...day, shops: filteredShops };
                 });
@@ -101,7 +103,7 @@ const InventoryTab = ({ dateRange }) => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, dateRange]);
+    }, [companyId, selectedBranch, dateRange, t]);
 
     if (loading) {
         return (
@@ -121,23 +123,21 @@ const InventoryTab = ({ dateRange }) => {
         handleClose();
     };
 
-
-
     const kpiCards = [
         {
-            title: "Total Stock Value",
+            title: t('inventory.kpis.stockValue'),
             value: formatCurrency(summary?.totalValue || 0),
             icon: TrendingUp,
             color: "#FF6D00",
         },
         {
-            title: "Total Items",
+            title: t('inventory.kpis.totalItems'),
             value: summary?.totalItems || 0,
             icon: Warehouse,
             color: "#0059ffff",
         },
         {
-            title: "Low Stock Items",
+            title: t('inventory.kpis.lowStock'),
             value: summary?.lowStockCount || 0,
             icon: TrendingDown,
             color: "#F59E0B",
@@ -145,7 +145,7 @@ const InventoryTab = ({ dateRange }) => {
             trendValue: "Action Needed",
         },
         {
-            title: "Out of Stock",
+            title: t('inventory.kpis.outOfStock'),
             value: summary?.outOfStockCount || 0,
             icon: Package,
             color: "#EF4444",
@@ -161,7 +161,7 @@ const InventoryTab = ({ dateRange }) => {
                 {/* Header with Title, Toggle, Date Picker, and Export Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
-                        Inventory Report
+                        {t('inventory.title')}
                     </Typography>
 
 
@@ -221,35 +221,35 @@ const InventoryTab = ({ dateRange }) => {
                                     {dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
-                                        'Date'
+                                        t('common.date')
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">Product Name</TableCell>
-                                <TableCell align="center">Category</TableCell>
-                                <TableCell align="center" colSpan={4}>Inventory Movement</TableCell>
-                                <TableCell align="center" colSpan={2}>Inventory Value</TableCell>
-                                <TableCell align="center" colSpan={3}>Stock Status</TableCell>
-                                <TableCell align="center" colSpan={2}>Tracking</TableCell>
+                                <TableCell align="center">{t('common.product')}</TableCell>
+                                <TableCell align="center">{t('common.category')}</TableCell>
+                                <TableCell align="center" colSpan={4}>{t('inventory.table.movement')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('inventory.table.value')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('inventory.table.status')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('inventory.table.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={4} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">Open</TableCell>
-                                <TableCell align="center">In</TableCell>
-                                <TableCell align="center">Out</TableCell>
-                                <TableCell align="center">Close</TableCell>
-                                <TableCell align="center">Unit Cost</TableCell>
-                                <TableCell align="center">Total Value</TableCell>
-                                <TableCell align="center">Reorder</TableCell>
-                                <TableCell align="center">Status</TableCell>
-                                <TableCell align="center">Age(D)</TableCell>
-                                <TableCell align="center">Last Restock</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>Last Move</TableCell>
+                                <TableCell align="center">{t('inventory.table.open')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.in')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.out')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.close')}</TableCell>
+                                <TableCell align="center">{t('common.unitCost')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.totalValue')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.reorder')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.status')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.age')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.lastRestock')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('inventory.table.lastMove')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -268,40 +268,46 @@ const InventoryTab = ({ dateRange }) => {
                                                 <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{shop.name}</TableCell>
                                                 <TableCell colSpan={13} />
                                             </TableRow>
-                                            {shop.products.map((product, pIdx) => (
-                                                <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
-                                                    <TableCell />
-                                                    <TableCell />
-                                                    <TableCell sx={{ pl: 2 }}>
-                                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                            <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />
-                                                            {product.name}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center">{product.category}</TableCell>
-                                                    <TableCell align="center">{product.movement.open}</TableCell>
-                                                    <TableCell align="center">{product.movement.in}</TableCell>
-                                                    <TableCell align="center">{product.movement.out}</TableCell>
-                                                    <TableCell align="center">{product.movement.close}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.value.unitCost)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.value.totalValue)}</TableCell>
-                                                    <TableCell align="center">{product.status.reorder}</TableCell>
-                                                    <TableCell align="center">
-                                                        <Box component="span" sx={{
-                                                            px: 1.5, py: 0.5, borderRadius: "20px",
-                                                            bgcolor: product.status.status === 'Out of Stock' ? '#FEF2F2' : product.status.status === 'Low Stock' ? '#FFFBEB' : '#F0FDF4',
-                                                            color: product.status.status === 'Out of Stock' ? '#DC2626' : product.status.status === 'Low Stock' ? '#D97706' : '#16A34A',
-                                                            fontWeight: '700', fontSize: '0.7rem',
-                                                            border: `1px solid ${product.status.status === 'Out of Stock' ? '#FEE2E2' : product.status.status === 'Low Stock' ? '#FEF3C7' : '#DCFCE7'}`
-                                                        }}>
-                                                            {product.status.status}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center">{product.status.age}</TableCell>
-                                                    <TableCell align="center">{product.tracking.lastRestock}</TableCell>
-                                                    <TableCell align="center" sx={{ borderRight: "none" }}>{product.tracking.lastMove}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {shop.products.map((product, pIdx) => {
+                                                const statusKey = product.status.status === 'Out of Stock' ? 'outOfStock' :
+                                                    product.status.status === 'Low Stock' ? 'lowStock' : 'inStock';
+                                                const translatedStatus = t(`inventory.status.${statusKey}`);
+
+                                                return (
+                                                    <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
+                                                        <TableCell />
+                                                        <TableCell />
+                                                        <TableCell sx={{ pl: 2 }}>
+                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                                <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />
+                                                                {product.name}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell align="center">{product.category}</TableCell>
+                                                        <TableCell align="center">{product.movement.open}</TableCell>
+                                                        <TableCell align="center">{product.movement.in}</TableCell>
+                                                        <TableCell align="center">{product.movement.out}</TableCell>
+                                                        <TableCell align="center">{product.movement.close}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(product.value.unitCost)}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(product.value.totalValue)}</TableCell>
+                                                        <TableCell align="center">{product.status.reorder}</TableCell>
+                                                        <TableCell align="center">
+                                                            <Box component="span" sx={{
+                                                                px: 1.5, py: 0.5, borderRadius: "20px",
+                                                                bgcolor: product.status.status === 'Out of Stock' ? '#FEF2F2' : product.status.status === 'Low Stock' ? '#FFFBEB' : '#F0FDF4',
+                                                                color: product.status.status === 'Out of Stock' ? '#DC2626' : product.status.status === 'Low Stock' ? '#D97706' : '#16A34A',
+                                                                fontWeight: '700', fontSize: '0.7rem',
+                                                                border: `1px solid ${product.status.status === 'Out of Stock' ? '#FEE2E2' : product.status.status === 'Low Stock' ? '#FEF3C7' : '#DCFCE7'}`
+                                                            }}>
+                                                                {translatedStatus}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell align="center">{product.status.age}</TableCell>
+                                                        <TableCell align="center">{product.tracking.lastRestock}</TableCell>
+                                                        <TableCell align="center" sx={{ borderRight: "none" }}>{product.tracking.lastMove}</TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
                                             {/* Spacer Row */}
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
@@ -320,8 +326,8 @@ const InventoryTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>

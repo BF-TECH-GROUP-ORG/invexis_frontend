@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
 
 const SalesPerformance = dynamic(() => import('@/components/visuals/sales/salesPerformance'), {
@@ -17,6 +18,19 @@ export default function SalesChartsSection({
     timeRange,
     selectedDate
 }) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const handleUpdateParam = (key, value) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set(key, value);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    const setTimeRange = (range) => handleUpdateParam('timeRange', range);
+    const setSelectedDate = (date) => handleUpdateParam('date', date ? dayjs(date).format('YYYY-MM-DD') : '');
+
     // Transform Data
     const rawSales = salesRes?.data || salesRes || [];
     const salesPerformance = rawSales.map(item => ({
@@ -59,7 +73,9 @@ export default function SalesChartsSection({
     return (
         <SalesPerformance
             timeRange={timeRange}
+            setTimeRange={setTimeRange}
             selectedDate={dayjs(selectedDate)}
+            setSelectedDate={setSelectedDate}
             salesData={salesPerformance}
             categoryData={categories}
             topProductsData={topProducts}

@@ -1506,6 +1506,55 @@
       "deleteConfirm": {
         "title": "Delete Staff Member",
         "message": "This action is permanent and will revoke all system access for this user immediately."
+      },
+      "form": {
+        "addTitle": "Add New Worker",
+        "editTitle": "Edit Worker",
+        "addDesc": "Complete all steps to create a new worker account",
+        "editDesc": "Update worker information",
+        "personalInfo": "Personal Information",
+        "jobInfo": "Job Information",
+        "contactAddress": "Contact & Address",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "gender": "Gender",
+        "dob": "Date of Birth",
+        "nationalId": "National ID",
+        "department": "Department",
+        "shop": "Shop",
+        "emerContact": "Emergency Contact",
+        "emerName": "Emergency Contact Name",
+        "emerPhone": "Emergency Contact Phone",
+        "address": "Address",
+        "street": "Street",
+        "city": "City",
+        "state": "State",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "genders": {
+          "male": "Male",
+          "female": "Female",
+          "other": "Other"
+        },
+        "buttons": {
+          "back": "Back",
+          "next": "Next",
+          "create": "Create Worker",
+          "update": "Update Worker",
+          "creating": "Creating...",
+          "updating": "Updating..."
+        },
+        "validation": {
+          "required": "{field} is required",
+          "invalidEmail": "Email is invalid",
+          "invalidPhone": "Invalid phone format (e.g., +250...)",
+          "invalidId": "National ID must be 5-20 uppercase alphanumeric characters"
+        },
+        "placeholders": {
+          "noDept": "No departments available"
+        }
       }
     }
   },
@@ -1614,11 +1663,8 @@
       "confirmStockOut": {
         "title": "Confirm Stock Out",
         "qty": "Quantity",
-        "reason": "Reason",
-        "cancel": "Cancel",
-        "confirm": "Confirm",
-        "processing": "Processing...",
         "success": "Stock out successful",
+        "error": "Failed to complete stock out",
         "qtyError": "Please enter a quantity greater than 0",
         "failed": "Stock out failed",
         "reasons": {
@@ -1629,6 +1675,177 @@
           "other": "Other"
         }
       }
+    }
+  },
+  "reports": {
+    "header": {
+      "title": "System-Wide Reports & Analytics",
+      "subtitle": "Consolidated insights across all your business operations"
+    },
+    "controls": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "selectDate": "Select Date",
+      "exportOptions": "Export Options",
+      "exportPDF": "Export as PDF",
+      "printReport": "Print Report",
+      "exportExcel": "Export to Excel"
+    },
+    "tabs": {
+      "general": "General Overview",
+      "inventory": "Inventory Analysis",
+      "sales": "Sales Performance",
+      "debts": "Debts & Credit",
+      "payments": "Payment Methods",
+      "staff": "Staff & Branches"
+    },
+    "common": {
+      "date": "Date",
+      "branch": "Branch",
+      "all": "All",
+      "none": "None",
+      "product": "Product",
+      "category": "Category",
+      "invoiceNo": "Invoice No",
+      "customer": "Customer",
+      "type": "Type",
+      "status": "Status",
+      "recordedBy": "Recorded By",
+      "receivedBy": "Received By",
+      "soldBy": "Sold By",
+      "time": "Time",
+      "loading": "Loading reports...",
+      "error": "Error loading tab content. Please try again.",
+      "noContent": "Tab content not found",
+      "subtotal": "{name} Subtotal",
+      "total": "Total",
+      "recommendation": "Recommendation"
+    },
+    "general": {
+      "title": "General Business Report – Full Overview",
+      "kpis": {
+        "revenue": "Total Revenue",
+        "costs": "Total Costs",
+        "profit": "Net Profit",
+        "debts": "Outstanding Debts",
+        "returns": "Total Return"
+      },
+      "table": {
+        "inventory": "Inventory",
+        "sales": "Sales",
+        "payments": "Payments",
+        "debts": "Debts",
+        "cost": "Cost",
+        "profit": "Profit",
+        "initialStock": "Initial Stock",
+        "remaining": "Remaining",
+        "stockValue": "Stock Value",
+        "grossSales": "Gross Sales",
+        "discounts": "Discounts",
+        "received": "Received",
+        "pending": "Pending",
+        "debtAmount": "Debt Amount",
+        "paidAmount": "Paid Amount",
+        "netProfit": "Net Profit",
+        "margin": "Margin %"
+      },
+      "recommendationText": "Focus on reducing pending payments to improve cash flow and consider strategies to increase net profit margins consistently."
+    },
+    "inventory": {
+      "title": "Inventory Report",
+      "kpis": {
+        "totalValue": "Total Stock Value",
+        "totalItems": "Total Items",
+        "lowStock": "Low Stock Items",
+        "outOfStock": "Out of Stock"
+      },
+      "table": {
+        "movement": "Inventory Movement",
+        "value": "Inventory Value",
+        "status": "Stock Status",
+        "tracking": "Tracking",
+        "open": "Open",
+        "in": "In",
+        "out": "Out",
+        "close": "Close",
+        "unitCost": "Unit Cost",
+        "totalValue": "Total Value",
+        "reorder": "Reorder",
+        "age": "Age(D)",
+        "lastRestock": "Last Restock",
+        "lastMove": "Last Move"
+      }
+    },
+    "sales": {
+      "title": "Sales Report",
+      "kpis": {
+        "revenue": "Total Sales Revenue",
+        "transactions": "Total Sales Transactions",
+        "avgValue": "Average Sale Value",
+        "topProduct": "Top-Selling Product",
+        "growth": "Sales Growth / Decline"
+      },
+      "table": {
+        "quantity": "Sales Quantity",
+        "value": "Sales Value",
+        "customer": "Customer Info",
+        "tracking": "Tracking",
+        "qtySold": "Qty Sold",
+        "returns": "Returns",
+        "netQty": "Net Qty",
+        "unitPrice": "Unit Price",
+        "totalAmount": "Total Amount",
+        "customerName": "Customer",
+        "saleTime": "Sale Time"
+      }
+    },
+    "debts": {
+      "title": "Debts Report",
+      "kpis": {
+        "totalOutstanding": "Total Outstanding",
+        "overdueAmount": "Overdue Amount",
+        "activeDebtors": "Active Debtors",
+        "avgDebtAge": "Avg Debt Age"
+      },
+      "table": {
+        "debtAmount": "Debt Amount",
+        "paymentInfo": "Payment Info",
+        "tracking": "Tracking",
+        "name": "Name",
+        "phone": "Phone",
+        "original": "Original",
+        "paid": "Paid",
+        "balance": "Balance",
+        "lastPaid": "Last Paid",
+        "dueDate": "Due Date",
+        "age": "Age(D)",
+        "saleDate": "Sale Date"
+      }
+    },
+    "payments": {
+      "title": "Payments Report",
+      "kpis": {
+        "totalReceived": "Total Received",
+        "pending": "Pending Payments",
+        "failed": "Failed Payments",
+        "avgSize": "Avg Payment Size"
+      },
+      "table": {
+        "paymentInfo": "Payment Info",
+        "reference": "Reference",
+        "amount": "Amount",
+        "method": "Method",
+        "saleDebtRef": "Sale/Debt Ref"
+      }
+    },
+    "export": {
+      "pdfTitle": "{tab} Report",
+      "pdfSystemTitle": "System-Wide Reports",
+      "pdfSystemFullTitle": "System-Wide Reports & Analytics",
+      "excelSystemTitle": "System-Wide-Reports",
+      "excelTabTitle": "{tab}-Report"
     }
   }
 }
