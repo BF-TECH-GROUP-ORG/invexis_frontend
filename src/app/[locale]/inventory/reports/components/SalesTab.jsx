@@ -5,6 +5,7 @@ import { Fade, Menu, MenuItem, Box, Grid, Paper, TableContainer, Table, TableBod
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import ReportKPI from './ReportKPI';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -17,13 +18,14 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
 const SalesTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
     const [stats, setStats] = useState(null);
-    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [filterByKPI, setFilterByKPI] = useState(null);
-    const [selectedActor, setSelectedActor] = useState('All');
+    const [selectedActor, setSelectedActor] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
@@ -131,13 +133,13 @@ const SalesTab = ({ dateRange }) => {
                 };
 
                 let filteredData = allMockData.map(day => {
-                    if (selectedBranch === 'None') return { ...day, shops: [] };
-                    if (selectedBranch === 'All') return day;
+                    if (selectedBranch === t('common.none')) return { ...day, shops: [] };
+                    if (selectedBranch === t('common.all')) return day;
                     const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
                     return { ...day, shops: filteredShops };
                 }).map(day => {
                     // Filter by actor (soldBy)
-                    if (selectedActor === 'All') return day;
+                    if (selectedActor === t('common.all')) return day;
                     return {
                         ...day,
                         shops: day.shops.map(s => ({
@@ -153,7 +155,7 @@ const SalesTab = ({ dateRange }) => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, dateRange, selectedActor]);
+    }, [companyId, selectedBranch, dateRange, selectedActor, t]);
 
     if (loading) {
         return (
@@ -190,7 +192,7 @@ const SalesTab = ({ dateRange }) => {
                 {/* Header with Title and Toggle */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
-                        Sales Report
+                        {t('sales.title')}
                     </Typography>
 
                 </Box>
@@ -204,7 +206,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title="Total Sales Revenue"
+                                title={t('sales.kpis.revenue')}
                                 value={formatCurrency(stats?.totalRevenue || 0)}
                                 icon={AttachMoneyIcon}
                                 color="#FF6D00"
@@ -222,7 +224,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title="Total Sales Transactions"
+                                title={t('sales.kpis.transactions')}
                                 value={stats?.totalTransactions || 0}
                                 icon={ShoppingCartIcon}
                                 color="#3B82F6"
@@ -238,7 +240,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title="Average Sale Value"
+                                title={t('sales.kpis.avgOrderValue')}
                                 value={formatCurrency(stats?.averageOrderValue || 0)}
                                 icon={ReceiptLongIcon}
                                 color="#8B5CF6"
@@ -254,7 +256,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title="Top-Selling Product"
+                                title={t('sales.kpis.topProduct')}
                                 value={`${stats?.topProduct} (${stats?.topProductQuantity} units)`}
                                 icon={EmojiEventsIcon}
                                 color="#F59E0B"
@@ -270,7 +272,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title="Sales Growth / Decline"
+                                title={t('sales.kpis.growth')}
                                 value={`${stats?.growthPercent}%`}
                                 icon={WhatshotIcon}
                                 color={stats?.growthPercent >= 0 ? "#10B981" : "#EF4444"}
@@ -291,38 +293,38 @@ const SalesTab = ({ dateRange }) => {
                                     {dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
-                                        'Date'
+                                        t('common.date')
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleActorClick}>
-                                        {selectedActor === 'All' ? 'Sold By' : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedActor === t('common.all') ? t('common.soldBy') : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">Invoice No</TableCell>
-                                <TableCell align="center">Product Name</TableCell>
-                                <TableCell align="center" colSpan={3}>Sales Quantity</TableCell>
-                                <TableCell align="center" colSpan={2}>Sales Value</TableCell>
-                                <TableCell align="center" colSpan={2}>Customer Info</TableCell>
-                                <TableCell align="center" colSpan={2}>Tracking</TableCell>
+                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.product')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('sales.table.quantity')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('sales.table.value')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('sales.table.customerInfo')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('common.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
-                                <TableCell colSpan={4} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">Qty Sold</TableCell>
-                                <TableCell align="center">Returns</TableCell>
-                                <TableCell align="center">Net Qty</TableCell>
-                                <TableCell align="center">Unit Price</TableCell>
-                                <TableCell align="center">Total Amount</TableCell>
-                                <TableCell align="center">Customer</TableCell>
-                                <TableCell align="center">Type</TableCell>
-                                <TableCell align="center">Sale Time</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>Sold By</TableCell>
+                                <TableCell colSpan={5} sx={{ borderRight: "1px solid #444" }} />
+                                <TableCell align="center">{t('sales.table.qtySold')}</TableCell>
+                                <TableCell align="center">{t('common.returns')}</TableCell>
+                                <TableCell align="center">{t('sales.table.netQty')}</TableCell>
+                                <TableCell align="center">{t('common.unitPrice')}</TableCell>
+                                <TableCell align="center">{t('common.totalAmount')}</TableCell>
+                                <TableCell align="center">{t('common.customer')}</TableCell>
+                                <TableCell align="center">{t('common.type')}</TableCell>
+                                <TableCell align="center">{t('sales.table.saleTime')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.soldBy')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -345,6 +347,7 @@ const SalesTab = ({ dateRange }) => {
                                                 <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
                                                     <TableCell />
                                                     <TableCell />
+                                                    <TableCell />
                                                     <TableCell align="center">{sale.invoiceNo}</TableCell>
                                                     <TableCell sx={{ pl: 2 }}>
                                                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -364,7 +367,7 @@ const SalesTab = ({ dateRange }) => {
                                                 </TableRow>
                                             ))}
                                             {/* Spacer Row */}
-                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={13} sx={{ border: "none" }} /></TableRow>
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
@@ -381,11 +384,26 @@ const SalesTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                </Menu>
+
+                {/* Actor Selection Menu */}
+                <Menu
+                    anchorEl={actorAnchor}
+                    open={Boolean(actorAnchor)}
+                    onClose={handleClose}
+                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                >
+                    <MenuItem onClick={() => handleActorSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <Divider />
+                    <MenuItem onClick={() => handleActorSelect('Alice')}>Alice</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Bob')}>Bob</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('Charlie')}>Charlie</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect('David')}>David</MenuItem>
                 </Menu>
             </Box>
         </Fade>

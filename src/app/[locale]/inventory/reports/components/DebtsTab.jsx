@@ -16,12 +16,14 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import debtsService from '@/services/debts';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const DebtsTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [kpis, setKpis] = useState({
@@ -31,7 +33,7 @@ const DebtsTab = ({ dateRange }) => {
         avgDebtAge: 0
     });
     const [reportData, setReportData] = useState([]);
-    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
 
     const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
@@ -168,8 +170,8 @@ const DebtsTab = ({ dateRange }) => {
 
                 // Filter by selected branch
                 let filteredData = mockDebts.map(day => {
-                    if (selectedBranch === 'None') return { ...day, branches: [] };
-                    if (selectedBranch === 'All') return day;
+                    if (selectedBranch === t('common.none')) return { ...day, branches: [] };
+                    if (selectedBranch === t('common.all')) return day;
                     const filteredBranches = day.branches.filter(branch => branch.name === selectedBranch);
                     return { ...day, branches: filteredBranches };
                 });
@@ -186,7 +188,7 @@ const DebtsTab = ({ dateRange }) => {
             }, 800);
         };
         fetchData();
-    }, [companyId, selectedBranch, dateRange]);
+    }, [companyId, selectedBranch, dateRange, t]);
 
     if (loading) {
         return (
@@ -212,13 +214,19 @@ const DebtsTab = ({ dateRange }) => {
         return { color: '#10B981', bg: '#F0FDF4', border: '#DCFCE7' };
     };
 
+    const getTranslatedStatus = (status) => {
+        if (status === 'Overdue') return t('debts.status.overdue');
+        if (status === 'Pending') return t('debts.status.pending');
+        return status;
+    };
+
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
                 {/* Header with Title, Toggle, Date Picker, and Export Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
-                        Debts Report
+                        {t('debts.title')}
                     </Typography>
 
 
@@ -236,7 +244,7 @@ const DebtsTab = ({ dateRange }) => {
                     className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     <ReportKPI
-                        title="Total Outstanding"
+                        title={t('debts.kpis.totalOutstanding')}
                         value={(() => {
                             const val = kpis?.totalOutstanding || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -249,7 +257,7 @@ const DebtsTab = ({ dateRange }) => {
                         index={0}
                     />
                     <ReportKPI
-                        title="Overdue Amount"
+                        title={t('debts.kpis.overdueAmount')}
                         value={(() => {
                             const val = kpis?.overdueAmount || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
@@ -262,15 +270,15 @@ const DebtsTab = ({ dateRange }) => {
                         index={1}
                     />
                     <ReportKPI
-                        title="Active Debtors"
+                        title={t('debts.kpis.activeDebtors')}
                         value={kpis?.debtorsCount || 0}
                         icon={PeopleIcon}
                         color="#3B82F6"
                         index={2}
                     />
                     <ReportKPI
-                        title="Avg Debt Age"
-                        value={`${kpis?.avgDebtAge || 0} Days`}
+                        title={t('debts.kpis.avgDebtAge')}
+                        value={`${kpis?.avgDebtAge || 0} ${t('common.days')}`}
                         icon={TimerIcon}
                         color="#8B5CF6"
                         index={3}
@@ -287,34 +295,34 @@ const DebtsTab = ({ dateRange }) => {
                                     {dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
-                                        'Date'
+                                        t('common.date')
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">Invoice No</TableCell>
-                                <TableCell align="center" colSpan={2}>Customer Info</TableCell>
-                                <TableCell align="center" colSpan={3}>Debt Amount</TableCell>
-                                <TableCell align="center" colSpan={2}>Payment Info</TableCell>
-                                <TableCell align="center">Status</TableCell>
-                                <TableCell align="center" colSpan={3}>Tracking</TableCell>
+                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('debts.table.debtAmount')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
+                                <TableCell align="center">{t('common.status')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('common.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">Name</TableCell>
-                                <TableCell align="center">Phone</TableCell>
-                                <TableCell align="center">Original</TableCell>
-                                <TableCell align="center">Paid</TableCell>
-                                <TableCell align="center">Balance</TableCell>
-                                <TableCell align="center">Last Paid</TableCell>
-                                <TableCell align="center">Due Date</TableCell>
-                                <TableCell align="center">Age(D)</TableCell>
-                                <TableCell align="center">Sale Date</TableCell>
-                                <TableCell align="center">Recorded By</TableCell>
+                                <TableCell align="center">{t('common.name')}</TableCell>
+                                <TableCell align="center">{t('common.phone')}</TableCell>
+                                <TableCell align="center">{t('common.original')}</TableCell>
+                                <TableCell align="center">{t('common.paid')}</TableCell>
+                                <TableCell align="center">{t('common.balance')}</TableCell>
+                                <TableCell align="center">{t('common.lastPaid')}</TableCell>
+                                <TableCell align="center">{t('common.dueDate')}</TableCell>
+                                <TableCell align="center">{t('debts.table.ageDays')}</TableCell>
+                                <TableCell align="center">{t('common.saleDate')}</TableCell>
+                                <TableCell align="center">{t('common.recordedBy')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
                             </TableRow>
                         </TableHead>
@@ -359,7 +367,7 @@ const DebtsTab = ({ dateRange }) => {
                                                                 fontWeight: '700', fontSize: '0.65rem',
                                                                 border: `1px solid ${statusColor.border}`
                                                             }}>
-                                                                {debt.status}
+                                                                {getTranslatedStatus(debt.status)}
                                                             </Box>
                                                         </TableCell>
                                                     </TableRow>
@@ -383,8 +391,8 @@ const DebtsTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>

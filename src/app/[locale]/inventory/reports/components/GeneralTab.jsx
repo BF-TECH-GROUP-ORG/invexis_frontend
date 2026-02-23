@@ -14,15 +14,17 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import BusinessOverviewChart from './BusinessOverviewChart';
 
 const GeneralTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [reportData, setReportData] = useState([]);
 
     // Header Selection State
-    const [selectedBranch, setSelectedBranch] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
 
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
@@ -60,8 +62,8 @@ const GeneralTab = ({ dateRange }) => {
 
                 // Filter by selected branch
                 let filteredData = allMockData.map(day => {
-                    if (selectedBranch === 'None') return { ...day, shops: [], total: { ...day.total, initial: 0, remaining: 0, value: 0, gross: 0, discounts: 0, received: 0, pending: 0, debt: 0, paid: 0, cost: 0, profit: 0, margin: 0 } };
-                    if (selectedBranch === 'All') return day;
+                    if (selectedBranch === t('common.none')) return { ...day, shops: [], total: { ...day.total, initial: 0, remaining: 0, value: 0, gross: 0, discounts: 0, received: 0, pending: 0, debt: 0, paid: 0, cost: 0, profit: 0, margin: 0 } };
+                    if (selectedBranch === t('common.all')) return day;
 
                     const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
                     const newTotal = filteredShops.reduce((acc, shop) => ({
@@ -87,7 +89,7 @@ const GeneralTab = ({ dateRange }) => {
             }, 800);
         };
         fetchData();
-    }, [companyId, dateRange, selectedBranch]);
+    }, [companyId, dateRange, selectedBranch, t]);
 
     if (loading) {
         return (
@@ -111,17 +113,17 @@ const GeneralTab = ({ dateRange }) => {
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%', bgcolor: "#f9fafb", p: 0 }}>
                 <Typography variant="h5" align="left" fontWeight="700" sx={{ mb: 2, mt: 2, color: "#111827" }}>
-                    General Business Report – Full Overview
+                    {t('general.title')}
                 </Typography>
 
                 {/* Top KPIs */}
                 <div className="w-full grid grid-cols-5 space-x-3 py-4 ">
                     {[
-                        { title: "Total Revenue", value: "1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
-                        { title: "Total Costs", value: "745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
-                        { title: "Net Profit", value: "505,590", Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
-                        { title: "Outstanding Debts", value: "132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
-                        { title: "Total Return", value: "398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
+                        { title: t('general.kpis.revenue'), value: "1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
+                        { title: t('general.kpis.costs'), value: "745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
+                        { title: t('general.kpis.profit'), value: "505,590", Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
+                        { title: t('general.kpis.outstandingDebts'), value: "132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
+                        { title: t('general.kpis.totalReturn'), value: "398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
                         <Grid item xs={1} key={i}>
                             <motion.div
@@ -205,37 +207,37 @@ const GeneralTab = ({ dateRange }) => {
                                     {dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
-                                        'Date'
+                                        t('common.date')
                                     )}
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === 'All' ? 'Branch' : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">Product</TableCell>
-                                <TableCell align="center" colSpan={3}>Inventory</TableCell>
-                                <TableCell align="center" colSpan={2}>Sales</TableCell>
-                                <TableCell align="center" colSpan={2}>Payments</TableCell>
-                                <TableCell align="center" colSpan={2}>Debts</TableCell>
-                                <TableCell align="center">Cost</TableCell>
-                                <TableCell align="center" colSpan={2}>Profit</TableCell>
+                                <TableCell align="center">{t('common.product')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('general.table.inventory')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('general.table.sales')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('general.table.payments')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('general.table.debts')}</TableCell>
+                                <TableCell align="center">{t('common.cost')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('common.profit')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">Initial Stock</TableCell>
-                                <TableCell align="center">Remaining</TableCell>
-                                <TableCell align="center">Stock Value</TableCell>
-                                <TableCell align="center">Gross Sales</TableCell>
-                                <TableCell align="center">Discounts</TableCell>
-                                <TableCell align="center">Received</TableCell>
-                                <TableCell align="center">Pending</TableCell>
-                                <TableCell align="center">Debt Amount</TableCell>
-                                <TableCell align="center">Paid Amount</TableCell>
-                                <TableCell align="center">Cost</TableCell>
-                                <TableCell align="center">Net Profit</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>Margin %</TableCell>
+                                <TableCell align="center">{t('general.table.initialStock')}</TableCell>
+                                <TableCell align="center">{t('general.table.remaining')}</TableCell>
+                                <TableCell align="center">{t('general.table.stockValue')}</TableCell>
+                                <TableCell align="center">{t('general.table.grossSales')}</TableCell>
+                                <TableCell align="center">{t('general.table.discounts')}</TableCell>
+                                <TableCell align="center">{t('general.table.received')}</TableCell>
+                                <TableCell align="center">{t('general.table.pending')}</TableCell>
+                                <TableCell align="center">{t('general.table.debtAmount')}</TableCell>
+                                <TableCell align="center">{t('general.table.paidAmount')}</TableCell>
+                                <TableCell align="center">{t('common.cost')}</TableCell>
+                                <TableCell align="center">{t('general.table.netProfit')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('general.table.margin')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -280,7 +282,7 @@ const GeneralTab = ({ dateRange }) => {
                                             ))}
                                             {/* Shop Subtotal Row */}
                                             <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{shop.name} Subtotal</TableCell>
+                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('general.table.subtotal', { branchName: shop.name })}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.initial}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.remaining}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.value}</TableCell>
@@ -303,7 +305,7 @@ const GeneralTab = ({ dateRange }) => {
 
                                     {/* Grand Total Row */}
                                     <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                        <TableCell colSpan={3} sx={{ pl: 2 }}>Total</TableCell>
+                                        <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
                                         <TableCell align="center">{day.total.initial}</TableCell>
                                         <TableCell align="center">{day.total.remaining}</TableCell>
                                         <TableCell align="center">{day.total.value}</TableCell>
@@ -331,8 +333,8 @@ const GeneralTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('None')}>None</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
@@ -341,7 +343,7 @@ const GeneralTab = ({ dateRange }) => {
                 {/* Recommendation Section */}
                 <Box sx={{ mt: 4, p: 3, bgcolor: "white", border: "1px solid #e5e7eb", borderRadius: 0, boxShadow: "none" }}>
                     <Typography variant="body2" sx={{ color: "#374151", fontWeight: "500" }}>
-                        <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>Recommendation:</Box> Focus on reducing pending payments to improve cash flow and consider strategies to increase net profit margins consistently.
+                        <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>{t('common.recommendation')}:</Box> {t('general.recommendationText')}
                     </Typography>
                 </Box>
             </Box>

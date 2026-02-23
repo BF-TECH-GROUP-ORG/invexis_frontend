@@ -304,7 +304,7 @@ const AnalyticsPage = () => {
         {
             title: "Total Sales",
             value: parseFloat(summary.totalDailySales) || 0,
-            icon: Coins,
+            icon: <Coins size={20} />,
             color: "#8b5cf6",
             bgColor: "#f3e8ff",
             isCurrency: true,
@@ -313,7 +313,7 @@ const AnalyticsPage = () => {
         {
             title: "Total Profit",
             value: parseFloat(summary.totalDailyProfit) || 0,
-            icon: TrendingUp,
+            icon: <TrendingUp size={20} />,
             color: "#10b981",
             bgColor: "#ecfdf5",
             isCurrency: true,
@@ -322,7 +322,7 @@ const AnalyticsPage = () => {
         {
             title: "Total Orders",
             value: parseInt(summary.totalOrders) || 0,
-            icon: Store,
+            icon: <Store size={20} />,
             color: "#ea580c",
             bgColor: "#fff7ed",
             history: rawSales.map(s => ({ value: parseInt(s.orderCount) || 0, name: s.date }))
@@ -330,7 +330,7 @@ const AnalyticsPage = () => {
         {
             title: "Top Product",
             value: topProducts.length > 0 ? topProducts[0].quantity : 0,
-            icon: Boxes,
+            icon: <Boxes size={20} />,
             color: "#3b82f6",
             bgColor: "#eff6ff",
             history: topProducts.slice(0, 5).map(p => ({ value: p.quantity, name: p.name }))

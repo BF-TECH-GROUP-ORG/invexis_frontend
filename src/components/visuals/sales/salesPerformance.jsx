@@ -65,21 +65,29 @@ const CustomTooltip = ({ active, payload, label }) => {
 const ModernLegend = (props) => {
     const { payload } = props;
     return (
-        <div className="flex justify-center gap-6 mt-4">
-            {payload.map((entry, index) => (
-                <div
-                    key={`item-${index}`}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-300 transition-colors cursor-pointer"
-                >
+        <div className="flex flex-wrap justify-center gap-4 mt-6">
+            {payload.map((entry, index) => {
+                // Determine display color (match user's reference image)
+                let iconColor = entry.color;
+                if (entry.dataKey === 'revenue') iconColor = '#fdba74'; // Light Orange
+                if (entry.dataKey === 'cost') iconColor = '#081422';    // Dark
+                if (entry.dataKey === 'profit') iconColor = '#f97316';  // Vibrant Orange
+
+                return (
                     <div
-                        className="w-3 h-3 rounded-full shadow-sm"
-                        style={{ backgroundColor: entry.color }}
-                    />
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {entry.value}
-                    </span>
-                </div>
-            ))}
+                        key={`item-${index}`}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-300 transition-colors cursor-pointer"
+                    >
+                        <div
+                            className="w-3 h-3 rounded-full shadow-sm"
+                            style={{ backgroundColor: iconColor }}
+                        />
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            {entry.value}
+                        </span>
+                    </div>
+                );
+            })}
         </div>
     );
 };
@@ -200,7 +208,12 @@ const SalesPerformance = ({
                 </div>
                 <div className="h-[400px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={safeProfitabilityData} margin={{ top: 20, right: 20, bottom: 30, left: 20 }}>
+                        <ComposedChart
+                            data={safeProfitabilityData}
+                            margin={{ top: 20, right: 20, bottom: 30, left: 20 }}
+                            barGap={2}
+                            barCategoryGap="15%"
+                        >
                             <defs>
                                 <pattern
                                     id="striped-pattern"
@@ -218,7 +231,7 @@ const SalesPerformance = ({
                                     />
                                 </pattern>
                                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#ea580c" stopOpacity={1} />
+                                    <stop offset="0%" stopColor="#fdba74" stopOpacity={1} />
                                     <stop offset="100%" stopColor="#fb923c" stopOpacity={0.8} />
                                 </linearGradient>
                             </defs>
@@ -253,44 +266,25 @@ const SalesPerformance = ({
                             <Bar
                                 dataKey="revenue"
                                 name={t('revenue')}
-                                barSize={32}
                                 fill="url(#barGradient)"
-                                radius={[12, 12, 0, 0]}
+                                radius={[4, 4, 0, 0]}
+                                minPointSize={4}
                             />
                             <Bar
                                 dataKey="cost"
                                 name={t('cost')}
-                                barSize={32}
                                 fill="#081422"
-                                radius={[12, 12, 0, 0]}
-                            >
-                                {safeProfitabilityData.map((entry, index) => (
-                                    <Rectangle
-                                        key={`rect-${index}`}
-                                        fill="#081422"
-                                        stroke="none"
-                                        radius={[12, 12, 0, 0]}
-                                    />
-                                ))}
-                            </Bar>
-                            <Bar
-                                dataKey="cost"
-                                name={t('cost')}
-                                barSize={32}
-                                fill="url(#striped-pattern)"
-                                radius={[12, 12, 0, 0]}
-                                legendType="none"
-                                tooltipType="none"
-                                style={{ pointerEvents: "none" }}
+                                radius={[4, 4, 0, 0]}
+                                minPointSize={4}
                             />
 
                             <Line
                                 type="monotone"
                                 dataKey="profit"
                                 name={t('profit')}
-                                stroke="#fb923c"
+                                stroke="#f97316"
                                 strokeWidth={4}
-                                dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#fb923c" }}
+                                dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#f97316" }}
                                 activeDot={{ r: 8, strokeWidth: 0, fill: "#ea580c" }}
                             />
                         </ComposedChart>

@@ -31,6 +31,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
+import { useTranslations } from "next-intl";
 
 // OPTIMIZATION: Lazy load tab components to reduce initial page load time
 // This defers compilation of heavy tab components until they're actually needed
@@ -68,7 +69,9 @@ class ErrorBoundary extends React.Component {
         if (this.state.hasError) {
             return (
                 <Box sx={{ p: 3, bgcolor: '#fff3cd', border: '1px solid #ffc107', borderRadius: 1 }}>
-                    <Typography color="error">Error loading tab content. Please try again.</Typography>
+                    <Typography color="error">
+                        {this.props.errorMessage || 'Error loading tab content. Please try again.'}
+                    </Typography>
                 </Box>
             );
         }
@@ -78,6 +81,7 @@ class ErrorBoundary extends React.Component {
 }
 
 const ReportsPage = () => {
+    const t = useTranslations("reports");
     const [currentTab, setCurrentTab] = useState(0);
     const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
     const [anchorEl, setAnchorEl] = useState(null);
@@ -106,7 +110,8 @@ const ReportsPage = () => {
         setDateRange({ startDate: start, endDate: end });
     }, [reportView, selectedDate]);
 
-    const tabNames = ['General Overview', 'Inventory Analysis', 'Sales Performance', 'Debts & Credit', 'Payment Methods', 'Staff & Branches'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff'];
+    const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
     const handleTabChange = (event, newValue) => {
@@ -194,7 +199,7 @@ const ReportsPage = () => {
         if (exportScope === 'current') {
             // Export current tab
             const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert('Tab content not found');
+            if (!tabContainer) return alert(t('common.noContent'));
 
             const canvas = await html2canvas(tabContainer, { allowTaint: true, useCORS: true });
             const imgData = canvas.toDataURL('image/png');
@@ -215,7 +220,7 @@ const ReportsPage = () => {
                 heightLeft -= pageHeight;
             }
 
-            pdf.save(`${tabNames[currentTab]}-Report.pdf`);
+            pdf.save(t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.pdf');
         } else {
             // Export all tabs
             const { jsPDF } = await import('jspdf');
@@ -239,7 +244,7 @@ const ReportsPage = () => {
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             }
 
-            pdf.save('System-Wide-Reports.pdf');
+            pdf.save(t('export.excelSystemTitle') + '.pdf');
         }
 
         handleExportDialogClose();
@@ -251,7 +256,7 @@ const ReportsPage = () => {
         if (exportScope === 'current') {
             // Export current tab
             const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert('Tab content not found');
+            if (!tabContainer) return alert(t('common.noContent'));
 
             const tabData = extractTabData(tabContainer);
 
@@ -267,7 +272,7 @@ const ReportsPage = () => {
                 XLSX.utils.book_append_sheet(workbook, ws, `Table${idx + 1}`);
             });
 
-            XLSX.writeFile(workbook, `${tabNames[currentTab]}-Report.xlsx`);
+            XLSX.writeFile(workbook, t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.xlsx');
         } else {
             // Export all tabs
             for (let i = 0; i < tabNames.length; i++) {
@@ -289,7 +294,7 @@ const ReportsPage = () => {
                 });
             }
 
-            XLSX.writeFile(workbook, 'System-Wide-Reports.xlsx');
+            XLSX.writeFile(workbook, t('export.excelSystemTitle') + '.xlsx');
         }
 
         handleExportDialogClose();
@@ -298,10 +303,10 @@ const ReportsPage = () => {
     const handlePrint = () => {
         if (exportScope === 'current') {
             const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert('Tab content not found');
+            if (!tabContainer) return alert(t('common.noContent'));
 
             const printWindow = window.open('', '', 'height=700,width=900');
-            printWindow.document.write('<html><head><title>' + tabNames[currentTab] + ' Report</title>');
+            printWindow.document.write('<html><head><title>' + t('export.pdfTitle', { tab: tabNames[currentTab] }) + '</title>');
             printWindow.document.write(`
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
@@ -318,14 +323,14 @@ const ReportsPage = () => {
                 </style>
             `);
             printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>' + tabNames[currentTab] + ' Report</h1>');
+            printWindow.document.write('<h1>' + t('export.pdfTitle', { tab: tabNames[currentTab] }) + '</h1>');
             printWindow.document.write(tabContainer.innerHTML);
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
         } else {
             const printWindow = window.open('', '', 'height=700,width=900');
-            printWindow.document.write('<html><head><title>System-Wide Reports</title>');
+            printWindow.document.write('<html><head><title>' + t('export.pdfSystemTitle') + '</title>');
             printWindow.document.write(`
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
@@ -344,7 +349,7 @@ const ReportsPage = () => {
                 </style>
             `);
             printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>System-Wide Reports & Analytics</h1>');
+            printWindow.document.write('<h1>' + t('export.pdfSystemFullTitle') + '</h1>');
 
             for (let i = 0; i < tabNames.length; i++) {
                 const tabContainer = tabRefs.current[i];
@@ -386,10 +391,10 @@ const ReportsPage = () => {
                         letterSpacing: "-1px",
                         fontSize: { xs: "1.75rem", md: "2.25rem" }
                     }}>
-                        System-Wide Reports & Analytics
+                        {t('header.title')}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 600 }}>
-                        Consolidated insights across all your business operations
+                        {t('header.subtitle')}
                     </Typography>
                 </Box>
 
@@ -432,15 +437,15 @@ const ReportsPage = () => {
                                 }
                             }}
                         >
-                            <ToggleButton value="daily">Daily</ToggleButton>
-                            <ToggleButton value="weekly">Weekly</ToggleButton>
-                            <ToggleButton value="monthly">Monthly</ToggleButton>
-                            <ToggleButton value="yearly">Yearly</ToggleButton>
+                            <ToggleButton value="daily">{t('controls.daily')}</ToggleButton>
+                            <ToggleButton value="weekly">{t('controls.weekly')}</ToggleButton>
+                            <ToggleButton value="monthly">{t('controls.monthly')}</ToggleButton>
+                            <ToggleButton value="yearly">{t('controls.yearly')}</ToggleButton>
                         </ToggleButtonGroup>
 
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
-                                label="Select Date"
+                                label={t('controls.selectDate')}
                                 value={selectedDate}
                                 onChange={(newValue) => setSelectedDate(newValue)}
                                 views={
@@ -499,7 +504,7 @@ const ReportsPage = () => {
                         }}
                         onClick={handleExportMenuOpen}
                     >
-                        Export Options
+                        {t('controls.exportOptions')}
                     </Button>
 
                     {/* Export Dropdown Menu */}
@@ -511,13 +516,13 @@ const ReportsPage = () => {
                         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                     >
                         <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📄 Export as PDF
+                            📄 {t('controls.exportPDF')}
                         </MenuItem>
                         <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            🖨️ Print Report
+                            🖨️ {t('controls.printReport')}
                         </MenuItem>
                         <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📊 Export to Excel
+                            📊 {t('controls.exportExcel')}
                         </MenuItem>
                     </Menu>
                 </Box>
@@ -560,18 +565,15 @@ const ReportsPage = () => {
                         }
                     }}
                 >
-                    <Tab label="General Overview" />
-                    <Tab label="Inventory Analysis" />
-                    <Tab label="Sales Performance" />
-                    <Tab label="Debts & Credit" />
-                    <Tab label="Payment Methods" />
-                    <Tab label="Staff & Branches" />
+                    {tabNames.map((name, index) => (
+                        <Tab key={index} label={name} />
+                    ))}
                 </Tabs>
             </Paper>
 
             {/* Tab Content - Using Suspense boundaries for lazy-loaded components */}
             <Box sx={{ width: '100%', px: { xs: 0, sm: 0 } }}>
-                <ErrorBoundary>
+                <ErrorBoundary errorMessage={t('common.error')}>
                     {/* Lazy load each tab to reduce initial page size and compile time */}
                     <Box ref={(el) => (tabRefs.current[0] = el)} sx={{ display: currentTab === 0 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>

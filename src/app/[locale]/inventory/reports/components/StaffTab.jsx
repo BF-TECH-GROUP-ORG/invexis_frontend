@@ -10,18 +10,20 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from "next-intl";
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const StaffTab = ({ dateRange }) => {
+    const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [staffData, setStaffData] = useState([]);
     const [branchData, setBranchData] = useState([]);
-    const [selectedBranch, setSelectedBranch] = useState('All');
-    const [selectedActor, setSelectedActor] = useState('All');
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
+    const [selectedActor, setSelectedActor] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
@@ -47,12 +49,12 @@ const StaffTab = ({ dateRange }) => {
 
                 // Filter by branch
                 let filteredStaff = mockStaffData;
-                if (selectedBranch !== 'All') {
+                if (selectedBranch !== t('common.all')) {
                     filteredStaff = mockStaffData.filter(s => s.branch === selectedBranch);
                 }
 
                 // Filter by actor (staff member)
-                if (selectedActor !== 'All') {
+                if (selectedActor !== t('common.all')) {
                     filteredStaff = filteredStaff.filter(s => s.staffName === selectedActor);
                 }
 
@@ -63,7 +65,7 @@ const StaffTab = ({ dateRange }) => {
         };
 
         fetchData();
-    }, [companyId, dateRange, selectedBranch, selectedActor]);
+    }, [companyId, dateRange, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (
@@ -100,17 +102,17 @@ const StaffTab = ({ dateRange }) => {
                 {/* Header with Title, Toggle, and Date Picker */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 1.5 }}>
                     <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
-                        Staff Report
+                        {t('staff.title')}
                     </Typography>
 
                 </Box>
 
                 {/* Top KPIs */}
-                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>Staff Metrics</Typography>
+                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.staffMetrics')}</Typography>
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Total Staff"
+                            title={t('staff.kpis.totalStaff')}
                             value={staffData.length}
                             icon={GroupIcon}
                             color="#FF6D00"
@@ -119,7 +121,7 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Active Staff Today"
+                            title={t('staff.kpis.activeStaff')}
                             value={staffData.filter(s => s.status === 'Active').length}
                             icon={StarIcon}
                             color="#10B981"
@@ -128,8 +130,8 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Top Performing Staff"
-                            value={topPerformer?.staffName || "N/A"}
+                            title={t('staff.kpis.topStaff')}
+                            value={topPerformer?.staffName || t('common.na')}
                             subValue={topPerformer ? formatCurrency(topPerformer.revenue) : ""}
                             icon={TrendingUpIcon}
                             color="#3B82F6"
@@ -138,8 +140,8 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Lowest Activity Staff"
-                            value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : "N/A"}
+                            title={t('staff.kpis.lowActivity')}
+                            value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : t('common.na')}
                             icon={GroupIcon}
                             color="#F59E0B"
                             index={3}
@@ -147,11 +149,11 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                 </Grid>
 
-                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>Branch Metrics</Typography>
+                <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.branchMetrics')}</Typography>
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Total Branches"
+                            title={t('staff.kpis.totalBranches')}
                             value={branchData.length}
                             icon={StoreIcon}
                             color="#FF6D00"
@@ -160,8 +162,8 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Most Active Branch"
-                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : "N/A"}
+                            title={t('staff.kpis.mostActiveBranch')}
+                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : t('common.na')}
                             icon={TrendingUpIcon}
                             color="#10B981"
                             index={5}
@@ -169,8 +171,8 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Highest Revenue Branch"
-                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : "N/A"}
+                            title={t('staff.kpis.highestRevenueBranch')}
+                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : t('common.na')}
                             subValue={branchData.length > 0 ? formatCurrency(branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).revenue) : ""}
                             icon={StarIcon}
                             color="#8B5CF6"
@@ -179,7 +181,7 @@ const StaffTab = ({ dateRange }) => {
                     </Grid>
                     <Grid item xs={1}>
                         <ReportKPI
-                            title="Underperforming Branches"
+                            title={t('staff.kpis.underperformingBranches')}
                             value={branchData.filter(b => b.transactions < 300).length}
                             icon={GroupIcon}
                             color="#EF4444"
@@ -193,13 +195,13 @@ const StaffTab = ({ dateRange }) => {
                     <Table size="small">
                         <TableHead>
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
-                                <TableCell align="center">BRANCH NAME</TableCell>
-                                <TableCell align="center">LOCATION</TableCell>
-                                <TableCell align="center">TRANSACTIONS</TableCell>
-                                <TableCell align="center">REVENUE (FRW)</TableCell>
-                                <TableCell align="center">AVG / TRANSACTION</TableCell>
-                                <TableCell align="center">ACTIVE STAFF</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>STATUS</TableCell>
+                                <TableCell align="center">{t('staff.table.branchName')}</TableCell>
+                                <TableCell align="center">{t('staff.table.location')}</TableCell>
+                                <TableCell align="center">{t('common.transactions')}</TableCell>
+                                <TableCell align="center">{t('staff.table.revenueFrw')}</TableCell>
+                                <TableCell align="center">{t('common.avgTransaction')}</TableCell>
+                                <TableCell align="center">{t('staff.table.activeStaff')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.status')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -227,17 +229,17 @@ const StaffTab = ({ dateRange }) => {
                     <Table size="small">
                         <TableHead>
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
-                                <TableCell align="center">STAFF MEMBER</TableCell>
-                                <TableCell align="center">ROLE</TableCell>
+                                <TableCell align="center">{t('staff.table.staffMember')}</TableCell>
+                                <TableCell align="center">{t('staff.table.role')}</TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        BRANCH <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {t('common.branch')} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">TRANSACTIONS</TableCell>
-                                <TableCell align="center">REVENUE (FRW)</TableCell>
-                                <TableCell align="center">AVG / TRANSACTION</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>STATUS</TableCell>
+                                <TableCell align="center">{t('common.transactions')}</TableCell>
+                                <TableCell align="center">{t('staff.table.revenueFrw')}</TableCell>
+                                <TableCell align="center">{t('common.avgTransaction')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.status')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -267,7 +269,7 @@ const StaffTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect('All')}>All</MenuItem>
+                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
                     <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
@@ -280,7 +282,7 @@ const StaffTab = ({ dateRange }) => {
                     onClose={handleClose}
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleActorSelect('All')}>All Staff</MenuItem>
+                    <MenuItem onClick={() => handleActorSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleActorSelect('Jean Pierre')}>Jean Pierre</MenuItem>
                     <MenuItem onClick={() => handleActorSelect('Sarah Smith')}>Sarah Smith</MenuItem>
