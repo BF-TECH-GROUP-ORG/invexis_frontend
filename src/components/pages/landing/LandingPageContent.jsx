@@ -62,6 +62,14 @@ function CountingNumber({ value, duration = 2 }) {
 }
 
 const BackgroundRain = () => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   const particles = Array.from({ length: 20 });
   return (
     <div className={styles.rainContainer}>
