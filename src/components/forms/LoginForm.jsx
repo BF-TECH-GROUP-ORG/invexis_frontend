@@ -18,6 +18,7 @@ const LoginPage = () => {
   const locale = useLocale();
   const t = useTranslations("auth");
   const tForm = useTranslations("form");
+  const { user, status } = useAuth();
   const theme = useSelector(selectTheme);
 
   const searchParams = useSearchParams();
@@ -28,6 +29,15 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Client-side redirect if already authenticated
+  useEffect(() => {
+    if (status === "authenticated") {
+      window.location.href = callbackUrl;
+    }
+  }, [status, callbackUrl]);
+
+  if (status === "authenticated") return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
