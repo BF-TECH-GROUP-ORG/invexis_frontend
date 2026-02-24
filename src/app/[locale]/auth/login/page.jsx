@@ -8,15 +8,7 @@ export const metadata = {
   title: "Login",
 };
 
-const Login = async ({ params }) => {
-  const { locale } = await params;
-  const session = await getServerSession(authOptions);
-
-  // If already logged in, redirect home/dashboard
-  if (session) {
-    redirect(`/${locale}/inventory/dashboard`);
-  }
-
+const Login = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#1a1a1a]">
       <LoginForm />
