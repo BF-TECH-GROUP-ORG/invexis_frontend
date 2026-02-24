@@ -291,6 +291,16 @@ const SalesPerformance = ({
                                 minPointSize={6}
                                 barSize={32}
                             />
+
+                            <Line
+                                type="monotone"
+                                dataKey="profit"
+                                name={t('profit')}
+                                stroke="#f97316"
+                                strokeWidth={4}
+                                dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#f97316" }}
+                                activeDot={{ r: 8, strokeWidth: 0, fill: "#ea580c" }}
+                            />
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
