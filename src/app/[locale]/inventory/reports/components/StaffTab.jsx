@@ -215,7 +215,7 @@ const StaffTab = ({ dateRange }) => {
                                     <TableCell align="center" sx={{ fontWeight: "600" }}>{branch.staffCount}</TableCell>
                                     <TableCell align="center" sx={{ borderRight: "none" }}>
                                         <Box sx={{ px: 1, py: 0.5, borderRadius: "8px", bgcolor: "#ECFDF5", color: "#10B981", fontWeight: "600", fontSize: "0.75rem" }}>
-                                            {branch.status}
+                                            {branch.status === 'Performing' ? t('staff.status.performing') : branch.status}
                                         </Box>
                                     </TableCell>
                                 </TableRow>
@@ -253,7 +253,7 @@ const StaffTab = ({ dateRange }) => {
                                     <TableCell align="center" sx={{ fontWeight: "600" }}>{formatCurrency(Math.round(staff.revenue / staff.transactions))}</TableCell>
                                     <TableCell align="center" sx={{ borderRight: "none" }}>
                                         <Box sx={{ px: 1, py: 0.5, borderRadius: "8px", bgcolor: "#ECFDF5", color: "#10B981", fontWeight: "600", fontSize: "0.75rem" }}>
-                                            {staff.status}
+                                            {staff.status === 'Active' ? t('staff.status.active') : staff.status}
                                         </Box>
                                     </TableCell>
                                 </TableRow>

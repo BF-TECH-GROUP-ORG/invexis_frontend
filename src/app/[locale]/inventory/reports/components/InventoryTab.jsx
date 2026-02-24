@@ -125,7 +125,7 @@ const InventoryTab = ({ dateRange }) => {
 
     const kpiCards = [
         {
-            title: t('inventory.kpis.stockValue'),
+            title: t('inventory.kpis.totalValue'),
             value: formatCurrency(summary?.totalValue || 0),
             icon: TrendingUp,
             color: "#FF6D00",
@@ -142,7 +142,7 @@ const InventoryTab = ({ dateRange }) => {
             icon: TrendingDown,
             color: "#F59E0B",
             trend: "down",
-            trendValue: "Action Needed",
+            trendValue: t('common.actionNeeded'),
         },
         {
             title: t('inventory.kpis.outOfStock'),
@@ -150,7 +150,7 @@ const InventoryTab = ({ dateRange }) => {
             icon: Package,
             color: "#EF4444",
             trend: "down",
-            trendValue: "Critical",
+            trendValue: t('common.critical'),
         },
     ];
 
@@ -182,7 +182,7 @@ const InventoryTab = ({ dateRange }) => {
                     flex justify-between px-4 py-6
                     rounded-2xl
                     transition-all duration-300 ease-in-out
-                    hover:border-[var(--hover-color)]
+                    hover:border-(--hover-color)
                 "
                             >
                                 <div>
@@ -243,7 +243,7 @@ const InventoryTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('inventory.table.in')}</TableCell>
                                 <TableCell align="center">{t('inventory.table.out')}</TableCell>
                                 <TableCell align="center">{t('inventory.table.close')}</TableCell>
-                                <TableCell align="center">{t('common.unitCost')}</TableCell>
+                                <TableCell align="center">{t('inventory.table.unitCost')}</TableCell>
                                 <TableCell align="center">{t('inventory.table.totalValue')}</TableCell>
                                 <TableCell align="center">{t('inventory.table.reorder')}</TableCell>
                                 <TableCell align="center">{t('inventory.table.status')}</TableCell>

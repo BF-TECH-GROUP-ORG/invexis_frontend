@@ -321,7 +321,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleActorClick}>
-                                        {selectedActor === t('common.all') ? t('payments.table.receivedBy') : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedActor === t('common.all') ? t('common.receivedBy') : selectedActor} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>

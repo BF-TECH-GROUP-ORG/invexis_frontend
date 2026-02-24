@@ -25,9 +25,6 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import DownloadIcon from '@mui/icons-material/Download';
-import PrintIcon from '@mui/icons-material/Print';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
@@ -611,11 +608,11 @@ const ReportsPage = () => {
             {/* Export Scope Dialog */}
             <Dialog open={exportDialogOpen} onClose={handleExportDialogClose} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ fontWeight: '700', color: '#333', borderBottom: '1px solid #e5e7eb' }}>
-                    Choose Export Scope
+                    {t('export.scopeTitle')}
                 </DialogTitle>
                 <DialogContent sx={{ pt: 3 }}>
                     <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
-                        Select what you would like to export:
+                        {t('export.scopeSubtitle')}
                     </Typography>
                     <RadioGroup
                         value={exportScope}
@@ -627,10 +624,10 @@ const ReportsPage = () => {
                             label={
                                 <Box>
                                     <Typography variant="body2" sx={{ fontWeight: '600' }}>
-                                        Current Tab Only
+                                        {t('export.currentTab')}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: '#999' }}>
-                                        Export only the {tabNames[currentTab]} tab
+                                        {t('export.currentTabDesc', { tab: tabNames[currentTab] })}
                                     </Typography>
                                 </Box>
                             }
@@ -641,10 +638,10 @@ const ReportsPage = () => {
                             label={
                                 <Box>
                                     <Typography variant="body2" sx={{ fontWeight: '600' }}>
-                                        All Tabs as Report
+                                        {t('export.allTabs')}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: '#999' }}>
-                                        Export all 6 tabs as a complete system-wide report
+                                        {t('export.allTabsDesc', { count: 6 })}
                                     </Typography>
                                 </Box>
                             }
@@ -656,7 +653,7 @@ const ReportsPage = () => {
                         onClick={handleExportDialogClose}
                         sx={{ color: '#666', textTransform: 'none', fontWeight: '600' }}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button
                         onClick={handleExportPDF}
@@ -669,7 +666,7 @@ const ReportsPage = () => {
                             '&:hover': { bgcolor: '#444' }
                         }}
                     >
-                        Export PDF
+                        {t('controls.exportPDF')}
                     </Button>
                     <Button
                         onClick={handleExportExcel}
@@ -682,7 +679,7 @@ const ReportsPage = () => {
                             '&:hover': { bgcolor: '#E55D00' }
                         }}
                     >
-                        Export Excel
+                        {t('controls.exportExcel')}
                     </Button>
                     <Button
                         onClick={handlePrint}
@@ -695,7 +692,7 @@ const ReportsPage = () => {
                             '&:hover': { bgcolor: '#0052a3' }
                         }}
                     >
-                        Print
+                        {t('controls.printReport')}
                     </Button>
                 </DialogActions>
             </Dialog>

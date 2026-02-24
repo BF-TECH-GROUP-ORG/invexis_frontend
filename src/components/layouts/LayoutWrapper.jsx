@@ -143,8 +143,9 @@ export default function LayoutWrapper({ children }) {
     );
   }
 
-  // 2. Allow unauthenticated access to public routes (home, welcome, auth pages, etc.)
-  if (!isLoggedIn && isPublicRoute) {
+  // 2. Allow access to public routes (home, welcome, auth pages, etc.)
+  // Even if logged in, public routes should use the public layout, not the dashboard layout.
+  if (isPublicRoute) {
     return (
       <>
         <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />

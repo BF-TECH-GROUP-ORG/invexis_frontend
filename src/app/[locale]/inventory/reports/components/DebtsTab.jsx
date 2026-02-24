@@ -320,7 +320,7 @@ const DebtsTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.balance')}</TableCell>
                                 <TableCell align="center">{t('common.lastPaid')}</TableCell>
                                 <TableCell align="center">{t('common.dueDate')}</TableCell>
-                                <TableCell align="center">{t('debts.table.ageDays')}</TableCell>
+                                <TableCell align="center">{t('debts.table.age')}</TableCell>
                                 <TableCell align="center">{t('common.saleDate')}</TableCell>
                                 <TableCell align="center">{t('common.recordedBy')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>

@@ -82,7 +82,7 @@ export default async function RootLayout({ children, params }) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="font-metropolis antialiased">
+      <head>
         <JsonLd
           data={{
             '@context': 'https://schema.org',
@@ -110,6 +110,8 @@ export default async function RootLayout({ children, params }) {
             },
           }}
         />
+      </head>
+      <body className="font-metropolis antialiased" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale}>
           <ClientProviders session={session}>
             <AuthProvider>

@@ -1654,7 +1654,19 @@
       "noContent": "Ibirimo ntibyasanzwe",
       "subtotal": "Iterateranyo rya {name}",
       "total": "Iterateranyo",
-      "recommendation": "Inama"
+      "recommendation": "Inama",
+      "cancel": "Kureka",
+      "na": "N/A",
+      "days": "Iminsi",
+      "transactions": "Inshuro zaguzishijwe",
+      "avgTransaction": "Impuzandengo",
+      "actionNeeded": "Hakenewe igikorwa",
+      "critical": "Birihutirwa",
+      "units": "bitandukanye",
+      "tracking": "Ikurikiranwa",
+      "returns": "Ibisubijwe",
+      "unitPrice": "Igiciro kuri kimwe",
+      "totalAmount": "Umutego wose"
     },
     "general": {
       "title": "Raporo y'Ubucuruzi Rusange – Incamake Yuzuye",
@@ -1684,7 +1696,10 @@
         "netProfit": "Inyungu isigaye",
         "margin": "Inyungu %"
       },
-      "recommendationText": "Ibande ku kugabanya imyenda iteregejwe kwishyurwa kugira ngo amafaranga aboneke mu bucuruzi, kandi utekereze uburyo bwo kuzamura inyungu mu buryo buhoraho."
+      "recommendations": {
+        "all": "Tekereza kongera ibicuruzwa bikunze kugurwa cyane mu ishami rya Ruguru.",
+        "specific": "Urwego rw'ubucuruzi muri {branch} rugaragara nk'urushyitse."
+      }
     },
     "inventory": {
       "title": "Raporo y'Ibubiko",
@@ -1709,6 +1724,11 @@
         "age": "Iminsi",
         "lastRestock": "Iyongerwa riheruka",
         "lastMove": "Ingendo iheruka"
+      },
+      "status": {
+        "inStock": "Bihari",
+        "lowStock": "Bigiye Gushira",
+        "outOfStock": "Byashize"
       }
     },
     "sales": {
@@ -1755,6 +1775,10 @@
         "dueDate": "Itariki ntarengwa",
         "age": "Iminsi",
         "saleDate": "Itariki yagurishijwe"
+      },
+      "status": {
+        "overdue": "Ryakererewe",
+        "pending": "Igeramyijwe"
       }
     },
     "payments": {
@@ -1770,7 +1794,42 @@
         "reference": "Icyerekezo",
         "amount": "Umubare",
         "method": "Uburyo",
-        "saleDebtRef": "Réf y'Igurisha/Umwenda"
+        "saleDebtRef": "Réf y'Igurisha/Umwenda",
+        "receivedBy": "Yakiriwe Na"
+      },
+      "status": {
+        "completed": "Byuzuye",
+        "pending": "Bitegerejwe",
+        "failed": "Byanze"
+      }
+    },
+    "staff": {
+      "title": "Raporo y'Abakozi n'Amashami",
+      "sections": {
+        "staffMetrics": "Ibipimo by'Imikorere y'Abakozi",
+        "branchMetrics": "Ibipimo by'Imikorere y'Amashami"
+      },
+      "kpis": {
+        "totalStaff": "Abakozi Bose",
+        "activeStaff": "Abakozi Bakora",
+        "topStaff": "Uwakoze Neza Cyane",
+        "lowActivity": "Imikorere yo Munsi",
+        "totalBranches": "Amashami Yose",
+        "mostActiveBranch": "Ishami Rikora Cyane",
+        "highestRevenueBranch": "Ishami Ryinjije Cyane",
+        "underperformingBranches": "Amashami Atitwara Neza"
+      },
+      "table": {
+        "branchName": "Izina ry'Ishami",
+        "location": "Aho Riherereye",
+        "revenueFrw": "Ayinjijwe (FRW)",
+        "activeStaff": "Abakozi Bakora",
+        "staffMember": "Umukozi",
+        "role": "Inshingano"
+      },
+      "status": {
+        "active": "Ushishikaye",
+        "performing": "Urakora Neza"
       }
     },
     "export": {
@@ -1778,7 +1837,13 @@
       "pdfSystemTitle": "Raporo za Sisitemu",
       "pdfSystemFullTitle": "Raporo n'Imibare bya Sisitemu",
       "excelSystemTitle": "Raporo-za-Sisitemu",
-      "excelTabTitle": "Raporo-{tab}"
+      "excelTabTitle": "Raporo-{tab}",
+      "scopeTitle": "Hitamo Ibyoherezwa",
+      "scopeSubtitle": "Hitamo ibyo wifuza kohereza:",
+      "currentTab": "Iri Tab Gusa",
+      "currentTabDesc": "Kohereza gusa ibiri muri {tab}",
+      "allTabs": "Amatab Yose nka Raporo",
+      "allTabsDesc": "Kohereza amatab yose {count} nka raporo yuzuye ya sisitemu"
     }
   }
 }

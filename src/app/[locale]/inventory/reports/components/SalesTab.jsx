@@ -240,7 +240,7 @@ const SalesTab = ({ dateRange }) => {
                             sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
                         >
                             <ReportKPI
-                                title={t('sales.kpis.avgOrderValue')}
+                                title={t('sales.kpis.avgValue')}
                                 value={formatCurrency(stats?.averageOrderValue || 0)}
                                 icon={ReceiptLongIcon}
                                 color="#8B5CF6"
@@ -257,7 +257,7 @@ const SalesTab = ({ dateRange }) => {
                         >
                             <ReportKPI
                                 title={t('sales.kpis.topProduct')}
-                                value={`${stats?.topProduct} (${stats?.topProductQuantity} units)`}
+                                value={`${stats?.topProduct} (${stats?.topProductQuantity} ${t('common.units')})`}
                                 icon={EmojiEventsIcon}
                                 color="#F59E0B"
                                 index={3}
@@ -310,7 +310,7 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.product')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('sales.table.quantity')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('sales.table.value')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{t('sales.table.customerInfo')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('sales.table.customer')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('common.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}

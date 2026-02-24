@@ -1655,7 +1655,19 @@
       "noContent": "Maudhui ya tab hiyo hayajapatikana",
       "subtotal": "Jumla Ndogo ya {name}",
       "total": "Jumla",
-      "recommendation": "Pendekezo"
+      "recommendation": "Pendekezo",
+      "cancel": "Ghairi",
+      "na": "N/A",
+      "days": "Siku",
+      "transactions": "Miamala",
+      "avgTransaction": "Wastani wa Muamala",
+      "actionNeeded": "Hatua Inahitajika",
+      "critical": "Ni Muhimu Sana",
+      "units": "vitengo",
+      "tracking": "Ufuatiliaji",
+      "returns": "Bidhaa Zilizorudishwa",
+      "unitPrice": "Gharama kwa Unit",
+      "totalAmount": "Jumla ya Kiasi"
     },
     "general": {
       "title": "Ripoti ya Biashara ya Jumla – Muhtasari Kamili",
@@ -1685,7 +1697,10 @@
         "netProfit": "Faida Halisi",
         "margin": "Asilimia ya Faida"
       },
-      "recommendationText": "Lenga kupunguza malipo yanayosubiri ili kuongeza mzunguko wa pesa na fikiria mikakati ya kuimarisha kiwango cha faida halisi kila wakati."
+      "recommendations": {
+        "all": "Fikiria kuongeza akiba ya bidhaa zinazohitajika sana katika Tawi la Kaskazini.",
+        "specific": "Ufanisi wa biashara katika {branch} unaonekana kuwa thabiti."
+      }
     },
     "inventory": {
       "title": "Ripoti ya Akiba",
@@ -1710,6 +1725,11 @@
         "age": "Muda (Siku)",
         "lastRestock": "Ongezeko la Mwisho",
         "lastMove": "Mzunguko wa Mwisho"
+      },
+      "status": {
+        "inStock": "Bidhaa Zilizopo",
+        "lowStock": "Akiba ya Chini",
+        "outOfStock": "Bidhaa Zilizokwisha"
       }
     },
     "sales": {
@@ -1756,6 +1776,10 @@
         "dueDate": "Tarehe ya Mwisho",
         "age": "Muda (Siku)",
         "saleDate": "Tarehe ya Mauzo"
+      },
+      "status": {
+        "overdue": "Limechelewa",
+        "pending": "Inasubiri"
       }
     },
     "payments": {
@@ -1771,7 +1795,42 @@
         "reference": "Rejea",
         "amount": "Kiasi",
         "method": "Njia ya Malipo",
-        "saleDebtRef": "Rejea ya Mauzo/Deni"
+        "saleDebtRef": "Rejea ya Mauzo/Deni",
+        "receivedBy": "Imepokelewa Na"
+      },
+      "status": {
+        "completed": "Imekamilika",
+        "pending": "Inasubiri",
+        "failed": "Imeshindwa"
+      }
+    },
+    "staff": {
+      "title": "Ripoti ya Wafanyakazi na Matawi",
+      "sections": {
+        "staffMetrics": "Vipimo vya Utendaji wa Wafanyakazi",
+        "branchMetrics": "Vipimo vya Utendaji wa Matawi"
+      },
+      "kpis": {
+        "totalStaff": "Jumla ya Wafanyakazi",
+        "activeStaff": "Wafanyakazi Amilifu",
+        "topStaff": "Mtendaji Bora",
+        "lowActivity": "Shughuli za Chini",
+        "totalBranches": "Jumla ya Matawi",
+        "mostActiveBranch": "Tawi Amilifu Zaidi",
+        "highestRevenueBranch": "Tawi lenye Mapato ya Juu Zaidi",
+        "underperformingBranches": "Matawi Yanayofanya Vibaya"
+      },
+      "table": {
+        "branchName": "Jina la Tawi",
+        "location": "Mahali",
+        "revenueFrw": "Mapato (FRW)",
+        "activeStaff": "Wafanyakazi Amilifu",
+        "staffMember": "Mfanyakazi",
+        "role": "Wajibu"
+      },
+      "status": {
+        "active": "Amilifu",
+        "performing": "Inafanya Vizuri"
       }
     },
     "export": {
@@ -1779,7 +1838,13 @@
       "pdfSystemTitle": "Ripoti za Mfumo",
       "pdfSystemFullTitle": "Ripoti na Uchambuzi wa Mfumo",
       "excelSystemTitle": "Ripoti-za-Mfumo",
-      "excelTabTitle": "Ripoti ya {tab}"
+      "excelTabTitle": "Ripoti ya {tab}",
+      "scopeTitle": "Chagua Upeo wa Hamisho",
+      "scopeSubtitle": "Chagua unachotaka kuhamisha:",
+      "currentTab": "Tab ya Sasa Tu",
+      "currentTabDesc": "Hamisha tab ya {tab} pekee",
+      "allTabs": "Tab Zote kama Ripoti",
+      "allTabsDesc": "Hamisha tab zote {count} kama ripoti kamili ya mfumo"
     }
   }
 }

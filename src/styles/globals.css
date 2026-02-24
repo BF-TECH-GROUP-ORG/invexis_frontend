@@ -138,6 +138,10 @@
   src: url('/fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
