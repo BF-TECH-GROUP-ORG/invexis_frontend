@@ -27,7 +27,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
 
   const displayName = user
     ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username
-    : "Guest";
+    : t("sidebar.guest");
 
   return (
     <AnimatePresence>
@@ -52,7 +52,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
           >
             {/* Header */}
             <div className="p-6 border-b flex items-center justify-between bg-gray-50/50">
-              <h2 className="text-xl font-bold text-gray-900">Account</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t("sidebar.account")}</h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200"
@@ -106,10 +106,10 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900 line-clamp-1">
-                        My Profile
+                        {t("sidebar.myProfile")}
                       </p>
                       <p className="text-xs text-gray-500 line-clamp-1">
-                        Account settings and more
+                        {t("sidebar.profileDesc")}
                       </p>
                     </div>
                   </div>
@@ -130,10 +130,10 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900 line-clamp-1">
-                        Preferences
+                        {t("sidebar.preferences")}
                       </p>
                       <p className="text-xs text-gray-500 line-clamp-1">
-                        Regional and system settings
+                        {t("sidebar.prefDesc")}
                       </p>
                     </div>
                   </div>
@@ -157,8 +157,8 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
                         key={l.code}
                         onClick={() => handleLocaleChange(l.code)}
                         className={`flex items-center gap-2 p-3 rounded-xl border transition-all duration-200 ${locale === l.code
-                            ? "border-orange-200 bg-orange-50 text-orange-700 shadow-sm"
-                            : "border-gray-100 bg-gray-50/50 text-gray-600 hover:bg-gray-100 hover:border-gray-200"
+                          ? "border-orange-200 bg-orange-50 text-orange-700 shadow-sm"
+                          : "border-gray-100 bg-gray-50/50 text-gray-600 hover:bg-gray-100 hover:border-gray-200"
                           }`}
                       >
                         <span className="text-lg">{l.flag}</span>
@@ -187,7 +187,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
                 >
                   <LogOut size={20} className="group-hover:text-red-500" />
                 </motion.div>
-                Logout Account
+                {t("sidebar.logoutAccount")}
               </button>
             </div>
           </motion.div>
