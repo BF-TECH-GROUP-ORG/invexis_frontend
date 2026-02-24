@@ -23,7 +23,11 @@ const LoginPage = () => {
   const theme = useSelector(selectTheme);
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || `/${locale}/inventory/dashboard`;
+  const rawCallback = searchParams.get("callbackUrl") || "/inventory/dashboard";
+  // Ensure the callback is a relative path for the localized router
+  const callbackUrl = rawCallback.startsWith(`/${locale}`)
+    ? rawCallback.replace(`/${locale}`, "")
+    : rawCallback;
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +63,8 @@ const LoginPage = () => {
         // Successful login
         // Use window.location.href for production to ensure session is synced
         // and avoid being caught in a middleware redirect loop
-        window.location.href = callbackUrl;
+        // Prepend locale manually for a full page refresh
+        window.location.href = `/${locale}${callbackUrl.startsWith("/") ? "" : "/"}${callbackUrl}`;
       }
     } catch (err) {
       console.error("Login Error:", err);

@@ -61,7 +61,7 @@ export default async function middleware(req) {
     // 5. Not Logged In -> Redirect to Login (unless public)
     if (!isPublicPage && !token) {
         // Prevent setting auth pages as callbackUrl
-        const callback = isAuthPage ? `/${locale}/inventory/dashboard` : pathname;
+        const callback = isAuthPage ? `/inventory/dashboard` : normalizedPath;
         const loginUrl = new URL(`/${locale}/auth/login`, req.url);
         loginUrl.searchParams.set("callbackUrl", callback);
         return NextResponse.redirect(loginUrl);
