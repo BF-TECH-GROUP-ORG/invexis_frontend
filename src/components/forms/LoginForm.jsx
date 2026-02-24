@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { IconButton, InputAdornment } from "@mui/material";
@@ -18,6 +19,9 @@ const LoginPage = () => {
   const t = useTranslations("auth");
   const tForm = useTranslations("form");
   const theme = useSelector(selectTheme);
+
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || `/${locale}/inventory/dashboard`;
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -42,9 +46,9 @@ const LoginPage = () => {
         setSubmitting(false);
       } else {
         // Successful login
-        // Middleware will handle redirecting if user tries to visit login page again
-        // Here we just push to dashboard
-        router.push("/inventory/dashboard");
+        // Use window.location.href for production to ensure session is synced
+        // and avoid being caught in a middleware redirect loop
+        window.location.href = callbackUrl;
       }
     } catch (err) {
       console.error("Login Error:", err);
