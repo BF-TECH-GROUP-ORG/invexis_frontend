@@ -118,7 +118,9 @@ const SalesPerformance = ({
     const safeStockData = Array.isArray(stockData) ? stockData : [];
     const safeProfitabilityData = Array.isArray(profitabilityData) ? profitabilityData : [];
 
-    if (loading) {
+    const isInitialLoading = loading && salesData.length === 0;
+
+    if (isInitialLoading) {
         return (
             <div className="space-y-6">
                 <br />
@@ -170,11 +172,16 @@ const SalesPerformance = ({
             <br />
             <div className="bg-white p-6 rounded-2xl border border-gray-300 ">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <div>
+                    <div className="relative">
                         <h2 className="text-lg font-bold text-gray-800">{t('salesPerformance')}</h2>
                         <p className="text-sm text-gray-500">
                             {t('comparing')} <span className="text-indigo-500 font-medium">{t('current')}</span> {t('vs')} <span className="text-orange-400 font-medium">{t('previous')}</span> {timeRange}
                         </p>
+                        {loading && !isInitialLoading && (
+                            <div className="absolute -top-1 -right-8">
+                                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
