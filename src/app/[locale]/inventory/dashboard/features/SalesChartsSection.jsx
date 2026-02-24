@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
@@ -18,6 +18,14 @@ export default function SalesChartsSection({
     timeRange,
     selectedDate
 }) {
+    const [isPending, startTransition] = useTransition();
+    const [optimisticTimeRange, setOptimisticTimeRange] = useState(timeRange);
+
+    // Sync optimistic state with actual value when server data arrives
+    useEffect(() => {
+        setOptimisticTimeRange(timeRange);
+    }, [timeRange]);
+
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -25,10 +33,17 @@ export default function SalesChartsSection({
     const handleUpdateParam = (key, value) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set(key, value);
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        
+        startTransition(() => {
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        });
     };
 
-    const setTimeRange = (range) => handleUpdateParam('timeRange', range);
+    const setTimeRange = (range) => {
+        setOptimisticTimeRange(range);
+        handleUpdateParam('timeRange', range);
+    };
+    
     const setSelectedDate = (date) => handleUpdateParam('date', date ? dayjs(date).format('YYYY-MM-DD') : '');
 
     // Transform Data
@@ -72,7 +87,7 @@ export default function SalesChartsSection({
 
     return (
         <SalesPerformance
-            timeRange={timeRange}
+            timeRange={optimisticTimeRange}
             setTimeRange={setTimeRange}
             selectedDate={dayjs(selectedDate)}
             setSelectedDate={setSelectedDate}
@@ -81,7 +96,7 @@ export default function SalesChartsSection({
             topProductsData={topProducts}
             stockData={stockMovement}
             profitabilityData={profitabilityData}
-            loading={false}
+            loading={isPending}
         />
     );
 }
