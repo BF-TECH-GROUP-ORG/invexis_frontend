@@ -38,7 +38,14 @@
     "transactions": "Transactions",
     "documents": "Documents",
     "logsAndAudits": "Logs & Audits",
-    "logout": "Logout"
+    "logout": "Logout",
+    "account": "Account",
+    "guest": "Guest",
+    "myProfile": "My Profile",
+    "profileDesc": "Account settings and more",
+    "preferences": "Preferences",
+    "prefDesc": "Regional and system settings",
+    "logoutAccount": "Logout Account"
   },
   "welcome": {
     "title": "Welcome"

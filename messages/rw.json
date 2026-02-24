@@ -38,7 +38,14 @@
     "transactions": "Amakurire",
     "documents": "Inyandiko",
     "logsAndAudits": "Ikibatizo n'Ubukemurezi",
-    "logout": "Ava"
+    "logout": "Ava",
+    "account": "Konti",
+    "guest": "Umushyitsi",
+    "myProfile": "Umwirondoro wanjye",
+    "profileDesc": "Igenamiterere rya konti n'ibindi",
+    "preferences": "Ibyo ukunda",
+    "prefDesc": "Igenamiterere ry'akarere n'isistemu",
+    "logoutAccount": "Sohoka muri konti"
   },
   "welcome": {
     "title": "Murakaza neza"

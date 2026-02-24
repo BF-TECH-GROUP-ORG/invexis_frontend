@@ -38,7 +38,14 @@
     "transactions": "Transactions",
     "documents": "Documents",
     "logsAndAudits": "Journaux et audits",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "account": "Compte",
+    "guest": "Invité",
+    "myProfile": "Mon profil",
+    "profileDesc": "Paramètres du compte et plus",
+    "preferences": "Préférences",
+    "prefDesc": "Paramètres régionaux et système",
+    "logoutAccount": "Déconnexion du compte"
   },
   "welcome": {
     "title": "Bienvenue"

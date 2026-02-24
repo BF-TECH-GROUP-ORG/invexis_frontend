@@ -38,7 +38,14 @@
     "transactions": "Miamala",
     "documents": "Hati",
     "logsAndAudits": "Kumbukumbu na Uchunguzi",
-    "logout": "Toka"
+    "logout": "Toka",
+    "account": "Akaunti",
+    "guest": "Mgeni",
+    "myProfile": "Profaili Yangu",
+    "profileDesc": "Mipangilio ya akaunti na zaidi",
+    "preferences": "Mapendekezo",
+    "prefDesc": "Mipangilio ya kikanda na mfumo",
+    "logoutAccount": "Ondoka kwenye akaunti"
   },
   "welcome": {
     "title": "Karibu"
