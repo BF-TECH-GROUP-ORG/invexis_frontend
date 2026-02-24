@@ -668,7 +668,7 @@
         "title": "Complete Sale",
         "subtitle": "Enter customer details and select payment method to finalize transaction",
         "totalAmount": "Total Amount",
-        "summary": "{count} product{s} • {status}",
+        "summary": "{count, plural, one {# product} other {# products}} • {status}",
         "statusDebt": "💳 Debt Sale",
         "statusPaid": "✅ Paid in Full",
         "phoneLabel": "Phone Number",
@@ -708,7 +708,7 @@
         "subtitleCross": "Transfer products to another company's shop",
         "subtitleIntra": "Redistribute products to another shop in your company",
         "totalValue": "Total Transfer Value",
-        "selected": "{count} product{s} selected",
+        "selected": "{count, plural, one {# product} other {# products}} selected",
         "targetCompany": "Target Company",
         "targetShop": "Target Shop",
         "reason": "Reason",
@@ -1721,7 +1721,19 @@
       "noContent": "Tab content not found",
       "subtotal": "{name} Subtotal",
       "total": "Total",
-      "recommendation": "Recommendation"
+      "recommendation": "Recommendation",
+      "cancel": "Cancel",
+      "na": "N/A",
+      "days": "Days",
+      "transactions": "Transactions",
+      "avgTransaction": "Avg Transaction",
+      "actionNeeded": "Action Needed",
+      "critical": "Critical",
+      "units": "units",
+      "tracking": "Tracking",
+      "returns": "Returns",
+      "unitPrice": "Unit Price",
+      "totalAmount": "Total Amount"
     },
     "general": {
       "title": "General Business Report – Full Overview",
@@ -1751,7 +1763,10 @@
         "netProfit": "Net Profit",
         "margin": "Margin %"
       },
-      "recommendationText": "Focus on reducing pending payments to improve cash flow and consider strategies to increase net profit margins consistently."
+      "recommendations": {
+        "all": "Consider increasing stock for high-demand items in the North Branch.",
+        "specific": "Business performance in {branch} looks stable."
+      }
     },
     "inventory": {
       "title": "Inventory Report",
@@ -1776,6 +1791,11 @@
         "age": "Age(D)",
         "lastRestock": "Last Restock",
         "lastMove": "Last Move"
+      },
+      "status": {
+        "inStock": "In Stock",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock"
       }
     },
     "sales": {
@@ -1822,6 +1842,10 @@
         "dueDate": "Due Date",
         "age": "Age(D)",
         "saleDate": "Sale Date"
+      },
+      "status": {
+        "overdue": "Overdue",
+        "pending": "Pending"
       }
     },
     "payments": {
@@ -1837,7 +1861,42 @@
         "reference": "Reference",
         "amount": "Amount",
         "method": "Method",
-        "saleDebtRef": "Sale/Debt Ref"
+        "saleDebtRef": "Sale/Debt Ref",
+        "receivedBy": "Received By"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed"
+      }
+    },
+    "staff": {
+      "title": "Staff & Branches Report",
+      "sections": {
+        "staffMetrics": "Staff Performance Metrics",
+        "branchMetrics": "Branch Performance Metrics"
+      },
+      "kpis": {
+        "totalStaff": "Total Staff",
+        "activeStaff": "Active Staff",
+        "topStaff": "Top Performer",
+        "lowActivity": "Low Activity",
+        "totalBranches": "Total Branches",
+        "mostActiveBranch": "Most Active Branch",
+        "highestRevenueBranch": "Highest Revenue Branch",
+        "underperformingBranches": "Under-performing Branches"
+      },
+      "table": {
+        "branchName": "Branch Name",
+        "location": "Location",
+        "revenueFrw": "Revenue (FRW)",
+        "activeStaff": "Active Staff",
+        "staffMember": "Staff Member",
+        "role": "Role"
+      },
+      "status": {
+        "active": "Active",
+        "performing": "Performing"
       }
     },
     "export": {
@@ -1845,7 +1904,13 @@
       "pdfSystemTitle": "System-Wide Reports",
       "pdfSystemFullTitle": "System-Wide Reports & Analytics",
       "excelSystemTitle": "System-Wide-Reports",
-      "excelTabTitle": "{tab}-Report"
+      "excelTabTitle": "{tab}-Report",
+      "scopeTitle": "Choose Export Scope",
+      "scopeSubtitle": "Select what you would like to export:",
+      "currentTab": "Current Tab Only",
+      "currentTabDesc": "Export only the {tab} tab",
+      "allTabs": "All Tabs as Report",
+      "allTabsDesc": "Export all {count} tabs as a complete system-wide report"
     }
   }
 }

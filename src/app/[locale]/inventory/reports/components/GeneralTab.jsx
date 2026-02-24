@@ -122,8 +122,8 @@ const GeneralTab = ({ dateRange }) => {
                         { title: t('general.kpis.revenue'), value: "1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
                         { title: t('general.kpis.costs'), value: "745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
                         { title: t('general.kpis.profit'), value: "505,590", Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
-                        { title: t('general.kpis.outstandingDebts'), value: "132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
-                        { title: t('general.kpis.totalReturn'), value: "398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
+                        { title: t('general.kpis.debts'), value: "132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
+                        { title: t('general.kpis.returns'), value: "398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
                         <Grid item xs={1} key={i}>
                             <motion.div
@@ -220,8 +220,8 @@ const GeneralTab = ({ dateRange }) => {
                                 <TableCell align="center" colSpan={2}>{t('general.table.sales')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('general.table.payments')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('general.table.debts')}</TableCell>
-                                <TableCell align="center">{t('common.cost')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{t('common.profit')}</TableCell>
+                                <TableCell align="center">{t('general.table.cost')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('general.table.profit')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
@@ -235,7 +235,7 @@ const GeneralTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('general.table.pending')}</TableCell>
                                 <TableCell align="center">{t('general.table.debtAmount')}</TableCell>
                                 <TableCell align="center">{t('general.table.paidAmount')}</TableCell>
-                                <TableCell align="center">{t('common.cost')}</TableCell>
+                                <TableCell align="center">{t('general.table.cost')}</TableCell>
                                 <TableCell align="center">{t('general.table.netProfit')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>{t('general.table.margin')}</TableCell>
                             </TableRow>
@@ -282,7 +282,7 @@ const GeneralTab = ({ dateRange }) => {
                                             ))}
                                             {/* Shop Subtotal Row */}
                                             <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('general.table.subtotal', { branchName: shop.name })}</TableCell>
+                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.initial}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.remaining}</TableCell>
                                                 <TableCell align="center">{shop.subtotal.value}</TableCell>
@@ -343,7 +343,7 @@ const GeneralTab = ({ dateRange }) => {
                 {/* Recommendation Section */}
                 <Box sx={{ mt: 4, p: 3, bgcolor: "white", border: "1px solid #e5e7eb", borderRadius: 0, boxShadow: "none" }}>
                     <Typography variant="body2" sx={{ color: "#374151", fontWeight: "500" }}>
-                        <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>{t('common.recommendation')}:</Box> {t('general.recommendationText')}
+                        <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>{t('common.recommendation')}:</Box> {selectedBranch === t('common.all') ? t('general.recommendations.all') : t('general.recommendations.specific', { branch: selectedBranch })}
                     </Typography>
                 </Box>
             </Box>

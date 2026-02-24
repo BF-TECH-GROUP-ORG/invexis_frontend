@@ -1656,7 +1656,19 @@
       "noContent": "Contenu de l'onglet non trouvé",
       "subtotal": "Sous-total {name}",
       "total": "Total",
-      "recommendation": "Recommandation"
+      "recommendation": "Recommandation",
+      "cancel": "Annuler",
+      "na": "N/A",
+      "days": "Jours",
+      "transactions": "Transactions",
+      "avgTransaction": "Transaction Moyenne",
+      "actionNeeded": "Action Requise",
+      "critical": "Critique",
+      "units": "unités",
+      "tracking": "Suivi",
+      "returns": "Retours",
+      "unitPrice": "Prix Unitaire",
+      "totalAmount": "Montant Total"
     },
     "general": {
       "title": "Rapport Commercial Général – Vue d'Ensemble Complète",
@@ -1686,7 +1698,10 @@
         "netProfit": "Bénéfice Net",
         "margin": "Marge %"
       },
-      "recommendationText": "Concentrez-vous sur la réduction des paiements en attente pour améliorer le flux de trésorerie et envisagez des stratégies pour augmenter les marges de bénéfice net de manière constante."
+      "recommendations": {
+        "all": "Envisagez d'augmenter le stock pour les articles à forte demande dans la succursale Nord.",
+        "specific": "La performance commerciale à {branch} semble stable."
+      }
     },
     "inventory": {
       "title": "Rapport d'Inventaire",
@@ -1711,6 +1726,11 @@
         "age": "Âge (J)",
         "lastRestock": "Dernier Réappro.",
         "lastMove": "Dernier Mouvement"
+      },
+      "status": {
+        "inStock": "En Stock",
+        "lowStock": "Stock Faible",
+        "outOfStock": "Rupture de Stock"
       }
     },
     "sales": {
@@ -1757,6 +1777,10 @@
         "dueDate": "Date d'Échéance",
         "age": "Âge (J)",
         "saleDate": "Date de Vente"
+      },
+      "status": {
+        "overdue": "En retard",
+        "pending": "En attente"
       }
     },
     "payments": {
@@ -1772,7 +1796,42 @@
         "reference": "Référence",
         "amount": "Montant",
         "method": "Méthode",
-        "saleDebtRef": "Réf. Vente/Dette"
+        "saleDebtRef": "Réf. Vente/Dette",
+        "receivedBy": "Reçu Par"
+      },
+      "status": {
+        "completed": "Terminé",
+        "pending": "En attente",
+        "failed": "Échoué"
+      }
+    },
+    "staff": {
+      "title": "Rapport du Personnel et des Succursales",
+      "sections": {
+        "staffMetrics": "Métriques de Performance du Personnel",
+        "branchMetrics": "Métriques de Performance des Succursales"
+      },
+      "kpis": {
+        "totalStaff": "Personnel Total",
+        "activeStaff": "Personnel Actif",
+        "topStaff": "Meilleur Perforateur",
+        "lowActivity": "Activité Faible",
+        "totalBranches": "Total des Succursales",
+        "mostActiveBranch": "Succursale la Plus Active",
+        "highestRevenueBranch": "Succursale au Revenu le Plus Élevé",
+        "underperformingBranches": "Succursales Sous-performantes"
+      },
+      "table": {
+        "branchName": "Nom de la Succursale",
+        "location": "Emplacement",
+        "revenueFrw": "Revenu (FRW)",
+        "activeStaff": "Personnel Actif",
+        "staffMember": "Membre du Personnel",
+        "role": "Rôle"
+      },
+      "status": {
+        "active": "Actif",
+        "performing": "Performant"
       }
     },
     "export": {
@@ -1780,7 +1839,13 @@
       "pdfSystemTitle": "Rapports du Système",
       "pdfSystemFullTitle": "Rapports et Analyses du Système",
       "excelSystemTitle": "Rapports-du-Systeme",
-      "excelTabTitle": "Rapport-{tab}"
+      "excelTabTitle": "Rapport-{tab}",
+      "scopeTitle": "Choisir la Portée de l'Exportation",
+      "scopeSubtitle": "Sélectionnez ce que vous souhaitez exporter :",
+      "currentTab": "Onglet Actuel Uniquement",
+      "currentTabDesc": "Exporter uniquement l'onglet {tab}",
+      "allTabs": "Tous les Onglets en tant que Rapport",
+      "allTabsDesc": "Exporter les {count} onglets en tant que rapport complet du système"
     }
   }
 }

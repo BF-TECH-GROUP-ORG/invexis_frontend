@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
+import useAuth from "@/hooks/useAuth";
 import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
 import {
@@ -21,6 +22,8 @@ import {
   ChevronDown,
   Plus,
   ArrowUp,
+  Menu,
+  X,
 } from "lucide-react";
 import { useRef } from "react";
 
@@ -58,7 +61,37 @@ function CountingNumber({ value, duration = 2 }) {
   return <span ref={countRef}>{count.toLocaleString()}</span>;
 }
 
+const BackgroundRain = () => {
+  const particles = Array.from({ length: 20 });
+  return (
+    <div className={styles.rainContainer}>
+      {particles.map((_, i) => (
+        <motion.div
+          key={i}
+          className={styles.particle}
+          initial={{
+            top: -20,
+            left: `${Math.random() * 100}%`,
+            opacity: 0
+          }}
+          animate={{
+            top: "100%",
+            opacity: [0, 0.3, 0],
+          }}
+          transition={{
+            duration: Math.random() * 2 + 2,
+            repeat: Infinity,
+            delay: Math.random() * 5,
+            ease: "linear"
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 function HomePageContent() {
+  const { isAuthenticated } = useAuth();
   const t = useTranslations("landing");
   const locale = useLocale();
   const [billing, setBilling] = useState("monthly");
@@ -69,31 +102,15 @@ function HomePageContent() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const threshold = window.innerHeight * 0.7;
 
-      // Hiding/Showing logic
-      if (currentScrollY > threshold) {
-        if (!navScrolled) {
-          // Just entered the sticky zone, show the nav
-          setNavVisible(true);
-        } else {
-          if (currentScrollY > lastScrollY + 10) {
-            // Tiny buffer to prevent flickering
-            setNavVisible(false); // Scrolling down
-          } else if (currentScrollY < lastScrollY - 10) {
-            setNavVisible(true); // Scrolling up
-          }
-        }
-        setNavScrolled(true);
-      } else {
-        setNavVisible(true);
-        setNavScrolled(false);
-      }
-
+      // Always keep nav visible, only track if we've scrolled past a small threshold
+      setNavScrolled(currentScrollY > 50);
+      setNavVisible(true);
       setShowScrollTop(currentScrollY > 1000);
       setLastScrollY(currentScrollY);
     };
@@ -167,29 +184,108 @@ function HomePageContent() {
         </div>
 
         <div className={styles.navLinks}>
-          <Link href="#home">Home</Link>
-          <Link href="#about">About</Link>
-          <Link href="#features">Features</Link>
-          <Link href="#pricing">Pricing</Link>
-          <Link href="#why">Why Us</Link>
-          <Link href="#faq">FAQ</Link>
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#why">Why Us</a>
+          <a href="#faq">FAQ</a>
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            href={`/${locale}/auth/login`}
-            className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+          <div className={styles.desktopOnly}>
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <Link
+                  href={`/${locale}/inventory`}
+                  className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/auth/login`}
+                  className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+                >
+                  Login
+                </Link>
+              )}
+              <Link
+                href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/welcome`}
+                className={styles.joinWaitlist}
+              >
+                {isAuthenticated ? "Go to App" : "Get Started"}
+              </Link>
+            </div>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className={styles.mobileMenuToggle}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
           >
-            Login
-          </Link>
-          <Link href={`/${locale}/welcome`} className={styles.joinWaitlist}>
-            Get Started
-          </Link>
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
 
+      {/* Mobile Menu Overlay */}
+      <motion.div
+        initial={false}
+        animate={isMobileMenuOpen ? "open" : "closed"}
+        variants={{
+          open: { opacity: 1, x: 0, pointerEvents: "auto" },
+          closed: { opacity: 0, x: "100%", pointerEvents: "none" },
+        }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className={styles.mobileMenu}
+      >
+        <div className={styles.mobileMenuContent}>
+          <div className={styles.mobileNavLinks}>
+            <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>Home</a>
+            <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
+            <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
+            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
+            <a href="#why" onClick={() => setIsMobileMenuOpen(false)}>Why Us</a>
+            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)}>FAQ</a>
+          </div>
+
+          <div className={styles.mobileAuthActions}>
+            {isAuthenticated ? (
+              <Link
+                href={`/${locale}/inventory`}
+                className={styles.mobileAuthLink}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href={`/${locale}/auth/login`}
+                  className={styles.mobileAuthLink}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href={`/${locale}/auth/signup`}
+                  className={styles.mobileJoinBtn}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
       {/* Hero Section */}
       <section className={styles.hero}>
+        <BackgroundRain />
+
         <motion.div
           initial="hidden"
           animate="visible"
@@ -229,7 +325,7 @@ function HomePageContent() {
 
           <motion.div variants={itemVariants}>
             <Link
-              href={`/${locale}/auth/signup`}
+              href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/auth/signup`}
               className={styles.joinWaitlist}
               style={{
                 padding: "1.25rem 3rem",
@@ -237,7 +333,7 @@ function HomePageContent() {
                 boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
               }}
             >
-              Get Started Now
+              {isAuthenticated ? "Explore Dashboard" : "Get Started Now"}
             </Link>
           </motion.div>
 
@@ -699,8 +795,11 @@ function HomePageContent() {
             Invexix.
           </p>
           <div className={styles.ctaBtns}>
-            <Link href={`/${locale}/auth/signup`} className={styles.ctaPrimary}>
-              Start Free Trial
+            <Link
+              href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/auth/signup`}
+              className={styles.ctaPrimary}
+            >
+              {isAuthenticated ? "Open Dashboard" : "Start Free Trial"}
             </Link>
             <Link href="#contact" className={styles.ctaSecondary}>
               Request a Demo
@@ -823,16 +922,16 @@ function HomePageContent() {
               <h4 className={styles.footerHeading}>Navigation</h4>
               <ul className={styles.footerLinks}>
                 <li>
-                  <Link href="#home">Home</Link>
+                  <a href="#home">Home</a>
                 </li>
                 <li>
-                  <Link href="#about">About</Link>
+                  <a href="#about">About</a>
                 </li>
                 <li>
-                  <Link href="#features">Features</Link>
+                  <a href="#features">Features</a>
                 </li>
                 <li>
-                  <Link href="#pricing">Pricing</Link>
+                  <a href="#pricing">Pricing</a>
                 </li>
               </ul>
             </div>
