@@ -211,8 +211,8 @@ const SalesPerformance = ({
                         <ComposedChart
                             data={safeProfitabilityData}
                             margin={{ top: 20, right: 20, bottom: 30, left: 20 }}
-                            barGap={2}
-                            barCategoryGap="15%"
+                            barGap={8}
+                            barCategoryGap="25%"
                         >
                             <defs>
                                 <pattern
@@ -233,6 +233,10 @@ const SalesPerformance = ({
                                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor="#fdba74" stopOpacity={1} />
                                     <stop offset="100%" stopColor="#fb923c" stopOpacity={0.8} />
+                                </linearGradient>
+                                <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#fb923c" stopOpacity={1} />
+                                    <stop offset="100%" stopColor="#f97316" stopOpacity={0.8} />
                                 </linearGradient>
                             </defs>
 
@@ -267,25 +271,25 @@ const SalesPerformance = ({
                                 dataKey="revenue"
                                 name={t('revenue')}
                                 fill="url(#barGradient)"
-                                radius={[4, 4, 0, 0]}
-                                minPointSize={4}
+                                radius={[18, 18, 0, 0]}
+                                minPointSize={6}
+                                barSize={32}
                             />
                             <Bar
                                 dataKey="cost"
                                 name={t('cost')}
                                 fill="#081422"
-                                radius={[4, 4, 0, 0]}
-                                minPointSize={4}
+                                radius={[18, 18, 0, 0]}
+                                minPointSize={6}
+                                barSize={32}
                             />
-
-                            <Line
-                                type="monotone"
+                            <Bar
                                 dataKey="profit"
                                 name={t('profit')}
-                                stroke="#f97316"
-                                strokeWidth={4}
-                                dot={{ r: 6, fill: "#fff", strokeWidth: 3, stroke: "#f97316" }}
-                                activeDot={{ r: 8, strokeWidth: 0, fill: "#ea580c" }}
+                                fill="url(#profitGradient)"
+                                radius={[18, 18, 0, 0]}
+                                minPointSize={6}
+                                barSize={32}
                             />
                         </ComposedChart>
                     </ResponsiveContainer>
@@ -476,16 +480,16 @@ const SalesPerformance = ({
                             <Bar
                                 dataKey="in"
                                 name={t('stockIn')}
-                                barSize={36}
+                                barSize={32}
                                 fill="url(#stockInGradient)"
-                                radius={[12, 12, 0, 0]}
+                                radius={[18, 18, 0, 0]}
                             />
                             <Bar
                                 dataKey="out"
                                 name={t('stockOut')}
-                                barSize={36}
+                                barSize={32}
                                 fill="url(#stockOutGradient)"
-                                radius={[12, 12, 0, 0]}
+                                radius={[18, 18, 0, 0]}
                             />
                             <Line
                                 type="monotone"
