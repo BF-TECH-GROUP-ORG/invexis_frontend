@@ -31,6 +31,15 @@ const LoginPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Client-side fallback redirect if already authenticated
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(callbackUrl);
+    }
+  }, [status, callbackUrl, router]);
+
+  if (status === "authenticated") return null;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");

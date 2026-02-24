@@ -29,9 +29,14 @@ export default async function middleware(req) {
     const pathnameParts = pathname.split("/");
     const locale = routing.locales.includes(pathnameParts[1]) ? pathnameParts[1] : routing.defaultLocale;
 
-    // 3. Already Logged In -> Redirect away from Login
-    const isLoginPage = pathname.endsWith("/auth/login") || pathname.endsWith("/auth/login/");
-    if (isLoginPage && token) {
+    // 3. Already Logged In -> Redirect away from Login/Signup
+    const isAuthPage = pathname.includes("/auth/login") || pathname.includes("/auth/signup");
+    if (isAuthPage && token) {
+        // Respect callbackUrl if it exists, otherwise go to dashboard
+        const callbackUrl = req.nextUrl.searchParams.get("callbackUrl");
+        if (callbackUrl) {
+            return NextResponse.redirect(new URL(callbackUrl, req.url));
+        }
         return NextResponse.redirect(new URL(`/${locale}/inventory/dashboard`, req.url));
     }
 
