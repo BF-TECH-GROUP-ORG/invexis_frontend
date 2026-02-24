@@ -1,54 +1,51 @@
-import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 import createMiddleware from "next-intl/middleware";
+import { NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 
 const publicPages = [
     "/",
     "/auth/login",
-    // Add other public pages here if needed
     "/welcome",
     "/errors/*"
 ];
 
 const intlMiddleware = createMiddleware(routing);
 
-const authMiddleware = withAuth(
-    // Note: If you need to add custom logic here, you can.
-    // Currently, `withAuth` handles the redirect to sign-in page automatically
-    // if the user is not authenticated and tries to access a protected route.
-    function onSuccess(req) {
-        return intlMiddleware(req);
-    },
-    {
-        callbacks: {
-            authorized: ({ token }) => token != null,
-        },
-        pages: {
-            signIn: "/auth/login",
-        },
-        secret: process.env.NEXTAUTH_SECRET,
-    }
-);
+export default async function middleware(req) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const { pathname } = req.nextUrl;
 
-
-export default function middleware(req) {
+    // 1. Determine if the page is public
     const publicPathnameRegex = RegExp(
         `^(/(${routing.locales.join("|")}))?(${publicPages
             .flatMap((p) => (p === "/" ? ["", "/"] : p))
             .join("|")})/?$`,
         "i"
     );
+    const isPublicPage = publicPathnameRegex.test(pathname);
 
-    const isPublicPage = publicPathnameRegex.test(req.nextUrl.pathname);
+    // 2. Identify current locale for redirects
+    const pathnameParts = pathname.split("/");
+    const locale = routing.locales.includes(pathnameParts[1]) ? pathnameParts[1] : routing.defaultLocale;
 
-    if (isPublicPage) {
-        return intlMiddleware(req);
-    } else {
-        return authMiddleware(req);
+    // 3. Already Logged In -> Redirect away from Login
+    const isLoginPage = pathname.endsWith("/auth/login") || pathname.endsWith("/auth/login/");
+    if (isLoginPage && token) {
+        return NextResponse.redirect(new URL(`/${locale}/inventory/dashboard`, req.url));
     }
+
+    // 4. Not Logged In -> Redirect to Login (unless public)
+    if (!isPublicPage && !token) {
+        const loginUrl = new URL(`/${locale}/auth/login`, req.url);
+        loginUrl.searchParams.set("callbackUrl", pathname);
+        return NextResponse.redirect(loginUrl);
+    }
+
+    // 5. Otherwise, let intl handle it
+    return intlMiddleware(req);
 }
 
 export const config = {
-    // Skip all paths that should not be internationalized
     matcher: ["/((?!api|_next|.*\\..*).*)"],
 };
