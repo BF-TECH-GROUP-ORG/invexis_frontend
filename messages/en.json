@@ -154,6 +154,7 @@
     "signupButton": "Sign up",
     "logout": "Log out",
     "forgotPassword": "Forgot password?",
+    "backToHome": "Back to Home",
     "rememberMe": "Remember me",
     "returnToLogin": "Return to Login"
   },
