@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import useAuth from "@/hooks/useAuth";
 import { IconButton, InputAdornment } from "@mui/material";
 import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";

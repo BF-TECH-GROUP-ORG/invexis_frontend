@@ -197,7 +197,7 @@ function HomePageContent() {
             <div className="flex items-center gap-4">
               {isAuthenticated ? (
                 <Link
-                  href={`/${locale}/inventory`}
+                  href={`/${locale}/inventory/dashboard`}
                   className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
                 >
                   Dashboard
@@ -211,7 +211,7 @@ function HomePageContent() {
                 </Link>
               )}
               <Link
-                href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/welcome`}
+                href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
                 className={styles.joinWaitlist}
               >
                 {isAuthenticated ? "Go to App" : "Get Started"}
@@ -254,7 +254,7 @@ function HomePageContent() {
           <div className={styles.mobileAuthActions}>
             {isAuthenticated ? (
               <Link
-                href={`/${locale}/inventory`}
+                href={`/${locale}/inventory/dashboard`}
                 className={styles.mobileAuthLink}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -325,7 +325,7 @@ function HomePageContent() {
 
           <motion.div variants={itemVariants}>
             <Link
-              href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/auth/signup`}
+              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/auth/signup`}
               className={styles.joinWaitlist}
               style={{
                 padding: "1.25rem 3rem",
@@ -796,7 +796,7 @@ function HomePageContent() {
           </p>
           <div className={styles.ctaBtns}>
             <Link
-              href={isAuthenticated ? `/${locale}/inventory` : `/${locale}/auth/signup`}
+              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/auth/signup`}
               className={styles.ctaPrimary}
             >
               {isAuthenticated ? "Open Dashboard" : "Start Free Trial"}
