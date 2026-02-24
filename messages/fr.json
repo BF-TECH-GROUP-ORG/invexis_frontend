@@ -154,6 +154,7 @@
     "signupButton": "S'inscrire",
     "logout": "Se déconnecter",
     "forgotPassword": "Mot de passe oublié ?",
+    "backToHome": "Retour à l'accueil",
     "rememberMe": "Se souvenir de moi",
     "returnToLogin": "Retour à la connexion"
   },

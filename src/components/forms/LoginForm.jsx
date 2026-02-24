@@ -10,7 +10,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import useAuth from "@/hooks/useAuth";
 import { IconButton, InputAdornment } from "@mui/material";
-import { HiEye, HiEyeOff, HiArrowRight } from "react-icons/hi";
+import { HiEye, HiEyeOff, HiArrowRight, HiArrowLeft } from "react-icons/hi";
 import FormWrapper from "../shared/FormWrapper";
 import { selectTheme } from "@/features/settings/settingsSlice";
 
@@ -82,7 +82,19 @@ const LoginPage = () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full md:w-1/2 h-full flex flex-col justify-center items-center sm:p-6 md:p-10 overflow-y-auto">
+      <div className="w-full md:w-1/2 h-full flex flex-col justify-center items-center sm:p-6 md:p-10 overflow-y-auto relative">
+        <div className="absolute top-6 left-6 md:top-10 md:left-10 z-10">
+          <Link
+            href={`/${locale}`}
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+              <HiArrowLeft className="w-4 h-4" />
+            </div>
+            {t("backToHome")}
+          </Link>
+        </div>
+
         <div className="w-full max-w-md">
           <FormWrapper
             title={t("login.title")}
