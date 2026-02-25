@@ -582,7 +582,7 @@ export default function AddProductWizard({
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto p-6">
+    <div className="max-w-[1400px] mx-auto pt-6">
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleReset}

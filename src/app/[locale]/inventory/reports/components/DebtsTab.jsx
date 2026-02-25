@@ -303,25 +303,25 @@ const DebtsTab = ({ dateRange }) => {
                                         {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('debts.table.invoiceNo')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('debts.table.debtAmount')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
-                                <TableCell align="center">{t('common.status')}</TableCell>
-                                <TableCell align="center" colSpan={3}>{t('common.tracking')}</TableCell>
+                                <TableCell align="center">{t('debts.table.status')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('debts.table.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
                                 <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">{t('common.name')}</TableCell>
-                                <TableCell align="center">{t('common.phone')}</TableCell>
-                                <TableCell align="center">{t('common.original')}</TableCell>
-                                <TableCell align="center">{t('common.paid')}</TableCell>
-                                <TableCell align="center">{t('common.balance')}</TableCell>
-                                <TableCell align="center">{t('common.lastPaid')}</TableCell>
-                                <TableCell align="center">{t('common.dueDate')}</TableCell>
+                                <TableCell align="center">{t('debts.table.name')}</TableCell>
+                                <TableCell align="center">{t('debts.table.phone')}</TableCell>
+                                <TableCell align="center">{t('debts.table.original')}</TableCell>
+                                <TableCell align="center">{t('debts.table.paid')}</TableCell>
+                                <TableCell align="center">{t('debts.table.balance')}</TableCell>
+                                <TableCell align="center">{t('debts.table.lastPaid')}</TableCell>
+                                <TableCell align="center">{t('debts.table.dueDate')}</TableCell>
                                 <TableCell align="center">{t('debts.table.age')}</TableCell>
-                                <TableCell align="center">{t('common.saleDate')}</TableCell>
+                                <TableCell align="center">{t('debts.table.saleDate')}</TableCell>
                                 <TableCell align="center">{t('common.recordedBy')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
                             </TableRow>

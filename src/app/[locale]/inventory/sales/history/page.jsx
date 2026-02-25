@@ -5,6 +5,8 @@ import { getSalesHistory } from "@/services/salesService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
 import { unstable_cache } from "next/cache";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
 
 export const dynamic = 'force-dynamic';
 
@@ -33,17 +35,17 @@ export default async function SalesPage({ searchParams }) {
       shopId: shopId || ""
     };
 
-    // Helper for server-side persistence using unstable_cache
-    const getCachedData = (key, fetcher) =>
-      unstable_cache(
-        async () => fetcher(),
-        [`sales-${key}`, companyId, JSON.stringify(filters)],
-        { revalidate: 300, tags: ['sales', `company-${companyId}`] }
-      )();
+    const queryClient = getQueryClient();
 
-    // Fetch all required data in parallel on the server
-    const [sales, shops, workers] = await Promise.all([
-      getCachedData('history', () => getSalesHistory(companyId, filters, options)),
+    // Prefetch sales history with the SAME query key the client will use
+    // so it hydrates instantly without a loading flash
+    await queryClient.prefetchQuery({
+      queryKey: ["salesHistory", companyId, filters.soldBy, filters.shopId],
+      queryFn: () => getSalesHistory(companyId, filters, options),
+    });
+
+    // Shops and workers are slow-changing — keep using unstable_cache for these
+    const [shops, workers] = await Promise.all([
       unstable_cache(
         async () => getBranches(companyId, options),
         [`shops`, companyId],
@@ -57,7 +59,7 @@ export default async function SalesPage({ searchParams }) {
     ]);
 
     const initialData = {
-      sales: sales || [],
+      companyId,
       shops: shops || [],
       workers: workers || [],
       soldBy: filters.soldBy,
@@ -66,7 +68,9 @@ export default async function SalesPage({ searchParams }) {
     };
 
     return (
-      <SalesPageClient initialData={initialData} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <SalesPageClient initialData={initialData} />
+      </HydrationBoundary>
     );
   }
 

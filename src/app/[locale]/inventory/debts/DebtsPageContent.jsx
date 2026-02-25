@@ -90,7 +90,12 @@ const DebtsPageContent = ({ initialParams = {} }) => {
         });
     }, [workers, selectedShopId]);
 
-    // Fetch debts data from backend
+    // Fetch debts data — stale-while-revalidate:
+    // Every visit shows cached data instantly, then refetches fresh data in background.
+    // staleTime: Infinity → data never auto-stales (prevents races with optimistic updates)
+    // refetchOnMount: 'always' → always fire a background refetch on every page visit
+    // refetchOnWindowFocus: 'always' → also refresh when user switches back to this tab
+    // Explicit invalidateQueries after mutations handles all real-time updates.
     const { data: debtsData = [], isLoading, error, refetch, isFetching } = useQuery({
         queryKey: ["debts", companyId || initialCompanyId, selectedWorkerId, selectedShopId],
         queryFn: () => getDebts(companyId || initialCompanyId, {
@@ -98,6 +103,10 @@ const DebtsPageContent = ({ initialParams = {} }) => {
             shopId: selectedShopId
         }),
         enabled: !!(companyId || initialCompanyId),
+        staleTime: Infinity,          // Never auto-stale → no races with optimistic updates
+        gcTime: 5 * 60 * 1000,       // Keep stale data in memory for 5 min (instant navigation)
+        refetchOnMount: 'always',     // Always background-refetch on every page visit
+        refetchOnWindowFocus: 'always', // Always refresh when switching back to tab
         select: (response) => {
             // API returns paginated data: { items: [...], total: N, page: N, limit: N }
             if (response?.items && Array.isArray(response.items)) return response.items;
@@ -110,7 +119,7 @@ const DebtsPageContent = ({ initialParams = {} }) => {
         onError: () => {
             setErrorDialogOpen(true);
         },
-        retry: 1, // Only retry once on failure
+        retry: 1,
     });
 
     const handleRetry = () => {
@@ -118,7 +127,10 @@ const DebtsPageContent = ({ initialParams = {} }) => {
         refetch();
     };
 
-    if (isLoading || (isFetching && (!debtsData || debtsData.length === 0))) {
+    // Only show full skeleton when there's truly no data yet (first ever load, no cache).
+    // When refetching in background (isFetching but debtsData exists), show the cached data
+    // and let it update automatically — no blank screen, no blocking.
+    if (isLoading) {
         return (
             <Box sx={{ p: 4 }}>
                 <Grid container spacing={3} sx={{ mb: 4 }}>

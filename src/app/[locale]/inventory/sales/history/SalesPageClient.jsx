@@ -7,6 +7,8 @@ import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import SalesCards from "./cards";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import { getSalesHistory } from "@/services/salesService";
 
 const SalesPageClient = ({ initialData }) => {
     const { data: session } = useSession();
@@ -18,13 +20,34 @@ const SalesPageClient = ({ initialData }) => {
     const tHistory = useTranslations("salesHistory");
 
     const {
-        sales = [],
+        companyId,
         shops = [],
         workers = [],
         soldBy: initialSoldBy,
         shopId: initialShopId,
         month: initialMonth
     } = initialData;
+
+    const currentSoldBy = searchParams.get('soldBy') || initialSoldBy || "";
+    const currentShopId = searchParams.get('shopId') || initialShopId || "";
+    const currentMonth = searchParams.get('month') || initialMonth || "";
+
+    // Stale-while-revalidate: show cached data instantly, background refetch on every visit.
+    // staleTime: Infinity → data never auto-stales, prevents races with delete/return optimistic updates
+    // refetchOnMount: 'always' → always background-refetch on every page visit regardless of staleTime
+    // refetchOnWindowFocus: 'always' → also refresh when switching back to this tab
+    const { data: sales = [], isLoading: isSalesLoading } = useQuery({
+        queryKey: ["salesHistory", companyId, currentSoldBy, currentShopId],
+        queryFn: () => getSalesHistory(
+            companyId,
+            { soldBy: currentSoldBy, shopId: currentShopId },
+        ),
+        enabled: !!companyId,
+        staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
+        gcTime: 5 * 60 * 1000,         // Keep cache for 5 min so navigating back is always instant
+        refetchOnMount: 'always',       // Always background-refetch on every page visit
+        refetchOnWindowFocus: 'always', // Refetch when user switches back to this tab
+    });
 
     // Sync filter updates with the URL
     const updateFilters = (newSoldBy, newShopId, newMonth) => {
@@ -43,10 +66,6 @@ const SalesPageClient = ({ initialData }) => {
         }
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
-
-    const currentSoldBy = searchParams.get('soldBy') || initialSoldBy || "";
-    const currentShopId = searchParams.get('shopId') || initialShopId || "";
-    const currentMonth = searchParams.get('month') || initialMonth || "";
 
     // Filter workers based on selected shop for the dropdown
     const filteredWorkers = currentShopId
@@ -67,7 +86,7 @@ const SalesPageClient = ({ initialData }) => {
     return (
         <section className="w-full">
             <div className="space-y-6 w-full">
-                <SalesCards sales={sales} isLoading={false} />
+                <SalesCards sales={sales} isLoading={isSalesLoading} />
                 <div className="space-y-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-medium ">{tHistory("title")}</h1>
@@ -98,7 +117,7 @@ const SalesPageClient = ({ initialData }) => {
                     selectedMonth={currentMonth}
                     setSelectedMonth={(m) => updateFilters(null, null, m)}
                     isWorker={isWorker}
-                    isLoading={false}
+                    isLoading={isSalesLoading}
                 />
             </div>
         </section>

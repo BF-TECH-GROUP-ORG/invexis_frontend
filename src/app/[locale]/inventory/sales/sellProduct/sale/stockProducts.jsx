@@ -296,7 +296,11 @@ const CurrentInventory = () => {
     mutationFn: ({ payload, isDebt }) => SellProduct(payload, isDebt),
     onSuccess: () => {
       setSelectedItems({});
-      queryClient.invalidateQueries(["allProducts"]);
+      // Invalidate products (stock quantities changed) AND sales history (new sale added)
+      // salesHistory invalidation triggers a background refetch so the history table
+      // shows the new sale instantly when the user navigates back — no page reload needed.
+      queryClient.invalidateQueries({ queryKey: ["allProducts"] });
+      queryClient.invalidateQueries({ queryKey: ["salesHistory"] });
       setSuccessModalOpen(true);
     },
     onError: (error) => {
