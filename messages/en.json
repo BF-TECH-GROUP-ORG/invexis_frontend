@@ -294,13 +294,18 @@
   "landing": {
     "nav": {
       "home": "Home",
+      "about": "About",
       "features": "Features",
       "pricing": "Pricing",
-      "login": "Login"
+      "why": "Why Us",
+      "faq": "FAQ",
+      "login": "Login",
+      "dashboard": "Dashboard"
     },
     "hero": {
-      "title": "Run Your Entire Business in Real Time — Anywhere",
-      "subtitle": "Inventory, sales, staff, debts, reports, notifications and audits — all in one powerful dashboard that scales from SMB to Enterprise.",
+      "badge": "Futuristic Business Intelligence",
+      "title": "Powerhouse for your <br/> <spanClassName>modern business</spanClassName>",
+      "subtitle": "Experience the next generation of business management. Smart, automated, and built for high-performance teams.",
       "kpi1": {
         "title": "Realtime Alerts",
         "value": "Live"
@@ -314,50 +319,76 @@
       "start": "Start Free Trial",
       "demo": "Request a Demo",
       "final": {
-        "title": "Start Managing Your Business Smarter — Today",
-        "subtitle": "Free trial, no credit card required"
+        "title": "Run Your Business Smarter—Starting Today",
+        "subtitle": "Get full control, real-time insights, and peace of mind with Invexix.",
+        "openDashboard": "Open Dashboard",
+        "startTrial": "Start Free Trial"
+      }
+    },
+    "about": {
+      "badge": "About Invexix",
+      "title": "One Dashboard. <br/> <spanClassName>Total Business Control.</spanClassName>",
+      "desc": "Invexix helps you manage inventory, sales, staff, debts, reports, and payments in one powerful platform—so you always know what’s happening in your business, in real time.",
+      "points": {
+        "point1": "Centralized business management",
+        "point2": "Real-time data and insights",
+        "point3": "Built for growing businesses"
       }
     },
     "trust": {
-      "heading": "Trusted by modern businesses worldwide"
+      "heading": "Used by <count/>+ companies worldwide"
     },
     "features": {
       "title": "Comprehensive Modules",
       "subtitle": "Everything you need to run operations in real time.",
-      "operations": {
-        "title": "Centralized Dashboard",
-        "desc": "One view for KPIs and alerts."
-      },
-      "inventory": {
-        "title": "Inventory Management",
-        "desc": "Track stock, stock levels, and forecasts."
-      },
-      "analytics": {
-        "title": "Reports & Analytics",
-        "desc": "Actionable insights and custom reports."
-      },
-      "staff": {
-        "title": "Worker Management",
-        "desc": "Roles, shifts and performance."
-      },
-      "notifications": {
-        "title": "Real-time Alerts",
-        "desc": "Push and in-app alerts across devices."
-      },
-      "logs": {
-        "title": "Logs & Audits",
-        "desc": "Full activity history for compliance."
+      "items": {
+        "inventory": {
+          "title": "Stock Management",
+          "desc": "Track every item moving in or out with automated stock-level alerts."
+        },
+        "sales": {
+          "title": "Real-time Sales",
+          "desc": "Record sales instantly and watch your revenue grow with live analytics."
+        },
+        "debts": {
+          "title": "Debts & Receivables",
+          "desc": "Know exactly who owes you, how much, and when—without manual tracking."
+        },
+        "payments": {
+          "title": "Billing & Payments",
+          "desc": "Create invoices, track payments, and keep finances organized."
+        },
+        "analytics": {
+          "title": "Reports & Analytics",
+          "desc": "Download professional reports and view clear dashboards that support smarter decisions."
+        },
+        "notifications": {
+          "title": "Notifications & Alerts",
+          "desc": "Get instant alerts for low stock, overdue debts, and critical activity."
+        }
       }
     },
     "how": {
-      "title": "How Invexix Works",
+      "badge": "How Invexix Works",
+      "title": "Seamless Implementation",
       "subtitle": "Set up, configure, and monitor in minutes.",
       "steps": {
-        "step1": "Create your workspace",
-        "step2": "Configure inventory & staff",
-        "step3": "Monitor operations in real time",
-        "step4": "Receive instant alerts & insights",
-        "step5": "Scale without losing control"
+        "s1": {
+          "title": "Create Your Workspace",
+          "desc": "Sign up and set up your business profile in seconds."
+        },
+        "s2": {
+          "title": "Configure Inventory & Staff",
+          "desc": "Add your products, categories, and invite your team members with specific roles."
+        },
+        "s3": {
+          "title": "Monitor Operations Live",
+          "desc": "Watch sales and stock movements happen in real-time from anywhere."
+        },
+        "s4": {
+          "title": "Get Insights & Alerts",
+          "desc": "Receive automated alerts for low stock and view professional reports."
+        }
       }
     },
     "why": {
@@ -371,11 +402,106 @@
       ]
     },
     "pricing": {
-      "title": "Flexible Pricing for Every Business",
-      "subtitle": "Choose monthly or yearly billing",
-      "month": "mo",
-      "year": "yr",
-      "cta": "Start Free Trial"
+      "badge": "Plans That Grow With You",
+      "title": "Pricing Options",
+      "subtitle": "Choose the subscription plan that suits your needs",
+      "toggle": {
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "plans": {
+        "onboarding": {
+          "title": "Onboarding Fee",
+          "price": "Variable",
+          "sub": "One-time setup fee",
+          "features": {
+            "f1": "System configuration",
+            "f2": "Team training",
+            "f3": "Data migration assist"
+          },
+          "btn": "Contact Us"
+        },
+        "standard": {
+          "title": "Standard Plan",
+          "price": "$29.99",
+          "sub": "Billed monthly",
+          "features": {
+            "f1": "Full Dashboard access",
+            "f2": "Basic Reports",
+            "f3": "Team Collaboration",
+            "f4": "Mobile Sync"
+          },
+          "btn": "Get Started",
+          "popular": "Most Popular"
+        },
+        "pro": {
+          "title": "Pro Plan",
+          "price": "$59.99",
+          "sub": "Billed monthly",
+          "features": {
+            "f1": "AI Integration",
+            "f2": "Offline Mode",
+            "f3": "Priority Support",
+            "f4": "Advanced Analytics"
+          },
+          "btn": "Get Started"
+        }
+      }
+    },
+    "comparison": {
+      "badge": "Detailed Breakdown",
+      "title": "Pricing Comparison",
+      "headers": {
+        "feature": "Feature Hierarchy",
+        "starter": "Starter",
+        "enterprise": "Enterprise"
+      },
+      "features": {
+        "dashboard": "Global Dashboard",
+        "reporting": "Automated Reporting",
+        "ai": "AI Assistant",
+        "offline": "Offline Mode",
+        "support": "24/7 Priority Support",
+        "auth": "Advanced Security"
+      }
+    },
+    "waitlist": {
+      "badge": "Get Started",
+      "title": "Ready to <spanClassName>revolutionize</spanClassName> <br /> your business?",
+      "subtitle": "Join the growing number of businesses scaling with real-time control. Secure your spot in the future of management.",
+      "placeholder": "Enter your business email",
+      "button": "Join Now",
+      "metrics": {
+        "capacity": "Beta Capacity",
+        "full": "{percentage}% Full",
+        "trust": "Trusted by businesses across 12 countries."
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Frequently Asked Questions",
+      "items": {
+        "who": {
+          "q": "Who is Invexix for?",
+          "a": "Small businesses, growing companies, and multi-branch operations."
+        },
+        "easy": {
+          "q": "Is Invexix easy to use?",
+          "a": "Yes. It’s designed to be simple, intuitive, and fast to learn."
+        },
+        "mobile": {
+          "q": "Can I access it on mobile?",
+          "a": "Yes. Access your business anytime, anywhere."
+        },
+        "reports": {
+          "q": "Can I download reports?",
+          "a": "Yes. Generate and download professional PDF reports."
+        },
+        "secure": {
+          "q": "Is my data secure?",
+          "a": "Absolutely. Invexix includes secure authentication, permissions, and audit logs."
+        }
+      }
     },
     "cases": {
       "title": "Built for every business, everywhere.",
@@ -403,6 +529,17 @@
         "title": "Legal",
         "privacy": "Privacy Policy",
         "terms": "Terms of Service"
+      },
+      "newsletter": {
+        "title": "Join our insights",
+        "desc": "Get the latest updates and business tips directly to your inbox.",
+        "placeholder": "name@company.com"
+      },
+      "bottom": {
+        "copy": "© 2026 Invexix. Engineered with precision.",
+        "docs": "Documentation",
+        "support": "Support",
+        "status": "Status"
       }
     }
   },
@@ -1838,6 +1975,8 @@
         "avgDebtAge": "Avg Debt Age"
       },
       "table": {
+        "invoiceNo": "Invoice No",
+        "customerInfo": "Customer Info",
         "debtAmount": "Debt Amount",
         "paymentInfo": "Payment Info",
         "tracking": "Tracking",
@@ -1849,7 +1988,8 @@
         "lastPaid": "Last Paid",
         "dueDate": "Due Date",
         "age": "Age(D)",
-        "saleDate": "Sale Date"
+        "saleDate": "Sale Date",
+        "status": "Status"
       },
       "status": {
         "overdue": "Overdue",

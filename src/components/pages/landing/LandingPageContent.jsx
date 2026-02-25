@@ -192,12 +192,12 @@ function HomePageContent() {
         </div>
 
         <div className={styles.navLinks}>
-          <a href="#home">Home</a>
-          <a href="#about">About</a>
-          <a href="#features">Features</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#why">Why Us</a>
-          <a href="#faq">FAQ</a>
+          <a href="#home">{t("nav.home")}</a>
+          <a href="#about">{t("nav.about")}</a>
+          <a href="#features">{t("nav.features")}</a>
+          <a href="#pricing">{t("nav.pricing")}</a>
+          <a href="#why">{t("nav.why")}</a>
+          <a href="#faq">{t("nav.faq")}</a>
         </div>
 
         <div className="flex items-center gap-4">
@@ -208,21 +208,21 @@ function HomePageContent() {
                   href={`/${locale}/inventory/dashboard`}
                   className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
                 >
-                  Dashboard
+                  {t("nav.dashboard")}
                 </Link>
               ) : (
                 <Link
                   href={`/${locale}/auth/login`}
                   className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
                 >
-                  Login
+                  {t("nav.login")}
                 </Link>
               )}
               <Link
                 href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
                 className={styles.joinWaitlist}
               >
-                {isAuthenticated ? "Go to App" : "Get Started"}
+                {isAuthenticated ? t("nav.dashboard") : t("cta.start")}
               </Link>
             </div>
           </div>
@@ -251,12 +251,12 @@ function HomePageContent() {
       >
         <div className={styles.mobileMenuContent}>
           <div className={styles.mobileNavLinks}>
-            <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>Home</a>
-            <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
-            <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
-            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
-            <a href="#why" onClick={() => setIsMobileMenuOpen(false)}>Why Us</a>
-            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)}>FAQ</a>
+            <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.home")}</a>
+            <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.about")}</a>
+            <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.features")}</a>
+            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.pricing")}</a>
+            <a href="#why" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.why")}</a>
+            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.faq")}</a>
           </div>
 
           <div className={styles.mobileAuthActions}>
@@ -266,7 +266,7 @@ function HomePageContent() {
                 className={styles.mobileAuthLink}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Go to Dashboard
+                {t("nav.dashboard")}
               </Link>
             ) : (
               <>
@@ -275,14 +275,14 @@ function HomePageContent() {
                   className={styles.mobileAuthLink}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Login
+                  {t("nav.login")}
                 </Link>
                 <Link
                   href={`/${locale}/auth/signup`}
                   className={styles.mobileJoinBtn}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Get Started
+                  {t("cta.start")}
                 </Link>
               </>
             )}
@@ -318,17 +318,18 @@ function HomePageContent() {
 
           <motion.div variants={itemVariants} className={styles.featureBadge}>
             <Star className="w-3 h-3 text-orange-500" fill="currentColor" />
-            <span>Futuristic Business Intelligence</span>
+            <span>{t("hero.badge")}</span>
           </motion.div>
 
           <motion.h1 variants={itemVariants} className={styles.heroTitle}>
-            Powerhouse for your <br />
-            <span className={styles.gradientText}>modern business</span>
+            {t.rich("hero.title", {
+              br: () => <br />,
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </motion.h1>
 
           <motion.p variants={itemVariants} className={styles.heroSubtitle}>
-            Experience the next generation of business management. Smart,
-            automated, and built for high-performance teams.
+            {t("hero.subtitle")}
           </motion.p>
 
           <motion.div variants={itemVariants}>
@@ -341,7 +342,7 @@ function HomePageContent() {
                 boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
               }}
             >
-              {isAuthenticated ? "Explore Dashboard" : "Get Started Now"}
+              {isAuthenticated ? t("cta.dashboard") : t("cta.startBtn")}
             </Link>
           </motion.div>
 
@@ -349,7 +350,9 @@ function HomePageContent() {
             <div className={styles.trustBadge}>
               <Users className="w-4 h-4 text-gray-400" />
               <span>
-                Used by <CountingNumber value={150} />+ businesses
+                {t.rich("trust.heading", {
+                  count: () => <CountingNumber value={150} />
+                })}
               </span>
             </div>
           </motion.div>
@@ -365,27 +368,21 @@ function HomePageContent() {
             viewport={{ once: true }}
             className={styles.aboutText}
           >
-            <div className={styles.featureBadge}>About Invexix</div>
+            <div className={styles.featureBadge}>{t("about.badge")}</div>
             <h2 className={styles.aboutTitle}>
-              One Dashboard. <br />
-              <span className={styles.gradientText}>
-                Total Business Control.
-              </span>
+              {t.rich("about.title", {
+                br: () => <br />,
+                spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+              })}
             </h2>
             <p className={styles.aboutParagraph}>
-              Invexix helps you manage inventory, sales, staff, debts, reports,
-              and payments in one powerful platform—so you always know what’s
-              happening in your business, in real time.
+              {t("about.desc")}
             </p>
             <div className="space-y-4 mt-8">
-              {[
-                "Centralized business management",
-                "Real-time data and insights",
-                "Built for growing businesses",
-              ].map((point, i) => (
+              {Object.keys(t.raw("about.points")).map((key, i) => (
                 <div key={i} className="flex items-center gap-3 text-gray-700">
                   <CheckCircle2 size={18} className="text-orange-500" />
-                  <span className="font-semibold">{point}</span>
+                  <span className="font-semibold">{t(`about.points.${key}`)}</span>
                 </div>
               ))}
             </div>
@@ -410,46 +407,125 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className={styles.featureSection}>
-        <div className="text-center mb-20">
-          <div className={styles.featureBadge}>Innovative Features</div>
-          <h2 className={styles.featureTitle}>
-            Everything Your Business <br />
-            <span className={styles.gradientText}>Needs—In One Place</span>
-          </h2>
+      {/* How It Works Section */}
+      <section id="how" className={styles.howSection}>
+        <div className="text-center mb-16 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={styles.featureBadge + " mx-auto"}
+          >
+            {t("how.badge")}
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className={styles.featureTitle}
+          >
+            {t("how.title")}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className={styles.featureSubtitle + " mx-auto"}
+          >
+            {t("how.subtitle")}
+          </motion.p>
         </div>
 
-        <div className={styles.featureList}>
+        <div className={styles.howTimeline}>
           {[
             {
-              title: "Inventory Management",
-              desc: "Track stock levels, movement, and value in real time. Never run out or overstock again.",
-              icon: <Box />,
-            },
-            {
-              title: "Sales & Revenue Tracking",
-              desc: "Monitor daily sales, trends, and performance across your entire business.",
-              icon: <Zap />,
-            },
-            {
-              title: "Debts & Receivables",
-              desc: "Know exactly who owes you, how much, and when—without manual tracking.",
-              icon: <Database />,
-            },
-            {
-              title: "Billing & Payments",
-              desc: "Create invoices, track payments, and keep finances organized.",
-              icon: <Shield />,
-            },
-            {
-              title: "Reports & Analytics",
-              desc: "Download professional reports and view clear dashboards that support smarter decisions.",
+              key: "s1",
               icon: <Layout />,
             },
             {
-              title: "Notifications & Alerts",
-              desc: "Get instant alerts for low stock, overdue debts, and critical activity.",
+              key: "s2",
+              icon: <Package />,
+            },
+            {
+              key: "s3",
+              icon: <Zap />,
+            },
+            {
+              key: "s4",
+              icon: <Database />,
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15 }}
+              className={styles.howStep}
+            >
+              <div className={styles.howIconBox}>{item.icon}</div>
+              <div className={styles.howText}>
+                <span className="text-orange-500 font-bold tracking-widest text-xs uppercase mb-2 block">
+                  {`Step 0${i + 1}`}
+                </span>
+                <h4 className="text-xl font-bold mb-3">{t(`how.steps.${item.key}.title`)}</h4>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  {t(`how.steps.${item.key}.desc`)}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className={styles.featureSection}>
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={styles.featureBadge}
+          >
+            {t("features.title")}
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className={styles.featureTitle}
+          >
+            {t("features.subtitle")}
+          </motion.h2>
+        </div>
+
+        <div className={styles.featureGrid}>
+          {[
+            {
+              key: "inventory",
+              icon: <Database />,
+            },
+            {
+              key: "sales",
+              icon: <Zap />,
+            },
+            {
+              key: "debts",
+              icon: <Database />,
+            },
+            {
+              key: "payments",
+              icon: <Shield />,
+            },
+            {
+              key: "analytics",
+              icon: <Layout />,
+            },
+            {
+              key: "notifications",
               icon: <Zap />,
             },
           ].map((feature, i) => (
@@ -462,9 +538,9 @@ function HomePageContent() {
               className={styles.featureItem}
             >
               <div className={styles.featureIconBox}>{feature.icon}</div>
-              <h4 className="text-xl font-bold mb-3">{feature.title}</h4>
+              <h4 className="text-xl font-bold mb-3">{t(`features.items.${feature.key}.title`)}</h4>
               <p className="text-gray-500 leading-relaxed text-sm">
-                {feature.desc}
+                {t(`features.items.${feature.key}.desc`)}
               </p>
             </motion.div>
           ))}
@@ -480,7 +556,7 @@ function HomePageContent() {
             viewport={{ once: true }}
             className={styles.featureBadge}
           >
-            Plans That Grow With You
+            {t("pricing.badge")}
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -489,7 +565,7 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className={styles.featureTitle}
           >
-            Pricing Options
+            {t("pricing.title")}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -498,7 +574,7 @@ function HomePageContent() {
             transition={{ delay: 0.2 }}
             className={styles.featureSubtitle + " mx-auto"}
           >
-            Choose the subscription plan that suits your needs
+            {t("pricing.subtitle")}
           </motion.p>
 
           <motion.div
@@ -512,14 +588,14 @@ function HomePageContent() {
                 }`}
               onClick={() => setBilling("monthly")}
             >
-              Monthly
+              {t("pricing.toggle.monthly")}
             </button>
             <button
               className={`${styles.toggleBtn} ${billing === "yearly" ? styles.toggleBtnActive : ""
                 }`}
               onClick={() => setBilling("yearly")}
             >
-              Yearly
+              {t("pricing.toggle.yearly")}
             </button>
           </motion.div>
         </div>
@@ -527,41 +603,15 @@ function HomePageContent() {
         <div className={styles.pricingGrid}>
           {[
             {
-              title: "Onboarding Fee",
-              price: "Variable",
-              sub: "One-time setup fee",
-              features: [
-                "System configuration",
-                "Team training",
-                "Data migration assist",
-              ],
-              btn: "Contact Us",
+              key: "onboarding",
               featured: false,
             },
             {
-              title: "Standard Plan",
-              price: "$29.99",
-              sub: "Billed monthly",
-              features: [
-                "Full Dashboard access",
-                "Basic Reports",
-                "Team Collaboration",
-                "Mobile Sync",
-              ],
-              btn: "Get Started",
+              key: "standard",
               featured: true,
             },
             {
-              title: "Pro Plan",
-              price: "$59.99",
-              sub: "Billed monthly",
-              features: [
-                "AI Integration",
-                "Offline Mode",
-                "Priority Support",
-                "Advanced Analytics",
-              ],
-              btn: "Get Started",
+              key: "pro",
               featured: false,
             },
           ].map((plan, i) => (
@@ -575,16 +625,16 @@ function HomePageContent() {
                 }`}
             >
               {plan.featured && (
-                <div className={styles.bestValue}>Most Popular</div>
+                <div className={styles.bestValue}>{t(`pricing.plans.${plan.key}.popular`)}</div>
               )}
-              <h4 className="text-xl font-bold">{plan.title}</h4>
-              <div className={styles.priceValue}>{plan.price}</div>
-              <p className={styles.priceSub}>{plan.sub}</p>
+              <h4 className="text-xl font-bold">{t(`pricing.plans.${plan.key}.title`)}</h4>
+              <div className={styles.priceValue}>{t(`pricing.plans.${plan.key}.price`)}</div>
+              <p className={styles.priceSub}>{t(`pricing.plans.${plan.key}.sub`)}</p>
               <ul className={styles.checkList}>
-                {plan.features.map((feature, j) => (
+                {Object.keys(t.raw(`pricing.plans.${plan.key}.features`)).map((fKey, j) => (
                   <li key={j} className={styles.checkItem}>
                     <CheckCircle2 size={16} className="text-orange-500" />
-                    <span>{feature}</span>
+                    <span>{t(`pricing.plans.${plan.key}.features.${fKey}`)}</span>
                   </li>
                 ))}
               </ul>
@@ -592,7 +642,7 @@ function HomePageContent() {
                 className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""
                   }`}
               >
-                {plan.btn}
+                {t(`pricing.plans.${plan.key}.btn`)}
               </button>
             </motion.div>
           ))}
@@ -671,40 +721,36 @@ function HomePageContent() {
       <section id="why" className={styles.featureSection}>
         <div className="text-center mb-16">
           <div className={styles.featureBadge}>
-            Why Businesses Choose Invexix
+            {t("why.badge")}
           </div>
           <h2 className={styles.featureTitle}>
-            Built for{" "}
-            <span className={styles.gradientText}>Real Operations</span>
+            {t.rich("why.title", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </h2>
         </div>
 
         <div className={styles.whyUsGrid}>
           {[
             {
+              key: "ops",
               icon: <Zap />,
-              title: "Built for Real Operations",
-              desc: "Designed around real business workflows—not spreadsheets or guesswork.",
             },
             {
+              key: "allinone",
               icon: <Layout />,
-              title: "All-in-One Platform",
-              desc: "Replace multiple tools with a single, reliable system.",
             },
             {
+              key: "control",
               icon: <Globe />,
-              title: "Real-Time Control",
-              desc: "Make decisions using live data, not outdated reports.",
             },
             {
+              key: "secure",
               icon: <Shield />,
-              title: "Secure & Reliable",
-              desc: "Role-based access, audit logs, and data protection built in.",
             },
             {
+              key: "scales",
               icon: <ArrowRight />,
-              title: "Scales With You",
-              desc: "From one store to multiple branches—Invexix grows as you grow.",
             },
           ].map((item, i) => (
             <motion.div
@@ -716,9 +762,9 @@ function HomePageContent() {
               className={styles.whyUsCard}
             >
               <div className={styles.benefitIcon}>{item.icon}</div>
-              <h4 className="text-xl font-bold mb-4">{item.title}</h4>
+              <h4 className="text-xl font-bold mb-4">{t(`why.items.${item.key}.title`)}</h4>
               <p className="text-gray-500 text-sm leading-relaxed">
-                {item.desc}
+                {t(`why.items.${item.key}.desc`)}
               </p>
             </motion.div>
           ))}

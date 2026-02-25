@@ -387,13 +387,13 @@ const DebtsTable = ({
     mutationFn: recordRepayment,
     onMutate: async (newRepayment) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId, selectedWorkerId, selectedShopId] });
 
       // Snapshot the previous value
-      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+      const previousDebts = queryClient.getQueryData(["debts", companyId, selectedWorkerId, selectedShopId]);
 
-      // Optimistically update to the new value
-      queryClient.setQueryData(["debts", companyId], (old) => {
+      // Optimistically update — balance decreases instantly in the table
+      queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], (old) => {
         if (!old) return old;
         const items = Array.isArray(old) ? old : (old.items || []);
         const updatedItems = items.map((debt) => {
@@ -416,7 +416,7 @@ const DebtsTable = ({
     onError: (error, variables, context) => {
       // Rollback to the previous value if mutation fails
       if (context?.previousDebts) {
-        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+        queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], context.previousDebts);
       }
 
       console.error("Repayment error:", error);
@@ -432,8 +432,8 @@ const DebtsTable = ({
       });
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure sync with server
-      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
     },
     onSuccess: () => {
       setSnackbar({
@@ -459,19 +459,16 @@ const DebtsTable = ({
   const markAsPaidMutation = useMutation({
     mutationFn: ({ debtId, payload }) => markDebtAsPaid(debtId, payload),
     onMutate: async ({ debtId }) => {
-      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
-      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId, selectedWorkerId, selectedShopId] });
+      const previousDebts = queryClient.getQueryData(["debts", companyId, selectedWorkerId, selectedShopId]);
 
-      queryClient.setQueryData(["debts", companyId], (old) => {
+      // Optimistically mark the debt as PAID — balance goes to 0 instantly
+      queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], (old) => {
         if (!old) return old;
         const items = Array.isArray(old) ? old : (old.items || []);
         const updatedItems = items.map((debt) => {
           if (debt._id === debtId) {
-            return {
-              ...debt,
-              balance: 0,
-              status: "PAID",
-            };
+            return { ...debt, balance: 0, status: "PAID" };
           }
           return debt;
         });
@@ -482,7 +479,7 @@ const DebtsTable = ({
     },
     onError: (error, variables, context) => {
       if (context?.previousDebts) {
-        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+        queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], context.previousDebts);
       }
       console.error("Mark as paid error:", error);
       const errorMessage = error.response?.data?.message ||
@@ -497,7 +494,7 @@ const DebtsTable = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
     },
     onSuccess: () => {
       setSnackbar({
@@ -516,18 +513,16 @@ const DebtsTable = ({
   const cancelDebtMutation = useMutation({
     mutationFn: ({ debtId, payload }) => cancelDebt(debtId, payload),
     onMutate: async ({ debtId }) => {
-      await queryClient.cancelQueries({ queryKey: ["debts", companyId] });
-      const previousDebts = queryClient.getQueryData(["debts", companyId]);
+      await queryClient.cancelQueries({ queryKey: ["debts", companyId, selectedWorkerId, selectedShopId] });
+      const previousDebts = queryClient.getQueryData(["debts", companyId, selectedWorkerId, selectedShopId]);
 
-      queryClient.setQueryData(["debts", companyId], (old) => {
+      // Optimistically mark as CANCELLED instantly
+      queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], (old) => {
         if (!old) return old;
         const items = Array.isArray(old) ? old : (old.items || []);
         const updatedItems = items.map((debt) => {
           if (debt._id === debtId) {
-            return {
-              ...debt,
-              status: "CANCELLED",
-            };
+            return { ...debt, status: "CANCELLED" };
           }
           return debt;
         });
@@ -538,7 +533,7 @@ const DebtsTable = ({
     },
     onError: (error, variables, context) => {
       if (context?.previousDebts) {
-        queryClient.setQueryData(["debts", companyId], context.previousDebts);
+        queryClient.setQueryData(["debts", companyId, selectedWorkerId, selectedShopId], context.previousDebts);
       }
       console.error("Cancel debt error:", error);
       const errorMessage = error.response?.data?.message ||
@@ -553,7 +548,7 @@ const DebtsTable = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["debts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
     },
     onSuccess: () => {
       setSnackbar({
@@ -621,8 +616,6 @@ const DebtsTable = ({
 
   const filteredRows = useMemo(() => {
     let rows = debts;
-    console.log("DebtsTable received debts:", debts?.length);
-    console.log("DebtsTable filters:", { selectedWorkerId, selectedShopId });
 
     if (search) {
       rows = rows.filter(r =>

@@ -274,9 +274,38 @@
   "home": {
     "login": "Injira",
     "register": "Iyandikishe",
+    "home": "Ahabanza",
+    "about": "Tugaruke",
+    "faq": "F&Q",
+    "services": "Serivisi",
     "hero": {
-      "title": "Tunganya business yawe mu gihe nyacyo — aho uri hose",
-      "subtitle": "Ububiko, ubucuruzi, abakozi, amadeni, raporo, amatangazo n'amadosiye — byose kuri dashboard imwe.",
+      "title1": "Hagarika guta igihe",
+      "title2": "mu kwandika n'intoki",
+      "subtitle": "Ongerera ubushobozi, bika igihe n'amafaranga ukoresheje iyi sisitemu yo gucunga stock.",
+      "getStarted": "Tangira"
+    },
+    "stats": {
+      "users": "Abakoresha",
+      "system": "Sisitemu",
+      "satisfaction": "Igipimo cy'ubunywanyi",
+      "uptime": "Icyizere cy'imikorere"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Ahabanza",
+      "about": "Tugaruke",
+      "features": "Ibikorwa",
+      "pricing": "Ibiciro",
+      "why": "Kuki Twe",
+      "faq": "F&Q",
+      "login": "Injira",
+      "dashboard": "Dashibodi"
+    },
+    "hero": {
+      "badge": "Business Intelligence y'Igiye Kuzaza",
+      "title": "Imbaraga kuri <br/> <spanClassName>business yawe igezweho</spanClassName>",
+      "subtitle": "Gera ku rwego rushya rwo gucunga ubucuruzi. Burimo ubwenge, bwikora, kandi bwubakiwe amatsinda akora neza.",
       "kpi1": {
         "title": "Amatangazo y'ako kanya",
         "value": "Live"
@@ -286,41 +315,240 @@
         "value": "Multi-region"
       }
     },
-    "landing": {
-      "nav": {
-        "home": "Ahabanza",
-        "features": "Ibikorwa",
-        "pricing": "Ibiciro",
-        "login": "Injira"
+    "pricing": {
+      "badge": "Ibiciro Bijyanye na Business Yawe",
+      "title": "Amahitamo y'Ibiciro",
+      "subtitle": "Hitamo uburyo bwo kwishyura bukubangamiye",
+      "toggle": {
+        "monthly": "Buri Kwezi",
+        "yearly": "Buri Mwaka"
       },
-      "cta": {
-        "start": "Tangirira ubu",
-        "demo": "Saba Demo",
-        "final": {
-          "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
-          "subtitle": "Gerageza ubuntu, ntukeneye ikarita ya banki"
+      "plans": {
+        "onboarding": {
+          "title": "Ikiguzi cy'Intangiriro",
+          "price": "Guhindagurika",
+          "sub": "Ikiguzi cy'incuro imwe",
+          "features": {
+            "f1": "Gutunganya sisitemu",
+            "f2": "Guhugura ikipe",
+            "f3": "Gufasha kwimurira amakuru"
+          },
+          "btn": "Twandikire"
+        },
+        "standard": {
+          "title": "Plan Isanzwe",
+          "price": "$29.99",
+          "sub": "Yishyurwa buri kwezi",
+          "features": {
+            "f1": "Kureba Dashboard byuzuye",
+            "f2": "Raporo z'ibanze",
+            "f3": "Gukorera hamwe nk'ikipe",
+            "f4": "Guhuza na telefoni"
+          },
+          "btn": "Tangira Ubu",
+          "popular": "Ikunzwe cyane"
+        },
+        "pro": {
+          "title": "Plan Pro",
+          "price": "$59.99",
+          "sub": "Yishyurwa buri kwezi",
+          "features": {
+            "f1": "Gukoresha AI",
+            "f2": "Gukoresha nta muriro",
+            "f3": "Gufashwa mbere y'abandi",
+            "f4": "Ubusesenguzi bwimbitse"
+          },
+          "btn": "Tangira Ubu"
         }
-      },
-      "trust": {
-        "heading": "Bizwi n'amashyirahamwe agezweho ku isi yose"
+      }
+    },
+    "cta": {
+      "start": "Tangira kugerageza ku buntu",
+      "demo": "Saba Demo",
+      "final": {
+        "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
+        "subtitle": "Gerageza ubuntu, ntukeneye ikarita ya banki"
+      }
+    },
+    "about": {
+      "badge": "Ibyerekeye Invexix",
+      "title": "Dashboard Imwe. <br/> <spanClassName>Ubugenzuzi bwuzuye bwa Business.</spanClassName>",
+      "desc": "Invexix igufasha gucunga ububiko, ubucuruzi, abakozi, amadeni, raporo, n'imishahara kuri platform imwe ikomeye — kugira ngo umenye ibintu byose biba muri business yawe, mu gihe nyacyo.",
+      "points": {
+        "point1": "Igenamiterere rya business rihuriye hamwe",
+        "point2": "Amakuru n'ubusesenguzi by'ako kanya",
+        "point3": "Yubakiwe ibigo biri gutomboka"
+      }
+    },
+    "trust": {
+      "heading": "Ikoreshwa na <count/>+ by'ibigo ku isi hose"
+    },
+    "features": {
+      "title": "Moduli Zuzuye",
+      "subtitle": "Byose ukeneye kugira ngo ukore mu gihe nyacyo.",
+      "items": {
+        "inventory": {
+          "title": "Igenamiterere ry'Ububiko",
+          "desc": "Kurikirana buri kintu cyose cyinjira cyangwa gisohoka hamwe n'integuza zikora iyo ibintu bishize."
+        },
+        "sales": {
+          "title": "Ubucuruzi bw'ako Kanya",
+          "desc": "Andika ubucuruzi bwawe ako kanya kandi urebe inyungu zawe ziyongera."
+        },
+        "debts": {
+          "title": "Amadeni n'Ibirarane",
+          "desc": "Menya neza ubugufitiye umwenda, umubare, n'igihe — utarinze kubara n'intoki."
+        },
+        "payments": {
+          "title": "Inyemezabwishyu n'Imishahara",
+          "desc": "Kora inyemezabwishyu, kurikirana amapagemant, kandi ufungure imicungire y'imari yawe."
+        },
+        "analytics": {
+          "title": "Raporo n'Ubusesenguzi",
+          "desc": "Manura raporo z'umwuga kandi urebe dashboard zisobanutse zigufasha gufata imyanzuro myiza."
+        },
+        "notifications": {
+          "title": "Inyemezabwishyu n'Integuza",
+          "desc": "Bona integuza ako kanya iyo ibintu bishize mu bubiko, amadeni yatinze, n'ibindi bintu by'ingenzi."
+        }
+      }
+    },
+    "how": {
+      "badge": "Jinsi Invexis Inavyofanya Kazi",
+      "title": "Gushyira mu bikorwa bitagoranye",
+      "subtitle": "Andika, gura, kandi ugenzure mu minota mike.",
+      "steps": {
+        "s1": {
+          "title": "Unda Eneo Ryawe Ry'Akazi",
+          "desc": "Iyandikishe kandi utunganye umwirondoro wa business yawe mu masegonda make."
+        },
+        "s2": {
+          "title": "Tunganya Ububiko n'Abakozi",
+          "desc": "Ongeraho ibicuruzwa byawe, ibyiciro, kandi utumire abakozi mu nshingano zihariye."
+        },
+        "s3": {
+          "title": "Genzura Ibikorwa mu Gihe Nyacyo",
+          "desc": "Reba imigendekere y'ubucuruzi n'ububiko mu gihe nyacyo aho waba uri hose."
+        },
+        "s4": {
+          "title": "Bona Isesengura n'Integuza",
+          "desc": "Bona integuza zizana iyo ibicuruzwa bishize kandi urebe raporo z'umwuga."
+        }
+      }
+    },
+    "why": {
+      "badge": "Impamvu Business Zihitamo Invexis",
+      "title": "Yubakiwe <spanClassName>Ibikorwa Nyabyo</spanClassName>",
+      "items": {
+        "ops": {
+          "title": "Yubakiwe Ibikorwa Nyabyo",
+          "desc": "Yateguwe hagendewe ku migendekere ya business — atari imbonerahamwe cyangwa gukeka."
+        },
+        "allinone": {
+          "title": "Platform Ihuriyeho Byose",
+          "desc": "Simbuza ibikoresho byinshi na sisitemu imwe yizewe."
+        },
+        "control": {
+          "title": "Ubugenzuzi bw'ako Kanya",
+          "desc": "Fata imyanzuro ukoresheje amakuru y'ako kanya, atari raporo zarengeje igihe."
+        },
+        "secure": {
+          "title": "Itekanye kandi Yizewe",
+          "desc": "Uruhushya rugarukira ku nshingano, amateka y'ibyakozwe, n'uburinzi bw'amakuru."
+        },
+        "scales": {
+          "title": "Ikura hamwe nawe",
+          "desc": "Kuva ku iduka rimwe kugeza ku mashami menshi — Invexix ikura uko business yawe ikura."
+        }
+      }
+    },
+    "comparison": {
+      "badge": "Isesengura Ryimbitse",
+      "title": "Igereranya ry'Ibiciro",
+      "headers": {
+        "feature": "Ibyiciro by'Ibicuruzwa",
+        "starter": "Starter",
+        "enterprise": "Enterprise"
       },
       "features": {
-        "title": "Modules zuzuye",
-        "subtitle": "Ibyo ukeneye byose mu micungire y'ibikorwa mu gihe nyacyo."
+        "dashboard": "Dashboard Mpuzamahanga",
+        "reporting": "Raporo Zikora Zizana",
+        "ai": "Umufasha wa AI",
+        "offline": "Gukora Nta Muriro",
+        "support": "Gufashwa Ako Kanya 24/7",
+        "security": "Umutekano Wisumbuye"
+      }
+    },
+    "waitlist": {
+      "badge": "Tangira Ubu",
+      "title": "Witeguye <spanClassName>guhindura</spanClassName> <br /> business yawe?",
+      "subtitle": "Sanga umubare w'ibigo biri kwaguka hamwe n'ubugenzuzi bw'ako kanya. Shaka umwanya wawe mu gihe kizaza cy'imicungire.",
+      "placeholder": "Andika imeli ya business yawe",
+      "button": "Sanga Abandi Ubu"
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Ibibazo Bikunze Kubazwa",
+      "items": {
+        "who": {
+          "q": "Invexix igenewe nde?",
+          "a": "Ibigo bito, ibigo biri kwaguka, n'ubucuruzi bufite amashami menshi."
+        },
+        "easy": {
+          "q": "Ese Invexix yoroshye gukoresha?",
+          "a": "Yego. Yateguwe mu buryo bworoshye, bwumvikana, kandi bwihuta kwigwa."
+        },
+        "mobile": {
+          "q": "Ese nshobora kuyikoresha kuri telefoni?",
+          "a": "Yego. Genzura business yawe igihe cyose, aho ari ho hose."
+        },
+        "reports": {
+          "q": "Ese nshobora kumanura raporo?",
+          "a": "Yego. Kora kandi umanure raporo za PDF z'umwuga."
+        },
+        "secure": {
+          "q": "Ese amakuru yanjye atekanye?",
+          "a": "Byanze bikunze. Invexix ikubiyemo uburyo bwizewe bwo kwinjira, uburenganzira, n'amateka y'ibyakozwe."
+        }
+      }
+    },
+    "cases": {
+      "title": "Imejengwa kwa kila biashara, kila mahali.",
+      "subtitle": "Inabadilika kwa rejareja, jumla, huduma, vifaa na mtiririko wa kazi wa biashara.",
+      "items": {
+        "retail": "Rejareja",
+        "wholesale": "Jumla",
+        "services": "Huduma",
+        "logistics": "Vifaa"
+      }
+    },
+    "footer": {
+      "desc": "Invexix ni jukwaa la kimataifa la usimamizi wa biashara lililojengwa kwa ajili ya kiwango.",
+      "links": {
+        "title": "Gundua",
+        "about": "Kuhusu",
+        "features": "Vipengele",
+        "pricing": "Bei"
       },
-      "how": {
-        "title": "Uko Invexix ikora",
-        "subtitle": "Shyiraho, utegure, ukurebe mu minota mike."
+      "contact": {
+        "title": "Wasiliana",
+        "email": "hello@invexix.com"
       },
-      "why": {
-        "title": "Ubugenzuzi bwuzuye n'ibitekerezo by'ako kanya",
-        "subtitle": "Yubatswe ku nzego zose z'ubucuruzi."
+      "legal": {
+        "title": "Kisheria",
+        "privacy": "Sera ya Faragha",
+        "terms": "Sheria na Masharti"
       },
-      "pricing": {
-        "title": "Ibiciro byoroshye ku kigo cyose"
+      "newsletter": {
+        "title": "Sanga udushya twacu",
+        "desc": "Bona amakuru mashya n'inama z'ubucuruzi muri imeli yawe.",
+        "placeholder": "izina@ikigo.com"
       },
-      "cases": {
-        "title": "Yubakiwe buri sosiyete, hose."
+      "bottom": {
+        "copy": "© 2026 Invexix. Yateguwe m'uburyo buhanitse.",
+        "docs": "Inyandiko",
+        "support": "Gufashwa",
+        "status": "Imiterere"
       }
     }
   },
@@ -1771,6 +1999,8 @@
         "avgDebtAge": "Impuzandengo y'Iminsi y'Umwenda"
       },
       "table": {
+        "invoiceNo": "No ya fagitire",
+        "customerInfo": "Amakuru y'Umukiriya",
         "debtAmount": "Umubare w'Umwenda",
         "paymentInfo": "Amakuru yo Kwishyura",
         "tracking": "Ikurikiranwa",
@@ -1782,7 +2012,8 @@
         "lastPaid": "Ayishyuwe biheruka",
         "dueDate": "Itariki ntarengwa",
         "age": "Iminsi",
-        "saleDate": "Itariki yagurishijwe"
+        "saleDate": "Itariki yagurishijwe",
+        "status": "Imiterere"
       },
       "status": {
         "overdue": "Ryakererewe",

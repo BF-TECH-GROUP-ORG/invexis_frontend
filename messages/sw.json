@@ -274,9 +274,38 @@
   "home": {
     "login": "Ingia",
     "register": "Jisajili",
+    "home": "Nyumbani",
+    "about": "Kuhusu",
+    "faq": "F&Q",
+    "services": "Huduma",
     "hero": {
-      "title": "Soma biashara yako yote kwa wakati halisi — popote ulipo",
-      "subtitle": "Hesabu, mauzo, wafanyakazi, madeni, ripoti, arifu na ukaguzi — yote kwenye dashibodi moja yenye nguvu.",
+      "title1": "Acha kupoteza muda",
+      "title2": "kwa kurekodi kwa mkono",
+      "subtitle": "Ongeza ufanisi, okoa muda na pesa kwa mfumo huu wa usimamizi wa hisa.",
+      "getStarted": "Anza"
+    },
+    "stats": {
+      "users": "Watumiaji",
+      "system": "Mfumo",
+      "satisfaction": "Kiwango cha kuridhika",
+      "uptime": "Dhamana ya muda wa kufanya kazi"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Nyumbani",
+      "about": "Kuhusu",
+      "features": "Vipengele",
+      "pricing": "Bei",
+      "why": "Kwanini Sisi",
+      "faq": "F&Q",
+      "login": "Ingia",
+      "dashboard": "Dashibodi"
+    },
+    "hero": {
+      "badge": "Business Intelligence ya Kizazi Kijacho",
+      "title": "Nguvu kwa <br/> <spanClassName>biashara yako ya kisasa</spanClassName>",
+      "subtitle": "Pata kizazi kijacho cha usimamizi wa biashara. Ni smart, inayojiendesha, na iliyojengwa kwa timu zenye utendaji wa juu.",
       "kpi1": {
         "title": "Arifa za wakati halisi",
         "value": "Live"
@@ -286,41 +315,247 @@
         "value": "Multi-region"
       }
     },
-    "landing": {
-      "nav": {
-        "home": "Nyumbani",
-        "features": "Vipengele",
-        "pricing": "Bei",
-        "login": "Ingia"
-      },
-      "cta": {
-        "start": "Anza Jaribio Bila Malipo",
-        "demo": "Omba Demo",
-        "final": {
-          "title": "Anza Kusimamia Biashara Yako Kwa Ujasiri — Leo",
-          "subtitle": "Jaribio la bure, bila kadi ya mkopo"
+    "cta": {
+      "start": "Anza Jaribio Bila Malipo",
+      "demo": "Omba Demo",
+      "final": {
+        "title": "Simamia Biashara Yako Kwa Njia Nadhifu — Kuanzia Leo",
+        "subtitle": "Pata udhibiti kamili, maarifa ya wakati halisi, na utulivu wa akili ukiwa na Invexis.",
+        "openDashboard": "Fungua Dashibodi",
+        "startTrial": "Anza Jaribio Bila Malipo"
+      }
+    },
+    "about": {
+      "badge": "Kuhusu Invexix",
+      "title": "Dashibodi Moja. <br/> <spanClassName>Udhibiti Kamili wa Biashara.</spanClassName>",
+      "desc": "Invexix inakusaidia kusimamia hesabu, mauzo, wafanyakazi, madeni, ripoti, na malipo kwenye jukwaa moja lenye nguvu — kwa hivyo unajua kila wakati kinachoendelea katika biashara yako, kwa wakati halisi.",
+      "points": {
+        "point1": "Usimamizi wa biashara uliowekwa kati",
+        "point2": "Data na maarifa ya wakati halisi",
+        "point3": "Imejengwa kwa biashara zinazokua"
+      }
+    },
+    "trust": {
+      "heading": "Inatumiwa na <count/>+ makampuni ulimwenguni kote"
+    },
+    "features": {
+      "title": "Moduli Kamili",
+      "subtitle": "Kila kitu unachohitaji ili kuendesha shughuli kwa wakati halisi.",
+      "items": {
+        "inventory": {
+          "title": "Usimamizi wa Hesabu",
+          "desc": "Fuatilia kila bidhaa inayongia au kutoka na arifa za kiwango cha hisa zinazojiendesha."
+        },
+        "sales": {
+          "title": "Mauzo ya Wakati Halisi",
+          "desc": "Rekodi mauzo papo hapo na utazame mapato yako yakikua kwa uchambuzi wa moja kwa moja."
+        },
+        "debts": {
+          "title": "Madeni na Mapato",
+          "desc": "Jua hasa nani anakudai, kiasi gani, na lini — bila ufuatiliaji wa mwongozo."
+        },
+        "payments": {
+          "title": "Ankara na Malipo",
+          "desc": "Unda ankara, fuatilia malipo, na weka fedha zako zikiwa zimepangwa."
+        },
+        "analytics": {
+          "title": "Ripoti na Uchambuzi",
+          "desc": "Pakua ripoti za kitaalamu na utazame dashibodi zilizo wazi zinazosaidia maamuzi nadhifu."
+        },
+        "notifications": {
+          "title": "Arifu na Tahadhari",
+          "desc": "Pata arifa za papo hapo kwa hisa ndogo, madeni yaliyochelewa, na shughuli muhimu."
         }
+      }
+    },
+    "how": {
+      "badge": "Jinsi Invexis Inavyofanya Kazi",
+      "title": "Utekelezaji Usio na Mfumo",
+      "subtitle": "Anza, usanidi, na ufuatilie kwa dakika chache.",
+      "steps": {
+        "s1": {
+          "title": "Unda Eneo Lako la Kazi",
+          "desc": "Jiandikishe na uanzishe wasifu wako wa biashara kwa sekunde chache."
+        },
+        "s2": {
+          "title": "Sanidi Hesabu na Wafanyakazi",
+          "desc": "Ongeza bidhaa zako, kategoria, na uwaite washiriki wa timu yako na majukumu mahususi."
+        },
+        "s3": {
+          "title": "Fuatilia Shughuli Mbashara",
+          "desc": "Tazama mauzo na harakati za hisa zikifanyika kwa wakati halisi kutoka popote."
+        },
+        "s4": {
+          "title": "Pata Maarifa na Arifa",
+          "desc": "Pokea arifa za kiotomatiki kwa hisa ndogo na utazame ripoti za kitaalamu."
+        }
+      }
+    },
+    "why": {
+      "badge": "Kwa nini Biashara Zinachagua Invexis",
+      "title": "Imejengwa kwa <spanClassName>Shughuli Halisi</spanClassName>",
+      "items": {
+        "ops": {
+          "title": "Imejengwa kwa Shughuli Halisi",
+          "desc": "Imeundwa kulingana na mtiririko halisi wa kazi wa biashara — si lahajedwali au ubashiri."
+        },
+        "allinone": {
+          "title": "Jukwaa la Yote-katika-Moja",
+          "desc": "Badilisha zana nyingi kwa mfumo mmoja unaoaminika."
+        },
+        "control": {
+          "title": "Udhibiti wa Wakati Halisi",
+          "desc": "Fanya maamuzi ukitumia data ya moja kwa moja, si ripoti za zamani."
+        },
+        "secure": {
+          "title": "Salama na Inayoaminika",
+          "desc": "Ufikiaji kulingana na majukumu, kumbukumbu za ukaguzi, na ulinzi wa data uliojengwa ndani."
+        },
+        "scales": {
+          "title": "Hukua na Wewe",
+          "desc": "Kuanzia duka moja hadi matawi mengi — Invexix hukua unavyokua."
+        }
+      }
+    },
+    "pricing": {
+      "badge": "Mipango Inayokua na Wewe",
+      "title": "Chaguzi za Bei",
+      "subtitle": "Chagua mpango wa usajili unaofaa mahitaji yako",
+      "toggle": {
+        "monthly": "Kila Mwezi",
+        "yearly": "Kila Mwaka"
       },
-      "trust": {
-        "heading": "Imetolewa kwa biashara za kisasa ulimwenguni"
+      "plans": {
+        "onboarding": {
+          "title": "Ada ya Kuanza",
+          "price": "Inabadilika",
+          "sub": "Ada ya kusanidi mara moja",
+          "features": {
+            "f1": "Usanidi wa mfumo",
+            "f2": "Mafunzo ya timu",
+            "f3": "Usaidizi wa kuhamisha data"
+          },
+          "btn": "Wasiliana Nasi"
+        },
+        "standard": {
+          "title": "Mpango wa Kawaida",
+          "price": "$29.99",
+          "sub": "Inatozwa kila mwezi",
+          "features": {
+            "f1": "Ufikiaji kamili wa Dashibodi",
+            "f2": "Ripoti za Msingi",
+            "f3": "Ushirikiano wa Timu",
+            "f4": "Usawazishaji wa Simu"
+          },
+          "btn": "Anza Sasa",
+          "popular": "Maarufu Zaidi"
+        },
+        "pro": {
+          "title": "Mpango wa Pro",
+          "price": "$59.99",
+          "sub": "Inatozwa kila mwezi",
+          "features": {
+            "f1": "Ujumuishaji wa AI",
+            "f2": "Njia ya Nje ya Mtandao",
+            "f3": "Usaidizi wa Kipaumbele",
+            "f4": "Uchambuzi wa Juu"
+          },
+          "btn": "Anza Sasa"
+        }
+      }
+    },
+    "comparison": {
+      "badge": "Mchanganuo wa Kina",
+      "title": "Ulinganisho wa Bei",
+      "headers": {
+        "feature": "Uongozi wa Vipengele",
+        "starter": "Starter",
+        "enterprise": "Enterprise"
       },
       "features": {
-        "title": "Moduli Kamili",
-        "subtitle": "Kila unachohitaji kuendesha shughuli zako kwa wakati halisi."
+        "dashboard": "Dashibodi ya Kimataifa",
+        "reporting": "Ripoti za Kiotomatiki",
+        "ai": "Msaidizi wa AI",
+        "offline": "Hali ya Nje ya Mtandao",
+        "support": "Usaidizi wa Kipaumbele wa 24/7",
+        "security": "Usalama wa Juu"
+      }
+    },
+    "waitlist": {
+      "badge": "Anza Sasa",
+      "title": "Uko tayari <spanClassName>kuboresha</spanClassName> <br /> biashara yako?",
+      "subtitle": "Jiunge na idadi inayokua ya biashara zinazoongezeka kwa udhibiti wa wakati halisi. Linda nafasi yako katika siku zijazo za usimamizi.",
+      "placeholder": "Ingiza barua pepe yako ya biashara",
+      "button": "Jiunge Sasa",
+      "metrics": {
+        "capacity": "Beta Capacity",
+        "full": "{percentage}% Imejaa",
+        "trust": "Inaaminiwa na biashara katika nchi 12."
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Maswali Yanayoulizwa Mara kwa Mara",
+      "items": {
+        "who": {
+          "q": "Invexix ni ya nani?",
+          "a": "Biashara ndogo ndogo, makampuni yanayokua, na shughuli za matawi mengi."
+        },
+        "easy": {
+          "q": "Je, Invexix ni rahisi kutumia?",
+          "a": "Ndiyo. Imeundwa kuwa rahisi, angavu, na haraka kujifunza."
+        },
+        "mobile": {
+          "q": "Je, naweza kuipata kwenye simu?",
+          "a": "Ndiyo. Pata biashara yako wakati wowote, mahali popote."
+        },
+        "reports": {
+          "q": "Je, naweza kupakua ripoti?",
+          "a": "Ndiyo. Tengeneza na upakue ripoti za kitaalamu za PDF."
+        },
+        "secure": {
+          "q": "Je, data yangu iko salama?",
+          "a": "Kabisa. Invexix inajumuisha uthibitishaji salama, ruhusa, na kumbukumbu za ukaguzi."
+        }
+      }
+    },
+    "cases": {
+      "title": "Imejengwa kwa kila biashara, kila mahali.",
+      "subtitle": "Inabadilika kwa rejareja, jumla, huduma, vifaa na mtiririko wa kazi wa biashara.",
+      "items": {
+        "retail": "Rejareja",
+        "wholesale": "Jumla",
+        "services": "Huduma",
+        "logistics": "Vifaa"
+      }
+    },
+    "footer": {
+      "desc": "Invexix ni jukwaa la kimataifa la usimamizi wa biashara lililojengwa kwa ajili ya kiwango.",
+      "links": {
+        "title": "Gundua",
+        "about": "Kuhusu",
+        "features": "Vipengele",
+        "pricing": "Bei"
       },
-      "how": {
-        "title": "Jinsi Invexix Inavyofanya Kazi",
-        "subtitle": "Tengeneza, weka, na fuatilia ndani ya dakika."
+      "contact": {
+        "title": "Wasiliana",
+        "email": "hello@invexix.com"
       },
-      "why": {
-        "title": "Udhibiti kamili na taarifa za wakati halisi",
-        "subtitle": "Iliyoundwa kwa biashara za ukubwa wote."
+      "legal": {
+        "title": "Kisheria",
+        "privacy": "Sera ya Faragha",
+        "terms": "Sheria na Masharti"
       },
-      "pricing": {
-        "title": "Bei zinazofaa kwa kila biashara"
+      "newsletter": {
+        "title": "Jiunge na maarifa yetu",
+        "desc": "Pata sasisho za hivi karibuni na vidokezo vya biashara moja kwa moja kwenye kisanduku chako cha barua.",
+        "placeholder": "jina@kampuni.com"
       },
-      "cases": {
-        "title": "Imejengwa kwa kila biashara, kila mahali."
+      "bottom": {
+        "copy": "© 2026 Invexix. Imeundwa kwa usahihi.",
+        "docs": "Nyaraka",
+        "support": "Usaidizi",
+        "status": "Hali"
       }
     }
   },
@@ -1772,6 +2007,8 @@
         "avgDebtAge": "Wastani wa Muda wa Deni"
       },
       "table": {
+        "invoiceNo": "Nambari ya Ankara",
+        "customerInfo": "Taarifa za Mteja",
         "debtAmount": "Kiasi cha Deni",
         "paymentInfo": "Taarifa za Malipo",
         "tracking": "Ufuatiliaji",
@@ -1783,7 +2020,8 @@
         "lastPaid": "Malipo ya Mwisho",
         "dueDate": "Tarehe ya Mwisho",
         "age": "Muda (Siku)",
-        "saleDate": "Tarehe ya Mauzo"
+        "saleDate": "Tarehe ya Mauzo",
+        "status": "Hali"
       },
       "status": {
         "overdue": "Limechelewa",

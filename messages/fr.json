@@ -274,53 +274,288 @@
   "home": {
     "login": "Connexion",
     "register": "S'inscrire",
+    "home": "Accueil",
+    "about": "À propos",
+    "faq": "Faq",
+    "services": "Services",
     "hero": {
-      "title": "Gérez votre entreprise en temps réel — où que vous soyez",
-      "subtitle": "Inventaire, ventes, personnel, créances, rapports, notifications et audits — tout dans un tableau de bord puissant.",
+      "title1": "Arrêtez de perdre du temps",
+      "title2": "dans les enregistrements manuels",
+      "subtitle": "Boostez l'efficacité, gagnez du temps et de l'argent avec ce système de gestion de stock.",
+      "getStarted": "Démarrer"
+    },
+    "stats": {
+      "users": "Utilisateurs",
+      "system": "Système",
+      "satisfaction": "Taux de satisfaction",
+      "uptime": "Garantie de disponibilité"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Accueil",
+      "about": "À propos",
+      "features": "Fonctionnalités",
+      "pricing": "Tarifs",
+      "why": "Pourquoi nous",
+      "faq": "FAQ",
+      "login": "Connexion",
+      "dashboard": "Tableau de bord"
+    },
+    "hero": {
+      "badge": "Business Intelligence Futuriste",
+      "title": "Une centrale pour votre <br/> <spanClassName>entreprise moderne</spanClassName>",
+      "subtitle": "Découvrez la prochaine génération de gestion d'entreprise. Intelligente, automatisée et conçue pour les équipes performantes.",
       "kpi1": {
         "title": "Alertes en temps réel",
         "value": "Live"
       },
       "kpi2": {
-        "title": "Échelle mondiale",
+        "title": "Échelle globale",
         "value": "Multi-région"
       }
     },
-    "landing": {
-      "nav": {
-        "home": "Accueil",
-        "features": "Fonctionnalités",
-        "pricing": "Tarifs",
-        "login": "Connexion"
-      },
-      "cta": {
-        "start": "Démarrer l'essai",
-        "demo": "Demander une démo",
-        "final": {
-          "title": "Gérez votre entreprise plus intelligemment — aujourd'hui",
-          "subtitle": "Essai gratuit, aucune carte requise"
+    "cta": {
+      "start": "Commencer l'essai gratuit",
+      "demo": "Demander une démo",
+      "final": {
+        "title": "Gérez votre entreprise plus intelligemment — Dès aujourd'hui",
+        "subtitle": "Bénéficiez d'un contrôle total, d'informations en temps réel et d'une tranquillité d'esprit avec Invexix.",
+        "openDashboard": "Ouvrir le tableau de bord",
+        "startTrial": "Commencer l'essai gratuit"
+      }
+    },
+    "about": {
+      "badge": "À propos d'Invexix",
+      "title": "Un seul tableau de bord. <br/> <spanClassName>Contrôle total de l'entreprise.</spanClassName>",
+      "desc": "Invexix vous aide à gérer l'inventaire, les ventes, le personnel, les créances, les rapports et les paiements dans une plate-forme puissante — vous savez donc toujours ce qui se passe dans votre entreprise, en temps réel.",
+      "points": {
+        "point1": "Gestion centralisée des activités",
+        "point2": "Données et informations en temps réel",
+        "point3": "Conçu pour les entreprises en croissance"
+      }
+    },
+    "trust": {
+      "heading": "Utilisé par <count/>+ entreprises dans le monde"
+    },
+    "features": {
+      "title": "Modules Complets",
+      "subtitle": "Tout ce dont vous avez besoin pour gérer vos opérations en temps réel.",
+      "items": {
+        "inventory": {
+          "title": "Gestion des Stocks",
+          "desc": "Suivez chaque article entrant ou sortant avec des alertes de niveau de stock automatisées."
+        },
+        "sales": {
+          "title": "Ventes en Temps Réel",
+          "desc": "Enregistrez vos ventes instantanément et regardez vos revenus croître avec des analyses en direct."
+        },
+        "debts": {
+          "title": "Dettes et Créances",
+          "desc": "Sachez exactement qui vous doit, combien et quand — sans suivi manuel."
+        },
+        "payments": {
+          "title": "Facturation et Paiements",
+          "desc": "Créez des factures, suivez les paiements et gardez vos finances organisées."
+        },
+        "analytics": {
+          "title": "Rapports et Analyses",
+          "desc": "Téléchargez des rapports professionnels et visualisez des tableaux de bord clairs pour des décisions plus judicieuses."
+        },
+        "notifications": {
+          "title": "Notifications et Alertes",
+          "desc": "Recevez des alertes instantanées pour les stocks faibles, les dettes en retard et les activités critiques."
         }
+      }
+    },
+    "how": {
+      "badge": "Comment fonctionne Invexis",
+      "title": "Mise en œuvre transparente",
+      "subtitle": "Configurez, paramétrez et surveillez en quelques minutes.",
+      "steps": {
+        "s1": {
+          "title": "Créez votre espace de travail",
+          "desc": "Inscrivez-vous et configurez votre profil d'entreprise en quelques secondes."
+        },
+        "s2": {
+          "title": "Configurez l'inventaire et le personnel",
+          "desc": "Ajoutez vos produits, vos catégories et invitez les membres de votre équipe avec des rôles spécifiques."
+        },
+        "s3": {
+          "title": "Surveillez les opérations en direct",
+          "desc": "Suivez les ventes et les mouvements de stock en temps réel, où que vous soyez."
+        },
+        "s4": {
+          "title": "Obtenez des informations et des alertes",
+          "desc": "Recevez des alertes automatisées pour les stocks faibles et consultez des rapports professionnels."
+        }
+      }
+    },
+    "why": {
+      "badge": "Pourquoi les entreprises choisissent Invexis",
+      "title": "Conçu pour les <spanClassName>opérations réelles</spanClassName>",
+      "items": {
+        "ops": {
+          "title": "Conçu pour les opérations réelles",
+          "desc": "Conçu autour de flux de travail réels de l'entreprise — pas de feuilles de calcul ni d'approximations."
+        },
+        "allinone": {
+          "title": "Plateforme Tout-en-Un",
+          "desc": "Remplacez plusieurs outils par un seul système fiable."
+        },
+        "control": {
+          "title": "Contrôle en Temps Réel",
+          "desc": "Prenez des décisions en utilisant des données en direct, pas des rapports obsolètes."
+        },
+        "secure": {
+          "title": "Sûr et Fiable",
+          "desc": "Accès basé sur les rôles, journaux d'audit et protection des données intégrés."
+        },
+        "scales": {
+          "title": "Évolue Avec Vous",
+          "desc": "D'un seul magasin à plusieurs succursales — Invexix grandit avec vous."
+        }
+      }
+    },
+    "pricing": {
+      "badge": "Des Plans Qui Évoluent Avec Vous",
+      "title": "Options de Tarification",
+      "subtitle": "Choisissez l'abonnement qui convient à vos besoins",
+      "toggle": {
+        "monthly": "Mensuel",
+        "yearly": "Annuel"
       },
-      "trust": {
-        "heading": "Adopté par des entreprises modernes dans le monde entier"
+      "plans": {
+        "onboarding": {
+          "title": "Frais d'Intégration",
+          "price": "Variable",
+          "sub": "Frais d'installation uniques",
+          "features": {
+            "f1": "Configuration du système",
+            "f2": "Formation de l'équipe",
+            "f3": "Aide à la migration des données"
+          },
+          "btn": "Contactez-nous"
+        },
+        "standard": {
+          "title": "Plan Standard",
+          "price": "$29.99",
+          "sub": "Facturé mensuellement",
+          "features": {
+            "f1": "Accès complet au tableau de bord",
+            "f2": "Rapports de base",
+            "f3": "Collaboration d'équipe",
+            "f4": "Synchronisation mobile"
+          },
+          "btn": "Commencer",
+          "popular": "Le Plus Populaire"
+        },
+        "pro": {
+          "title": "Plan Pro",
+          "price": "$59.99",
+          "sub": "Facturé mensuellement",
+          "features": {
+            "f1": "Intégration de l'IA",
+            "f2": "Mode hors ligne",
+            "f3": "Support prioritaire",
+            "f4": "Analyses avancées"
+          },
+          "btn": "Commencer"
+        }
+      }
+    },
+    "comparison": {
+      "badge": "Répartition Détaillée",
+      "title": "Comparaison des Tarifs",
+      "headers": {
+        "feature": "Hiérarchie des Fonctionnalités",
+        "starter": "Starter",
+        "enterprise": "Entreprise"
       },
       "features": {
-        "title": "Modules complets",
-        "subtitle": "Tout ce dont vous avez besoin pour gérer vos opérations en temps réel."
+        "dashboard": "Tableau de Bord Global",
+        "reporting": "Rapports Automatisés",
+        "ai": "Assistant IA",
+        "offline": "Mode Hors Ligne",
+        "support": "Support Prioritaire 24/7",
+        "security": "Sécurité Avancée"
+      }
+    },
+    "waitlist": {
+      "badge": "Commencer",
+      "title": "Prêt à <spanClassName>révolutionner</spanClassName> <br /> votre entreprise ?",
+      "subtitle": "Rejoignez le nombre croissant d'entreprises qui évoluent avec un contrôle en temps réel. Assurez votre place dans le futur de la gestion.",
+      "placeholder": "Entrez votre email professionnel",
+      "button": "Rejoindre maintenant",
+      "metrics": {
+        "capacity": "Capacité Beta",
+        "full": "{percentage}% Plein",
+        "trust": "Approuvé par des entreprises dans 12 pays."
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Questions Fréquemment Posées",
+      "items": {
+        "who": {
+          "q": "À qui s'adresse Invexix ?",
+          "a": "Petites entreprises, entreprises en croissance et opérations multi-succursales."
+        },
+        "easy": {
+          "q": "Invexix est-il facile à utiliser ?",
+          "a": "Oui. Il est conçu pour être simple, intuitif et rapide à apprendre."
+        },
+        "mobile": {
+          "q": "Puis-je y accéder sur mobile ?",
+          "a": "Oui. Accédez à votre entreprise n'importe quand, n'importe où."
+        },
+        "reports": {
+          "q": "Puis-je télécharger des rapports ?",
+          "a": "Oui. Générez et téléchargez des rapports PDF professionnels."
+        },
+        "secure": {
+          "q": "Mes données sont-elles sécurisées ?",
+          "a": "Absolument. Invexix comprend une authentification sécurisée, des autorisations et des journaux d'audit."
+        }
+      }
+    },
+    "cases": {
+      "title": "Conçu pour chaque entreprise, partout.",
+      "subtitle": "Adaptable aux flux de travail de la vente au détail, du gros, des services, de la logistique et de l'entreprise.",
+      "items": {
+        "retail": "Commerce de détail",
+        "wholesale": "Commerce de gros",
+        "services": "Services",
+        "logistics": "Logistique"
+      }
+    },
+    "footer": {
+      "desc": "Invexix est une plateforme mondiale de gestion d'entreprise conçue pour l'évolution.",
+      "links": {
+        "title": "Explorer",
+        "about": "À propos",
+        "features": "Fonctionnalités",
+        "pricing": "Tarifs"
       },
-      "how": {
-        "title": "Comment fonctionne Invexix",
-        "subtitle": "Configurez et surveillez en quelques minutes."
+      "contact": {
+        "title": "Contact",
+        "email": "hello@invexix.com"
       },
-      "why": {
-        "title": "Contrôle total et informations en temps réel",
-        "subtitle": "Conçu pour les entreprises de toutes tailles."
+      "legal": {
+        "title": "Légal",
+        "privacy": "Politique de confidentialité",
+        "terms": "Conditions d'utilisation"
       },
-      "pricing": {
-        "title": "Des tarifs flexibles pour chaque entreprise"
+      "newsletter": {
+        "title": "Rejoignez nos analyses",
+        "desc": "Recevez les dernières mises à jour et conseils d'affaires directement dans votre boîte de réception.",
+        "placeholder": "nom@entreprise.com"
       },
-      "cases": {
-        "title": "Conçu pour toutes les entreprises, partout."
+      "bottom": {
+        "copy": "© 2026 Invexix. Conçu avec précision.",
+        "docs": "Documentation",
+        "support": "Support",
+        "status": "Statut"
       }
     }
   },
@@ -1773,6 +2008,8 @@
         "avgDebtAge": "Âge Moyen de la Dette"
       },
       "table": {
+        "invoiceNo": "N° de Facture",
+        "customerInfo": "Infos Client",
         "debtAmount": "Montant de la Dette",
         "paymentInfo": "Infos de Paiement",
         "tracking": "Suivi",
@@ -1784,7 +2021,8 @@
         "lastPaid": "Dernier Paiement",
         "dueDate": "Date d'Échéance",
         "age": "Âge (J)",
-        "saleDate": "Date de Vente"
+        "saleDate": "Date de Vente",
+        "status": "Statut"
       },
       "status": {
         "overdue": "En retard",
