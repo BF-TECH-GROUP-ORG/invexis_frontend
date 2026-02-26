@@ -1820,10 +1820,32 @@
         "title": "Scanner avec Mobile",
         "subtitle": "Pointez la caméra de votre application mobile vers le code QR ou le code-barres ci-dessous pour effectuer des actions de sortie de stock rapides depuis l'application mobile.",
         "tipsTitle": "Conseils pour scanner avec un téléphone mobile",
+        "qrTab": "Code QR",
+        "barcodeTab": "Code-barres",
         "tip1": "Ouvrez l'application mobile et allez dans la section scanner.",
         "tip2": "Pointez la caméra fixement vers le code QR ou le code-barres et laissez l'autofocus agir.",
         "tip3": "Assurez un bon éclairage et évitez les reflets sur les étiquettes brillantes.",
         "tip4": "Si vous scannez un code-barres, alignez-le horizontalement dans le cadre de la caméra."
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Confirmer la sortie de stock",
+        "qty": "Quantité",
+        "reason": "Raison",
+        "cancel": "Annuler",
+        "confirm": "Confirmer",
+        "processing": "Traitement...",
+        "success": "Sortie de stock enregistrée avec succès",
+        "failed": "Échec de l'enregistrement de la sortie de stock",
+        "qtyError": "Veuillez entrer une quantité valide",
+        "reasons": {
+          "sale": "Vente",
+          "damaged": "Endommagé",
+          "expired": "Expiré",
+          "transferOut": "Transfert sortant",
+          "other": "Autre"
+        }
       }
     },
     "operations": {
@@ -1875,26 +1897,6 @@
         "loadFailed": "Échec du chargement de l'historique du stock",
         "tryAgain": "Réessayer",
         "noChanges": "Aucun changement de stock trouvé"
-      }
-    },
-    "dialogs": {
-      "confirmStockOut": {
-        "title": "Confirmer la Sortie de Stock",
-        "qty": "Quantité",
-        "reason": "Raison",
-        "cancel": "Annuler",
-        "confirm": "Confirmer",
-        "processing": "Traitement en cours...",
-        "success": "Sortie de stock réussie",
-        "qtyError": "Veuillez entrer une quantité supérieure à 0",
-        "failed": "La sortie de stock a échoué",
-        "reasons": {
-          "sale": "Vente",
-          "damaged": "Endommagé",
-          "expired": "Expiré",
-          "transferOut": "Transfert Sortant",
-          "other": "Autre"
-        }
       }
     }
   },

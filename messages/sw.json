@@ -1819,10 +1819,32 @@
         "title": "Soma kwa Simu",
         "subtitle": "Elekeza kamera ya programu yako ya simu kwenye msimbo wa QR au msimbo pau hapa chini ili kufanya vitendo vya haraka vya kutoa akiba kutoka kwenye programu ya simu.",
         "tipsTitle": "Vidokezo vya kusoma kwa simu ya mkononi",
+        "qrTab": "Msimbo wa QR",
+        "barcodeTab": "Msimbo Pau",
         "tip1": "Fungua programu ya simu na uende kwenye sehemu ya skana.",
         "tip2": "Elekeza kamera kwa uthabiti kwenye msimbo wa QR au msimbo pau na uiruhusu ifanye lengo (autofocus).",
         "tip3": "Hakikisha mwanga ni mzuri na epuka mwangaza mkali kwenye lebo zinazong'aa.",
         "tip4": "Ukisoma msimbo pau, uelekeze kwa mlalo kwenye fremu ya kamera."
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Thibitisha Kutoka kwa Akiba",
+        "qty": "Kiasi",
+        "reason": "Sababu",
+        "cancel": "GHAIRI",
+        "confirm": "THIBITISHA",
+        "processing": "Inashughulikiwa...",
+        "success": "Kutoa akiba kumefaulu",
+        "failed": "Imeshindwa kutoa akiba",
+        "qtyError": "Tafadhali weka kiasi halali",
+        "reasons": {
+          "sale": "Mauzo",
+          "damaged": "Imeharibika",
+          "expired": "Imeisha muda",
+          "transferOut": "Uhamisho wa nje",
+          "other": "Nyingine"
+        }
       }
     },
     "operations": {
@@ -1849,7 +1871,7 @@
       "title": "Historia ya Akiba",
       "subtitle": "Angalia mabadiliko yote ya akiba na marekebisho",
       "searchPlaceholder": "Tafuta kwa jina la bidhaa au SKU...",
-      "refresh": "Pakia upya",
+      "refresh": "Pakua upya",
       "stats": {
         "totalInflow": "Jumla ya Mapato",
         "totalOutflow": "Jumla ya Matumizi",
@@ -1874,26 +1896,6 @@
         "loadFailed": "Imeshindwa kupakia historia ya akiba",
         "tryAgain": "Jaribu tena",
         "noChanges": "Hakuna mabadiliko ya akiba yaliyopatikana"
-      }
-    },
-    "dialogs": {
-      "confirmStockOut": {
-        "title": "Thibitisha Akiba Iliyotoka",
-        "qty": "Kiasi",
-        "reason": "Sababu",
-        "cancel": "Ghairi",
-        "confirm": "Thibitisha",
-        "processing": "Inachakata...",
-        "success": "Akiba imetolewa kwa mafanikio",
-        "qtyError": "Tafadhali ingiza kiasi kikubwa kuliko 0",
-        "failed": "Kutoa akiba imefeli",
-        "reasons": {
-          "sale": "Uuzaji",
-          "damaged": "Imeharibika",
-          "expired": "Imeisha muda",
-          "transferOut": "Uhamisho wa Nje",
-          "other": "Nyingine"
-        }
       }
     }
   },

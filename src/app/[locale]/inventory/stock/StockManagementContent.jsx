@@ -9,6 +9,7 @@ import {
   TrendingUp,
   TrendingDown,
   Activity,
+  Barcode,
 } from "lucide-react";
 import productsService from "@/services/productsService";
 import { getDailySummary } from "@/services/stockService";
@@ -18,7 +19,8 @@ import {
   StockHistoryTable,
 } from "@/components/inventory/stock";
 import Sparkline from "@/components/visuals/Sparkline";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, usePathname, Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -84,6 +86,7 @@ export default function StockManagementContent({ initialParams = {} }) {
   const productsCache = productsRes?.data || productsRes || [];
 
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCodeType, setSelectedCodeType] = useState("qr"); // 'qr' or 'barcode'
 
   const handleProductFound = (product) => {
     setSelectedProduct(product);
@@ -271,16 +274,72 @@ export default function StockManagementContent({ initialParams = {} }) {
                 <div className="flex flex-col items-center gap-4">
                   <h3 className="text-lg font-semibold text-gray-900">{t("scanner.scanMobile.title")}</h3>
                   <p className="text-sm text-gray-500 text-center">{t("scanner.scanMobile.subtitle")}</p>
-                  <div className="mt-4 flex flex-col items-center gap-4">
-                    {selectedProduct.codes?.qrPayload && (
-                      <img alt="Large QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(selectedProduct.codes.qrPayload)}`} className="w-56 h-56 bg-white p-2 rounded-md border" />
+
+                  {/* Intelligent Tabs for QR/Barcode */}
+                  <div className="flex p-1 bg-gray-100 rounded-xl mt-6 w-full max-w-xs">
+                    <button
+                      onClick={() => setSelectedCodeType("qr")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${selectedCodeType === "qr"
+                          ? "bg-white text-orange-600 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                      <QrCode size={18} />
+                      {t("scanner.scanMobile.qrTab")}
+                    </button>
+                    <button
+                      onClick={() => setSelectedCodeType("barcode")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${selectedCodeType === "barcode"
+                          ? "bg-white text-orange-600 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                      <Barcode size={18} />
+                      {t("scanner.scanMobile.barcodeTab")}
+                    </button>
+                  </div>
+
+                  <div className="mt-8 flex flex-col items-center gap-4 transition-all duration-300">
+                    {selectedCodeType === "qr" ? (
+                      selectedProduct.codes?.qrPayload ? (
+                        <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
+                          <img
+                            alt="Large QR"
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(selectedProduct.codes.qrPayload)}`}
+                            className="w-56 h-56 bg-white p-2 rounded-md border shadow-lg"
+                          />
+                          <p className="mt-4 font-mono text-sm text-gray-400 select-all">{selectedProduct.codes.qrPayload}</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                          <QrCode size={48} className="opacity-20 mb-2" />
+                          <p className="text-sm italic">QR Code not available</p>
+                        </div>
+                      )
+                    ) : (
+                      selectedProduct.codes?.barcodePayload ? (
+                        <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
+                          <img
+                            alt="Large Barcode"
+                            src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(selectedProduct.codes.barcodePayload)}&code=Code128&translate-esc=true`}
+                            className="h-32 shadow-sm"
+                          />
+                          <p className="mt-4 font-mono text-sm text-gray-500 select-all tracking-widest">{selectedProduct.codes.barcodePayload}</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                          <Barcode size={48} className="opacity-20 mb-2" />
+                          <p className="text-sm italic">Barcode not available</p>
+                        </div>
+                      )
                     )}
-                    {selectedProduct.codes?.barcodePayload && (
-                      <img alt="Large Barcode" src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(selectedProduct.codes.barcodePayload)}&code=Code128&translate-esc=true`} className="h-28" />
-                    )}
-                    <div className="w-full mt-4 bg-orange-50 p-3 rounded-lg border border-orange-100 text-sm text-gray-700">
-                      <strong className="block mb-2">{t("scanner.scanMobile.tipsTitle")}</strong>
-                      <ol className="list-decimal list-inside space-y-1">
+
+                    <div className="w-full mt-8 bg-orange-50 p-4 rounded-xl border border-orange-100 text-sm text-gray-700 shadow-inner">
+                      <strong className="block mb-2 text-orange-800 flex items-center gap-2">
+                        <Activity size={16} />
+                        {t("scanner.scanMobile.tipsTitle")}
+                      </strong>
+                      <ol className="list-decimal list-inside space-y-1 text-orange-900/70">
                         <li>{t("scanner.scanMobile.tip1")}</li>
                         <li>{t("scanner.scanMobile.tip2")}</li>
                         <li>{t("scanner.scanMobile.tip3")}</li>

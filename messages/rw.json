@@ -1818,10 +1818,32 @@
         "title": "Skena ukoresheje Telefone",
         "subtitle": "Erekereza kamera ya telefone yawe kuri QR code cyangwa barcode kugira ngo ukore igikorwa cyo gusohora ibikoresho vuba.",
         "tipsTitle": "Inama zo guskena ukoresheje telefone",
+        "qrTab": "QR Code",
+        "barcodeTab": "Barcode",
         "tip1": "Fungura porogaramu ya telefone ujye mu gice cya scanner.",
         "tip2": "Erekereza kamera kuri QR code cyangwa barcode uretse yibonere neza.",
         "tip3": "Iruka ko hari urumuri ruhagije kandi wirinde urumuri rwinshi ku birango.",
         "tip4": "Niba uskena barcode, uyishyire neza mu buryo buryamye mu kirahure cya kamera."
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Wemeza Gusohora Ibintu",
+        "qty": "Ingano",
+        "reason": "Impamvu",
+        "cancel": "REKERAHO",
+        "confirm": "WEMEZA",
+        "processing": "Birimo gukorwa...",
+        "success": "Gusohora ibintu byagenze neza",
+        "failed": "Gusohora ibintu ntibyagenze neza",
+        "qtyError": "Nyamuneka andika ingano ifatika",
+        "reasons": {
+          "sale": "Kugurisha",
+          "damaged": "Ibyangiritse",
+          "expired": "Ibyarengeje igihe",
+          "transferOut": "Ibirimo kwimurwa",
+          "other": "Ikindi"
+        }
       }
     },
     "operations": {
@@ -1873,26 +1895,6 @@
         "loadFailed": "Kuzana amateka y'ibikoresho ntibyagenze neza",
         "tryAgain": "Ongera ugerageze",
         "noChanges": "Nta mhinduka z'ibikoresho zabonetse"
-      }
-    },
-    "dialogs": {
-      "confirmStockOut": {
-        "title": "Emeza isohoka ry'ibikoresho",
-        "qty": "Ingano",
-        "reason": "Impamvu",
-        "cancel": "Kureka",
-        "confirm": "Kwemeza",
-        "processing": "Biri gukorwa...",
-        "success": "Isosohoka ry'ibikoresho ryagenze neza",
-        "qtyError": "Shyiramo ingano irenze 0",
-        "failed": "Isosohoka ry'ibikoresho ntiryagenze neza",
-        "reasons": {
-          "sale": "Kugurisha",
-          "damaged": "Byangiritse",
-          "expired": "Byarengeje igihe",
-          "transferOut": "Kohereza ahandi",
-          "other": "Ikindi"
-        }
       }
     }
   },
