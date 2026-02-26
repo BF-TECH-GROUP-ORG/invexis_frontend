@@ -6,6 +6,8 @@
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
   /* Offset for fixed navbar */
+  scrollbar-gutter: stable;
+  /* Prevent layout shifts when scrollbar appears */
 }
 
 .circuitLines {
@@ -114,7 +116,7 @@
   /* Contain the rain */
 }
 
-.rainContainer {
+.antigravityWrapper {
   position: absolute;
   top: 0;
   left: 0;
@@ -122,19 +124,7 @@
   height: 100%;
   pointer-events: none;
   z-index: 0;
-  overflow: hidden;
-  /* Added to prevent particles from causing overflow */
-}
-
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 40px;
-  background: linear-gradient(to bottom, transparent, #f97316, transparent);
-  border-radius: 999px;
-  filter: blur(1px);
   opacity: 0.6;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
 }
 
 .heroBadge {

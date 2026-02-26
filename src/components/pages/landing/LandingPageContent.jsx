@@ -9,25 +9,25 @@ import useAuth from "@/hooks/useAuth";
 import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
 import {
+  Menu,
+  X,
+  Star,
+  ChevronDown,
   ArrowRight,
-  Box,
   Zap,
   Shield,
   Database,
   Layout,
-  Package,
-  Users,
   CheckCircle2,
+  Box,
   Globe,
-  Star,
-  ChevronRight,
-  ChevronDown,
   Plus,
   ArrowUp,
-  Menu,
-  X,
+  Package,
+  Users,
 } from "lucide-react";
 import { useRef } from "react";
+import Antigravity from "@/components/Antigravity";
 
 // Counting Animation Component
 function CountingNumber({ value, duration = 2 }) {
@@ -63,50 +63,7 @@ function CountingNumber({ value, duration = 2 }) {
   return <span ref={countRef}>{count.toLocaleString()}</span>;
 }
 
-const BackgroundRain = () => {
-  const [mounted, setMounted] = useState(false);
-  const [particles, setParticles] = useState([]);
 
-  useEffect(() => {
-    setMounted(true);
-    setParticles(
-      Array.from({ length: 20 }).map((_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        duration: Math.random() * 2 + 2,
-        delay: Math.random() * 5,
-      }))
-    );
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <div className={styles.rainContainer}>
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className={styles.particle}
-          initial={{
-            top: -20,
-            left: p.left,
-            opacity: 0
-          }}
-          animate={{
-            top: "100%",
-            opacity: [0, 0.3, 0],
-          }}
-          transition={{
-            duration: p.duration,
-            repeat: Infinity,
-            delay: p.delay,
-            ease: "linear"
-          }}
-        />
-      ))}
-    </div>
-  );
-};
 
 const SideSectionNav = ({ activeSection, sections }) => {
   return (
@@ -174,7 +131,7 @@ function HomePageContent() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setNavScrolled(currentScrollY > 50);
+      setNavScrolled(currentScrollY > 100);
       setNavVisible(true);
       setShowScrollTop(currentScrollY > 1000);
       // Removed setLastScrollY to prevent frequent re-renders if not needed for direction tracking
@@ -187,23 +144,30 @@ function HomePageContent() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
-            setActiveSection(entry.target.id);
+        // Filter and find the entry with the highest intersection ratio
+        const intersecting = entries.filter(entry => entry.isIntersecting);
+        if (intersecting.length > 0) {
+          const biggest = intersecting.reduce((prev, curr) =>
+            curr.intersectionRatio > prev.intersectionRatio ? curr : prev
+          );
+          if (biggest.intersectionRatio >= 0.1) {
+            setActiveSection(biggest.target.id);
           }
-        });
+        }
       },
-      { threshold: 0.3, rootMargin: "-20% 0px -20% 0px" }
+      {
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        rootMargin: "-10% 0px -10% 0px"
+      }
     );
 
-    const sectionIds = sections.map(s => s.id);
-    sectionIds.forEach((id) => {
-      const el = document.getElementById(id);
+    sections.forEach((s) => {
+      const el = document.getElementById(s.id);
       if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [sections]); // Added sections as dependency since they are dynamic based on translations
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -223,7 +187,6 @@ function HomePageContent() {
   return (
     <div className={`${styles.landingBody} font-metropolis`} id="home">
       <SideSectionNav activeSection={activeSection} sections={sections} />
-      <BackgroundRain />
       {/* Background Circuit Lines - Redesigned with Orange Glow */}
       <div className={styles.circuitLines}>
         <svg
@@ -411,7 +374,25 @@ function HomePageContent() {
 
       {/* Hero Section */}
       <section className={styles.hero}>
-        <BackgroundRain />
+        <div className={styles.antigravityWrapper}>
+          <Antigravity
+            count={500}
+            magnetRadius={8}
+            ringRadius={10}
+            waveSpeed={0.3}
+            waveAmplitude={0.8}
+            particleSize={0.6}
+            lerpSpeed={0.06}
+            color="#4f46e5"
+            autoAnimate
+            particleVariance={1}
+            rotationSpeed={0.1}
+            depthFactor={1.2}
+            pulseSpeed={2}
+            particleShape="capsule"
+            fieldStrength={12}
+          />
+        </div>
 
         <motion.div
           initial="hidden"
