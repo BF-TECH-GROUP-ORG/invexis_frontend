@@ -304,7 +304,7 @@
     },
     "hero": {
       "badge": "Futuristic Business Intelligence",
-      "title": "Powerhouse for your <br/> <spanClassName>modern business</spanClassName>",
+      "title": "Powerhouse for your <spanClassName>modern business</spanClassName>",
       "subtitle": "Experience the next generation of business management. Smart, automated, and built for high-performance teams.",
       "kpi1": {
         "title": "Realtime Alerts",
@@ -318,6 +318,7 @@
     "cta": {
       "start": "Start Free Trial",
       "demo": "Request a Demo",
+      "dashboard": "Go to Dashboard",
       "final": {
         "title": "Run Your Business Smarter—Starting Today",
         "subtitle": "Get full control, real-time insights, and peace of mind with Invexix.",
@@ -327,7 +328,7 @@
     },
     "about": {
       "badge": "About Invexix",
-      "title": "One Dashboard. <br/> <spanClassName>Total Business Control.</spanClassName>",
+      "title": "One Dashboard. <spanClassName>Total Business Control.</spanClassName>",
       "desc": "Invexix helps you manage inventory, sales, staff, debts, reports, and payments in one powerful platform—so you always know what’s happening in your business, in real time.",
       "points": {
         "point1": "Centralized business management",
@@ -336,7 +337,7 @@
       }
     },
     "trust": {
-      "heading": "Used by <count/>+ companies worldwide"
+      "heading": "Used by 150+ companies worldwide"
     },
     "features": {
       "title": "Comprehensive Modules",
@@ -392,14 +393,30 @@
       }
     },
     "why": {
-      "title": "Full control, real-time updates, and business intelligence — anywhere, anytime.",
-      "subtitle": "Designed for businesses of all sizes to maintain operational control and make data-driven decisions.",
-      "items": [
-        "Centralized control of all operations",
-        "Real-time notifications across devices",
-        "Full activity tracking via logs & audits",
-        "Data-driven decisions through analytics"
-      ]
+      "badge": "Why Businesses Choose Invexix",
+      "title": "Built for <spanClassName>Real Operations</spanClassName>",
+      "items": {
+        "ops": {
+          "title": "Built for Real Operations",
+          "desc": "Designed around actual business workflows — not spreadsheets or guesswork."
+        },
+        "allinone": {
+          "title": "All-in-One Platform",
+          "desc": "Replace multiple tools with a single, reliable system."
+        },
+        "control": {
+          "title": "Real-time Control",
+          "desc": "Make decisions with live data, not outdated reports."
+        },
+        "secure": {
+          "title": "Secure & Reliable",
+          "desc": "Your data is protected with enterprise-grade security."
+        },
+        "scales": {
+          "title": "Scales With You",
+          "desc": "From one shop to a global enterprise, we grow with your business."
+        }
+      }
     },
     "pricing": {
       "badge": "Plans That Grow With You",
@@ -514,19 +531,18 @@
       }
     },
     "footer": {
-      "desc": "Invexix is a global business management platform built for scale.",
+      "desc": "The future of business intelligence. Manage inventory, sales, and operations with real-time clarity.",
       "links": {
-        "title": "Explore",
+        "title": "Navigation",
+        "home": "Home",
         "about": "About",
         "features": "Features",
         "pricing": "Pricing"
       },
-      "contact": {
-        "title": "Contact",
-        "email": "hello@invexix.com"
-      },
-      "legal": {
-        "title": "Legal",
+      "company": {
+        "title": "Company",
+        "why": "Why Us",
+        "faq": "FAQ",
         "privacy": "Privacy Policy",
         "terms": "Terms of Service"
       },

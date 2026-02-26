@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import useAuth from "@/hooks/useAuth";
 import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
@@ -14,6 +15,7 @@ import {
   Shield,
   Database,
   Layout,
+  Package,
   Users,
   CheckCircle2,
   Globe,
@@ -102,8 +104,23 @@ function HomePageContent() {
   const { isAuthenticated } = useAuth();
   const t = useTranslations("landing");
   const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const [billing, setBilling] = useState("monthly");
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+
+  const locales = [
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+    { code: "rw", name: "Kinyarwanda", flag: "🇷🇼" },
+    { code: "sw", name: "Kiswahili", flag: "🇹🇿" },
+  ];
+
+  const handleLocaleChange = (newLocale) => {
+    router.replace(pathname, { locale: newLocale });
+    setIsLangOpen(false);
+  };
 
   // Smart Navbar State
   const [navVisible, setNavVisible] = useState(true);
@@ -201,6 +218,45 @@ function HomePageContent() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Language Picker */}
+          <div className="relative mr-2">
+            <button
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:border-orange-200 hover:bg-orange-50 transition-all text-sm font-bold text-gray-700"
+            >
+              <span>{locales.find((l) => l.code === locale)?.flag}</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform duration-200 ${isLangOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {isLangOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 p-2"
+              >
+                {locales.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => handleLocaleChange(l.code)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors ${locale === l.code
+                      ? "bg-orange-50 text-orange-700 font-bold"
+                      : "hover:bg-gray-50 text-gray-600 font-medium"
+                      }`}
+                  >
+                    <span className="text-lg">{l.flag}</span>
+                    <span className="text-sm">{l.name}</span>
+                    {locale === l.code && (
+                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500" />
+                    )}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
           <div className={styles.desktopOnly}>
             <div className="flex items-center gap-4">
               {isAuthenticated ? (
@@ -350,9 +406,7 @@ function HomePageContent() {
             <div className={styles.trustBadge}>
               <Users className="w-4 h-4 text-gray-400" />
               <span>
-                {t.rich("trust.heading", {
-                  count: () => <CountingNumber value={150} />
-                })}
+                {t("trust.heading")}
               </span>
             </div>
           </motion.div>
@@ -371,7 +425,6 @@ function HomePageContent() {
             <div className={styles.featureBadge}>{t("about.badge")}</div>
             <h2 className={styles.aboutTitle}>
               {t.rich("about.title", {
-                br: () => <br />,
                 spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
               })}
             </h2>
@@ -389,19 +442,19 @@ function HomePageContent() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className={styles.dashboardPreviewContainer}
+            className="flex items-center justify-center p-4"
           >
-            <div className={styles.dashboardMockup}>
+            <div className="relative w-full aspect-square max-w-[600px] min-h-[400px]">
               <Image
-                src="/images/dashboard-hero.png"
-                alt="Invexix Dashboard Preview"
+                src="/images/tobeUsed.png"
+                alt="Invexix Illustration"
                 fill
-                className="object-cover opacity-80"
+                className="object-contain"
+                priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#081422]/60 to-transparent" />
             </div>
           </motion.div>
         </div>
@@ -438,23 +491,23 @@ function HomePageContent() {
           </motion.p>
         </div>
 
-        <div className={styles.howTimeline}>
+        <div className={styles.howGrid}>
           {[
             {
               key: "s1",
-              icon: <Layout />,
+              icon: <Layout size={32} />,
             },
             {
               key: "s2",
-              icon: <Package />,
+              icon: <Package size={32} />,
             },
             {
               key: "s3",
-              icon: <Zap />,
+              icon: <Zap size={32} />,
             },
             {
               key: "s4",
-              icon: <Database />,
+              icon: <Database size={32} />,
             },
           ].map((item, i) => (
             <motion.div
@@ -462,19 +515,18 @@ function HomePageContent() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className={styles.howStep}
+              transition={{ delay: i * 0.1 }}
+              className={styles.howCard}
             >
-              <div className={styles.howIconBox}>{item.icon}</div>
-              <div className={styles.howText}>
-                <span className="text-orange-500 font-bold tracking-widest text-xs uppercase mb-2 block">
-                  {`Step 0${i + 1}`}
-                </span>
-                <h4 className="text-xl font-bold mb-3">{t(`how.steps.${item.key}.title`)}</h4>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  {t(`how.steps.${item.key}.desc`)}
-                </p>
-              </div>
+              <div className={styles.howStepNumber}>{i + 1}</div>
+              <div className={styles.howIconWrapper}>{item.icon}</div>
+              <div className={styles.howStepTag}>{`Step 0${i + 1}`}</div>
+              <h4 className={styles.howCardTitle}>
+                {t(`how.steps.${item.key}.title`)}
+              </h4>
+              <p className={styles.howCardDesc}>
+                {t(`how.steps.${item.key}.desc`)}
+              </p>
             </motion.div>
           ))}
         </div>
@@ -906,15 +958,17 @@ function HomePageContent() {
             >
               <div className="space-y-6 p-10 rounded-2xl">
                 <div className="flex justify-between items-center text-white">
-                  <div className="font-bold">Beta Capacity</div>
-                  <div className="text-orange-500 font-black">84% Full</div>
+                  <div className="font-bold">{t("waitlist.metrics.capacity")}</div>
+                  <div className="text-orange-500 font-black">
+                    {t("waitlist.metrics.full", { percentage: 84 })}
+                  </div>
                 </div>
                 <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     whileInView={{ width: "84%" }}
                     transition={{ duration: 2, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-orange-500 to-amber-500"
+                    className="h-full bg-linear-to-r from-orange-500 to-amber-500"
                   />
                 </div>
                 <div className="flex -space-x-2">
@@ -934,7 +988,7 @@ function HomePageContent() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Trusted by businesses across 12 countries.
+                  {t("waitlist.metrics.trust")}
                 </p>
               </div>
             </div>
@@ -960,8 +1014,7 @@ function HomePageContent() {
                 </span>
               </div>
               <p>
-                The future of business intelligence. Manage inventory, sales,
-                and operations with real-time clarity.
+                {t("footer.desc")}
               </p>
               <div className={styles.socialGrid}>
                 {[Globe, Star, Database, Shield].map((Icon, i) => (
@@ -973,45 +1026,45 @@ function HomePageContent() {
             </div>
 
             <div>
-              <h4 className={styles.footerHeading}>Navigation</h4>
+              <h4 className={styles.footerHeading}>{t("footer.links.title")}</h4>
               <ul className={styles.footerLinks}>
                 <li>
-                  <a href="#home">Home</a>
+                  <a href="#home">{t("footer.links.home")}</a>
                 </li>
                 <li>
-                  <a href="#about">About</a>
+                  <a href="#about">{t("footer.links.about")}</a>
                 </li>
                 <li>
-                  <a href="#features">Features</a>
+                  <a href="#features">{t("footer.links.features")}</a>
                 </li>
                 <li>
-                  <a href="#pricing">Pricing</a>
+                  <a href="#pricing">{t("footer.links.pricing")}</a>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className={styles.footerHeading}>Company</h4>
+              <h4 className={styles.footerHeading}>{t("footer.company.title")}</h4>
               <ul className={styles.footerLinks}>
                 <li>
-                  <Link href="#">Why Us</Link>
+                  <Link href="#why">{t("footer.company.why")}</Link>
                 </li>
                 <li>
-                  <Link href="#faq">FAQ</Link>
+                  <Link href="#faq">{t("footer.company.faq")}</Link>
                 </li>
                 <li>
-                  <Link href="#">Privacy Policy</Link>
+                  <Link href="#">{t("footer.company.privacy")}</Link>
                 </li>
                 <li>
-                  <Link href="#">Terms of Service</Link>
+                  <Link href="#">{t("footer.company.terms")}</Link>
                 </li>
               </ul>
             </div>
 
             <div className={styles.footerNewsletter}>
-              <h4>Join our insights</h4>
+              <h4>{t("footer.newsletter.title")}</h4>
               <p>
-                Get the latest updates and business tips directly to your inbox.
+                {t("footer.newsletter.desc")}
               </p>
               <form
                 className={styles.newsletterForm}
@@ -1019,7 +1072,7 @@ function HomePageContent() {
               >
                 <input
                   type="email"
-                  placeholder="name@company.com"
+                  placeholder={t("footer.newsletter.placeholder")}
                   className={styles.newsletterInput}
                 />
                 <button className={styles.newsletterSubmit}>
@@ -1030,16 +1083,16 @@ function HomePageContent() {
           </div>
 
           <div className={styles.footerBottom}>
-            <p>© 2026 Invexix. Engineered with precision.</p>
+            <p>{t("footer.bottom.copy")}</p>
             <div className="flex gap-8">
               <Link href="#" className="hover:text-white transition-colors">
-                Documentation
+                {t("footer.bottom.docs")}
               </Link>
               <Link href="#" className="hover:text-white transition-colors">
-                Support
+                {t("footer.bottom.support")}
               </Link>
               <Link href="#" className="hover:text-white transition-colors">
-                Status
+                {t("footer.bottom.status")}
               </Link>
             </div>
           </div>

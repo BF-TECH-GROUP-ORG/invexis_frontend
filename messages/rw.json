@@ -304,7 +304,7 @@
     },
     "hero": {
       "badge": "Business Intelligence y'Igiye Kuzaza",
-      "title": "Imbaraga kuri <br/> <spanClassName>business yawe igezweho</spanClassName>",
+      "title": "Imbaraga kuri <spanClassName>business yawe gezweho</spanClassName>",
       "subtitle": "Gera ku rwego rushya rwo gucunga ubucuruzi. Burimo ubwenge, bwikora, kandi bwubakiwe amatsinda akora neza.",
       "kpi1": {
         "title": "Amatangazo y'ako kanya",
@@ -348,6 +348,19 @@
           "btn": "Tangira Ubu",
           "popular": "Ikunzwe cyane"
         },
+        "standard_2": {
+          "title": "Plan Isanzwe 2",
+          "price": "$29.99",
+          "sub": "Yishyurwa buri kwezi",
+          "features": {
+            "f1": "Kureba Dashboard byuzuye",
+            "f2": "Raporo z'ibanze",
+            "f3": "Gukorera hamwe nk'ikipe",
+            "f4": "Guhuza na telefoni"
+          },
+          "btn": "Tangira Ubu",
+          "popular": "Ikunzwe cyane"
+        },
         "pro": {
           "title": "Plan Pro",
           "price": "$59.99",
@@ -365,6 +378,7 @@
     "cta": {
       "start": "Tangira kugerageza ku buntu",
       "demo": "Saba Demo",
+      "dashboard": "Gana kuri Dashboard",
       "final": {
         "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
         "subtitle": "Gerageza ubuntu, ntukeneye ikarita ya banki"
@@ -372,7 +386,7 @@
     },
     "about": {
       "badge": "Ibyerekeye Invexix",
-      "title": "Dashboard Imwe. <br/> <spanClassName>Ubugenzuzi bwuzuye bwa Business.</spanClassName>",
+      "title": "Dashboard Imwe. <spanClassName>Ubugenzuzi bwuzuye bwa Business.</spanClassName>",
       "desc": "Invexix igufasha gucunga ububiko, ubucuruzi, abakozi, amadeni, raporo, n'imishahara kuri platform imwe ikomeye — kugira ngo umenye ibintu byose biba muri business yawe, mu gihe nyacyo.",
       "points": {
         "point1": "Igenamiterere rya business rihuriye hamwe",
@@ -381,7 +395,7 @@
       }
     },
     "trust": {
-      "heading": "Ikoreshwa na <count/>+ by'ibigo ku isi hose"
+      "heading": "Ikoreshwa na 150+ by'ibigo ku isi hose"
     },
     "features": {
       "title": "Moduli Zuzuye",
@@ -484,7 +498,12 @@
       "title": "Witeguye <spanClassName>guhindura</spanClassName> <br /> business yawe?",
       "subtitle": "Sanga umubare w'ibigo biri kwaguka hamwe n'ubugenzuzi bw'ako kanya. Shaka umwanya wawe mu gihe kizaza cy'imicungire.",
       "placeholder": "Andika imeli ya business yawe",
-      "button": "Sanga Abandi Ubu"
+      "button": "Sanga Abandi Ubu",
+      "metrics": {
+        "capacity": "Ubushobozi bwa Beta",
+        "full": "{percentage}% Byuzuye",
+        "trust": "Yizerwa n'ibigo mu bihugu 12."
+      }
     },
     "faq": {
       "badge": "FAQ",
@@ -523,21 +542,20 @@
       }
     },
     "footer": {
-      "desc": "Invexix ni jukwaa la kimataifa la usimamizi wa biashara lililojengwa kwa ajili ya kiwango.",
+      "desc": "Ejo hazaza h'ubumenyi bw'ubucuruzi. Cunga ibikoresho, ibururuzwa, n'ibikorwa mu kuri kwitinda.",
       "links": {
-        "title": "Gundua",
-        "about": "Kuhusu",
-        "features": "Vipengele",
-        "pricing": "Bei"
+        "title": "Gushakisha",
+        "home": "Ahabanza",
+        "about": "Ibyerekeye",
+        "features": "Ibiranga",
+        "pricing": "Ibiciro"
       },
-      "contact": {
-        "title": "Wasiliana",
-        "email": "hello@invexix.com"
-      },
-      "legal": {
-        "title": "Kisheria",
-        "privacy": "Sera ya Faragha",
-        "terms": "Sheria na Masharti"
+      "company": {
+        "title": "Ikigo",
+        "why": "Impamvu twe",
+        "faq": "FAQ",
+        "privacy": "Amategeko y'ibanga",
+        "terms": "Amategeko n'amabwiriza"
       },
       "newsletter": {
         "title": "Sanga udushya twacu",

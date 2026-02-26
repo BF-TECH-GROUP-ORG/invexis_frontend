@@ -304,7 +304,7 @@
     },
     "hero": {
       "badge": "Business Intelligence ya Kizazi Kijacho",
-      "title": "Nguvu kwa <br/> <spanClassName>biashara yako ya kisasa</spanClassName>",
+      "title": "Nguvu kwa <spanClassName>biashara yako ya kisasa</spanClassName>",
       "subtitle": "Pata kizazi kijacho cha usimamizi wa biashara. Ni smart, inayojiendesha, na iliyojengwa kwa timu zenye utendaji wa juu.",
       "kpi1": {
         "title": "Arifa za wakati halisi",
@@ -318,6 +318,7 @@
     "cta": {
       "start": "Anza Jaribio Bila Malipo",
       "demo": "Omba Demo",
+      "dashboard": "Nenda kwenye Dashibodi",
       "final": {
         "title": "Simamia Biashara Yako Kwa Njia Nadhifu — Kuanzia Leo",
         "subtitle": "Pata udhibiti kamili, maarifa ya wakati halisi, na utulivu wa akili ukiwa na Invexis.",
@@ -327,7 +328,7 @@
     },
     "about": {
       "badge": "Kuhusu Invexix",
-      "title": "Dashibodi Moja. <br/> <spanClassName>Udhibiti Kamili wa Biashara.</spanClassName>",
+      "title": "Dashibodi Moja. <spanClassName>Udhibiti Kamili wa Biashara.</spanClassName>",
       "desc": "Invexix inakusaidia kusimamia hesabu, mauzo, wafanyakazi, madeni, ripoti, na malipo kwenye jukwaa moja lenye nguvu — kwa hivyo unajua kila wakati kinachoendelea katika biashara yako, kwa wakati halisi.",
       "points": {
         "point1": "Usimamizi wa biashara uliowekwa kati",
@@ -336,7 +337,7 @@
       }
     },
     "trust": {
-      "heading": "Inatumiwa na <count/>+ makampuni ulimwenguni kote"
+      "heading": "Inatumiwa na 150+ makampuni ulimwenguni kote"
     },
     "features": {
       "title": "Moduli Kamili",
@@ -488,9 +489,9 @@
       "placeholder": "Ingiza barua pepe yako ya biashara",
       "button": "Jiunge Sasa",
       "metrics": {
-        "capacity": "Beta Capacity",
+        "capacity": "Uwezo wa Beta",
         "full": "{percentage}% Imejaa",
-        "trust": "Inaaminiwa na biashara katika nchi 12."
+        "trust": "Inaaminiwa na kampuni katika nchi 12."
       }
     },
     "faq": {
@@ -530,19 +531,18 @@
       }
     },
     "footer": {
-      "desc": "Invexix ni jukwaa la kimataifa la usimamizi wa biashara lililojengwa kwa ajili ya kiwango.",
+      "desc": "Mustakabali wa akili ya biashara. Dhibiti hesabu, mauzo, na shughuli kwa uwazi wa wakati halisi.",
       "links": {
-        "title": "Gundua",
+        "title": "Urambazaji",
+        "home": "Nyumbani",
         "about": "Kuhusu",
         "features": "Vipengele",
         "pricing": "Bei"
       },
-      "contact": {
-        "title": "Wasiliana",
-        "email": "hello@invexix.com"
-      },
-      "legal": {
-        "title": "Kisheria",
+      "company": {
+        "title": "Kampuni",
+        "why": "Kwa nini sisi",
+        "faq": "FAQ",
         "privacy": "Sera ya Faragha",
         "terms": "Sheria na Masharti"
       },

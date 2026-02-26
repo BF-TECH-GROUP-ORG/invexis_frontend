@@ -304,7 +304,7 @@
     },
     "hero": {
       "badge": "Business Intelligence Futuriste",
-      "title": "Une centrale pour votre <br/> <spanClassName>entreprise moderne</spanClassName>",
+      "title": "Une centrale pour votre <spanClassName>entreprise moderne</spanClassName>",
       "subtitle": "Découvrez la prochaine génération de gestion d'entreprise. Intelligente, automatisée et conçue pour les équipes performantes.",
       "kpi1": {
         "title": "Alertes en temps réel",
@@ -318,6 +318,7 @@
     "cta": {
       "start": "Commencer l'essai gratuit",
       "demo": "Demander une démo",
+      "dashboard": "Aller au tableau de bord",
       "final": {
         "title": "Gérez votre entreprise plus intelligemment — Dès aujourd'hui",
         "subtitle": "Bénéficiez d'un contrôle total, d'informations en temps réel et d'une tranquillité d'esprit avec Invexix.",
@@ -327,7 +328,7 @@
     },
     "about": {
       "badge": "À propos d'Invexix",
-      "title": "Un seul tableau de bord. <br/> <spanClassName>Contrôle total de l'entreprise.</spanClassName>",
+      "title": "Un seul tableau de bord. <spanClassName>Contrôle total de l'entreprise.</spanClassName>",
       "desc": "Invexix vous aide à gérer l'inventaire, les ventes, le personnel, les créances, les rapports et les paiements dans une plate-forme puissante — vous savez donc toujours ce qui se passe dans votre entreprise, en temps réel.",
       "points": {
         "point1": "Gestion centralisée des activités",
@@ -336,7 +337,7 @@
       }
     },
     "trust": {
-      "heading": "Utilisé par <count/>+ entreprises dans le monde"
+      "heading": "Utilisé par 150+ entreprises dans le monde"
     },
     "features": {
       "title": "Modules Complets",
@@ -490,7 +491,7 @@
       "metrics": {
         "capacity": "Capacité Beta",
         "full": "{percentage}% Plein",
-        "trust": "Approuvé par des entreprises dans 12 pays."
+        "trust": "Fait confiance par des entreprises dans 12 pays."
       }
     },
     "faq": {
@@ -530,19 +531,18 @@
       }
     },
     "footer": {
-      "desc": "Invexix est une plateforme mondiale de gestion d'entreprise conçue pour l'évolution.",
+      "desc": "L'avenir de l'intelligence d'affaires. Gérez les stocks, les ventes et les opérations avec une clarté en temps réel.",
       "links": {
-        "title": "Explorer",
+        "title": "Navigation",
+        "home": "Accueil",
         "about": "À propos",
         "features": "Fonctionnalités",
         "pricing": "Tarifs"
       },
-      "contact": {
-        "title": "Contact",
-        "email": "hello@invexix.com"
-      },
-      "legal": {
-        "title": "Légal",
+      "company": {
+        "title": "Entreprise",
+        "why": "Pourquoi nous",
+        "faq": "FAQ",
         "privacy": "Politique de confidentialité",
         "terms": "Conditions d'utilisation"
       },
