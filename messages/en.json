@@ -317,6 +317,7 @@
       }
     },
     "cta": {
+      "startBtn": "Get Started",
       "start": "Start Free Trial",
       "demo": "Request a Demo",
       "dashboard": "Go to Dashboard",
