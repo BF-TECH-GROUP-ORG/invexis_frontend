@@ -97,6 +97,22 @@ function HomePageContent() {
   const [billing, setBilling] = useState("monthly");
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const langRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (langRef.current && !langRef.current.contains(event.target)) {
+        setIsLangOpen(false);
+      }
+    };
+
+    if (isLangOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLangOpen]);
   const [activeSection, setActiveSection] = useState("home");
 
   const sections = [
@@ -245,37 +261,42 @@ function HomePageContent() {
 
         <div className="flex items-center gap-4">
           {/* Language Picker */}
-          <div className="relative mr-2">
+          <div className="relative mr-2" ref={langRef}>
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:border-orange-200 hover:bg-orange-50 transition-all text-sm font-bold text-gray-700"
+              className="flex items-center gap-3 px-5 py-2.5 rounded-full border-2 border-gray-100 hover:border-orange-500 hover:bg-orange-50/50 transition-all text-base font-black text-gray-800 shadow-sm hover:shadow-md bg-white/80 backdrop-blur-sm"
             >
-              <span>{locales.find((l) => l.code === locale)?.flag}</span>
+              <span className="text-xl leading-none">
+                {locales.find((l) => l.code === locale)?.flag}
+              </span>
+              <span className="uppercase tracking-wider">
+                {locale}
+              </span>
               <ChevronDown
-                size={14}
-                className={`transition-transform duration-200 ${isLangOpen ? "rotate-180" : ""}`}
+                size={18}
+                className={`transition-transform duration-300 ${isLangOpen ? "rotate-180" : ""}`}
               />
             </button>
 
             {isLangOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 15, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 p-2"
+                className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 p-2"
               >
                 {locales.map((l) => (
                   <button
                     key={l.code}
                     onClick={() => handleLocaleChange(l.code)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors ${locale === l.code
+                    className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all ${locale === l.code
                       ? "bg-orange-50 text-orange-700 font-bold"
-                      : "hover:bg-gray-50 text-gray-600 font-medium"
+                      : "hover:bg-gray-50 text-gray-600 font-semibold"
                       }`}
                   >
-                    <span className="text-lg">{l.flag}</span>
-                    <span className="text-sm">{l.name}</span>
+                    <span className="text-2xl">{l.flag}</span>
+                    <span className="text-base">{l.name}</span>
                     {locale === l.code && (
-                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500" />
+                      <div className="ml-auto w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                     )}
                   </button>
                 ))}
@@ -505,8 +526,8 @@ function HomePageContent() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how" className={styles.howSection}>
-        <div className="text-center mb-16 px-4">
+      <section id="how" className={styles.blockSection}>
+        <div className="text-center mb-16 px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -539,19 +560,19 @@ function HomePageContent() {
           {[
             {
               key: "s1",
-              icon: <Layout size={32} />,
+              icon: <Layout size={22} />,
             },
             {
               key: "s2",
-              icon: <Package size={32} />,
+              icon: <Package size={22} />,
             },
             {
               key: "s3",
-              icon: <Zap size={32} />,
+              icon: <Zap size={22} />,
             },
             {
               key: "s4",
-              icon: <Database size={32} />,
+              icon: <Database size={22} />,
             },
           ].map((item, i) => (
             <motion.div
@@ -562,7 +583,6 @@ function HomePageContent() {
               transition={{ delay: i * 0.1 }}
               className={styles.howCard}
             >
-              <div className={styles.howStepNumber}>{i + 1}</div>
               <div className={styles.howIconWrapper}>{item.icon}</div>
               <div className={styles.howStepTag}>{`Step 0${i + 1}`}</div>
               <h4 className={styles.howCardTitle}>
@@ -571,13 +591,19 @@ function HomePageContent() {
               <p className={styles.howCardDesc}>
                 {t(`how.steps.${item.key}.desc`)}
               </p>
+
+              <div className={styles.howCardTags}>
+                {t.raw(`how.steps.${item.key}.tags`).map((tag, idx) => (
+                  <span key={idx} className={styles.howTag}>{tag}</span>
+                ))}
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className={styles.featureSection}>
+      <section id="features" className={styles.blockSection}>
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -598,31 +624,31 @@ function HomePageContent() {
           </motion.h2>
         </div>
 
-        <div className={styles.featureGrid}>
+        <div className={styles.moduleGrid}>
           {[
             {
               key: "inventory",
-              icon: <Database />,
+              icon: <Database size={22} />,
             },
             {
               key: "sales",
-              icon: <Zap />,
+              icon: <Zap size={22} />,
             },
             {
               key: "debts",
-              icon: <Database />,
+              icon: <Database size={22} />,
             },
             {
               key: "payments",
-              icon: <Shield />,
+              icon: <Shield size={22} />,
             },
             {
               key: "analytics",
-              icon: <Layout />,
+              icon: <Layout size={22} />,
             },
             {
               key: "notifications",
-              icon: <Zap />,
+              icon: <Zap size={22} />,
             },
           ].map((feature, i) => (
             <motion.div
@@ -631,11 +657,13 @@ function HomePageContent() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
-              className={styles.featureItem}
+              className={styles.moduleCard}
             >
-              <div className={styles.featureIconBox}>{feature.icon}</div>
-              <h4 className="text-xl font-bold mb-3">{t(`features.items.${feature.key}.title`)}</h4>
-              <p className="text-gray-500 leading-relaxed text-sm">
+              <div className={styles.moduleIconWrapper}>{feature.icon}</div>
+              <h4 className={styles.moduleTitle}>
+                {t(`features.items.${feature.key}.title`)}
+              </h4>
+              <p className={styles.moduleDesc}>
                 {t(`features.items.${feature.key}.desc`)}
               </p>
             </motion.div>
@@ -679,31 +707,26 @@ function HomePageContent() {
             viewport={{ once: true }}
             className={styles.pricingToggle}
           >
-            <button
-              className={`${styles.toggleBtn} ${billing === "monthly" ? styles.toggleBtnActive : ""
-                }`}
-              onClick={() => setBilling("monthly")}
-            >
-              {t("pricing.toggle.monthly")}
-            </button>
-            <button
-              className={`${styles.toggleBtn} ${billing === "yearly" ? styles.toggleBtnActive : ""
-                }`}
-              onClick={() => setBilling("yearly")}
-            >
-              {t("pricing.toggle.yearly")}
-            </button>
+            {["monthly", "3months", "6months", "yearly"].map((period) => (
+              <button
+                key={period}
+                className={`${styles.toggleBtn} ${billing === period ? styles.toggleBtnActive : ""}`}
+                onClick={() => setBilling(period)}
+              >
+                {t(`pricing.toggle.${period}`)}
+              </button>
+            ))}
           </motion.div>
         </div>
 
         <div className={styles.pricingGrid}>
           {[
             {
-              key: "onboarding",
+              key: "basic",
               featured: false,
             },
             {
-              key: "standard",
+              key: "mid",
               featured: true,
             },
             {
@@ -717,14 +740,16 @@ function HomePageContent() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`${styles.priceCard} ${plan.featured ? styles.priceCardFeatured : ""
-                }`}
+              className={`${styles.priceCard} ${plan.featured ? styles.priceCardFeatured : ""}`}
             >
               {plan.featured && (
                 <div className={styles.bestValue}>{t(`pricing.plans.${plan.key}.popular`)}</div>
               )}
               <h4 className="text-xl font-bold">{t(`pricing.plans.${plan.key}.title`)}</h4>
-              <div className={styles.priceValue}>{t(`pricing.plans.${plan.key}.price`)}</div>
+              <div className={styles.priceValue}>
+                <span className="text-2xl mr-1">Rwf</span>
+                {t(`pricing.plans.${plan.key}.price.${billing}`)}
+              </div>
               <p className={styles.priceSub}>{t(`pricing.plans.${plan.key}.sub`)}</p>
               <ul className={styles.checkList}>
                 {Object.keys(t.raw(`pricing.plans.${plan.key}.features`)).map((fKey, j) => (
@@ -735,8 +760,7 @@ function HomePageContent() {
                 ))}
               </ul>
               <button
-                className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""
-                  }`}
+                className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""}`}
               >
                 {t(`pricing.plans.${plan.key}.btn`)}
               </button>
@@ -744,11 +768,10 @@ function HomePageContent() {
           ))}
         </div>
 
-        {/* Stunning Comparison Table */}
         <div className="mt-40">
           <div className="text-center mb-16">
-            <div className={styles.featureBadge}>Detailed Breakdown</div>
-            <h3 className="text-4xl font-bold">Pricing Comparison</h3>
+            <div className={styles.featureBadge}>{t("comparison.badge")}</div>
+            <h3 className="text-4xl font-bold">{t("comparison.title")}</h3>
           </div>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -759,52 +782,33 @@ function HomePageContent() {
             <table className={styles.comparisonTable}>
               <thead>
                 <tr>
-                  <th>Feature Hierarchy</th>
-                  <th>Starter</th>
-                  <th>Enterprise</th>
+                  <th>{t("comparison.headers.feature")}</th>
+                  <th>{t("comparison.headers.basic")}</th>
+                  <th>{t("comparison.headers.mid")}</th>
+                  <th>{t("comparison.headers.pro")}</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { name: "Global Dashboard", starter: true, enterprise: true },
-                  {
-                    name: "Automated Reporting",
-                    starter: true,
-                    enterprise: true,
-                  },
-                  { name: "AI Assistant", starter: false, enterprise: true },
-                  { name: "Offline Mode", starter: false, enterprise: true },
-                  {
-                    name: "24/7 Priority Support",
-                    starter: false,
-                    enterprise: true,
-                  },
-                  {
-                    name: "Advanced Security",
-                    starter: true,
-                    enterprise: true,
-                  },
+                  { key: "dashboard", basic: true, mid: true, pro: true },
+                  { key: "reporting", basic: true, mid: true, pro: true },
+                  { key: "inventory", basic: false, mid: true, pro: true },
+                  { key: "users", basic: false, mid: true, pro: true },
+                  { key: "ai", basic: false, mid: false, pro: true },
+                  { key: "offline", basic: false, mid: false, pro: true },
+                  { key: "support", basic: false, mid: true, pro: true },
                 ].map((row, i) => (
                   <tr key={i}>
-                    <td>{row.name}</td>
-                    <td>
-                      {row.starter ? (
-                        <CheckCircle2
-                          className={styles.checkIcon + " w-5 h-5"}
-                        />
-                      ) : (
-                        <Box className={styles.crossIcon + " w-5 h-5"} />
-                      )}
-                    </td>
-                    <td>
-                      {row.enterprise ? (
-                        <CheckCircle2
-                          className={styles.checkIcon + " w-5 h-5"}
-                        />
-                      ) : (
-                        <Box className={styles.crossIcon + " w-5 h-5"} />
-                      )}
-                    </td>
+                    <td>{t(`comparison.features.${row.key}`)}</td>
+                    {["basic", "mid", "pro"].map((tier) => (
+                      <td key={tier}>
+                        {row[tier] ? (
+                          <CheckCircle2 className={styles.checkIcon + " w-5 h-5"} />
+                        ) : (
+                          <Box className={styles.crossIcon + " w-5 h-5"} />
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -814,52 +818,63 @@ function HomePageContent() {
       </section>
 
       {/* Why Use Invexix Section */}
-      <section id="why" className={styles.featureSection}>
-        <div className="text-center mb-16">
-          <div className={styles.featureBadge}>
+      <section id="why" className={styles.blockSection}>
+        <div className="text-center mb-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={styles.featureBadge + " mx-auto"}
+          >
             {t("why.badge")}
-          </div>
-          <h2 className={styles.featureTitle}>
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className={styles.featureTitle}
+          >
             {t.rich("why.title", {
               spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
             })}
-          </h2>
+          </motion.h2>
         </div>
 
-        <div className={styles.whyUsGrid}>
+        <div className={styles.moduleGrid}>
           {[
             {
               key: "ops",
-              icon: <Zap />,
+              icon: <Zap size={22} />,
             },
             {
               key: "allinone",
-              icon: <Layout />,
+              icon: <Layout size={22} />,
             },
             {
               key: "control",
-              icon: <Globe />,
+              icon: <Globe size={22} />,
             },
             {
               key: "secure",
-              icon: <Shield />,
+              icon: <Shield size={22} />,
             },
             {
               key: "scales",
-              icon: <ArrowRight />,
+              icon: <ArrowRight size={22} />,
             },
           ].map((item, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={styles.whyUsCard}
+              className={styles.moduleCard}
             >
-              <div className={styles.benefitIcon}>{item.icon}</div>
-              <h4 className="text-xl font-bold mb-4">{t(`why.items.${item.key}.title`)}</h4>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <div className={styles.moduleIconWrapper}>{item.icon}</div>
+              <h4 className={styles.moduleTitle}>{t(`why.items.${item.key}.title`)}</h4>
+              <p className={styles.moduleDesc}>
                 {t(`why.items.${item.key}.desc`)}
               </p>
             </motion.div>

@@ -374,22 +374,39 @@
       "badge": "Jinsi Invexis Inavyofanya Kazi",
       "title": "Utekelezaji Usio na Mfumo",
       "subtitle": "Anza, usanidi, na ufuatilie kwa dakika chache.",
+      "explore": "Chunguza",
       "steps": {
         "s1": {
-          "title": "Unda Eneo Lako la Kazi",
-          "desc": "Jiandikishe na uanzishe wasifu wako wa biashara kwa sekunde chache."
+          "title": "Unda Nafasi yako ya Kazi",
+          "desc": "Jisajili na uanzishe wasifu wa biashara yako kwa sekunde chache.",
+          "tags": [
+            "Wasifu",
+            "Usanidi"
+          ]
         },
         "s2": {
-          "title": "Sanidi Hesabu na Wafanyakazi",
-          "desc": "Ongeza bidhaa zako, kategoria, na uwaite washiriki wa timu yako na majukumu mahususi."
+          "title": "Sanidi Hesabu na Wafanyikazi",
+          "desc": "Ongeza bidhaa zako, kategoria, na waalike washiriki wa timu yako na majukumu mahususi.",
+          "tags": [
+            "Bidhaa",
+            "Timu"
+          ]
         },
         "s3": {
-          "title": "Fuatilia Shughuli Mbashara",
-          "desc": "Tazama mauzo na harakati za hisa zikifanyika kwa wakati halisi kutoka popote."
+          "title": "Fuatilia Shughuli Moja kwa Moja",
+          "desc": "Tazama mauzo na mienendo ya hisa ikitokea kwa wakati halisi kutoka mahali popote.",
+          "tags": [
+            "Muda halisi",
+            "Fuatilia"
+          ]
         },
         "s4": {
           "title": "Pata Maarifa na Arifa",
-          "desc": "Pokea arifa za kiotomatiki kwa hisa ndogo na utazame ripoti za kitaalamu."
+          "desc": "Pokea arifa za kiotomatiki kwa hisa ya chini na utazame ripoti za kitaaluma.",
+          "tags": [
+            "Maarifa",
+            "Ripoti"
+          ]
         }
       }
     },
@@ -424,43 +441,61 @@
       "title": "Chaguzi za Bei",
       "subtitle": "Chagua mpango wa usajili unaofaa mahitaji yako",
       "toggle": {
-        "monthly": "Kila Mwezi",
-        "yearly": "Kila Mwaka"
+        "monthly": "Mwezi",
+        "3months": "Miezi 3",
+        "6months": "Miezi 6",
+        "yearly": "Mwaka"
       },
       "plans": {
-        "onboarding": {
-          "title": "Ada ya Kuanza",
-          "price": "Inabadilika",
-          "sub": "Ada ya kusanidi mara moja",
-          "features": {
-            "f1": "Usanidi wa mfumo",
-            "f2": "Mafunzo ya timu",
-            "f3": "Usaidizi wa kuhamisha data"
+        "basic": {
+          "title": "Mpango wa Msingi",
+          "price": {
+            "monthly": "30,000",
+            "3months": "85,000",
+            "6months": "170,000",
+            "yearly": "345,000"
           },
-          "btn": "Wasiliana Nasi"
-        },
-        "standard": {
-          "title": "Mpango wa Kawaida",
-          "price": "$29.99",
-          "sub": "Inatozwa kila mwezi",
+          "sub": "Inafaa kwa timu ndogo",
           "features": {
-            "f1": "Ufikiaji kamili wa Dashibodi",
-            "f2": "Ripoti za Msingi",
-            "f3": "Ushirikiano wa Timu",
-            "f4": "Usawazishaji wa Simu"
+            "f1": "Kuingia & Usanidi",
+            "f2": "Uchambuzi wa Msingi",
+            "f3": "Eneo moja la kazi",
+            "f4": "Usaidizi wa Barua pepe"
+          },
+          "btn": "Anza Sasa"
+        },
+        "mid": {
+          "title": "Mpango wa Kati",
+          "price": {
+            "monthly": "40,000",
+            "3months": "110,000",
+            "6months": "235,000",
+            "yearly": "460,000"
+          },
+          "sub": "Kila kitu kwa biashara zinazokua",
+          "features": {
+            "f1": "Vipengele vya Msingi",
+            "f2": "Usimamizi wa Juu",
+            "f3": "Ufikiaji wa Watumiaji wengi",
+            "f4": "Usaidizi wa Kipaumbele"
           },
           "btn": "Anza Sasa",
           "popular": "Maarufu Zaidi"
         },
         "pro": {
-          "title": "Mpango wa Pro",
-          "price": "$59.99",
-          "sub": "Inatozwa kila mwezi",
+          "title": "Mpango wa Juu",
+          "price": {
+            "monthly": "50,000",
+            "3months": "140,000",
+            "6months": "280,000",
+            "yearly": "570,000"
+          },
+          "sub": "Ujasusi wa kiwango cha juu",
           "features": {
-            "f1": "Ujumuishaji wa AI",
-            "f2": "Njia ya Nje ya Mtandao",
-            "f3": "Usaidizi wa Kipaumbele",
-            "f4": "Uchambuzi wa Juu"
+            "f1": "Vipengele vya Kati",
+            "f2": "Ujumuishaji wa AI",
+            "f3": "Njia ya Nje ya Mtandao",
+            "f4": "Usaidizi wa 24/7"
           },
           "btn": "Anza Sasa"
         }
@@ -468,19 +503,21 @@
     },
     "comparison": {
       "badge": "Mchanganuo wa Kina",
-      "title": "Ulinganisho wa Bei",
+      "title": "Ulinganishi wa Bei",
       "headers": {
-        "feature": "Uongozi wa Vipengele",
-        "starter": "Starter",
-        "enterprise": "Enterprise"
+        "feature": "Vipengele",
+        "basic": "Msingi",
+        "mid": "Kati",
+        "pro": "Juu"
       },
       "features": {
-        "dashboard": "Dashibodi ya Kimataifa",
-        "reporting": "Ripoti za Kiotomatiki",
+        "dashboard": "Dashibodi Kamili",
+        "reporting": "Ripoti za Moja kwa Moja",
+        "inventory": "Usimamizi wa Juu",
+        "users": "Watumiaji Wengi",
         "ai": "Msaidizi wa AI",
-        "offline": "Hali ya Nje ya Mtandao",
-        "support": "Usaidizi wa Kipaumbele wa 24/7",
-        "security": "Usalama wa Juu"
+        "offline": "Njia ya Nje ya Mtandao",
+        "support": "Usaidizi wa 24/7"
       }
     },
     "waitlist": {

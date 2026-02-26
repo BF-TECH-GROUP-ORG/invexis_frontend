@@ -374,22 +374,39 @@
       "badge": "Comment fonctionne Invexis",
       "title": "Mise en œuvre transparente",
       "subtitle": "Configurez, paramétrez et surveillez en quelques minutes.",
+      "explore": "Explorer",
       "steps": {
         "s1": {
-          "title": "Créez votre espace de travail",
-          "desc": "Inscrivez-vous et configurez votre profil d'entreprise en quelques secondes."
+          "title": "Créez votre espace",
+          "desc": "Inscrivez-vous et configurez votre profil d'entreprise en quelques secondes.",
+          "tags": [
+            "Profil",
+            "Configuration"
+          ]
         },
         "s2": {
-          "title": "Configurez l'inventaire et le personnel",
-          "desc": "Ajoutez vos produits, vos catégories et invitez les membres de votre équipe avec des rôles spécifiques."
+          "title": "Gérer l'inventaire et le personnel",
+          "desc": "Ajoutez vos produits, catégories et invitez les membres de votre équipe avec des rôles spécifiques.",
+          "tags": [
+            "Stock",
+            "Équipe"
+          ]
         },
         "s3": {
-          "title": "Surveillez les opérations en direct",
-          "desc": "Suivez les ventes et les mouvements de stock en temps réel, où que vous soyez."
+          "title": "Suivre les opérations en direct",
+          "desc": "Observez les ventes et les mouvements de stock en temps réel, où que vous soyez.",
+          "tags": [
+            "Temps réel",
+            "Moniteur"
+          ]
         },
         "s4": {
-          "title": "Obtenez des informations et des alertes",
-          "desc": "Recevez des alertes automatisées pour les stocks faibles et consultez des rapports professionnels."
+          "title": "Obtenir des analyses et alertes",
+          "desc": "Recevez des alertes automatiques en cas de stock faible et consultez des rapports professionnels.",
+          "tags": [
+            "Analyse",
+            "Rapports"
+          ]
         }
       }
     },
@@ -425,62 +442,82 @@
       "subtitle": "Choisissez l'abonnement qui convient à vos besoins",
       "toggle": {
         "monthly": "Mensuel",
+        "3months": "3 Mois",
+        "6months": "6 Mois",
         "yearly": "Annuel"
       },
       "plans": {
-        "onboarding": {
-          "title": "Frais d'Intégration",
-          "price": "Variable",
-          "sub": "Frais d'installation uniques",
-          "features": {
-            "f1": "Configuration du système",
-            "f2": "Formation de l'équipe",
-            "f3": "Aide à la migration des données"
+        "basic": {
+          "title": "Plan Basique",
+          "price": {
+            "monthly": "30 000",
+            "3months": "85 000",
+            "6months": "170 000",
+            "yearly": "345 000"
           },
-          "btn": "Contactez-nous"
-        },
-        "standard": {
-          "title": "Plan Standard",
-          "price": "$29.99",
-          "sub": "Facturé mensuellement",
+          "sub": "Parfait pour les petites équipes",
           "features": {
-            "f1": "Accès complet au tableau de bord",
-            "f2": "Rapports de base",
-            "f3": "Collaboration d'équipe",
-            "f4": "Synchronisation mobile"
+            "f1": "Intégration & Configuration",
+            "f2": "Analyses de base",
+            "f3": "Espace de travail unique",
+            "f4": "Support par Email"
+          },
+          "btn": "Commencer"
+        },
+        "mid": {
+          "title": "Plan Intermédiaire",
+          "price": {
+            "monthly": "40 000",
+            "3months": "110 000",
+            "6months": "235 000",
+            "yearly": "460 000"
+          },
+          "sub": "Tout pour les entreprises en croissance",
+          "features": {
+            "f1": "Fonctionnalités de base",
+            "f2": "Gestion avancée",
+            "f3": "Accès multi-utilisateurs",
+            "f4": "Support prioritaire"
           },
           "btn": "Commencer",
           "popular": "Le Plus Populaire"
         },
         "pro": {
           "title": "Plan Pro",
-          "price": "$59.99",
-          "sub": "Facturé mensuellement",
+          "price": {
+            "monthly": "50 000",
+            "3months": "140 000",
+            "6months": "280 000",
+            "yearly": "570 000"
+          },
+          "sub": "Intelligence de niveau entreprise",
           "features": {
-            "f1": "Intégration de l'IA",
-            "f2": "Mode hors ligne",
-            "f3": "Support prioritaire",
-            "f4": "Analyses avancées"
+            "f1": "Fonctionnalités Intermédiaires",
+            "f2": "Intégration de l'IA",
+            "f3": "Mode hors ligne",
+            "f4": "Support prioritaire 24h/24"
           },
           "btn": "Commencer"
         }
       }
     },
     "comparison": {
-      "badge": "Répartition Détaillée",
-      "title": "Comparaison des Tarifs",
+      "badge": "Analyse Détaillée",
+      "title": "Comparaison des Prix",
       "headers": {
-        "feature": "Hiérarchie des Fonctionnalités",
-        "starter": "Starter",
-        "enterprise": "Entreprise"
+        "feature": "Hiérarchie des fonctionnalités",
+        "basic": "Basique",
+        "mid": "Intermédiaire",
+        "pro": "Pro"
       },
       "features": {
         "dashboard": "Tableau de Bord Global",
         "reporting": "Rapports Automatisés",
+        "inventory": "Gestion Avancée",
+        "users": "Accès Multi-utilisateurs",
         "ai": "Assistant IA",
         "offline": "Mode Hors Ligne",
-        "support": "Support Prioritaire 24/7",
-        "security": "Sécurité Avancée"
+        "support": "Support Prioritaire 24/7"
       }
     },
     "waitlist": {
