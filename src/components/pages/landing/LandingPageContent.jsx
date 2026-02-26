@@ -100,6 +100,29 @@ const BackgroundRain = () => {
   );
 };
 
+const SideSectionNav = ({ activeSection, sections }) => {
+  return (
+    <div className={styles.sideNav}>
+      {sections.map((section) => (
+        <div key={section.id} className={styles.navDotContainer}>
+          <a
+            href={`#${section.id}`}
+            className={`${styles.navDot} ${activeSection === section.id ? styles.navDotActive : ""
+              }`}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById(section.id)?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }}
+          />
+          <span className={styles.navLabel}>{section.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function HomePageContent() {
   const { isAuthenticated } = useAuth();
   const t = useTranslations("landing");
@@ -109,6 +132,17 @@ function HomePageContent() {
   const [billing, setBilling] = useState("monthly");
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
+
+  const sections = [
+    { id: "home", label: t("nav.home") },
+    { id: "about", label: t("nav.about") },
+    { id: "features", label: t("nav.features") },
+    { id: "pricing", label: t("nav.pricing") },
+    { id: "how", label: t("nav.how") },
+    { id: "why", label: t("nav.why") },
+    { id: "faq", label: t("nav.faq") },
+  ];
 
   const locales = [
     { code: "en", name: "English", flag: "🇺🇸" },
@@ -132,8 +166,6 @@ function HomePageContent() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Always keep nav visible, only track if we've scrolled past a small threshold
       setNavScrolled(currentScrollY > 50);
       setNavVisible(true);
       setShowScrollTop(currentScrollY > 1000);
@@ -143,6 +175,27 @@ function HomePageContent() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3, rootMargin: "-20% 0px -20% 0px" }
+    );
+
+    const sectionIds = sections.map(s => s.id);
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -161,6 +214,8 @@ function HomePageContent() {
 
   return (
     <div className={`${styles.landingBody} font-metropolis`} id="home">
+      <SideSectionNav activeSection={activeSection} sections={sections} />
+      <BackgroundRain />
       {/* Background Circuit Lines - Redesigned with Orange Glow */}
       <div className={styles.circuitLines}>
         <svg
