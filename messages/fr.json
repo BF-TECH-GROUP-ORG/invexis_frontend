@@ -317,6 +317,7 @@
       }
     },
     "cta": {
+      "startBtn": "Commencer",
       "start": "Commencer l'essai gratuit",
       "demo": "Demander une démo",
       "dashboard": "Aller au tableau de bord",

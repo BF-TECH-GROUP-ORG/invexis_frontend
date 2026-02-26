@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 
 const AntigravityInner = ({
@@ -28,45 +28,30 @@ const AntigravityInner = ({
   const lastMouseMoveTime = useRef(0);
   const virtualMouse = useRef({ x: 0, y: 0 });
 
-  const particles = useMemo(() => {
-    const temp = [];
+  // P0: t, P1: speed, P2: mx, P3: my, P4: mz, P5: cx, P6: cy, P7: cz, P8: randomRadiusOffset
+  const STRIDE = 9;
+  const particleData = useMemo(() => {
+    const data = new Float32Array(count * STRIDE);
     const width = viewport.width || 100;
     const height = viewport.height || 100;
 
     for (let i = 0; i < count; i++) {
-      const t = Math.random() * 100;
-      const factor = 20 + Math.random() * 100;
-      const speed = 0.01 + Math.random() / 200;
-      const xFactor = -50 + Math.random() * 100;
-      const yFactor = -50 + Math.random() * 100;
-      const zFactor = -50 + Math.random() * 100;
-
+      const idx = i * STRIDE;
       const x = (Math.random() - 0.5) * width;
       const y = (Math.random() - 0.5) * height;
       const z = (Math.random() - 0.5) * 20;
 
-      const randomRadiusOffset = (Math.random() - 0.5) * 2;
-
-      temp.push({
-        t,
-        factor,
-        speed,
-        xFactor,
-        yFactor,
-        zFactor,
-        mx: x,
-        my: y,
-        mz: z,
-        cx: x,
-        cy: y,
-        cz: z,
-        vx: 0,
-        vy: 0,
-        vz: 0,
-        randomRadiusOffset
-      });
+      data[idx + 0] = Math.random() * 100; // t
+      data[idx + 1] = 0.01 + Math.random() / 200; // speed
+      data[idx + 2] = x; // mx
+      data[idx + 3] = y; // my
+      data[idx + 4] = z; // mz
+      data[idx + 5] = x; // cx
+      data[idx + 6] = y; // cy
+      data[idx + 7] = z; // cz
+      data[idx + 8] = (Math.random() - 0.5) * 2; // randomRadiusOffset
     }
-    return temp;
+    return data;
   }, [count, viewport.width, viewport.height]);
 
   useFrame(state => {
@@ -74,106 +59,118 @@ const AntigravityInner = ({
     if (!mesh) return;
 
     const { viewport: v, pointer: m } = state;
+    const now = Date.now();
 
-    const mouseDist = Math.sqrt(
-      Math.pow(m.x - lastMousePos.current.x, 2) + Math.pow(m.y - lastMousePos.current.y, 2)
-    );
+    const mouseDistSq = Math.pow(m.x - lastMousePos.current.x, 2) + Math.pow(m.y - lastMousePos.current.y, 2);
 
-    if (mouseDist > 0.001) {
-      lastMouseMoveTime.current = Date.now();
+    if (mouseDistSq > 0.000001) {
+      lastMouseMoveTime.current = now;
       lastMousePos.current = { x: m.x, y: m.y };
     }
 
-    let destX = (m.x * v.width) / 2;
-    let destY = (m.y * v.height) / 2;
+    let destX = (m.x * v.width) * 0.5;
+    let destY = (m.y * v.height) * 0.5;
 
-    if (autoAnimate && Date.now() - lastMouseMoveTime.current > 2000) {
+    if (autoAnimate && now - lastMouseMoveTime.current > 2000) {
       const time = state.clock.getElapsedTime();
-      destX = Math.sin(time * 0.5) * (v.width / 4);
-      destY = Math.cos(time * 0.5 * 2) * (v.height / 4);
+      destX = Math.sin(time * 0.5) * (v.width * 0.25);
+      destY = Math.cos(time * 0.5 * 2) * (v.height * 0.25);
     }
 
-    const smoothFactor = 0.05;
-    virtualMouse.current.x += (destX - virtualMouse.current.x) * smoothFactor;
-    virtualMouse.current.y += (destY - virtualMouse.current.y) * smoothFactor;
+    virtualMouse.current.x += (destX - virtualMouse.current.x) * 0.05;
+    virtualMouse.current.y += (destY - virtualMouse.current.y) * 0.05;
 
     const targetX = virtualMouse.current.x;
     const targetY = virtualMouse.current.y;
+    const time = state.clock.getElapsedTime();
+    const globalRotation = time * rotationSpeed;
+    const magnetRadiusSq = magnetRadius * magnetRadius;
+    const fieldDeviationFactor = 5 / (fieldStrength + 0.1);
 
-    const globalRotation = state.clock.getElapsedTime() * rotationSpeed;
+    for (let i = 0; i < count; i++) {
+      const idx = i * STRIDE;
 
-    particles.forEach((particle, i) => {
-      let { t, speed, mx, my, mz, cz, randomRadiusOffset } = particle;
+      let t = particleData[idx + 0] += particleData[idx + 1] * 0.5;
+      const mx = particleData[idx + 2];
+      const my = particleData[idx + 3];
+      const mz = particleData[idx + 4];
+      const cz = particleData[idx + 7];
+      const randomRadiusOffset = particleData[idx + 8];
 
-      t = particle.t += speed / 2;
-
-      const projectionFactor = 1 - cz / 50;
+      const projectionFactor = 1 - cz * 0.02; // cz / 50
       const projectedTargetX = targetX * projectionFactor;
       const projectedTargetY = targetY * projectionFactor;
 
       const dx = mx - projectedTargetX;
       const dy = my - projectedTargetY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const distSq = dx * dx + dy * dy;
 
-      let targetPos = { x: mx, y: my, z: mz * depthFactor };
+      let tx = mx;
+      let ty = my;
+      let tz = mz * depthFactor;
 
-      if (dist < magnetRadius) {
+      if (distSq < magnetRadiusSq) {
         const angle = Math.atan2(dy, dx) + globalRotation;
-
         const wave = Math.sin(t * waveSpeed + angle) * (0.5 * waveAmplitude);
-        const deviation = randomRadiusOffset * (5 / (fieldStrength + 0.1));
+        const deviation = randomRadiusOffset * fieldDeviationFactor;
+        const r = ringRadius + wave + deviation;
 
-        const currentRingRadius = ringRadius + wave + deviation;
-
-        targetPos.x = projectedTargetX + currentRingRadius * Math.cos(angle);
-        targetPos.y = projectedTargetY + currentRingRadius * Math.sin(angle);
-        targetPos.z = mz * depthFactor + Math.sin(t) * (1 * waveAmplitude * depthFactor);
+        tx = projectedTargetX + r * Math.cos(angle);
+        ty = projectedTargetY + r * Math.sin(angle);
+        tz = mz * depthFactor + Math.sin(t) * waveAmplitude * depthFactor;
       }
 
-      particle.cx += (targetPos.x - particle.cx) * lerpSpeed;
-      particle.cy += (targetPos.y - particle.cy) * lerpSpeed;
-      particle.cz += (targetPos.z - particle.cz) * lerpSpeed;
+      particleData[idx + 5] += (tx - particleData[idx + 5]) * lerpSpeed;
+      particleData[idx + 6] += (ty - particleData[idx + 6]) * lerpSpeed;
+      particleData[idx + 7] += (tz - particleData[idx + 7]) * lerpSpeed;
 
-      dummy.position.set(particle.cx, particle.cy, particle.cz);
+      const cx = particleData[idx + 5];
+      const cy = particleData[idx + 6];
+      const curCz = particleData[idx + 7];
 
-      dummy.lookAt(projectedTargetX, projectedTargetY, particle.cz);
-      dummy.rotateX(Math.PI / 2);
+      dummy.position.set(cx, cy, curCz);
+      dummy.lookAt(projectedTargetX, projectedTargetY, curCz);
+      dummy.rotateX(Math.PI * 0.5);
 
-      const currentDistToMouse = Math.sqrt(
-        Math.pow(particle.cx - projectedTargetX, 2) + Math.pow(particle.cy - projectedTargetY, 2)
-      );
+      const dx2 = cx - projectedTargetX;
+      const dy2 = cy - projectedTargetY;
+      const currentDistToMouse = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
       const distFromRing = Math.abs(currentDistToMouse - ringRadius);
-      let scaleFactor = 1 - distFromRing / 10;
-
-      scaleFactor = Math.max(0, Math.min(1, scaleFactor));
-
+      const scaleFactor = Math.max(0, Math.min(1, 1 - distFromRing * 0.1));
       const finalScale = scaleFactor * (0.8 + Math.sin(t * pulseSpeed) * 0.2 * particleVariance) * particleSize;
+
       dummy.scale.set(finalScale, finalScale, finalScale);
-
       dummy.updateMatrix();
-
       mesh.setMatrixAt(i, dummy.matrix);
-    });
+    }
 
     mesh.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={true}>
       {particleShape === 'capsule' && <capsuleGeometry args={[0.1, 0.4, 4, 8]} />}
       {particleShape === 'sphere' && <sphereGeometry args={[0.2, 16, 16]} />}
       {particleShape === 'box' && <boxGeometry args={[0.3, 0.3, 0.3]} />}
       {particleShape === 'tetrahedron' && <tetrahedronGeometry args={[0.3]} />}
-      <meshBasicMaterial color={color} />
+      <meshBasicMaterial color={color} transparent opacity={0.9} />
     </instancedMesh>
   );
 };
 
-const Antigravity = props => {
+const Antigravity = ({ count = 500, ...props }) => {
   return (
-    <Canvas camera={{ position: [0, 0, 50], fov: 35 }}>
-      <AntigravityInner {...props} />
+    <Canvas
+      gl={{
+        antialias: false,
+        powerPreference: "high-performance",
+        alpha: true
+      }}
+      dpr={[1, 1.5]} // Limit DPR for performance
+      camera={{ position: [0, 0, 50], fov: 35 }}
+    >
+      <AntigravityInner count={count} {...props} />
     </Canvas>
   );
 };

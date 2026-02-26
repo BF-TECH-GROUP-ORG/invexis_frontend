@@ -382,6 +382,7 @@
       }
     },
     "cta": {
+      "startBtn": "Tangira Ubu",
       "start": "Tangira kugerageza ku buntu",
       "demo": "Saba Demo",
       "dashboard": "Gana kuri Dashboard",
