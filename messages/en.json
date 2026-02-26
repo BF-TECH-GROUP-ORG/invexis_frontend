@@ -1806,10 +1806,32 @@
         "title": "Scan with Mobile",
         "subtitle": "Point your mobile app camera at the QR code or barcode below to perform quick stock-out actions from the mobile app.",
         "tipsTitle": "Tips for scanning with a mobile phone",
+        "qrTab": "QR Code",
+        "barcodeTab": "Barcode",
         "tip1": "Open the mobile app and go to the scanner section.",
         "tip2": "Point the camera steadily at the QR code or barcode and allow it to autofocus.",
         "tip3": "Ensure good lighting and avoid glare on glossy labels.",
         "tip4": "If scanning a barcode, align it horizontally across the camera frame."
+      }
+    },
+    "dialogs": {
+      "confirmStockOut": {
+        "title": "Confirm Stock Out",
+        "qty": "Quantity",
+        "reason": "Reason",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "processing": "Processing...",
+        "success": "Stock-out recorded successfully",
+        "failed": "Failed to record stock-out",
+        "qtyError": "Please enter a valid quantity",
+        "reasons": {
+          "sale": "Sale",
+          "damaged": "Damaged",
+          "expired": "Expired",
+          "transferOut": "Transfer Out",
+          "other": "Other"
+        }
       }
     },
     "operations": {
@@ -1861,23 +1883,6 @@
         "loadFailed": "Failed to load stock history",
         "tryAgain": "Try again",
         "noChanges": "No stock changes found"
-      }
-    },
-    "dialogs": {
-      "confirmStockOut": {
-        "title": "Confirm Stock Out",
-        "qty": "Quantity",
-        "success": "Stock out successful",
-        "error": "Failed to complete stock out",
-        "qtyError": "Please enter a quantity greater than 0",
-        "failed": "Stock out failed",
-        "reasons": {
-          "sale": "Sale",
-          "damaged": "Damaged",
-          "expired": "Expired",
-          "transferOut": "Transfer Out",
-          "other": "Other"
-        }
       }
     }
   },
