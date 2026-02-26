@@ -122,6 +122,8 @@
   height: 100%;
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
+  /* Added to prevent particles from causing overflow */
 }
 
 .particle {

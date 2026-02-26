@@ -65,23 +65,31 @@ function CountingNumber({ value, duration = 2 }) {
 
 const BackgroundRain = () => {
   const [mounted, setMounted] = useState(false);
+  const [particles, setParticles] = useState([]);
 
   useEffect(() => {
     setMounted(true);
+    setParticles(
+      Array.from({ length: 20 }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        duration: Math.random() * 2 + 2,
+        delay: Math.random() * 5,
+      }))
+    );
   }, []);
 
   if (!mounted) return null;
 
-  const particles = Array.from({ length: 20 });
   return (
     <div className={styles.rainContainer}>
-      {particles.map((_, i) => (
+      {particles.map((p) => (
         <motion.div
-          key={i}
+          key={p.id}
           className={styles.particle}
           initial={{
             top: -20,
-            left: `${Math.random() * 100}%`,
+            left: p.left,
             opacity: 0
           }}
           animate={{
@@ -89,9 +97,9 @@ const BackgroundRain = () => {
             opacity: [0, 0.3, 0],
           }}
           transition={{
-            duration: Math.random() * 2 + 2,
+            duration: p.duration,
             repeat: Infinity,
-            delay: Math.random() * 5,
+            delay: p.delay,
             ease: "linear"
           }}
         />
@@ -169,12 +177,12 @@ function HomePageContent() {
       setNavScrolled(currentScrollY > 50);
       setNavVisible(true);
       setShowScrollTop(currentScrollY > 1000);
-      setLastScrollY(currentScrollY);
+      // Removed setLastScrollY to prevent frequent re-renders if not needed for direction tracking
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
