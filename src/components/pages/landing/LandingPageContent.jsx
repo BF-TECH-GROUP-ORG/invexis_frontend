@@ -826,58 +826,41 @@ function HomePageContent() {
       {/* FAQ Section */}
       <section id="faq" className={styles.featureSection}>
         <div className="text-center mb-16">
-          <div className={styles.featureBadge}>FAQ</div>
-          <h2 className={styles.featureTitle}>Frequently Asked Questions</h2>
+          <div className={styles.featureBadge}>{t("faq.badge")}</div>
+          <h2 className={styles.featureTitle}>{t("faq.title")}</h2>
         </div>
 
         <div className={styles.faqContainer}>
-          {[
-            {
-              q: "Who is Invexix for?",
-              a: "Small businesses, growing companies, and multi-branch operations.",
-            },
-            {
-              q: "Is Invexix easy to use?",
-              a: "Yes. It’s designed to be simple, intuitive, and fast to learn.",
-            },
-            {
-              q: "Can I access it on mobile?",
-              a: "Yes. Access your business anytime, anywhere.",
-            },
-            {
-              q: "Can I download reports?",
-              a: "Yes. Generate and download professional PDF reports.",
-            },
-            {
-              q: "Is my data secure?",
-              a: "Absolutely. Invexix includes secure authentication, permissions, and audit logs.",
-            },
-          ].map((faq, i) => (
+          {Object.keys(t.raw("faq.items")).map((key, i) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
               className={styles.faqItem}
             >
               <button
                 className={styles.faqHeader}
-                onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                onClick={() => setExpandedFaq(expandedFaq === key ? null : key)}
               >
-                <span>{faq.q}</span>
+                <span>{t(`faq.items.${key}.q`)}</span>
                 <motion.div
-                  animate={{ rotate: expandedFaq === i ? 45 : 0 }}
+                  animate={{ rotate: expandedFaq === key ? 45 : 0 }}
                   className="text-orange-500"
                 >
                   <Plus size={20} />
                 </motion.div>
               </button>
-              {expandedFaq === i && (
+              {expandedFaq === key && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   className={styles.faqBody}
                 >
-                  {faq.a}
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    {t(`faq.items.${key}.a`)}
+                  </p>
                 </motion.div>
               )}
             </motion.div>
@@ -894,21 +877,20 @@ function HomePageContent() {
           className={styles.ctaCard}
         >
           <h2 className={styles.ctaTitle}>
-            Run Your Business Smarter—Starting Today
+            {t("cta.final.title")}
           </h2>
           <p className={styles.ctaSubtext}>
-            Get full control, real-time insights, and peace of mind with
-            Invexix.
+            {t("cta.final.subtitle")}
           </p>
           <div className={styles.ctaBtns}>
             <Link
               href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/auth/signup`}
               className={styles.ctaPrimary}
             >
-              {isAuthenticated ? "Open Dashboard" : "Start Free Trial"}
+              {isAuthenticated ? t("cta.final.openDashboard") : t("cta.final.startTrial")}
             </Link>
             <Link href="#contact" className={styles.ctaSecondary}>
-              Request a Demo
+              {t("cta.demo")}
             </Link>
           </div>
         </motion.div>
@@ -923,23 +905,22 @@ function HomePageContent() {
             viewport={{ once: true }}
             className={styles.waitlistContent}
           >
-            <div className={styles.featureBadge}>Get Started</div>
+            <div className={styles.featureBadge}>{t("waitlist.badge")}</div>
             <h2 className={styles.waitlistTitle}>
-              Ready to{" "}
-              <span className={styles.gradientText}>revolutionize</span> <br />{" "}
-              your business?
+              {t.rich("waitlist.title", {
+                spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+              })}
             </h2>
             <p className={styles.waitlistSubtitle}>
-              Join the growing number of businesses scaling with real-time
-              control. Secure your spot in the future of management.
+              {t("waitlist.subtitle")}
             </p>
             <div className={styles.waitlistForm}>
               <input
                 type="email"
-                placeholder="Enter your business email"
+                placeholder={t("waitlist.placeholder")}
                 className={styles.waitlistInput}
               />
-              <button className={styles.waitlistSubmit}>Join Now</button>
+              <button className={styles.waitlistSubmit}>{t("waitlist.button")}</button>
             </div>
           </motion.div>
 

@@ -484,7 +484,7 @@
     },
     "waitlist": {
       "badge": "Commencer",
-      "title": "Prêt à <spanClassName>révolutionner</spanClassName> <br /> votre entreprise ?",
+      "title": "Prêt à <spanClassName>révolutionner</spanClassName> votre entreprise ?",
       "subtitle": "Rejoignez le nombre croissant d'entreprises qui évoluent avec un contrôle en temps réel. Assurez votre place dans le futur de la gestion.",
       "placeholder": "Entrez votre email professionnel",
       "button": "Rejoindre maintenant",
@@ -499,24 +499,28 @@
       "title": "Questions Fréquemment Posées",
       "items": {
         "who": {
-          "q": "À qui s'adresse Invexix ?",
-          "a": "Petites entreprises, entreprises en croissance et opérations multi-succursales."
+          "q": "Pour qui est fait Invexix ?",
+          "a": "Invexix est conçu pour les magasins de détail, les grossistes, les prestataires de services et les entreprises multi-succursales qui ont besoin d'un contrôle en temps réel sur leurs stocks, leurs ventes et leur personnel sur plusieurs sites."
         },
         "easy": {
-          "q": "Invexix est-il facile à utiliser ?",
-          "a": "Oui. Il est conçu pour être simple, intuitif et rapide à apprendre."
+          "q": "Est-il facile d'intégrer mon équipe ?",
+          "a": "Oui, Invexix dispose d'une interface intuitive et de permissions basées sur les rôles. Vous pouvez inviter des membres de l'équipe et les rendre opérationnels en quelques minutes, avec un accès spécifique uniquement à ce dont ils ont besoin."
         },
-        "mobile": {
-          "q": "Puis-je y accéder sur mobile ?",
-          "a": "Oui. Accédez à votre entreprise n'importe quand, n'importe où."
-        },
-        "reports": {
-          "q": "Puis-je télécharger des rapports ?",
-          "a": "Oui. Générez et téléchargez des rapports PDF professionnels."
+        "multi": {
+          "q": "Puis-je gérer plusieurs succursales ?",
+          "a": "Absolument. Invexix est conçu pour évoluer. Vous pouvez surveiller les niveaux de stock, les performances de vente et l'activité du personnel dans tous vos sites commerciaux à partir d'un tableau de bord unique et centralisé."
         },
         "secure": {
-          "q": "Mes données sont-elles sécurisées ?",
-          "a": "Absolument. Invexix comprend une authentification sécurisée, des autorisations et des journaux d'audit."
+          "q": "Mes données sont-elles sécurisées et sauvegardées ?",
+          "a": "Votre sécurité est notre priorité. Nous utilisons un cryptage de niveau entreprise, une authentification sécurisée et des sauvegardes quotidiennes automatisées pour garantir que vos données professionnelles sont toujours en sécurité, accessibles et protégées."
+        },
+        "mobile": {
+          "q": "Puis-je y accéder sur des appareils mobiles ?",
+          "a": "Oui ! Invexix est entièrement réactif et optimisé pour les navigateurs mobiles, vous permettant de suivre les performances de votre entreprise, de vérifier les stocks et de recevoir des alertes en temps réel partout dans le monde."
+        },
+        "reports": {
+          "q": "Puis-je exporter des rapports financiers ?",
+          "a": "Oui. Vous pouvez générer et télécharger des rapports complets en format PDF ou Excel pour les ventes, les stocks, les dettes et les performances du personnel, vous aidant à prendre des décisions basées sur les données pour la croissance de votre entreprise."
         }
       }
     },

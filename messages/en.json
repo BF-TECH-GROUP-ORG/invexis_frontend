@@ -484,7 +484,7 @@
     },
     "waitlist": {
       "badge": "Get Started",
-      "title": "Ready to <spanClassName>revolutionize</spanClassName> <br /> your business?",
+      "title": "Ready to <spanClassName>revolutionize</spanClassName> your business?",
       "subtitle": "Join the growing number of businesses scaling with real-time control. Secure your spot in the future of management.",
       "placeholder": "Enter your business email",
       "button": "Join Now",
@@ -500,23 +500,27 @@
       "items": {
         "who": {
           "q": "Who is Invexix for?",
-          "a": "Small businesses, growing companies, and multi-branch operations."
+          "a": "Invexix is designed for retail shops, wholesalers, service providers, and multi-branch businesses that need real-time control over their inventory, sales, and staff across multiple locations."
         },
         "easy": {
-          "q": "Is Invexix easy to use?",
-          "a": "Yes. It’s designed to be simple, intuitive, and fast to learn."
+          "q": "Is it easy to onboard my team?",
+          "a": "Yes, Invexix features an intuitive interface and role-based permissions. You can invite team members and have them trained and operational within minutes, with specific access to only what they need."
         },
-        "mobile": {
-          "q": "Can I access it on mobile?",
-          "a": "Yes. Access your business anytime, anywhere."
-        },
-        "reports": {
-          "q": "Can I download reports?",
-          "a": "Yes. Generate and download professional PDF reports."
+        "multi": {
+          "q": "Can I manage multiple branches?",
+          "a": "Absolutely. Invexix is built for scale. You can monitor stock levels, sales performance, and staff activity across all your business locations from a single, centralized dashboard."
         },
         "secure": {
-          "q": "Is my data secure?",
-          "a": "Absolutely. Invexix includes secure authentication, permissions, and audit logs."
+          "q": "Is my data secure and backed up?",
+          "a": "Your security is our priority. We use enterprise-grade encryption, secure authentication, and automated daily backups to ensure your business data is always safe, accessible, and protected."
+        },
+        "mobile": {
+          "q": "Can I access it on mobile devices?",
+          "a": "Yes! Invexix is fully responsive and optimized for mobile browsers, allowing you to track your business performance, check stock, and receive real-time alerts on the go, anywhere in the world."
+        },
+        "reports": {
+          "q": "Can I export financial reports?",
+          "a": "Yes. You can generate and download comprehensive PDF or Excel reports for sales, inventory, debts, and staff performance, helping you make data-driven decisions for your business growth."
         }
       }
     },

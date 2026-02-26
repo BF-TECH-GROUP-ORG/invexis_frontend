@@ -657,8 +657,17 @@
 
 /* FAQ Section */
 .faqContainer {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .faqContainer {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .faqItem {
