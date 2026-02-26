@@ -374,22 +374,39 @@
       "badge": "How Invexix Works",
       "title": "Seamless Implementation",
       "subtitle": "Set up, configure, and monitor in minutes.",
+      "explore": "Explore",
       "steps": {
         "s1": {
           "title": "Create Your Workspace",
-          "desc": "Sign up and set up your business profile in seconds."
+          "desc": "Sign up and set up your business profile in seconds.",
+          "tags": [
+            "Profile",
+            "Setup"
+          ]
         },
         "s2": {
           "title": "Configure Inventory & Staff",
-          "desc": "Add your products, categories, and invite your team members with specific roles."
+          "desc": "Add your products, categories, and invite your team members with specific roles.",
+          "tags": [
+            "Stock",
+            "Team"
+          ]
         },
         "s3": {
           "title": "Monitor Operations Live",
-          "desc": "Watch sales and stock movements happen in real-time from anywhere."
+          "desc": "Watch sales and stock movements happen in real-time from anywhere.",
+          "tags": [
+            "Real-time",
+            "Monitor"
+          ]
         },
         "s4": {
           "title": "Get Insights & Alerts",
-          "desc": "Receive automated alerts for low stock and view professional reports."
+          "desc": "Receive automated alerts for low stock and view professional reports.",
+          "tags": [
+            "AI",
+            "Reports"
+          ]
         }
       }
     },
@@ -425,42 +442,60 @@
       "subtitle": "Choose the subscription plan that suits your needs",
       "toggle": {
         "monthly": "Monthly",
+        "3months": "3 Months",
+        "6months": "6 Months",
         "yearly": "Yearly"
       },
       "plans": {
-        "onboarding": {
-          "title": "Onboarding Fee",
-          "price": "Variable",
-          "sub": "One-time setup fee",
-          "features": {
-            "f1": "System configuration",
-            "f2": "Team training",
-            "f3": "Data migration assist"
+        "basic": {
+          "title": "Basic Plan",
+          "price": {
+            "monthly": "30,000",
+            "3months": "85,000",
+            "6months": "170,000",
+            "yearly": "345,000"
           },
-          "btn": "Contact Us"
-        },
-        "standard": {
-          "title": "Standard Plan",
-          "price": "$29.99",
-          "sub": "Billed monthly",
+          "sub": "Perfect for small teams",
           "features": {
-            "f1": "Full Dashboard access",
-            "f2": "Basic Reports",
-            "f3": "Team Collaboration",
-            "f4": "Mobile Sync"
+            "f1": "Onboarding & Setup",
+            "f2": "Basic Analytics",
+            "f3": "Single Workspace",
+            "f4": "Email Support"
+          },
+          "btn": "Get Started"
+        },
+        "mid": {
+          "title": "Mid Plan",
+          "price": {
+            "monthly": "40,000",
+            "3months": "110,000",
+            "6months": "235,000",
+            "yearly": "460,000"
+          },
+          "sub": "Everything for growing businesses",
+          "features": {
+            "f1": "All Basic features",
+            "f2": "Advanced Inventory",
+            "f3": "Multi-user Access",
+            "f4": "Priority Support"
           },
           "btn": "Get Started",
           "popular": "Most Popular"
         },
         "pro": {
           "title": "Pro Plan",
-          "price": "$59.99",
-          "sub": "Billed monthly",
+          "price": {
+            "monthly": "50,000",
+            "3months": "140,000",
+            "6months": "280,000",
+            "yearly": "570,000"
+          },
+          "sub": "Enterprise-level intelligence",
           "features": {
-            "f1": "AI Integration",
-            "f2": "Offline Mode",
-            "f3": "Priority Support",
-            "f4": "Advanced Analytics"
+            "f1": "All Mid features",
+            "f2": "AI Integration",
+            "f3": "Offline Mode",
+            "f4": "24/7 Priority Support"
           },
           "btn": "Get Started"
         }
@@ -471,16 +506,18 @@
       "title": "Pricing Comparison",
       "headers": {
         "feature": "Feature Hierarchy",
-        "starter": "Starter",
-        "enterprise": "Enterprise"
+        "basic": "Basic",
+        "mid": "Mid",
+        "pro": "Pro"
       },
       "features": {
         "dashboard": "Global Dashboard",
         "reporting": "Automated Reporting",
+        "inventory": "Advanced Inventory",
+        "users": "Multi-user Access",
         "ai": "AI Assistant",
         "offline": "Offline Mode",
-        "support": "24/7 Priority Support",
-        "auth": "Advanced Security"
+        "support": "24/7 Priority Support"
       }
     },
     "waitlist": {

@@ -321,56 +321,61 @@
       "title": "Amahitamo y'Ibiciro",
       "subtitle": "Hitamo uburyo bwo kwishyura bukubangamiye",
       "toggle": {
-        "monthly": "Buri Kwezi",
-        "yearly": "Buri Mwaka"
+        "monthly": "Kwezi",
+        "3months": "Mezi 3",
+        "6months": "Mezi 6",
+        "yearly": "Mwaka"
       },
       "plans": {
-        "onboarding": {
-          "title": "Ikiguzi cy'Intangiriro",
-          "price": "Guhindagurika",
-          "sub": "Ikiguzi cy'incuro imwe",
-          "features": {
-            "f1": "Gutunganya sisitemu",
-            "f2": "Guhugura ikipe",
-            "f3": "Gufasha kwimurira amakuru"
+        "basic": {
+          "title": "Plan y'Ibanze",
+          "price": {
+            "monthly": "30,000",
+            "3months": "85,000",
+            "6months": "170,000",
+            "yearly": "345,000"
           },
-          "btn": "Twandikire"
-        },
-        "standard": {
-          "title": "Plan Isanzwe",
-          "price": "$29.99",
-          "sub": "Yishyurwa buri kwezi",
+          "sub": "Ikwiriye amatsinda mato",
           "features": {
-            "f1": "Kureba Dashboard byuzuye",
-            "f2": "Raporo z'ibanze",
-            "f3": "Gukorera hamwe nk'ikipe",
-            "f4": "Guhuza na telefoni"
+            "f1": "Kwinjira & Setup",
+            "f2": "Ubusesenguzi bw'Ibanze",
+            "f3": "Aho ukorera hamwe",
+            "f4": "Ubufasha kuri Email"
           },
-          "btn": "Tangira Ubu",
-          "popular": "Ikunzwe cyane"
+          "btn": "Tangira Ubu"
         },
-        "standard_2": {
-          "title": "Plan Isanzwe 2",
-          "price": "$29.99",
-          "sub": "Yishyurwa buri kwezi",
+        "mid": {
+          "title": "Plan yo Hagati",
+          "price": {
+            "monthly": "40,000",
+            "3months": "110,000",
+            "6months": "235,000",
+            "yearly": "460,000"
+          },
+          "sub": "Byose kuri business zikura",
           "features": {
-            "f1": "Kureba Dashboard byuzuye",
-            "f2": "Raporo z'ibanze",
-            "f3": "Gukorera hamwe nk'ikipe",
-            "f4": "Guhuza na telefoni"
+            "f1": "Ibiranga Plan y'Ibanze",
+            "f2": "Igenamiterere ryihariye",
+            "f3": "Abakoresha benshi",
+            "f4": "Ubufasha bwihariye"
           },
           "btn": "Tangira Ubu",
           "popular": "Ikunzwe cyane"
         },
         "pro": {
-          "title": "Plan Pro",
-          "price": "$59.99",
-          "sub": "Yishyurwa buri kwezi",
+          "title": "Plan Ihanitse",
+          "price": {
+            "monthly": "50,000",
+            "3months": "140,000",
+            "6months": "280,000",
+            "yearly": "570,000"
+          },
+          "sub": "Ubuhanga buhanitse",
           "features": {
-            "f1": "Gukoresha AI",
-            "f2": "Gukoresha nta muriro",
-            "f3": "Gufashwa mbere y'abandi",
-            "f4": "Ubusesenguzi bwimbitse"
+            "f1": "Ibiranga Plan yo Hagati",
+            "f2": "Guhuza na AI",
+            "f3": "Gukora udafite internet",
+            "f4": "Ubufasha bwa 24/7"
           },
           "btn": "Tangira Ubu"
         }
@@ -426,30 +431,47 @@
         },
         "notifications": {
           "title": "Inyemezabwishyu n'Integuza",
-          "desc": "Bona integuza ako kanya iyo ibintu bishize mu bubiko, amadeni yatinze, n'ibindi bintu by'ingenzi."
+          "desc": "Bona integuza ako kanya iyo ibintu bishize mu ububiko, amadeni yatinze, n'ibindi bintu by'ingenzi."
         }
       }
     },
     "how": {
-      "badge": "Jinsi Invexis Inavyofanya Kazi",
-      "title": "Gushyira mu bikorwa bitagoranye",
+      "badge": "Uko Invexix Ikora",
+      "title": "Gushyira mu Bikorwa bitagoranye",
       "subtitle": "Andika, gura, kandi ugenzure mu minota mike.",
+      "explore": "Sura",
       "steps": {
         "s1": {
-          "title": "Unda Eneo Ryawe Ry'Akazi",
-          "desc": "Iyandikishe kandi utunganye umwirondoro wa business yawe mu masegonda make."
+          "title": "Kora aho ukorera",
+          "desc": "Iyandikishe kandi utunganye umwirondoro w'ubucuruzi bwawe mu masegonda.",
+          "tags": [
+            "Umwirondoro",
+            "Gutunganya"
+          ]
         },
         "s2": {
-          "title": "Tunganya Ububiko n'Abakozi",
-          "desc": "Ongeraho ibicuruzwa byawe, ibyiciro, kandi utumire abakozi mu nshingano zihariye."
+          "title": "Tunganya ibicuruzwa n'abakozi",
+          "desc": "Ongeramo ibicuruzwa byawe, ibyiciro, kandi utumire abagize itsinda ryawe bafite inshingano zihariye.",
+          "tags": [
+            "Ibicuruzwa",
+            "Itsinda"
+          ]
         },
         "s3": {
-          "title": "Genzura Ibikorwa mu Gihe Nyacyo",
-          "desc": "Reba imigendekere y'ubucuruzi n'ububiko mu gihe nyacyo aho waba uri hose."
+          "title": "Kurikirana ibikorwa imbonankubone",
+          "desc": "Reba ibicuruzwa n'imigendekere y'ibicuruzwa mu gihe nyacyo aho ariho hose.",
+          "tags": [
+            "Igihe nyacyo",
+            "Kurikirana"
+          ]
         },
         "s4": {
-          "title": "Bona Isesengura n'Integuza",
-          "desc": "Bona integuza zizana iyo ibicuruzwa bishize kandi urebe raporo z'umwuga."
+          "title": "Habwa amakuru n'integuza",
+          "desc": "Habwa integuza zihita ziza iyo ibicuruzwa byabaye bike kandi urebe raporo z'uburyo buhanitse.",
+          "tags": [
+            "Amakuru",
+            "Raporo"
+          ]
         }
       }
     },
@@ -483,17 +505,19 @@
       "badge": "Isesengura Ryimbitse",
       "title": "Igereranya ry'Ibiciro",
       "headers": {
-        "feature": "Ibyiciro by'Ibicuruzwa",
-        "starter": "Starter",
-        "enterprise": "Enterprise"
+        "feature": "Ibiranga Plan",
+        "basic": "Ibanze",
+        "mid": "Hagati",
+        "pro": "Ihanitse"
       },
       "features": {
-        "dashboard": "Dashboard Mpuzamahanga",
-        "reporting": "Raporo Zikora Zizana",
-        "ai": "Umufasha wa AI",
-        "offline": "Gukora Nta Muriro",
-        "support": "Gufashwa Ako Kanya 24/7",
-        "security": "Umutekano Wisumbuye"
+        "dashboard": "Dashboard yuzuye",
+        "reporting": "Raporo zikora",
+        "inventory": "Igenamiterere ryihariye",
+        "users": "Abakoresha benshi",
+        "ai": "Gufashwa na AI",
+        "offline": "Gukora nta internet",
+        "support": "Ubufasha bwa 24/7"
       }
     },
     "waitlist": {
