@@ -484,7 +484,7 @@
     },
     "waitlist": {
       "badge": "Anza Sasa",
-      "title": "Uko tayari <spanClassName>kuboresha</spanClassName> <br /> biashara yako?",
+      "title": "Uko tayari <spanClassName>kuboresha</spanClassName> biashara yako?",
       "subtitle": "Jiunge na idadi inayokua ya biashara zinazoongezeka kwa udhibiti wa wakati halisi. Linda nafasi yako katika siku zijazo za usimamizi.",
       "placeholder": "Ingiza barua pepe yako ya biashara",
       "button": "Jiunge Sasa",
@@ -499,24 +499,28 @@
       "title": "Maswali Yanayoulizwa Mara kwa Mara",
       "items": {
         "who": {
-          "q": "Invexix ni ya nani?",
-          "a": "Biashara ndogo ndogo, makampuni yanayokua, na shughuli za matawi mengi."
+          "q": "Invexix ni kwa nani?",
+          "a": "Invexix imeundwa kwa ajili ya maduka ya reja reja, wauzaji wa jumla, watoa huduma, na biashara zenye matawi mengi zinazohitaji udhibiti wa wakati halisi wa hesabu zao, mauzo, na wafanyakazi katika maeneo mengi."
         },
         "easy": {
-          "q": "Je, Invexix ni rahisi kutumia?",
-          "a": "Ndiyo. Imeundwa kuwa rahisi, angavu, na haraka kujifunza."
+          "q": "Je, ni rahisi kuwaingiza wafanyakazi wangu?",
+          "a": "Ndiyo, Invexix ina kiolesura rahisi na ruhusa kulingana na majukumu. Unaweza kualika washiriki wa timu na kuwafanya waanze kufanya kazi ndani ya dakika chache, wakiwa na ufikiaji maalum wa kile wanachohitaji tu."
         },
-        "mobile": {
-          "q": "Je, naweza kuipata kwenye simu?",
-          "a": "Ndiyo. Pata biashara yako wakati wowote, mahali popote."
-        },
-        "reports": {
-          "q": "Je, naweza kupakua ripoti?",
-          "a": "Ndiyo. Tengeneza na upakue ripoti za kitaalamu za PDF."
+        "multi": {
+          "q": "Je, ninaweza kusimamia matawi mengi?",
+          "a": "Kabisa. Invexix imejengwa kwa ajili ya ukubwa. Unaweza kufuatilia viwango vya hisa, utendaji wa mauzo, na shughuli za wafanyakazi katika maeneo yote ya biashara yako kutoka kwa dashibodi moja kuu."
         },
         "secure": {
-          "q": "Je, data yangu iko salama?",
-          "a": "Kabisa. Invexix inajumuisha uthibitishaji salama, ruhusa, na kumbukumbu za ukaguzi."
+          "q": "Je, data yangu iko salama na inahifadhiwa?",
+          "a": "Usalama wako ndio kipaumbele chetu. Tunatumia usimbaji fiche wa daraja la biashara, uthibitishaji salama, na uhifadhi otomatiki wa kila siku ili kuhakikisha data yako ya biashara ni salama kila wakati, inapatikana na inalindwa."
+        },
+        "mobile": {
+          "q": "Je, ninaweza kuifikia kwenye vifaa vya mkononi?",
+          "a": "Ndiyo! Invexix imeboreshwa kikamilifu kwa vivinjari vya mkononi, huku ikikuruhusu kufuatilia utendaji wa biashara yako, kuangalia hisa, na kupokea arifa za wakati halisi popote duniani."
+        },
+        "reports": {
+          "q": "Je, ninaweza kutoa ripoti za kifedha?",
+          "a": "Ndiyo. Unaweza kutoa na kupakua ripoti kamili za PDF au Excel kwa ajili ya mauzo, hesabu, madeni, na utendaji wa wafanyakazi, kukusaidia kufanya maamuzi yanayotokana na data kwa ajili ya ukuaji wa biashara yako."
         }
       }
     },

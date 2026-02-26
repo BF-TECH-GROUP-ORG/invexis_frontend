@@ -381,7 +381,9 @@
       "dashboard": "Gana kuri Dashboard",
       "final": {
         "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
-        "subtitle": "Gerageza ubuntu, ntukeneye ikarita ya banki"
+        "subtitle": "Bona igenzura ryuzuye, amakuru ako kanya, n'ituze hamwe na Invexix.",
+        "openDashboard": "Fungura Dashboard",
+        "startTrial": "Tangira Kugera"
       }
     },
     "about": {
@@ -495,7 +497,7 @@
     },
     "waitlist": {
       "badge": "Tangira Ubu",
-      "title": "Witeguye <spanClassName>guhindura</spanClassName> <br /> business yawe?",
+      "title": "Witeguye <spanClassName>guhindura</spanClassName> business yawe?",
       "subtitle": "Sanga umubare w'ibigo biri kwaguka hamwe n'ubugenzuzi bw'ako kanya. Shaka umwanya wawe mu gihe kizaza cy'imicungire.",
       "placeholder": "Andika imeli ya business yawe",
       "button": "Sanga Abandi Ubu",
@@ -510,24 +512,28 @@
       "title": "Ibibazo Bikunze Kubazwa",
       "items": {
         "who": {
-          "q": "Invexix igenewe nde?",
-          "a": "Ibigo bito, ibigo biri kwaguka, n'ubucuruzi bufite amashami menshi."
+          "q": "Invexix igenewe ba nde?",
+          "a": "Invexix igenewe amaduka y'ubucuruzi buciriritse, abacuruzi b'ibiribwa n'ibindi mu bwinshi, abatanga serivisi, n'ubucuruzi bufite amashami menshi bakeneye kugenzura ibicuruzwa, ibigurishwa, n'abakozi mu gihe nyacyo mu duce dutandukanye."
         },
         "easy": {
-          "q": "Ese Invexix yoroshye gukoresha?",
-          "a": "Yego. Yateguwe mu buryo bworoshye, bwumvikana, kandi bwihuta kwigwa."
+          "q": "Ese biroroshye kwinjiza ikipe yanjye?",
+          "a": "Yego, Invexix ifite imiterere yoroshye n'uburyo bwo gutanga uburenganzira hashingiwe ku nshingano. Urashobora guhamagara abagize ikipe yawe kandi bakaba bazi gukora mu minota mike, bafite gusa uburenganzira ku byo bakeneye gukoresha."
         },
-        "mobile": {
-          "q": "Ese nshobora kuyikoresha kuri telefoni?",
-          "a": "Yego. Genzura business yawe igihe cyose, aho ari ho hose."
-        },
-        "reports": {
-          "q": "Ese nshobora kumanura raporo?",
-          "a": "Yego. Kora kandi umanure raporo za PDF z'umwuga."
+        "multi": {
+          "q": "Ese nshobora gucunga amashami menshi?",
+          "a": "Cyane rwose. Invexix yubakiye ku gukura. Urashobora gukurikirana ibicuruzwa bihari, uko ibintu bigurishwa, n'ibikorwa by'abakozi mu mashami yawe yose y'ubucuruzi ukoresheje dashboard imwe ihuriye hamwe."
         },
         "secure": {
-          "q": "Ese amakuru yanjye atekanye?",
-          "a": "Byanze bikunze. Invexix ikubiyemo uburyo bwizewe bwo kwinjira, uburenganzira, n'amateka y'ibyakozwe."
+          "q": "Ese amakuru yanjye afite umutekano kandi aregeranywa?",
+          "a": "Umutekano wawe ni cyo dushyira imbere. Dukoresha uburyo buhanitse bwo kurinda amakuru (encryption), uburyo bwizewe bwo kwinjira, no kubika amakuru buri munsi (backups) kugira ngo amakuru yawe y'ubucuruzi abe afite umutekano buri gihe, aboneka, kandi arinzwe."
+        },
+        "mobile": {
+          "q": "Ese nshobora kuyikoresha kuri telefone zigezweho?",
+          "a": "Yego! Invexix icungwa neza kuri telefone na mudasobwa, bigufasha gukurikirana uko ubucuruzi bwawe buhagaze, kureba ibicuruzwa bihari, no guhabwa ubutumwa bw'ako kanya aho waba uri hose ku isi."
+        },
+        "reports": {
+          "q": "Ese nshobora gukuramo raporo z'imari?",
+          "a": "Yego. Urashobora gukora no gukuramo raporo zose muri PDF cyangwa Excel zerekeye ibyagurishijwe, ibicuruzwa bihari, amadeni, n'uko abakozi bitwaye, bigufasha gufata imyanzuro ishingiye ku makuru kugira ngo ubucuruzi bwakure."
         }
       }
     },
