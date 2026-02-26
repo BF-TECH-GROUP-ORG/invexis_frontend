@@ -1,13 +1,17 @@
 // src/components/inventory/stock/StockLookup.jsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Search,
   Package,
   QrCode,
   AlertCircle,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
 } from "lucide-react";
 import { lookupProduct, stockOut } from "@/services/stockService";
 import productsService from "@/services/productsService";
@@ -22,6 +26,87 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useTranslations } from "next-intl";
+
+const ProductCarousel = ({ images = [], productName = "" }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const slides = useMemo(() => {
+    if (images && images.length > 0) return images;
+    // Fallback if no images
+    return ["https://via.placeholder.com/400x400?text=No+Image+Available"];
+  }, [images]);
+
+  useEffect(() => {
+    if (isPaused || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [isPaused, slides.length]);
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % slides.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+
+  return (
+    <div
+      className="relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden group border border-gray-100 shadow-inner"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div
+        className="flex h-full transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {slides.map((url, i) => (
+          <div key={url + i} className="w-full h-full flex-shrink-0">
+            <img
+              src={url}
+              alt={`${productName} - ${i + 1}`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Navigation Buttons */}
+      {slides.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.preventDefault(); prev(); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-all hover:bg-white shadow-sm"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); next(); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-all hover:bg-white shadow-sm"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </>
+      )}
+
+      {/* Indicators */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 bg-black/10 backdrop-blur-md rounded-full">
+          {slides.map((_, i) => (
+            <div
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentIndex ? "bg-white w-4" : "bg-white/40"
+                }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Pause/Play Feedback Overlay (Micro animation) */}
+      <div className={`absolute top-3 right-3 p-1.5 bg-white/20 backdrop-blur-sm rounded-md transition-opacity duration-300 ${isPaused ? "opacity-100" : "opacity-0"}`}>
+        <Pause size={12} className="text-white fill-white" />
+      </div>
+    </div>
+  );
+};
 
 export default function StockLookup({
   onProductFound = () => { },
@@ -40,11 +125,15 @@ export default function StockLookup({
   const [showSuggestions, setShowSuggestions] = useState(true);
 
   // Stock-out dialog state
+  const [isMounted, setIsMounted] = useState(false);
   const [outDialogOpen, setOutDialogOpen] = useState(false);
   const [outQty, setOutQty] = useState("");
-  const [outReason, setOutReason] = useState("Sale");
+  const [outReason, setOutReason] = useState("sale");
   const [outLoading, setOutLoading] = useState(false);
-  const outReasons = ["sale", "damaged", "expired", "transferOut", "other"];
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { showSnackbar } = useSnackbar();
   // Filter suggestions from cached products by name / sku
@@ -138,23 +227,30 @@ export default function StockLookup({
   };
 
   const handleStockOut = async () => {
-    if (!product || !Number(outQty) || Number(outQty) <= 0) return;
+    if (!product || !Number(outQty) || Number(outQty) <= 0) {
+      setError(td("qtyError"));
+      return;
+    }
     setOutLoading(true);
+    setError(null);
     try {
       await stockOut({
         companyId: product.companyId || undefined,
         shopId: product.shopId || product.metadata?.shopId || undefined,
-        userId: undefined, // Optional -- will be added by backend/session if needed
+        userId: undefined,
         productId: product._id || product.id,
         quantity: Number(outQty),
         reason: outReason,
       });
       setOutQty("");
       setOutReason("sale");
-      setError(null);
-      alert(td("success"));
+      setOutDialogOpen(false);
+      showSnackbar(td("success"), "success");
+      onProductFound && onProductFound(product);
     } catch (err) {
-      setError(err.response?.data?.message || td("failed"));
+      const msg = err.response?.data?.message || td("failed");
+      setError(msg);
+      showSnackbar(msg, "error");
     } finally {
       setOutLoading(false);
     }
@@ -312,177 +408,125 @@ export default function StockLookup({
 
       {/* Product Found */}
       {product && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-100 rounded-lg">
-          <div className="flex items-start gap-3 mb-3">
-            <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
-            <p className="text-sm font-medium text-green-800">
+        <div className="mt-6 p-4 bg-green-50/50 border border-green-100 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="text-green-500" size={18} />
+            <p className="text-xs font-bold uppercase tracking-wider text-green-700">
               {t("productSelected")}
             </p>
           </div>
 
-          <div className="flex items-center gap-4 p-3 bg-white rounded-lg border border-green-100">
-            <div className="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
-              <Package size={24} className="text-orange-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h4 className="font-semibold text-gray-900 truncate">
-                {product.name || product.ProductName}
-              </h4>
-              <p className="text-sm text-gray-500">
-                {t("sku")}:{" "}
-                {product.identifiers?.sku ||
-                  product.sku ||
-                  product.SKU ||
-                  "N/A"}
-              </p>
-              <div className="flex items-center gap-4 mt-1">
-                <span className="text-sm text-gray-600">
-                  {t("stock")}:{" "}
-                  <strong className="text-gray-900">
-                    {product.stock?.available ?? product.stock ?? 0}
-                  </strong>
-                </span>
-                <span className="text-sm text-gray-600">
-                  {t("shop")}:{" "}
-                  <strong className="text-gray-900">
-                    {product.shopId || product.metadata?.shopId || "-"}
-                  </strong>
-                </span>
+          <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <div className="flex flex-col md:flex-row gap-0">
+              {/* Image Section */}
+              <div className="w-full md:w-48 shrink-0">
+                <ProductCarousel
+                  images={product.images || product.Images}
+                  productName={product.name || product.ProductName}
+                />
               </div>
 
-              {/* QR + Barcode */}
-              <div className="flex items-center gap-4 mt-3">
-                {product.codes?.qrPayload && (
-                  <img
-                    alt="QR"
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=${encodeURIComponent(product.codes.qrPayload)
-                        ? displayMode === "scanner"
-                          ? "400x400"
-                          : "120x120"
-                        : "120x120"
-                      }&data=${encodeURIComponent(product.codes.qrPayload)}`}
-                    className={`${displayMode === "scanner" ? "w-56 h-56" : "w-24 h-24"
-                      } bg-white p-1 rounded-md border object-contain`}
-                  />
-                )}
-                {product.codes?.barcodePayload && (
-                  <img
-                    alt="Barcode"
-                    src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(
-                      product.codes.barcodePayload
-                    )}&code=Code128&translate-esc=true`}
-                    className={`${displayMode === "scanner" ? "h-28" : "h-14"}`}
-                  />
-                )}
-              </div>
+              {/* Details Section */}
+              <div className="p-4 flex flex-col justify-between flex-1 min-w-0">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-bold text-gray-900 text-lg leading-tight truncate">
+                      {product.name || product.ProductName}
+                    </h4>
+                  </div>
+                  <p className="text-xs font-mono text-gray-500 mt-1 uppercase tracking-tighter">
+                    {t("sku")}: {product.identifiers?.sku || product.sku || "N/A"}
+                  </p>
 
-              {/* Stock Out Button opens a confirmation dialog */}
-              <div className="mt-4">
-                <button
-                  onClick={() => setOutDialogOpen(true)}
-                  className="w-full py-2.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
-                >
-                  {t("stockOutBtn")}
-                </button>
-
-                <Dialog
-                  open={outDialogOpen}
-                  onClose={() => setOutDialogOpen(false)}
-                >
-                  <DialogTitle>{td("title")}</DialogTitle>
-                  <DialogContent>
-                    <div className="space-y-3 mt-2">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {td("qty")}
-                        </label>
-                        <TextField
-                          value={outQty}
-                          onChange={(e) => setOutQty(e.target.value)}
-                          type="number"
-                          inputProps={{ min: 1 }}
-                          fullWidth
-                          size="small"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {td("reason")}
-                        </label>
-                        <TextField
-                          select
-                          value={outReason}
-                          onChange={(e) => setOutReason(e.target.value)}
-                          fullWidth
-                          size="small"
-                        >
-                          {outReasons.map((r) => (
-                            <MenuItem key={r} value={r}>
-                              {td(`reasons.${r}`)}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </div>
-
-                      {error && (
-                        <div className="text-sm text-red-600">{error}</div>
-                      )}
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("stock")}</p>
+                      <p className="text-lg font-black text-orange-600">
+                        {product.stock?.available ?? product.stock ?? 0}
+                      </p>
                     </div>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setOutDialogOpen(false)}>
-                      {td("cancel")}
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={async () => {
-                        if (!Number(outQty) || Number(outQty) <= 0) {
-                          setError(td("qtyError"));
-                          return;
-                        }
-                        setOutLoading(true);
-                        setError(null);
-                        try {
-                          await stockOut({
-                            companyId: product.companyId || undefined,
-                            shopId:
-                              product.shopId ||
-                              product.metadata?.shopId ||
-                              undefined,
-                            userId: undefined,
-                            productId: product._id || product.id,
-                            quantity: Number(outQty),
-                            reason: outReason,
-                          });
-                          setOutQty("");
-                          setOutReason("sale");
-                          setOutDialogOpen(false);
-                          showSnackbar(td("success"), "success");
-                          // Inform parent
-                          onProductFound && onProductFound(product);
-                        } catch (err) {
-                          setError(
-                            err.response?.data?.message || td("failed")
-                          );
-                          showSnackbar(
-                            err.response?.data?.message || td("failed"),
-                            "error"
-                          );
-                        } finally {
-                          setOutLoading(false);
-                        }
-                      }}
-                    >
-                      {outLoading ? td("processing") : td("confirm")}
-                    </Button>
-                  </DialogActions>
-                </Dialog>
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("shop")}</p>
+                      <p className="text-sm font-bold text-gray-700 truncate">
+                        {product.shopId || product.metadata?.shopId || "-"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <button
+                    onClick={() => setOutDialogOpen(true)}
+                    className="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-sm hover:shadow-red-200 active:scale-[0.98]"
+                  >
+                    {t("stockOutBtn")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {isMounted && (
+        <Dialog
+          open={outDialogOpen}
+          onClose={() => setOutDialogOpen(false)}
+        >
+          <DialogTitle>{td("title")}</DialogTitle>
+          <DialogContent>
+            <div className="space-y-3 mt-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {td("qty")}
+                </label>
+                <TextField
+                  value={outQty}
+                  onChange={(e) => setOutQty(e.target.value)}
+                  type="number"
+                  inputProps={{ min: 1 }}
+                  fullWidth
+                  size="small"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {td("reason")}
+                </label>
+                <TextField
+                  select
+                  value={outReason}
+                  onChange={(e) => setOutReason(e.target.value)}
+                  fullWidth
+                  size="small"
+                >
+                  {["sale", "damaged", "expired", "transferOut", "other"].map((r) => (
+                    <MenuItem key={r} value={r}>
+                      {td(`reasons.${r}`)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </div>
+
+              {error && (
+                <div className="text-sm text-red-600">{error}</div>
+              )}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOutDialogOpen(false)}>
+              {td("cancel")}
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleStockOut}
+            >
+              {outLoading ? td("processing") : td("confirm")}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
     </div>
   );
