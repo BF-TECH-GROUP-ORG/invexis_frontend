@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import store from "@/store";
 import NotificationProvider from "./NotificationProvider";
+import WebSocketProvider from "./WebSocketProvider";
 
 // Memoize QueryClient creation to prevent unnecessary re-initialization
 // This prevents the QueryClient from being recreated on every render
@@ -47,7 +48,11 @@ const ClientProviders = ({ children, session }) => {
       {/* QueryClient with optimized defaults for faster response times */}
       <QueryClientProvider client={queryClient}>
         <SessionProvider session={session}>
-          <NotificationProvider>{children}</NotificationProvider>
+          <NotificationProvider>
+            <WebSocketProvider>
+              {children}
+            </WebSocketProvider>
+          </NotificationProvider>
         </SessionProvider>
       </QueryClientProvider>
     </Provider>

@@ -925,7 +925,7 @@ const DebtsTable = ({
       </TableContainer>
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white border-x border-b border-gray-200">
+      <div className="flex items-center justify-between px-4 py-4 border border-gray-200 mt-0 bg-white">
         <Typography variant="body2" color="text.secondary">
           Showing {filteredRows.length > 0 ? page * rowsPerPage + 1 : 0} to {Math.min((page + 1) * rowsPerPage, filteredRows.length)} of {filteredRows.length} results
         </Typography>

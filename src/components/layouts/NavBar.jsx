@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, Bell, ChevronDown } from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -28,6 +29,20 @@ export default function TopNavBar({ expanded = true }) {
 
   // Redux State
   const unreadCount = useSelector(selectUnreadCount) || 0;
+  const controls = useAnimation();
+  const prevCount = useRef(unreadCount);
+
+  // Animate bell when unread count increases
+  useEffect(() => {
+    if (unreadCount > prevCount.current) {
+      controls.start({
+        scale: [1, 1.2, 0.9, 1.1, 1],
+        rotate: [0, 15, -15, 10, -10, 0],
+        transition: { duration: 0.5 }
+      });
+    }
+    prevCount.current = unreadCount;
+  }, [unreadCount, controls]);
 
   // User from session
   const user = session?.user;
@@ -126,11 +141,18 @@ export default function TopNavBar({ expanded = true }) {
             onClick={() => setNotifOpen(true)}
             aria-label="Notifications"
           >
-            <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
+            <motion.div animate={controls}>
+              <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
+            </motion.div>
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-orange-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white">
+              <motion.span
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                key={unreadCount}
+                className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-orange-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white"
+              >
                 {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
+              </motion.span>
             )}
           </button>
 

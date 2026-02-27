@@ -351,7 +351,7 @@ function DetailInner({ id }) {
                     </button>
                   )
                 ) : (
-                  <div className="text-gray-400">{t("noMedia")}</div>
+                  <div className="text-gray-400">{t("media.noMedia")}</div>
                 )}
               </div>
 

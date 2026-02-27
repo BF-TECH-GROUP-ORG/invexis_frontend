@@ -10,11 +10,12 @@ class WebSocketService {
 
     /**
      * Connect to the WebSocket Server
-     * @param {string} token - JWT Token
-     * @param {string} userId - User's MongoDB ID
+     * @param {string} token - JWT token
+     * @param {string} userId - User ID
+     * @param {Array<string>} initialRooms - Initial rooms to join (optional)
      */
-    connect(token, userId) {
-        if (this.socket && this.isConnected && this.userId === userId) {
+    connect(token, userId, initialRooms = []) {
+        if (this.socket?.connected && this.userId === userId) {
             console.log('[WebSocket] 🟡 Already connected as', userId);
             return this.socket;
         }
@@ -26,7 +27,13 @@ class WebSocketService {
         }
 
         this.userId = userId;
-        const gatewayUrl = process.env.NEXT_PUBLIC_API_URL_SW || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        let gatewayUrl = process.env.NEXT_PUBLIC_API_URL_SW || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+        // If we have NEXT_PUBLIC_API_URL pointing to /api, we should use the base for websocket
+        // or explicitly use NEXT_PUBLIC_API_URL_SW if it's the root.
+        if (gatewayUrl.endsWith('/api')) {
+            gatewayUrl = gatewayUrl.replace(/\/api$/, '');
+        }
 
         if (!gatewayUrl) {
             console.error('[WebSocket] ❌ No Gateway URL found in environment variables');
@@ -45,10 +52,11 @@ class WebSocketService {
                     token: token,
                     userId: userId,
                 },
-                transports: ['websocket', 'polling'],
+                transports: ['websocket'], // Prefer pure websocket for efficiency through gateway
                 reconnection: true,
                 reconnectionDelay: 1000,
-                reconnectionAttempts: 10,
+                reconnectionAttempts: 20, // Increase attempts for robustness
+                timeout: 20000,
                 extraHeaders: {
                     "ngrok-skip-browser-warning": "true",
                     "Authorization": `Bearer ${token}`
@@ -61,11 +69,11 @@ class WebSocketService {
 
         this.socket.on('connect', () => {
             this.isConnected = true;
-            console.log(`[WebSocket] 🟢 Connected! ID: ${this.socket.id}`);
+            console.log(`[WebSocket] 🟢 Connected! (User: ${userId})`);
 
-            // Join user-specific room
-            console.log(`[WebSocket] 🟢 Joining room: user:${userId}`);
-            this.socket.emit('join', [`user:${userId}`]);
+            // Automatically join personal room
+            const rooms = [...new Set([`user:${userId}`, ...initialRooms])];
+            this.joinRooms(rooms);
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -95,6 +103,28 @@ class WebSocketService {
         }
         this.socket = null;
         this.userId = null;
+    }
+
+    /**
+     * Join specified rooms
+     * @param {Array<string>|string} rooms 
+     */
+    joinRooms(rooms) {
+        if (!this.socket) return;
+        const roomArray = Array.isArray(rooms) ? rooms : [rooms];
+        this.socket.emit('join', roomArray);
+        console.log(`[WebSocket] 🏠 Joining rooms: ${roomArray.join(', ')}`);
+    }
+
+    /**
+     * Leave specified rooms
+     * @param {Array<string>|string} rooms 
+     */
+    leaveRooms(rooms) {
+        if (!this.socket) return;
+        const roomArray = Array.isArray(rooms) ? rooms : [rooms];
+        this.socket.emit('leave', roomArray);
+        console.log(`[WebSocket] 🚪 Leaving rooms: ${roomArray.join(', ')}`);
     }
 
     /**

@@ -56,6 +56,29 @@ const notificationSlice = createSlice({
         setFilter: (state, action) => {
             state.filter = { ...state.filter, ...action.payload };
         },
+        markReadLocally: (state, action) => {
+            const { notificationId } = action.payload;
+            const item = state.items.find(n => n._id === notificationId || n.id === notificationId);
+            if (item && (!item.readBy || item.readBy.length === 0)) {
+                // We use a placeholder user ID since we're in a slice and might not have currentUserId
+                // But it's enough to toggle UI state
+                item.readBy = ['synced'];
+                state.unreadCount = Math.max(0, state.unreadCount - 1);
+            }
+        },
+        removeNotificationLocally: (state, action) => {
+            const { notificationId } = action.payload;
+            const index = state.items.findIndex(n => n._id === notificationId || n.id === notificationId);
+            if (index !== -1) {
+                const item = state.items[index];
+                const wasUnread = !item.readBy || item.readBy.length === 0;
+                state.items.splice(index, 1);
+                if (wasUnread) {
+                    state.unreadCount = Math.max(0, state.unreadCount - 1);
+                }
+                state.pagination.total = Math.max(0, state.pagination.total - 1);
+            }
+        },
         resetState: () => initialState,
     },
     extraReducers: (builder) => {
@@ -112,7 +135,7 @@ const notificationSlice = createSlice({
     },
 });
 
-export const { addNotification, setFilter, resetState } = notificationSlice.actions;
+export const { addNotification, setFilter, resetState, markReadLocally, removeNotificationLocally } = notificationSlice.actions;
 
 // Selectors
 export const selectAllNotifications = (state) => state.notifications.items;

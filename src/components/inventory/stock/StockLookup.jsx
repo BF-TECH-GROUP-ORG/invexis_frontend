@@ -59,7 +59,7 @@ const ProductCarousel = ({ images = [], productName = "" }) => {
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((url, i) => (
-          <div key={url + i} className="w-full h-full flex-shrink-0">
+          <div key={url + i} className="w-full h-full shrink-0">
             <img
               src={url}
               alt={`${productName} - ${i + 1}`}

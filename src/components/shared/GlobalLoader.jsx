@@ -23,7 +23,7 @@ export default function GlobalLoader({
             transition: { duration: 0.8, ease: premiumEase }
           }}
           transition={{ duration: 0.6, ease: premiumEase }}
-          className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center backdrop-blur-3xl ${forceLight
+          className={`fixed inset-0 z-9999 flex flex-col items-center justify-center backdrop-blur-3xl ${forceLight
             ? "bg-white/70"
             : "bg-white/70 dark:bg-[#081422]/70"
             }`}
@@ -48,7 +48,7 @@ export default function GlobalLoader({
               <div className="absolute inset-0 z-0 opacity-40">
                 <motion.svg
                   viewBox="0 0 100 20"
-                  className="absolute bottom-0 left-[-100%] w-[200%] h-24 md:h-32 fill-orange-500/20"
+                  className="absolute bottom-0 -left-full w-[200%] h-24 md:h-32 fill-orange-500/20"
                   animate={{ x: ["0%", "50%"] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 >
@@ -56,7 +56,7 @@ export default function GlobalLoader({
                 </motion.svg>
                 <motion.svg
                   viewBox="0 0 100 20"
-                  className="absolute bottom-0 left-[-100%] w-[200%] h-16 md:h-24 fill-orange-500/40"
+                  className="absolute bottom-0 -left-full w-[200%] h-16 md:h-24 fill-orange-500/40"
                   animate={{ x: ["0%", "50%"] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
@@ -66,12 +66,12 @@ export default function GlobalLoader({
 
               {/* Logo Box */}
               <motion.div
-                className="w-20 h-20 md:w-24 md:h-24 bg-[#111827] rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 overflow-hidden"
+                className="w-20 h-20 md:w-24 md:h-24 bg-[#111827] rounded-3xl md:rounded-4xl flex items-center justify-center shadow-2xl relative z-10 overflow-hidden"
               >
                 <motion.div
                   animate={{ opacity: [0.1, 0.3, 0.1] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 bg-gradient-to-tr from-orange-500/30 to-transparent"
+                  className="absolute inset-0 bg-linear-to-tr from-orange-500/30 to-transparent"
                 />
                 <Image
                   src="/logo/Invexix Logo - Dark Mode.svg"
@@ -84,7 +84,7 @@ export default function GlobalLoader({
               </motion.div>
 
               {/* Top Highlight Rim */}
-              <div className="absolute top-0 inset-x-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+              <div className="absolute top-0 inset-x-0 h-1/2 bg-linear-to-b from-white/10 to-transparent pointer-events-none" />
             </motion.div>
 
             {/* Brand Title Area */}

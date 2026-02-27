@@ -72,7 +72,7 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                         <div
                             key={doc.id}
                             style={{ animationDelay: `${idx * 60}ms` }}
-                            className={`group relative flex flex-col sm:flex-row sm:items-center p-4 sm:p-6 border rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-12px_rgba(255,120,45,0.1)] overflow-hidden ${isSelected
+                            className={`group relative flex flex-col sm:flex-row sm:items-center p-4 sm:p-6 border rounded-3xl sm:rounded-4xl transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-12px_rgba(255,120,45,0.1)] overflow-hidden ${isSelected
                                 ? 'bg-orange-50/40 border-orange-200'
                                 : 'bg-white border-slate-50 hover:border-orange-100'
                                 } hover:-translate-y-2`}
@@ -89,7 +89,7 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                                 }}
                             >
                                 <div className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all duration-500 ${isSelected
-                                    ? 'bg-orange-600 border-orange-600 shadow-lg shadow-orange-100 rotate-[360deg]'
+                                    ? 'bg-orange-600 border-orange-600 shadow-lg shadow-orange-100 rotate-360'
                                     : 'bg-white border-slate-200 group-hover:border-orange-300'
                                     }`}>
                                     {isSelected && <FileCheck size={16} className="text-white" strokeWidth={3} />}
@@ -97,7 +97,7 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                             </div>
 
                             {/* Refined Icon */}
-                            <div className="relative mb-4 sm:mb-0 sm:mr-8 relative z-10">
+                            <div className="relative mb-4 sm:mb-0 sm:mr-8 z-10">
                                 <div className={`w-16 h-16 rounded-3xl flex items-center justify-center border transition-all duration-500 shadow-sm ${isSelected ? 'bg-[#081422] text-white border-transparent' : 'bg-slate-50 text-[#ff782d] border-slate-100 group-hover:bg-[#081422] group-hover:text-white group-hover:rotate-12 group-hover:scale-110'}`}>
                                     <FileText size={30} strokeWidth={1.5} />
                                 </div>

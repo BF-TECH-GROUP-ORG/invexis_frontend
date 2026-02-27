@@ -19,7 +19,7 @@ export default function SaleProductLoading() {
                                 <Skeleton className="h-3 w-28 mb-3" />
                                 <Skeleton className="h-8 w-16" />
                             </div>
-                            <Skeleton className="h-12 w-12 rounded-xl flex-shrink-0" />
+                            <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
                         </div>
                     </div>
                 ))}
@@ -43,7 +43,7 @@ export default function SaleProductLoading() {
                         </div>
                         <div className="flex items-center gap-2">
                             <Skeleton className="h-9 w-48 rounded-xl" />
-                            <Skeleton className="h-9 w-9 rounded-xl flex-shrink-0" />
+                            <Skeleton className="h-9 w-9 rounded-xl shrink-0" />
                         </div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@ export default function SaleProductLoading() {
                                 <Skeleton className="h-5 w-5 rounded" />
                                 {/* Product (avatar + name) */}
                                 <div className="col-span-2 flex items-center gap-3">
-                                    <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+                                    <Skeleton className="h-9 w-9 rounded-full shrink-0" />
                                     <Skeleton className="h-4 w-24" />
                                 </div>
                                 {/* SKU */}

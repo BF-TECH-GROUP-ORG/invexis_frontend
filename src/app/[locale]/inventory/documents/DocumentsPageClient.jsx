@@ -297,7 +297,7 @@ export default function DocumentsPageClient() {
                 </div>
 
                 {/* Right Pane: Folder Navigation (desktop) */}
-                <div className="hidden md:block border-l border-gray-200 bg-white flex-shrink-0 transition-all duration-300 w-80">
+                <div className="hidden md:block border-l border-gray-200 bg-white shrink-0 transition-all duration-300 w-80">
                     <FolderNavigation onSelect={handleCategorySelect} activeCategory={drillState.category} />
                 </div>
 

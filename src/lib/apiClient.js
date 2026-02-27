@@ -149,8 +149,14 @@ apiInstance.interceptors.request.use(
     }
 
     // Add Content-Type if not set (axios usually sets this automatically for objects)
-    // but explicit setting is safe.
-    if (!config.headers["Content-Type"]) {
+    // but explicit setting is safe EXCEPT for FormData where we want the browser to set it.
+    const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+
+    if (isFormData) {
+      // CRITICAL: For FormData, we must DELETE the Content-Type header
+      // so Axios and the browser can correctly set it with the multipart boundary.
+      delete config.headers["Content-Type"];
+    } else if (!config.headers["Content-Type"]) {
       config.headers["Content-Type"] = "application/json";
     }
 

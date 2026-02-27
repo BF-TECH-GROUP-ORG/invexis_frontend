@@ -61,7 +61,9 @@ export default async function InventoryStockPage({ searchParams }) {
       category,
       warehouse,
       status,
-      companyId
+      companyId,
+      accessToken: session.accessToken,
+      user: session.user
     };
 
     return (

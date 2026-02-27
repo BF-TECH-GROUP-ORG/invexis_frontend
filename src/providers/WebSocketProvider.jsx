@@ -4,7 +4,13 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useDispatch } from "react-redux";
 import webSocketService from "@/services/WebSocketService";
-import { addNotification, fetchNotificationsThunk } from "@/features/NotificationSlice";
+import {
+    addNotification,
+    fetchNotificationsThunk,
+    markReadLocally,
+    removeNotificationLocally
+} from "@/features/NotificationSlice";
+import { useNotification } from "@/providers/NotificationProvider";
 
 /**
  * WebSocket Provider that manages real-time notifications
@@ -13,6 +19,7 @@ import { addNotification, fetchNotificationsThunk } from "@/features/Notificatio
 export default function WebSocketProvider({ children }) {
     const { data: session } = useSession();
     const dispatch = useDispatch();
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         if (!session?.accessToken || !session?.user?._id) {
@@ -22,11 +29,18 @@ export default function WebSocketProvider({ children }) {
 
         const token = session.accessToken;
         const userId = session.user._id;
+        const companyId = session.user.companyId;
+        const shopId = session.user.shopId || session.user.shops?.[0];
 
-        console.log('[WebSocketProvider] Initializing connection for user:', userId);
+        // Construct initial rooms to join
+        const rooms = [];
+        if (companyId) rooms.push(`company:${companyId}`);
+        if (shopId) rooms.push(`shop:${shopId}`);
+
+        console.log('[WebSocketProvider] Initializing connection for user:', userId, 'with rooms:', rooms);
 
         // Connect to WebSocket
-        webSocketService.connect(token, userId);
+        webSocketService.connect(token, userId, rooms);
 
         // Subscribe to notification events
         const handleNotification = (data) => {
@@ -46,11 +60,29 @@ export default function WebSocketProvider({ children }) {
                 payload: data.payload || {}
             }));
 
-            // Optionally: Show toast/banner notification
-            // showToast(data.title);
+            // Show toast/banner notification
+            showNotification({
+                message: data.body || data.message || 'New notification received',
+                severity: data.priority === 'high' ? 'warning' : 'info',
+                duration: 5000,
+                // If the notification has an icon in payload, we can use it
+                icon: data.payload?.icon || null
+            });
+        };
+
+        const handleNotificationRead = (data) => {
+            console.log('[WebSocket] 📖 Notification read event:', data);
+            dispatch(markReadLocally({ notificationId: data.notificationId }));
+        };
+
+        const handleNotificationDeleted = (data) => {
+            console.log('[WebSocket] 🗑️ Notification deleted event:', data);
+            dispatch(removeNotificationLocally({ notificationId: data.notificationId }));
         };
 
         webSocketService.subscribe('notification', handleNotification);
+        webSocketService.subscribe('notification.read', handleNotificationRead);
+        webSocketService.subscribe('notification.deleted', handleNotificationDeleted);
 
         // Note: Don't fetch notifications here - let individual components fetch when they open
         // This prevents errors if the API isn't ready or if the user isn't fully authenticated

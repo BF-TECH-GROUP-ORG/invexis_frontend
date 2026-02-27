@@ -1601,7 +1601,10 @@
         "yes": "Oui",
         "no": "Non",
         "attribute": "Attribut",
-        "value": "Valeur"
+        "value": "Valeur",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "private": "Privé"
       },
       "variations": {
         "variant": "Variante",

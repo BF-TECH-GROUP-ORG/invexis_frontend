@@ -40,7 +40,12 @@ export default function ProductList({ initialParams = {} }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const {
     page: initialPage = 1,
@@ -70,8 +75,15 @@ export default function ProductList({ initialParams = {} }) {
     setSearchTerm(searchTermFromUrl);
   }, [searchTermFromUrl]);
 
-  const companyObj = session?.user?.companies?.[0];
+  const currentUser = useMemo(() => {
+    // During hydration, we MUST use initialParams if available and session is still loading
+    if (!isMounted && initialParams?.user) return initialParams.user;
+    return session?.user || initialParams?.user;
+  }, [session?.user, initialParams?.user, isMounted]);
+
+  const companyObj = currentUser?.companies?.[0];
   const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || initialCompanyId;
+  const accessToken = session?.accessToken || initialParams?.accessToken;
 
   const warehousesState = useSelector((state) => state.warehouses || {});
   const warehouses = Array.isArray(warehousesState.items) ? warehousesState.items : [];
@@ -84,11 +96,11 @@ export default function ProductList({ initialParams = {} }) {
     edit: (id) => `${basePath}/${id}/edit`,
   };
 
-  const options = useMemo(() => (session?.accessToken ? {
+  const options = useMemo(() => (accessToken ? {
     headers: {
-      Authorization: `Bearer ${session.accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
-  } : {}), [session?.accessToken]);
+  } : {}), [accessToken]);
 
   // Helper to update filters in URL
   const updateFilters = useCallback((updates) => {
@@ -131,13 +143,13 @@ export default function ProductList({ initialParams = {} }) {
   const { data: productsResponse, isLoading: productsLoading } = useQuery({
     queryKey: ["products", fetchParams],
     queryFn: () => getProducts(fetchParams, options),
-    enabled: !!companyId && !!session?.accessToken,
+    enabled: !!companyId && !!accessToken,
   });
 
   const { data: categoriesResponse } = useQuery({
     queryKey: ["categories", { companyId }],
     queryFn: () => getCategories({ companyId }, options),
-    enabled: !!companyId && !!session?.accessToken,
+    enabled: !!companyId && !!accessToken,
   });
 
   const allProducts = useMemo(() => {
@@ -152,16 +164,17 @@ export default function ProductList({ initialParams = {} }) {
   }, [productsResponse]);
 
   const products = useMemo(() => {
-    const userRole = session?.user?.role;
-    const assignedDepartments = session?.user?.assignedDepartments || [];
+    const user = currentUser;
+    const userRole = user?.role;
+    const assignedDepartments = user?.assignedDepartments || [];
     const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
-    const userShopId = session?.user?.shops?.[0];
+    const userShopId = user?.shops?.[0];
 
     if (isSalesWorker && userShopId) {
       return allProducts.filter(p => p.shopId === userShopId);
     }
     return allProducts;
-  }, [allProducts, session?.user]);
+  }, [allProducts, currentUser]);
 
   const categories = useMemo(() => Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : (Array.isArray(categoriesResponse) ? categoriesResponse : []), [categoriesResponse]);
   const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
@@ -389,7 +402,7 @@ export default function ProductList({ initialParams = {} }) {
 
   return (
     <div className="space-y-6">
-      <ProductStats stats={stats} />
+      <ProductStats stats={stats} isMounted={isMounted} />
 
       <div className="bg-white rounded-lg p-6 border border-gray-200">
         {/* Header */}
@@ -397,7 +410,7 @@ export default function ProductList({ initialParams = {} }) {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t("header.title")}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {t("header.count", { count: stats.total })}
+              {isMounted ? t("header.count", { count: stats.total }) : "..."}
             </p>
           </div>
 
