@@ -158,7 +158,7 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
               onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
               className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
             >
-              <option value="all">{t("history.allTypes") || "All Types"}</option>
+              <option value="all">{t("allTypes") || "All Types"}</option>
               <option value="in">{t("table.stockIn")}</option>
               <option value="out">{t("table.stockOut")}</option>
             </select>
