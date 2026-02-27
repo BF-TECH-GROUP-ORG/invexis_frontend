@@ -1577,7 +1577,7 @@
       },
       "fields": {
         "category": "Catégorie",
-        "shopId": "ID du magasin",
+        "shopId": "Boutique",
         "brand": "Marque",
         "manufacturer": "Fabricant",
         "sku": "SKU",

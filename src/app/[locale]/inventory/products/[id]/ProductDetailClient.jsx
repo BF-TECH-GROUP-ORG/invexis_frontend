@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "react-hot-toast";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   ArrowLeft,
   Edit,
@@ -33,7 +34,9 @@ import {
   PlayCircle,
   Eye,
   Video,
+  Printer,
 } from "lucide-react";
+import shopService from "@/services/shopService";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
 function Field({ label, value }) {
@@ -60,6 +63,7 @@ function DetailInner({ id }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
   const product = useSelector((s) => s.products.selectedProduct);
   const loading = useSelector((s) => s.products.loading);
   const warehouses = useSelector((s) => s.warehouses.items || []);
@@ -69,6 +73,47 @@ function DetailInner({ id }) {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [copiedRaw, setCopiedRaw] = useState(false);
   const [codeSubTab, setCodeSubTab] = useState("qr");
+  const [resolvedShopName, setResolvedShopName] = useState("");
+
+  useEffect(() => {
+    const resolveShop = async () => {
+      if (!product?.shopId) {
+        setResolvedShopName("");
+        return;
+      }
+
+      // 1. Try product data
+      if (product.shop?.name || product.branch?.name) {
+        setResolvedShopName(product.shop?.name || product.branch?.name);
+        return;
+      }
+
+      // 2. Try Redux store
+      const foundInStore = warehouses.find(
+        (w) => w._id === product.shopId || w.id === product.shopId
+      );
+      if (foundInStore) {
+        setResolvedShopName(foundInStore.name);
+        return;
+      }
+
+      // 3. API Fallback
+      try {
+        const companyObj = session?.user?.companies?.[0];
+        const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || session?.user?.companyId || session?.user?.company?._id;
+        const shopData = await shopService.getShopById(product.shopId, companyId);
+        if (shopData?.name) {
+          setResolvedShopName(shopData.name);
+        } else {
+          setResolvedShopName("Invexis Shop");
+        }
+      } catch (error) {
+        setResolvedShopName("Invexis Shop");
+      }
+    };
+
+    resolveShop();
+  }, [product, warehouses]);
 
   useEffect(() => {
     if (id) {
@@ -212,6 +257,83 @@ function DetailInner({ id }) {
     setLightboxIndex((i) => (i + 1) % mediaItems.length);
   const prevLightbox = () =>
     setLightboxIndex((i) => (i - 1 + mediaItems.length) % mediaItems.length);
+
+  const handlePrintCode = (type, url, payload) => {
+    const printWindow = window.open("", "_blank");
+
+    const html = `
+      <html>
+        <head>
+          <title>Print ${type}</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              padding: 0;
+              margin: 0;
+              color: #081422;
+              min-height: 100vh;
+            }
+            .container {
+              padding: 20px;
+              text-align: center;
+              width: 100%;
+              max-width: 320px;
+            }
+            img { 
+              max-width: 100%; 
+              height: auto;
+              margin-bottom: 12px;
+            }
+            .name { 
+              font-size: 18px; 
+              font-weight: 900; 
+              margin-bottom: 16px; 
+              text-transform: uppercase;
+              letter-spacing: -0.02em;
+            }
+            .shop { 
+              font-size: 14px; 
+              color: #081422; 
+              font-weight: 800; 
+              margin-top: 8px;
+            }
+            .payload { 
+              margin-top: 16px;
+              font-family: monospace;
+              font-size: 10px;
+              color: #9ca3af;
+              word-break: break-all;
+            }
+            @media print {
+              body { margin: 0; padding: 0; }
+              @page { margin: 1cm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1 class="name">${product.name}</h1>
+            <img src="${url}" />
+            <div class="shop">${resolvedShopName || "Invexis Shop"}</div>
+            <div class="payload">${payload}</div>
+          </div>
+          <script>
+            window.onload = () => {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 
   return (
     <div className="p-1 pt-5">
@@ -475,13 +597,7 @@ function DetailInner({ id }) {
                       />
                       <Field
                         label={t("fields.shopId")}
-                        value={
-                          product.shop?.name ||
-                          product.branch?.name ||
-                          warehouses.find((w) => w._id === product.shopId || w.id === product.shopId)?.name ||
-                          product.shopId ||
-                          t("fields.none")
-                        }
+                        value={resolvedShopName || (product.shopId ? "Loading..." : t("fields.none"))}
                       />
                       <Field label={t("fields.brand")} value={product.brand || t("fields.none")} />
                       <Field
@@ -986,9 +1102,20 @@ function DetailInner({ id }) {
                                   navigator.clipboard.writeText(product.codes?.qrPayload || product.qrCode);
                                   toast.success("Copied to clipboard");
                                 }}
-                                className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all border border-transparent hover:border-orange-100"
+                                title="Copy Payload"
                               >
                                 <Copy size={14} />
+                                <span className="text-xs font-bold uppercase tracking-wider">Copy</span>
+                              </button>
+                              <div className="w-px h-4 bg-gray-200" />
+                              <button
+                                onClick={() => handlePrintCode("QR Code", product.codes?.qrCodeUrl || product.qrCodeUrl, product.codes?.qrPayload || product.qrCode)}
+                                className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all border border-transparent hover:border-orange-100"
+                                title="Print QR Code"
+                              >
+                                <Printer size={14} />
+                                <span className="text-xs font-bold uppercase tracking-wider">Print</span>
                               </button>
                             </div>
                           )}
@@ -1028,9 +1155,20 @@ function DetailInner({ id }) {
                                   navigator.clipboard.writeText(product.codes?.barcodePayload || product.barcode);
                                   toast.success("Copied to clipboard");
                                 }}
-                                className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all border border-transparent hover:border-orange-100"
+                                title="Copy Payload"
                               >
                                 <Copy size={14} />
+                                <span className="text-xs font-bold uppercase tracking-wider">Copy</span>
+                              </button>
+                              <div className="w-px h-4 bg-gray-200" />
+                              <button
+                                onClick={() => handlePrintCode("Barcode", product.codes?.barcodeUrl || product.barcodeUrl, product.codes?.barcodePayload || product.barcode)}
+                                className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all border border-transparent hover:border-orange-100"
+                                title="Print Barcode"
+                              >
+                                <Printer size={14} />
+                                <span className="text-xs font-bold uppercase tracking-wider">Print</span>
                               </button>
                             </div>
                           )}
@@ -1138,71 +1276,73 @@ function DetailInner({ id }) {
               )}
             </div>
           </div>
-        </div>
+        </div >
 
         {/* Lightbox */}
-        {lightboxOpen && (
-          <div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
-            onClick={closeLightbox}
-          >
-            <div className="relative w-full max-w-6xl h-full flex flex-col justify-center px-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prevLightbox();
-                }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-              >
-                ◀
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextLightbox();
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-              >
-                ▶
-              </button>
-
-              <div className="w-full h-[80vh] flex items-center justify-center">
-                {mediaItems[lightboxIndex]?.type === "youtube" ? (
-                  <iframe
-                    src={mediaItems[lightboxIndex].embedUrl}
-                    className="w-full h-full max-w-4xl max-h-[600px]"
-                    allowFullScreen
-                    frameBorder="0"
-                  />
-                ) : mediaItems[lightboxIndex]?.type === "video" ? (
-                  <video
-                    src={mediaItems[lightboxIndex].url}
-                    controls
-                    className="w-full h-full object-contain"
-                    autoPlay
-                  />
-                ) : (
-                  <img
-                    src={mediaItems[lightboxIndex]?.url}
-                    alt={`lightbox-${lightboxIndex}`}
-                    className="w-auto h-auto max-w-full max-h-full object-contain"
-                  />
-                )}
-              </div>
-              <p className="text-center text-white mt-4">
-                {lightboxIndex + 1} / {mediaItems.length}
-              </p>
-            </div>
-            <button
+        {
+          lightboxOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
               onClick={closeLightbox}
-              className="absolute top-4 right-4 p-2 text-white hover:text-gray-300"
             >
-              <X size={32} />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+              <div className="relative w-full max-w-6xl h-full flex flex-col justify-center px-4">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevLightbox();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextLightbox();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                >
+                  ▶
+                </button>
+
+                <div className="w-full h-[80vh] flex items-center justify-center">
+                  {mediaItems[lightboxIndex]?.type === "youtube" ? (
+                    <iframe
+                      src={mediaItems[lightboxIndex].embedUrl}
+                      className="w-full h-full max-w-4xl max-h-[600px]"
+                      allowFullScreen
+                      frameBorder="0"
+                    />
+                  ) : mediaItems[lightboxIndex]?.type === "video" ? (
+                    <video
+                      src={mediaItems[lightboxIndex].url}
+                      controls
+                      className="w-full h-full object-contain"
+                      autoPlay
+                    />
+                  ) : (
+                    <img
+                      src={mediaItems[lightboxIndex]?.url}
+                      alt={`lightbox-${lightboxIndex}`}
+                      className="w-auto h-auto max-w-full max-h-full object-contain"
+                    />
+                  )}
+                </div>
+                <p className="text-center text-white mt-4">
+                  {lightboxIndex + 1} / {mediaItems.length}
+                </p>
+              </div>
+              <button
+                onClick={closeLightbox}
+                className="absolute top-4 right-4 p-2 text-white hover:text-gray-300"
+              >
+                <X size={32} />
+              </button>
+            </div>
+          )
+        }
+      </div >
+    </div >
   );
 }
 
