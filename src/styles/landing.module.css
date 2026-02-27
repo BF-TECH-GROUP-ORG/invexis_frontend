@@ -192,6 +192,78 @@
   line-height: 1.6;
 }
 
+.scrollIndicator {
+  position: absolute;
+  bottom: 8rem;
+  left: 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.scrollText {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  color: #111827;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  opacity: 0.8;
+  animation: scrollTextFloat 3s ease-in-out infinite;
+}
+
+.scrollLineContainer {
+  width: 2px;
+  height: 100px;
+  background: rgba(249, 115, 22, 0.1);
+  overflow: hidden;
+  position: relative;
+  border-radius: 99px;
+}
+
+.scrollLineFill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, #f97316, transparent);
+  position: absolute;
+  top: -100%;
+  left: 0;
+  animation: scrollFill 2.5s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+}
+
+@keyframes scrollFill {
+  0% {
+    top: -100%;
+  }
+
+  50% {
+    top: 100%;
+  }
+
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes scrollTextFloat {
+
+  0%,
+  100% {
+    transform: rotate(180deg) translateY(0);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: rotate(180deg) translateY(-10px);
+    opacity: 1;
+    color: #f97316;
+  }
+}
+
 .trustBadges {
   display: flex;
   justify-content: center;

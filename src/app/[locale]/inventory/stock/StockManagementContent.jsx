@@ -192,7 +192,7 @@ export default function StockManagementContent({ initialParams = {} }) {
                         {stat.value}{" "}
                         {stat.meta != null && (
                           <span className="text-sm text-gray-500 font-normal">
-                            {typeof stat.meta === "string" ? `$${stat.meta}` : stat.meta}
+                            {typeof stat.meta === "number" ? `${stat.meta.toLocaleString()} RWF` : `${stat.meta} RWF`}
                           </span>
                         )}
                       </p>

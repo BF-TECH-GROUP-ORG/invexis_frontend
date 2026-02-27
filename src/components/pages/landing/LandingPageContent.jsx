@@ -143,6 +143,16 @@ function HomePageContent() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -244,7 +254,7 @@ function HomePageContent() {
               height={40}
               className="object-contain"
             />
-            <span className="text-2xl font-black tracking-tighter">
+            <span className="text-2xl font-black tracking-tighter hidden sm:inline">
               INVEXIX
             </span>
           </Link>
@@ -397,12 +407,12 @@ function HomePageContent() {
       <section className={styles.hero}>
         <div className={styles.antigravityWrapper}>
           <Antigravity
-            count={500}
-            magnetRadius={8}
-            ringRadius={10}
+            count={isMobile ? 150 : 500}
+            magnetRadius={isMobile ? 6 : 8}
+            ringRadius={isMobile ? 8 : 10}
             waveSpeed={0.3}
             waveAmplitude={0.8}
-            particleSize={0.6}
+            particleSize={isMobile ? 0.35 : 0.6}
             lerpSpeed={0.06}
             color="#4f46e5"
             autoAnimate
@@ -411,7 +421,7 @@ function HomePageContent() {
             depthFactor={1.2}
             pulseSpeed={2}
             particleShape="capsule"
-            fieldStrength={12}
+            fieldStrength={isMobile ? 8 : 12}
           />
         </div>
 
@@ -466,7 +476,6 @@ function HomePageContent() {
               {isAuthenticated ? t("cta.dashboard") : t("cta.startBtn")}
             </Link>
           </motion.div>
-
           <motion.div variants={itemVariants} className={styles.trustBadges}>
             <div className={styles.trustBadge}>
               <Users className="w-4 h-4 text-gray-400" />
@@ -476,10 +485,23 @@ function HomePageContent() {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* Premium Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2, duration: 1 }}
+          className={styles.scrollIndicator}
+        >
+          <span className={styles.scrollText}>SCROLL</span>
+          <div className={styles.scrollLineContainer}>
+            <div className={styles.scrollLineFill} />
+          </div>
+        </motion.div>
       </section>
 
       {/* About Section */}
-      <section id="about" className={styles.featureSection}>
+      < section id="about" className={styles.featureSection} >
         <div className={styles.aboutGrid}>
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -523,10 +545,10 @@ function HomePageContent() {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* How It Works Section */}
-      <section id="how" className={styles.blockSection}>
+      < section id="how" className={styles.blockSection} >
         <div className="text-center mb-16 px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -600,10 +622,10 @@ function HomePageContent() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section >
 
       {/* Features Section */}
-      <section id="features" className={styles.blockSection}>
+      < section id="features" className={styles.blockSection} >
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -669,10 +691,10 @@ function HomePageContent() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section >
 
       {/* Pricing Section */}
-      <section id="pricing" className={styles.featureSection}>
+      < section id="pricing" className={styles.featureSection} >
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -815,10 +837,10 @@ function HomePageContent() {
             </table>
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* Why Use Invexix Section */}
-      <section id="why" className={styles.blockSection}>
+      < section id="why" className={styles.blockSection} >
         <div className="text-center mb-16 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -880,10 +902,10 @@ function HomePageContent() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section >
 
       {/* FAQ Section */}
-      <section id="faq" className={styles.featureSection}>
+      < section id="faq" className={styles.featureSection} >
         <div className="text-center mb-16">
           <div className={styles.featureBadge}>{t("faq.badge")}</div>
           <h2 className={styles.featureTitle}>{t("faq.title")}</h2>
@@ -925,10 +947,10 @@ function HomePageContent() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section >
 
       {/* CTA Section */}
-      <section className={styles.ctaSection}>
+      < section className={styles.ctaSection} >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -953,10 +975,10 @@ function HomePageContent() {
             </Link>
           </div>
         </motion.div>
-      </section>
+      </section >
 
       {/* Waitlist Section */}
-      <section className={styles.waitlistSection}>
+      < section className={styles.waitlistSection} >
         <div className={styles.waitlistContainer}>
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -1034,10 +1056,10 @@ function HomePageContent() {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* Premium Footer */}
-      <footer className={styles.premiumFooter}>
+      < footer className={styles.premiumFooter} >
         <div className={styles.footerWrapper}>
           <div className={styles.footerMain}>
             <div className={styles.footerBrand}>
@@ -1137,21 +1159,23 @@ function HomePageContent() {
             </div>
           </div>
         </div>
-      </footer>
+      </footer >
       {/* Back to Top Button */}
-      {showScrollTop && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className={styles.scrollTop}
-        >
-          <ArrowUp size={24} />
-        </motion.button>
-      )}
-    </div>
+      {
+        showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={styles.scrollTop}
+          >
+            <ArrowUp size={24} />
+          </motion.button>
+        )
+      }
+    </div >
   );
 }
 
