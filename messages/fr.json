@@ -1872,6 +1872,7 @@
       "title": "Historique du Stock",
       "subtitle": "Voir tous les changements et ajustements de stock",
       "searchPlaceholder": "Rechercher par nom de produit ou SKU...",
+      "allTypes": "Tous les types",
       "refresh": "Rafraîchir",
       "stats": {
         "totalInflow": "Entrée Totale",

@@ -90,8 +90,6 @@ export default function StockManagementContent({ initialParams = {} }) {
 
   const handleProductFound = (product) => {
     setSelectedProduct(product);
-    // Auto-switch to operations tab when product is found
-    setTab("operations");
   };
 
   const handleOperationSuccess = () => {
@@ -258,9 +256,9 @@ export default function StockManagementContent({ initialParams = {} }) {
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content containers remain mounted to persist state and ensure instant transitions */}
       <div className="space-y-6">
-        {activeTab === "scanner" && (
+        <div className={activeTab === "scanner" ? "block animate-in fade-in duration-200" : "hidden"}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <StockLookup
               onProductFound={handleProductFound}
@@ -275,13 +273,12 @@ export default function StockManagementContent({ initialParams = {} }) {
                   <h3 className="text-lg font-semibold text-gray-900">{t("scanner.scanMobile.title")}</h3>
                   <p className="text-sm text-gray-500 text-center">{t("scanner.scanMobile.subtitle")}</p>
 
-                  {/* Intelligent Tabs for QR/Barcode */}
                   <div className="flex p-1 bg-gray-100 rounded-xl mt-6 w-full max-w-xs">
                     <button
                       onClick={() => setSelectedCodeType("qr")}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${selectedCodeType === "qr"
-                          ? "bg-white text-orange-600 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700"
+                        ? "bg-white text-orange-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
                         }`}
                     >
                       <QrCode size={18} />
@@ -290,8 +287,8 @@ export default function StockManagementContent({ initialParams = {} }) {
                     <button
                       onClick={() => setSelectedCodeType("barcode")}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${selectedCodeType === "barcode"
-                          ? "bg-white text-orange-600 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700"
+                        ? "bg-white text-orange-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
                         }`}
                     >
                       <Barcode size={18} />
@@ -364,9 +361,9 @@ export default function StockManagementContent({ initialParams = {} }) {
               )}
             </div>
           </div>
-        )}
+        </div>
 
-        {activeTab === "operations" && (
+        <div className={activeTab === "operations" ? "block animate-in fade-in duration-200" : "hidden"}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <StockOperationForm
               product={selectedProduct}
@@ -392,15 +389,15 @@ export default function StockManagementContent({ initialParams = {} }) {
               )}
             </div>
           </div>
-        )}
+        </div>
 
-        {activeTab === "history" && (
+        <div className={activeTab === "history" ? "block animate-in fade-in duration-200" : "hidden"}>
           <StockHistoryTable
             companyId={companyId}
             initialParams={initialParams}
             updateFilters={updateFilters}
           />
-        )}
+        </div>
       </div>
     </div>
   );
