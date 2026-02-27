@@ -93,7 +93,10 @@ export default function StockManagementContent({ initialParams = {} }) {
   };
 
   const handleOperationSuccess = () => {
+    refetchSummary();
     setSelectedProduct(null);
+    // Redirect back to scanner after successful batch submit
+    setTab("scanner");
   };
 
   return (
