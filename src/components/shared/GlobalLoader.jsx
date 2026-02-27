@@ -24,8 +24,8 @@ export default function GlobalLoader({
           }}
           transition={{ duration: 0.6, ease: premiumEase }}
           className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center backdrop-blur-3xl ${forceLight
-              ? "bg-white/70"
-              : "bg-white/70 dark:bg-[#081422]/70"
+            ? "bg-white/70"
+            : "bg-white/70 dark:bg-[#081422]/70"
             }`}
         >
           <motion.div
@@ -34,7 +34,7 @@ export default function GlobalLoader({
             variants={{
               animate: { transition: { staggerChildren: 0.15 } }
             }}
-            className="relative flex flex-col items-center gap-12"
+            className="relative flex flex-col items-center gap-10 md:gap-12"
           >
             {/* Liquid Wave Container */}
             <motion.div
@@ -42,13 +42,13 @@ export default function GlobalLoader({
                 initial: { scale: 0.8, opacity: 0 },
                 animate: { scale: 1, opacity: 1, transition: { duration: 0.8, ease: premiumEase } }
               }}
-              className="relative w-40 h-40 rounded-[3rem] overflow-hidden flex items-center justify-center bg-white dark:bg-gray-950 shadow-[0_20px_50px_-20px_rgba(249,115,22,0.3)] border border-white/20"
+              className="relative w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] md:rounded-[3rem] overflow-hidden flex items-center justify-center bg-white dark:bg-gray-950 shadow-[0_20px_50px_-20px_rgba(249,115,22,0.3)] border border-white/20"
             >
               {/* Layered Liquid Waves */}
               <div className="absolute inset-0 z-0 opacity-40">
                 <motion.svg
                   viewBox="0 0 100 20"
-                  className="absolute bottom-0 left-[-100%] w-[200%] h-32 fill-orange-500/20"
+                  className="absolute bottom-0 left-[-100%] w-[200%] h-24 md:h-32 fill-orange-500/20"
                   animate={{ x: ["0%", "50%"] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 >
@@ -56,7 +56,7 @@ export default function GlobalLoader({
                 </motion.svg>
                 <motion.svg
                   viewBox="0 0 100 20"
-                  className="absolute bottom-0 left-[-100%] w-[200%] h-24 fill-orange-500/40"
+                  className="absolute bottom-0 left-[-100%] w-[200%] h-16 md:h-24 fill-orange-500/40"
                   animate={{ x: ["0%", "50%"] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
@@ -66,7 +66,7 @@ export default function GlobalLoader({
 
               {/* Logo Box */}
               <motion.div
-                className="w-24 h-24 bg-[#111827] rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 overflow-hidden"
+                className="w-20 h-20 md:w-24 md:h-24 bg-[#111827] rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 overflow-hidden"
               >
                 <motion.div
                   animate={{ opacity: [0.1, 0.3, 0.1] }}
@@ -76,10 +76,10 @@ export default function GlobalLoader({
                 <Image
                   src="/logo/Invexix Logo - Dark Mode.svg"
                   alt="Invexix"
-                  width={48}
-                  height={48}
+                  width={40}
+                  height={40}
                   priority
-                  className="relative z-20"
+                  className="relative z-20 w-10 md:w-12 h-10 md:h-12"
                 />
               </motion.div>
 
@@ -93,9 +93,9 @@ export default function GlobalLoader({
                 initial: { opacity: 0, y: 15 },
                 animate: { opacity: 1, y: 0, transition: { duration: 1, ease: premiumEase } }
               }}
-              className="flex flex-col items-center gap-3"
+              className="flex flex-col items-center gap-2 md:gap-3"
             >
-              <h2 className={`text-4xl font-black tracking-tighter ${forceLight ? "text-gray-900" : "text-gray-900 dark:text-white"
+              <h2 className={`text-3xl md:text-4xl font-black tracking-tighter ${forceLight ? "text-gray-900" : "text-gray-900 dark:text-white"
                 }`}>
                 INVEX<span className="text-orange-500">iS</span>
               </h2>
@@ -103,7 +103,7 @@ export default function GlobalLoader({
                 <motion.p
                   animate={{ opacity: [0.4, 0.8, 0.4] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className={`text-[10px] font-black tracking-[0.5em] uppercase ${forceLight ? "text-gray-500/60" : "text-gray-400/50"
+                  className={`text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.5em] uppercase ${forceLight ? "text-gray-500/60" : "text-gray-400/50"
                     }`}
                 >
                   {text}

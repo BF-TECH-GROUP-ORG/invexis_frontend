@@ -3,6 +3,7 @@
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 import DevBypassToggle from "@/components/shared/DevBypassToggle";
 import DashboardLayout from "./DashboardLayout";
 import ProtectedRoute from "@/lib/ProtectedRoute";
@@ -22,6 +23,7 @@ export default function LayoutWrapper({ children }) {
   const { isNavigating } = useRouteLoading();
   useNotifications();
   const pathname = usePathname();
+  const locale = useLocale();
 
   // Track previous path to detect transition from Auth -> App
   const prevPathRef = useRef(pathname);
