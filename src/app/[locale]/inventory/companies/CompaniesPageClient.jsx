@@ -10,6 +10,7 @@ import { HiPlus } from "react-icons/hi";
 import ProtectedRoute from "@/lib/ProtectedRoute";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import CompaniesLoading from "./loading";
 
 const CompaniesPageClient = ({ initialParams = {} }) => {
     const locale = useLocale();
@@ -34,7 +35,7 @@ const CompaniesPageClient = ({ initialParams = {} }) => {
         }
     } : {}, [session?.accessToken]);
 
-    const { data: shopsRes = [] } = useQuery({
+    const { data: shopsRes = [], isLoading } = useQuery({
         queryKey: ["branches", companyId],
         queryFn: () => getBranches(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
@@ -75,48 +76,52 @@ const CompaniesPageClient = ({ initialParams = {} }) => {
 
     return (
         <ProtectedRoute allowedRoles={["company_admin"]} allowedDepartments={["management"]}>
-            <div className="mx-auto space-y-8 md:space-y-12">
+            {isLoading ? (
+                <CompaniesLoading />
+            ) : (
+                <div className="mx-auto space-y-8 md:space-y-12">
 
-                {/* === Header Section === */}
-                <div className="space-y-4">
-                    {/* Breadcrumbs */}
-                    <nav className="flex items-center text-xs md:text-sm text-[#7a7a7a] space-x-2 font-medium">
-                        <Link href={`/${locale}/dashboard`} className="hover:text-[#081422] transition">{navT("dashboard") || "Dashboard"}</Link>
-                        <span className="text-[#d1d5db]">/</span>
-                        <Link href={`/${locale}/inventory`} className="hover:text-[#081422] transition">{sidebarT("staffAndShops") || "Staff & Shops"}</Link>
-                        <span className="text-[#d1d5db]">/</span>
-                        <span className="text-[#081422] font-bold">{sidebarT("shops") || "Shops"}</span>
-                    </nav>
+                    {/* === Header Section === */}
+                    <div className="space-y-4">
+                        {/* Breadcrumbs */}
+                        <nav className="flex items-center text-xs md:text-sm text-[#7a7a7a] space-x-2 font-medium">
+                            <Link href={`/${locale}/dashboard`} className="hover:text-[#081422] transition">{navT("dashboard") || "Dashboard"}</Link>
+                            <span className="text-[#d1d5db]">/</span>
+                            <Link href={`/${locale}/inventory`} className="hover:text-[#081422] transition">{sidebarT("staffAndShops") || "Staff & Shops"}</Link>
+                            <span className="text-[#d1d5db]">/</span>
+                            <span className="text-[#081422] font-bold">{sidebarT("shops") || "Shops"}</span>
+                        </nav>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl md:text-4xl font-black text-[#081422] tracking-tight">
-                                {t("hubTitle") || "Management Hub"}
-                            </h1>
-                            <p className="text-[#6b7280] text-sm md:text-base font-medium mt-1">
-                                {t("hubDesc") || "High-level overview of all your business branches and operational capacity."}
-                            </p>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-4xl font-black text-[#081422] tracking-tight">
+                                    {t("hubTitle") || "Management Hub"}
+                                </h1>
+                                <p className="text-[#6b7280] text-sm md:text-base font-medium mt-1">
+                                    {t("hubDesc") || "High-level overview of all your business branches and operational capacity."}
+                                </p>
+                            </div>
+
+                            <Link href={`/${locale}/inventory/companies/new`}>
+                                <button className="flex items-center justify-center gap-2 bg-[#081422] hover:bg-[#0b2036] text-white px-6 py-3.5 rounded-2xl transition shadow-lg shadow-gray-200/50 w-full md:w-auto font-bold text-sm">
+                                    <HiPlus size={20} />
+                                    {t("addNewBranch") || "Add New Branch"}
+                                </button>
+                            </Link>
                         </div>
-
-                        <Link href={`/${locale}/inventory/companies/new`}>
-                            <button className="flex items-center justify-center gap-2 bg-[#081422] hover:bg-[#0b2036] text-white px-6 py-3.5 rounded-2xl transition shadow-lg shadow-gray-200/50 w-full md:w-auto font-bold text-sm">
-                                <HiPlus size={20} />
-                                {t("addNewBranch") || "Add New Branch"}
-                            </button>
-                        </Link>
                     </div>
+
+                    {/* === Stats Section === */}
+                    <CompanyCards stats={stats} />
+
+                    {/* === Table Section === */}
+                    <CompaniesTable
+                        initialRows={shops}
+                        initialParams={{ ...initialParams, companyId }}
+                        updateFilters={updateFilters}
+                    />
                 </div>
-
-                {/* === Stats Section === */}
-                <CompanyCards stats={stats} />
-
-                {/* === Table Section === */}
-                <CompaniesTable
-                    initialRows={shops}
-                    initialParams={{ ...initialParams, companyId }}
-                    updateFilters={updateFilters}
-                />
-            </div>
+            )}
         </ProtectedRoute>
     );
 };

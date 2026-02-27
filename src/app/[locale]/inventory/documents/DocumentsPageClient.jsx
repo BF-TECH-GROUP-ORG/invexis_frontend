@@ -173,7 +173,7 @@ export default function DocumentsPageClient() {
     };
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="min-h-[calc(100vh-8rem)] sm:h-[calc(100vh-8rem)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
 
             <div className="flex flex-1 overflow-hidden">
 
@@ -181,7 +181,7 @@ export default function DocumentsPageClient() {
                 <div className="flex-1 flex flex-col min-w-0 bg-white relative">
 
                     {/* Top Bar / Breadcrumb / Simulator */}
-                    <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div className="p-3 sm:p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center bg-gray-50/50">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             {/* Mobile: sidebar toggle */}
                             <button
@@ -207,7 +207,7 @@ export default function DocumentsPageClient() {
                                 </>
                             )}
                         </div>
-                        <div className="relative w-full md:w-auto">
+                        <div className="relative w-full sm:w-auto">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search size={16} className="text-gray-400" />
                             </div>
@@ -216,7 +216,7 @@ export default function DocumentsPageClient() {
                                 placeholder="Search documents..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full md:w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
+                                className="w-full sm:w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
                             />
                         </div>
                     </div>

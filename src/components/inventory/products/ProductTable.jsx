@@ -108,10 +108,17 @@ export default function ProductTable({
           border: "1px solid #e5e7eb",
           borderRadius: "16px",
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-          overflow: "hidden",
+          overflowX: "auto",
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#e5e7eb',
+            borderRadius: '10px',
+          },
         }}
       >
-        <Table size="medium">
+        <Table size="medium" sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f9fafb" }}>
               <TableCell padding="checkbox">

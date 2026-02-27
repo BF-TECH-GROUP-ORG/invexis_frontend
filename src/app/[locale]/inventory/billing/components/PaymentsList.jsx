@@ -274,7 +274,7 @@ export default function PaymentsList({ invoices }) {
     );
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 transition-all duration-300">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto p-6 transition-all duration-300">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Financial Ledger</h2>

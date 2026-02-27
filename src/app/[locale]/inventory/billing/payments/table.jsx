@@ -253,9 +253,16 @@ const PaymentTable = ({
         width: "100%",
         borderRadius: "16px",
         border: "1px solid #e5e7eb",
-        overflow: "hidden",
+        overflowX: "auto",
         bgcolor: "white",
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        '&::-webkit-scrollbar': {
+          height: '6px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: '#e5e7eb',
+          borderRadius: '10px',
+        },
       }}
     >
       <Box
@@ -497,8 +504,18 @@ const PaymentTable = ({
         </Box>
       </Popover>
 
-      <TableContainer sx={{ maxHeight: 600 }}>
-        <Table stickyHeader>
+      <TableContainer sx={{
+        maxHeight: 600,
+        overflowX: 'auto',
+        '&::-webkit-scrollbar': {
+          height: '6px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: '#e5e7eb',
+          borderRadius: '10px',
+        },
+      }}>
+        <Table stickyHeader sx={{ minWidth: 900 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f9fafb" }}>
               <TableCell sx={{ fontWeight: 700, color: "#374151", bgcolor: "#f9fafb" }}>Transaction ID</TableCell>

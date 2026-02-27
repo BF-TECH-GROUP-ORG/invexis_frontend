@@ -132,7 +132,7 @@ export default function CategoryTable({
           },
         }}
       >
-        <Table size="medium" sx={{ minWidth: 800 }}>
+        <Table size="medium" sx={{ minWidth: 900 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f9fafb" }}>
               <TableCell padding="checkbox">

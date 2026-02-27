@@ -172,8 +172,18 @@ export default function WorkersTable({ initialParams = {} }) {
           </Box>
         </Box>
 
-        <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
+        <TableContainer sx={{ 
+          maxHeight: 600,
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#e5e7eb',
+            borderRadius: '10px',
+          },
+        }}>
+          <Table stickyHeader sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 800, bgcolor: '#f9fafb', color: '#4b5563', fontSize: '0.75rem', textTransform: 'uppercase' }}>{t("table.userProfile") || "User Profile"}</TableCell>

@@ -314,6 +314,9 @@ const CurrentInventory = () => {
   const filteredProducts = useMemo(() => {
     let result = products;
 
+    // Always exclude out-of-stock products from the sales view
+    result = result.filter(p => (p.Quantity ?? 0) >= 1);
+
     // Role-based filtering: Sales department workers only see products from their shop
     const userRole = session?.user?.role;
     const assignedDepartments = session?.user?.assignedDepartments || [];
