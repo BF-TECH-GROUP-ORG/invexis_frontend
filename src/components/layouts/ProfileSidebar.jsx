@@ -95,53 +95,49 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
               <nav className="p-6 space-y-2">
-                <Link
-                  href={`/${locale}/account/profile`}
-                  onClick={onClose}
-                  className="flex items-center justify-between p-4 rounded-xl hover:bg-orange-50 group transition-all"
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl opacity-50 cursor-not-allowed group transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-colors text-gray-600 group-hover:text-orange-600">
+                    <div className="p-2 bg-gray-100 rounded-lg text-gray-400">
                       <User size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 line-clamp-1">
+                      <p className="text-sm font-bold text-gray-400 line-clamp-1">
                         {t("sidebar.myProfile")}
                       </p>
-                      <p className="text-xs text-gray-500 line-clamp-1">
+                      <p className="text-xs text-gray-400 line-clamp-1">
                         {t("sidebar.profileDesc")}
                       </p>
                     </div>
                   </div>
                   <ChevronRight
                     size={16}
-                    className="text-gray-300 group-hover:text-orange-400 transform group-hover:translate-x-1 transition-all"
+                    className="text-gray-200"
                   />
-                </Link>
+                </div>
 
-                <Link
-                  href={`/${locale}/settings`}
-                  onClick={onClose}
-                  className="flex items-center justify-between p-4 rounded-xl hover:bg-orange-50 group transition-all"
+                <div
+                  className="flex items-center justify-between p-4 rounded-xl opacity-50 cursor-not-allowed group transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-white transition-colors text-gray-600 group-hover:text-orange-600">
+                    <div className="p-2 bg-gray-100 rounded-lg text-gray-400">
                       <Settings size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 line-clamp-1">
+                      <p className="text-sm font-bold text-gray-400 line-clamp-1">
                         {t("sidebar.preferences")}
                       </p>
-                      <p className="text-xs text-gray-500 line-clamp-1">
+                      <p className="text-xs text-gray-400 line-clamp-1">
                         {t("sidebar.prefDesc")}
                       </p>
                     </div>
                   </div>
                   <ChevronRight
                     size={16}
-                    className="text-gray-300 group-hover:text-orange-400 transform group-hover:translate-x-1 transition-all"
+                    className="text-gray-200"
                   />
-                </Link>
+                </div>
 
                 {/* Language Switcher Section */}
                 <div className="pt-4 border-t mt-4">
