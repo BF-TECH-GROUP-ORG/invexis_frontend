@@ -40,9 +40,20 @@ export const useNotifications = () => {
             hideNotification?.(); // Dismiss the invitation toast
 
             try {
+                // Determine stable Browser/Device ID
+                let deviceId = localStorage.getItem('invexis_device_id');
+                if (!deviceId) {
+                    deviceId = `web_${Math.random().toString(36).substring(2, 15)}_${Date.now().toString(36)}`;
+                    localStorage.setItem('invexis_device_id', deviceId);
+                    console.log('[Notifications] Generated new stable device ID:', deviceId);
+                } else {
+                    console.log('[Notifications] Using existing stable device ID:', deviceId);
+                }
+
                 // Check if we already have a cached token for this user
-                const cachedTokenKey = `fcm_token_${user.id || user._id}`;
-                const lastSyncKey = `fcm_last_sync_${user.id || user._id}`;
+                const userId = user.id || user._id;
+                const cachedTokenKey = `fcm_token_${userId}`;
+                const lastSyncKey = `fcm_last_sync_${userId}`;
                 const cachedToken = localStorage.getItem(cachedTokenKey);
                 const lastSync = localStorage.getItem(lastSyncKey);
 
@@ -67,13 +78,14 @@ export const useNotifications = () => {
                     });
 
                     if (fcmToken) {
-                        // Check if the token has actually changed OR if it's time for a periodic sync
+                        // Check if the token AND device ID match what we have in cache
+                        // This prevents redundant requests when refreshing or navigating
                         if (cachedToken === fcmToken && !needsSync) {
-                            console.log('[Notifications] FCM Token already cached and synced recently. Skipping registration.');
+                            console.log('[Notifications] FCM Token/Device already cached and synced recently. Skipping registration.');
                             return;
                         }
 
-                        console.log(needsSync ? '[Notifications] Periodic sync triggered.' : '[Notifications] Token changed. Registering...');
+                        console.log(needsSync ? '[Notifications] Periodic sync triggered.' : '[Notifications] Token/Session refreshed. Registering...');
 
                         // Register token with Auth Service
                         let deviceUrl = API_URL.replace(/\/+$/, "");
@@ -90,8 +102,9 @@ export const useNotifications = () => {
 
                         const payload = {
                             fcmToken,
+                            deviceId, // Use our stable ID
                             deviceType: 'web',
-                            deviceName: window.navigator.userAgent
+                            deviceName: `Web Browser (${window.navigator.appName || 'Generic'})`
                         };
 
                         try {

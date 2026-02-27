@@ -1943,6 +1943,10 @@
       "receivedBy": "Reçu par",
       "soldBy": "Vendu par",
       "time": "Heure",
+      "name": "Nom",
+      "phone": "Téléphone",
+      "amount": "Montant",
+      "method": "Méthode",
       "loading": "Chargement des rapports...",
       "error": "Erreur lors du chargement du contenu. Veuillez réessayer.",
       "noContent": "Contenu de l'onglet non trouvé",
@@ -2082,6 +2086,7 @@
       "title": "Rapport des Paiements",
       "kpis": {
         "totalReceived": "Total Reçu",
+        "received": "Total Reçu",
         "pending": "Paiements en Attente",
         "failed": "Paiements Échoués",
         "avgSize": "Taille Moyenne des Paiements"

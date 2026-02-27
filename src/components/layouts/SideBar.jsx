@@ -49,13 +49,13 @@ const getNavItems = (t) => [
     path: "/inventory/notifications",
     prefetch: true,
   },
-  {
-    title: t("sidebar.reports"),
-    icon: <BarChart3 size={22} />,
-    path: "/inventory/reports",
-    roles: ["worker", "company_admin"],
-    prefetch: true,
-  },
+  // {
+  //   title: t("sidebar.reports"),
+  //   icon: <BarChart3 size={22} />,
+  //   path: "/inventory/reports",
+  //   roles: ["worker", "company_admin"],
+  //   prefetch: true,
+  // },
 
   // MANAGEMENT
   {
@@ -72,7 +72,7 @@ const getNavItems = (t) => [
     icon: <Package size={22} />,
     roles: ["worker", "company_admin"],
     children: [
-      { title: t("inventoryOverview.header.title"), path: "/inventory/Overview", prefetch: true },
+      // { title: t("inventoryOverview.header.title"), path: "/inventory/Overview", prefetch: true },
       { title: t("categories.list.title"), path: "/inventory/categories", prefetch: true },
       { title: t("sidebar.products"), path: "/inventory/products", prefetch: true },
       { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true },

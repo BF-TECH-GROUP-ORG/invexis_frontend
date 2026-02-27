@@ -1929,6 +1929,10 @@
       "receivedBy": "Received By",
       "soldBy": "Sold By",
       "time": "Time",
+      "name": "Name",
+      "phone": "Phone",
+      "amount": "Amount",
+      "method": "Method",
       "loading": "Loading reports...",
       "error": "Error loading tab content. Please try again.",
       "noContent": "Tab content not found",
@@ -2068,6 +2072,7 @@
       "title": "Payments Report",
       "kpis": {
         "totalReceived": "Total Received",
+        "received": "Total Received",
         "pending": "Pending Payments",
         "failed": "Failed Payments",
         "avgSize": "Avg Payment Size"

@@ -1942,6 +1942,10 @@
       "receivedBy": "Imepokelewa na",
       "soldBy": "Iliuzwa na",
       "time": "Muda",
+      "name": "Jina",
+      "phone": "Simu",
+      "amount": "Kiasi",
+      "method": "Njia",
       "loading": "Inapakia ripoti...",
       "error": "Hitilafu imetokea wakati wa kupakia ripoti. Tafadhali jaribu tena.",
       "noContent": "Maudhui ya tab hiyo hayajapatikana",
@@ -2081,6 +2085,7 @@
       "title": "Ripoti ya Malipo",
       "kpis": {
         "totalReceived": "Jumla ya Malipo",
+        "received": "Jumla ya Malipo",
         "pending": "Malipo Yanayosubiri",
         "failed": "Malipo Yaliyofeli",
         "avgSize": "Wastani wa Kiasi cha Malipo"

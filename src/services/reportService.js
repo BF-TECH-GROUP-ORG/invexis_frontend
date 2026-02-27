@@ -144,7 +144,27 @@ const reportService = {
     getABCAnalysis,
     getStockMovement,
     getAgingInventory,
-    exportReport
+    exportReport,
+    /**
+     * Get general business report for a company
+     * GET /report/general/company/:companyId
+     */
+    getGeneralReport: async (companyId, { startDate, endDate } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+
+            const data = await apiClient.get(`${API_BASE}/report/general/company/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    }
 };
 
 export default reportService;

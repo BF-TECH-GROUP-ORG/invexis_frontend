@@ -16,12 +16,15 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import BusinessOverviewChart from './BusinessOverviewChart';
+import reportService from '@/services/reportService';
+import dayjs from 'dayjs';
 
 const GeneralTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
-    const [reportData, setReportData] = useState([]);
+    const [reportData, setReportData] = useState(null);
+    const [branches, setBranches] = useState([]);
 
     // Header Selection State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
@@ -33,63 +36,32 @@ const GeneralTab = ({ dateRange }) => {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!companyId) return;
             setLoading(true);
-            setTimeout(() => {
-                const allMockData = [
-                    {
-                        date: '02/15/2022',
-                        shops: [
-                            {
-                                name: 'North Branch',
-                                subtotal: { initial: 800, remaining: 500, value: 300, gross: 27000, discounts: 38000, received: 3500, pending: 35000, debt: 20000, paid: 15000, cost: 10000, profit: 10000, margin: 47 },
-                                products: [
-                                    { name: 'Widget A', initial: 500, remaining: 300, value: 125, gross: 15000, discounts: 24000, received: 2000, pending: 22000, debt: 18000, paid: 12000, cost: 22000, profit: 8000, margin: 48 },
-                                    { name: 'Gadget B', initial: 200, remaining: 200, value: 125, gross: 2000, discounts: 2000, received: 2000, pending: 2000, debt: 12000, paid: 3000, cost: 10000, profit: 12000, margin: 48 }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                subtotal: { initial: 600, remaining: 450, value: 150, gross: 38000, discounts: 50000, received: 4000, pending: 46000, debt: 31000, paid: 25000, cost: 12500, profit: 16000, margin: 34 },
-                                products: [
-                                    { name: 'Gizmo C', initial: 600, remaining: 400, value: 200, gross: 20000, discounts: 30000, received: 2500, pending: 27500, debt: 22000, paid: 18000, cost: 39000, profit: 3500, margin: 32 },
-                                    { name: 'Tool D', initial: 600, remaining: 450, value: 150, gross: 28000, discounts: 50000, received: 4000, pending: 46000, debt: 22000, paid: 7000, cost: 3500, profit: 9000, margin: 32 }
-                                ]
-                            }
-                        ],
-                        total: { initial: 1400, remaining: 950, value: 450, gross: 65000, discounts: 88000, received: 7500, pending: 80500, debt: 51000, paid: 40000, cost: 22500, profit: 30500, margin: 38 }
-                    }
-                ];
+            try {
+                const params = {
+                    startDate: dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined,
+                    endDate: dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined
+                };
 
-                // Filter by selected branch
-                let filteredData = allMockData.map(day => {
-                    if (selectedBranch === t('common.none')) return { ...day, shops: [], total: { ...day.total, initial: 0, remaining: 0, value: 0, gross: 0, discounts: 0, received: 0, pending: 0, debt: 0, paid: 0, cost: 0, profit: 0, margin: 0 } };
-                    if (selectedBranch === t('common.all')) return day;
+                const data = await reportService.getGeneralReport(companyId, params);
+                setReportData(data);
 
-                    const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
-                    const newTotal = filteredShops.reduce((acc, shop) => ({
-                        initial: acc.initial + shop.subtotal.initial,
-                        remaining: acc.remaining + shop.subtotal.remaining,
-                        value: acc.value + shop.subtotal.value,
-                        gross: acc.gross + shop.subtotal.gross,
-                        discounts: acc.discounts + shop.subtotal.discounts,
-                        received: acc.received + shop.subtotal.received,
-                        pending: acc.pending + shop.subtotal.pending,
-                        debt: acc.debt + shop.subtotal.debt,
-                        paid: acc.paid + shop.subtotal.paid,
-                        cost: acc.cost + shop.subtotal.cost,
-                        profit: acc.profit + shop.subtotal.profit,
-                        margin: shop.subtotal.margin // Simplified for mock
-                    }), { initial: 0, remaining: 0, value: 0, gross: 0, discounts: 0, received: 0, pending: 0, debt: 0, paid: 0, cost: 0, profit: 0, margin: 0 });
-
-                    return { ...day, shops: filteredShops, total: newTotal };
-                });
-
-                setReportData(filteredData);
+                // Extract branch names for filtering
+                if (data.branches) {
+                    const branchNames = data.branches
+                        .filter(b => b.shopId)
+                        .map(b => b.shopId); // Using shopId as name if name is not available
+                    setBranches(branchNames);
+                }
+            } catch (error) {
+                console.error("Failed to fetch general report:", error);
+            } finally {
                 setLoading(false);
-            }, 800);
+            }
         };
         fetchData();
-    }, [companyId, dateRange, selectedBranch, t]);
+    }, [companyId, dateRange, t]);
 
     if (loading) {
         return (
@@ -99,7 +71,10 @@ const GeneralTab = ({ dateRange }) => {
         );
     }
 
-    const formatCurrency = (val) => `${val.toLocaleString()}`;
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null) return "0";
+        return `${val.toLocaleString()}`;
+    };
 
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
     const handleClose = () => { setBranchAnchor(null); };
@@ -117,15 +92,15 @@ const GeneralTab = ({ dateRange }) => {
                 </Typography>
 
                 {/* Top KPIs */}
-                <div className="w-full grid grid-cols-5 space-x-3 py-4 ">
+                <div className="w-full grid grid-cols-5 gap-3 py-4 ">
                     {[
-                        { title: t('general.kpis.revenue'), value: "1,250,890", Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
-                        { title: t('general.kpis.costs'), value: "745,300", Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
-                        { title: t('general.kpis.profit'), value: "505,590", Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
-                        { title: t('general.kpis.debts'), value: "132,800", Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
-                        { title: t('general.kpis.returns'), value: "398,820", Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
+                        { title: t('general.kpis.revenue'), value: formatCurrency(reportData?.grandTotal?.sales?.gross || 0), Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
+                        { title: t('general.kpis.costs'), value: formatCurrency(reportData?.grandTotal?.financials?.cost || 0), Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
+                        { title: t('general.kpis.profit'), value: formatCurrency(reportData?.grandTotal?.financials?.profit || 0), Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
+                        { title: t('general.kpis.debts'), value: formatCurrency(reportData?.grandTotal?.debt?.balance || 0), Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
+                        { title: t('general.kpis.returns'), value: formatCurrency(reportData?.grandTotal?.sales?.discounts || 0), Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
-                        <Grid item xs={1} key={i}>
+                        <div key={i} className="h-full">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -192,7 +167,7 @@ const GeneralTab = ({ dateRange }) => {
                                     </Box>
                                 </Paper>
                             </motion.div>
-                        </Grid>
+                        </div>
                     ))}
                 </div>
 
@@ -241,86 +216,90 @@ const GeneralTab = ({ dateRange }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {reportData.map((day, dIdx) => (
-                                <React.Fragment key={dIdx}>
-                                    {/* Date Row */}
-                                    <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.85rem", fontWeight: "700", py: 1 } }}>
-                                        <TableCell sx={{ borderRight: "1px solid #e5e7eb" }}>{day.date}</TableCell>
-                                        <TableCell colSpan={14} />
-                                    </TableRow>
-                                    {day.shops.map((shop, sIdx) => (
-                                        <React.Fragment key={sIdx}>
-                                            {/* Shop Header Row */}
-                                            <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
-                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
-                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{shop.name}</TableCell>
-                                                <TableCell colSpan={13} />
-                                            </TableRow>
-                                            {shop.products.map((product, pIdx) => (
-                                                <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
-                                                    <TableCell />
-                                                    <TableCell />
-                                                    <TableCell sx={{ pl: 2 }}>
-                                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                            <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />
-                                                            {product.name}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center">{product.initial}</TableCell>
-                                                    <TableCell align="center">{product.remaining}</TableCell>
-                                                    <TableCell align="center">{product.value}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.gross)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.discounts)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.received)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.pending)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.debt)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.paid)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.cost)}</TableCell>
-                                                    <TableCell align="center">{formatCurrency(product.profit)}</TableCell>
-                                                    <TableCell align="center" sx={{ borderRight: "none" }}>{product.margin}%</TableCell>
-                                                </TableRow>
-                                            ))}
-                                            {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
-                                                <TableCell align="center">{shop.subtotal.initial}</TableCell>
-                                                <TableCell align="center">{shop.subtotal.remaining}</TableCell>
-                                                <TableCell align="center">{shop.subtotal.value}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.gross)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.discounts)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.received)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.pending)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.debt)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.paid)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.cost)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.subtotal.profit)}</TableCell>
-                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.subtotal.margin}%</TableCell>
-                                            </TableRow>
-                                            {/* Spacer Row */}
-                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
-                                        </React.Fragment>
-                                    ))}
-                                    {/* Spacer Row before Grand Total */}
-                                    <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
+                            {/* Date Row (Single period for this report) */}
+                            <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.85rem", fontWeight: "700", py: 1 } }}>
+                                <TableCell sx={{ borderRight: "1px solid #e5e7eb" }}>
+                                    {reportData?.period?.startDate ? `${dayjs(reportData.period.startDate).format('MM/DD/YYYY')} - ${dayjs(reportData.period.endDate).format('MM/DD/YYYY')}` : '-'}
+                                </TableCell>
+                                <TableCell colSpan={14} />
+                            </TableRow>
 
-                                    {/* Grand Total Row */}
-                                    <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                        <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                        <TableCell align="center">{day.total.initial}</TableCell>
-                                        <TableCell align="center">{day.total.remaining}</TableCell>
-                                        <TableCell align="center">{day.total.value}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.gross)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.discounts)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.received)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.pending)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.debt)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.paid)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.cost)}</TableCell>
-                                        <TableCell align="center">{formatCurrency(day.total.profit)}</TableCell>
-                                        <TableCell align="center" sx={{ borderRight: "none" }}>{day.total.margin}%</TableCell>
-                                    </TableRow>
-                                </React.Fragment>
-                            ))}
+                            {(reportData?.branches || [])
+                                .filter(shop => selectedBranch === t('common.all') || shop.shopId === selectedBranch)
+                                .map((shop, sIdx) => (
+                                    <React.Fragment key={sIdx}>
+                                        {/* Shop Header Row */}
+                                        <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
+                                            <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
+                                            <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{shop.shopId || 'Default'}</TableCell>
+                                            <TableCell colSpan={13} />
+                                        </TableRow>
+
+                                        {shop.products.map((product, pIdx) => (
+                                            <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
+                                                <TableCell />
+                                                <TableCell />
+                                                <TableCell sx={{ pl: 2 }}>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />
+                                                        {product.productName}
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell align="center">{product.stats.inventory.initial}</TableCell>
+                                                <TableCell align="center">{product.stats.inventory.remaining}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.inventory.stockValue)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.sales.gross)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.sales.discounts)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.payments.received)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.payments.pending)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.debt.incurred)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.debt.repaid)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.financials.cost)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.financials.profit)}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{product.stats.financials.margin}%</TableCell>
+                                            </TableRow>
+                                        ))}
+
+                                        {/* Shop Subtotal Row */}
+                                        <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                            <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.shopId || 'Default' })}</TableCell>
+                                            <TableCell align="center">{shop.totals.inventory.initial}</TableCell>
+                                            <TableCell align="center">{shop.totals.inventory.remaining}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.inventory.stockValue)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.sales.gross)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.sales.discounts)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.payments.received)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.payments.pending)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.debt.incurred)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.debt.repaid)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.financials.cost)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.financials.profit)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals.financials.margin}%</TableCell>
+                                        </TableRow>
+                                        {/* Spacer Row */}
+                                        <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
+                                    </React.Fragment>
+                                ))}
+
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell align="center">{reportData?.grandTotal?.inventory?.initial || 0}</TableCell>
+                                <TableCell align="center">{reportData?.grandTotal?.inventory?.remaining || 0}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.inventory?.stockValue || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.gross || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.discounts || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.received || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.pending || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.debt?.incurred || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.debt?.repaid || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.financials?.cost || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.financials?.profit || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }}>{reportData?.grandTotal?.financials?.margin || 0}%</TableCell>
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -334,10 +313,12 @@ const GeneralTab = ({ dateRange }) => {
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
-                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                    {branches.map((branchId) => (
+                        <MenuItem key={branchId} onClick={() => handleBranchSelect(branchId)}>
+                            {branchId}
+                        </MenuItem>
+                    ))}
                 </Menu>
 
                 {/* Recommendation Section */}
