@@ -198,8 +198,8 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
 
       {/* Table */}
       {loading ? (
-        <div className="p-0">
-          <Table size="small">
+        <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-100">
+          <Table size="small" sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow className="bg-gray-50">
                 <TableCell className="font-semibold text-gray-700">{t("table.type")}</TableCell>
@@ -238,62 +238,64 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
         </div>
       ) : (
         <>
-          <Table size="small">
-            <TableHead>
-              <TableRow className="bg-gray-50">
-                <TableCell className="font-semibold text-gray-700">{t("table.type")}</TableCell>
-                <TableCell className="font-semibold text-gray-700">{t("table.product")}</TableCell>
-                <TableCell className="font-semibold text-gray-700">{t("table.sku")}</TableCell>
-                <TableCell align="center" className="font-semibold text-gray-700">{t("table.quantity")}</TableCell>
-                <TableCell className="font-semibold text-gray-700">{t("table.reason")}</TableCell>
-                <TableCell className="font-semibold text-gray-700">{t("table.date")}</TableCell>
-                <TableCell className="font-semibold text-gray-700">{t("table.by")}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredChanges.map((change, index) => {
-                const isIn = ["in", "restock", "return"].includes(change.type);
-                const isOut = ["out", "sale"].includes(change.type);
-                const displayLabel = isIn ? t("table.stockIn") : isOut ? t("table.stockOut") : change.type ? t("table.change") : t("table.change");
-                const qty = typeof change.qty !== "undefined" ? change.qty : change.quantity ?? 0;
-                const qtyText = typeof qty === "number" ? (qty >= 0 ? `+${qty}` : `${qty}`) : String(qty);
-                const productName = change.product?.name || change.productName || "Unknown";
-                const sku = change.sku || change.product?.sku || change.productSku || "N/A";
+          <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-100">
+            <Table size="small" sx={{ minWidth: 800 }}>
+              <TableHead>
+                <TableRow className="bg-gray-50">
+                  <TableCell className="font-semibold text-gray-700">{t("table.type")}</TableCell>
+                  <TableCell className="font-semibold text-gray-700">{t("table.product")}</TableCell>
+                  <TableCell className="font-semibold text-gray-700">{t("table.sku")}</TableCell>
+                  <TableCell align="center" className="font-semibold text-gray-700">{t("table.quantity")}</TableCell>
+                  <TableCell className="font-semibold text-gray-700">{t("table.reason")}</TableCell>
+                  <TableCell className="font-semibold text-gray-700">{t("table.date")}</TableCell>
+                  <TableCell className="font-semibold text-gray-700">{t("table.by")}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredChanges.map((change, index) => {
+                  const isIn = ["in", "restock", "return"].includes(change.type);
+                  const isOut = ["out", "sale"].includes(change.type);
+                  const displayLabel = isIn ? t("table.stockIn") : isOut ? t("table.stockOut") : change.type ? t("table.change") : t("table.change");
+                  const qty = typeof change.qty !== "undefined" ? change.qty : change.quantity ?? 0;
+                  const qtyText = typeof qty === "number" ? (qty >= 0 ? `+${qty}` : `${qty}`) : String(qty);
+                  const productName = change.product?.name || change.productName || "Unknown";
+                  const sku = change.sku || change.product?.sku || change.productSku || "N/A";
 
-                let by = t("table.system");
-                if (change.user && typeof change.user === "object") {
-                  if (change.user.name) by = change.user.name;
-                  else if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
-                  else by = change.user.id || change.user.name || t("table.system");
-                } else {
-                  const id = change.userId || change.user || change.createdBy;
-                  if (id && userMap[id]) {
-                    const u = userMap[id];
-                    by = u?.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u?.name || u?.email || id;
-                  } else if (id) {
-                    by = id;
+                  let by = t("table.system");
+                  if (change.user && typeof change.user === "object") {
+                    if (change.user.name) by = change.user.name;
+                    else if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
+                    else by = change.user.id || change.user.name || t("table.system");
+                  } else {
+                    const id = change.userId || change.user || change.createdBy;
+                    if (id && userMap[id]) {
+                      const u = userMap[id];
+                      by = u?.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u?.name || u?.email || id;
+                    } else if (id) {
+                      by = id;
+                    }
                   }
-                }
 
-                return (
-                  <TableRow key={change._id || index} hover>
-                    <TableCell>
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isIn ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                        {isIn ? <ArrowDownCircle size={14} /> : <ArrowUpCircle size={14} />}
-                        {displayLabel}
-                      </div>
-                    </TableCell>
-                    <TableCell><span className="font-medium text-gray-900">{productName}</span></TableCell>
-                    <TableCell><span className="text-gray-600 font-mono text-sm">{sku}</span></TableCell>
-                    <TableCell align="center"><span className={`font-semibold ${isIn ? "text-green-600" : "text-red-600"}`}>{qtyText}</span></TableCell>
-                    <TableCell><span className="text-gray-600">{change.reason || (change.meta && change.meta.reason) || "—"}</span></TableCell>
-                    <TableCell><span className="text-gray-500 text-sm">{formatDate(change.createdAt)}</span></TableCell>
-                    <TableCell><span className="text-gray-600">{by}</span></TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                  return (
+                    <TableRow key={change._id || index} hover>
+                      <TableCell>
+                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${isIn ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                          {isIn ? <ArrowDownCircle size={14} /> : <ArrowUpCircle size={14} />}
+                          {displayLabel}
+                        </div>
+                      </TableCell>
+                      <TableCell><span className="font-medium text-gray-900">{productName}</span></TableCell>
+                      <TableCell><span className="text-gray-600 font-mono text-sm">{sku}</span></TableCell>
+                      <TableCell align="center"><span className={`font-semibold ${isIn ? "text-green-600" : "text-red-600"}`}>{qtyText}</span></TableCell>
+                      <TableCell><span className="text-gray-600">{change.reason || (change.meta && change.meta.reason) || "—"}</span></TableCell>
+                      <TableCell><span className="text-gray-500 text-sm">{formatDate(change.createdAt)}</span></TableCell>
+                      <TableCell><span className="text-gray-600">{by}</span></TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
 
           <div className="p-2 flex justify-end border-t border-gray-100">
             <TablePagination
