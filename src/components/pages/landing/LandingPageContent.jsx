@@ -549,7 +549,7 @@ function HomePageContent() {
 
       {/* How It Works Section */}
       < section id="how" className={styles.blockSection} >
-        <div className="text-center mb-16 px-4 relative z-10">
+        <div className="text-center mb-10 px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -626,7 +626,7 @@ function HomePageContent() {
 
       {/* Features Section */}
       < section id="features" className={styles.blockSection} >
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -695,7 +695,7 @@ function HomePageContent() {
 
       {/* Pricing Section */}
       < section id="pricing" className={styles.featureSection} >
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -791,7 +791,7 @@ function HomePageContent() {
         </div>
 
         <div className="mt-40">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <div className={styles.featureBadge}>{t("comparison.badge")}</div>
             <h3 className="text-4xl font-bold">{t("comparison.title")}</h3>
           </div>
@@ -841,7 +841,7 @@ function HomePageContent() {
 
       {/* Why Use Invexix Section */}
       < section id="why" className={styles.blockSection} >
-        <div className="text-center mb-16 relative z-10">
+        <div className="text-center mb-10 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -906,7 +906,7 @@ function HomePageContent() {
 
       {/* FAQ Section */}
       < section id="faq" className={styles.featureSection} >
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <div className={styles.featureBadge}>{t("faq.badge")}</div>
           <h2 className={styles.featureTitle}>{t("faq.title")}</h2>
         </div>
@@ -1171,7 +1171,7 @@ function HomePageContent() {
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className={styles.scrollTop}
           >
-            <ArrowUp size={24} />
+            <ArrowUp size={18} />
           </motion.button>
         )
       }
