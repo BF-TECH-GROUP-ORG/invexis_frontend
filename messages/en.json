@@ -1563,7 +1563,7 @@
       },
       "fields": {
         "category": "Category",
-        "shopId": "Shop ID",
+        "shopId": "Shop",
         "brand": "Brand",
         "manufacturer": "Manufacturer",
         "sku": "SKU",

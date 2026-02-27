@@ -10,6 +10,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "react-hot-toast";
+import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -24,6 +25,14 @@ import {
   BarChart3,
   TrendingUp,
   TrendingDown,
+  Package,
+  Bell,
+  Truck,
+  Percent,
+  Trophy,
+  PlayCircle,
+  Eye,
+  Video,
 } from "lucide-react";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
@@ -53,6 +62,7 @@ function DetailInner({ id }) {
   const pathname = usePathname();
   const product = useSelector((s) => s.products.selectedProduct);
   const loading = useSelector((s) => s.products.loading);
+  const warehouses = useSelector((s) => s.warehouses.items || []);
   const [mainMedia, setMainMedia] = useState(null); // { type: 'image' | 'video' | 'youtube', url: string }
   const [activeTab, setActiveTab] = useState("overview");
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -61,7 +71,10 @@ function DetailInner({ id }) {
   const [codeSubTab, setCodeSubTab] = useState("qr");
 
   useEffect(() => {
-    if (id) dispatch(fetchProductById(id));
+    if (id) {
+      dispatch(fetchProductById(id));
+      dispatch(fetchWarehouses());
+    }
   }, [dispatch, id]);
 
   const mediaItems = React.useMemo(() => {
@@ -273,8 +286,8 @@ function DetailInner({ id }) {
 
           <div className="flex items-center gap-3 mt-4 md:mt-0">
             <button
-              onClick={handleExport}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-2 shadow-sm"
+              disabled
+              className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed transition-colors flex items-center gap-2 shadow-sm opacity-60"
             >
               <Download size={18} /> <span>{t("export")}</span>
             </button>
@@ -460,7 +473,16 @@ function DetailInner({ id }) {
                         label={t("fields.category")}
                         value={product.category?.name || t("fields.none")}
                       />
-                      <Field label={t("fields.shopId")} value={product.shopId || t("fields.none")} />
+                      <Field
+                        label={t("fields.shopId")}
+                        value={
+                          product.shop?.name ||
+                          product.branch?.name ||
+                          warehouses.find((w) => w._id === product.shopId || w.id === product.shopId)?.name ||
+                          product.shopId ||
+                          t("fields.none")
+                        }
+                      />
                       <Field label={t("fields.brand")} value={product.brand || t("fields.none")} />
                       <Field
                         label={t("fields.manufacturer")}
@@ -530,147 +552,302 @@ function DetailInner({ id }) {
               )}
 
               {activeTab === "pricing" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field
-                      label={t("cards.sellingPrice")}
-                      value={fmt(product.pricing?.basePrice)}
-                    />
-                    <Field
-                      label={t("cards.costPrice")}
-                      value={fmt(product.pricing?.cost)}
-                    />
-                    <Field
-                      label={t("fields.margin")}
-                      value={
-                        product.pricing?.marginAmount
-                          ? `${fmt(product.pricing.marginAmount)} (${(
-                            product.pricing.marginPercent || 0
-                          ).toFixed(1)}%)`
-                          : t("fields.none")
-                      }
-                    />
-                    <Field
-                      label={t("fields.profitRank")}
-                      value={(
-                        product.pricing?.profitRank || t("fields.none")
-                      ).toUpperCase()}
-                    />
-                    <Field
-                      label={t("fields.salePrice")}
-                      value={
-                        product.pricing?.salePrice
-                          ? fmt(product.pricing.salePrice)
-                          : t("fields.none")
-                      }
-                    />
-                    <Field label={t("fields.currency")} value={currency} />
+                <div className="space-y-6">
+                  {/* Primary Pricing Section */}
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      {t("tabs.pricing")}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                          <DollarSign size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("cards.sellingPrice")}
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {fmt(product.pricing?.basePrice)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                          <BarChart3 size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("cards.costPrice")}
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {fmt(product.pricing?.cost)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                          <Percent size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("fields.margin")}
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {product.pricing?.marginAmount
+                              ? `${fmt(product.pricing.marginAmount)} (${(
+                                product.pricing.marginPercent || 0
+                              ).toFixed(1)}%)`
+                              : t("fields.none")}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                          <Trophy size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("fields.profitRank")}
+                          </p>
+                          <span className="inline-block px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold uppercase rounded-md border border-purple-100">
+                            {product.pricing?.profitRank || t("fields.none")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary Details Section */}
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      More Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field
+                        label={t("fields.salePrice")}
+                        value={
+                          product.pricing?.salePrice ? (
+                            <span className="text-green-600 font-bold">
+                              {fmt(product.pricing.salePrice)}
+                            </span>
+                          ) : (
+                            t("fields.none")
+                          )
+                        }
+                      />
+                      <Field label={t("fields.currency")} value={currency} />
+                    </div>
                   </div>
                 </div>
               )}
 
               {activeTab === "inventory" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field
-                      label={t("fields.totalStock")}
-                      value={
-                        product.inventory?.stockQty ?? product.stock?.total ?? 0
-                      }
-                    />
-                    <Field
-                      label={t("fields.available")}
-                      value={
-                        product.inventory?.stockQty ??
-                        product.stock?.available ??
-                        0
-                      }
-                    />
-                    <Field
-                      label={t("fields.lowStockThreshold")}
-                      value={
-                        product.inventory?.lowStockThreshold ??
-                        product.stock?.lowStockThreshold ??
-                        t("fields.none")
-                      }
-                    />
-                    <Field
-                      label={t("fields.minReorderQty")}
-                      value={product.inventory?.minReorderQty ?? t("fields.none")}
-                    />
-                    <Field
-                      label={t("fields.safetyStock")}
-                      value={product.inventory?.safetyStock ?? t("fields.none")}
-                    />
-                    <Field
-                      label={t("fields.allowBackorder")}
-                      value={
-                        product.inventory?.allowBackorder ??
-                          product.stock?.allowBackorder
-                          ? t("fields.yes")
-                          : t("fields.no")
-                      }
-                    />
-                    <Field
-                      label={t("fields.trackQuantity")}
-                      value={
-                        product.inventory?.trackQuantity ??
-                          product.stock?.trackQuantity
-                          ? t("fields.yes")
-                          : t("fields.no")
-                      }
-                    />
+                <div className="space-y-6">
+                  {/* Stock Levels Section */}
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                      Stock Levels
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                          <Package size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("fields.totalStock")}
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {product.inventory?.stockQty ?? product.stock?.total ?? 0}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                          <Check size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            {t("fields.available")}
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {product.inventory?.stockQty ?? product.stock?.available ?? 0}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reorder Settings Section */}
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      Alerts & Reordering
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="flex flex-col gap-1 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="flex items-center gap-2 text-blue-600 mb-2">
+                          <Bell size={16} />
+                          <p className="text-[10px] font-bold uppercase tracking-wider">
+                            {t("fields.lowStockThreshold")}
+                          </p>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900">
+                          {product.inventory?.lowStockThreshold ?? product.stock?.lowStockThreshold ?? t("fields.none")}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col gap-1 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="flex items-center gap-2 text-purple-600 mb-2">
+                          <Truck size={16} />
+                          <p className="text-[10px] font-bold uppercase tracking-wider">
+                            {t("fields.minReorderQty")}
+                          </p>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900">
+                          {product.inventory?.minReorderQty ?? t("fields.none")}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col gap-1 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-600 mb-2">
+                          <Package size={16} />
+                          <p className="text-[10px] font-bold uppercase tracking-wider">
+                            {t("fields.safetyStock")}
+                          </p>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900">
+                          {product.inventory?.safetyStock ?? t("fields.none")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Configuration Section */}
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                      Inventory Settings
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field
+                        label={t("fields.allowBackorder")}
+                        value={
+                          product.inventory?.allowBackorder ?? product.stock?.allowBackorder ? (
+                            <span className="text-green-600 font-bold">{t("fields.yes")}</span>
+                          ) : (
+                            <span className="text-gray-400">{t("fields.no")}</span>
+                          )
+                        }
+                      />
+                      <Field
+                        label={t("fields.trackQuantity")}
+                        value={
+                          product.inventory?.trackQuantity ?? product.stock?.trackQuantity ? (
+                            <span className="text-green-600 font-bold">{t("fields.yes")}</span>
+                          ) : (
+                            <span className="text-gray-400">{t("fields.no")}</span>
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
               {activeTab === "media" && (
-                <div className="space-y-4">
-                  {mediaItems.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400">
-                      {t("media.noMedia")}
+                <div className="space-y-6">
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                        {t("tabs.media")}
+                      </h3>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border">
+                        {mediaItems.length} {t("tabs.media").toLowerCase()}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {mediaItems.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="border rounded-lg overflow-hidden group relative h-40"
-                        >
-                          {item.type === "image" ? (
-                            <img
-                              src={item.url}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-black flex items-center justify-center relative">
-                              {item.thumb && (
-                                <img
-                                  src={item.thumb}
-                                  className="w-full h-full object-cover opacity-60"
-                                />
-                              )}
-                              <div className="absolute text-white text-4xl">
-                                ▶
-                              </div>
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <button
-                              onClick={() => {
-                                setMainMedia(item);
-                                openLightbox(idx);
-                              }}
-                              className="px-3 py-1 bg-white text-black text-xs rounded-full"
-                            >
-                              {t("media.view")}
-                            </button>
-                            {/* Potential Delete Button here later */}
-                          </div>
+
+                    {mediaItems.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-20 bg-gray-50/30 rounded-2xl border-2 border-dashed border-gray-100">
+                        <div className="p-4 bg-gray-100 rounded-full text-gray-400 mb-4 text-2xl">
+                          <X size={32} />
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <p className="text-gray-400 text-sm italic font-medium">
+                          {t("media.noMedia")}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {mediaItems.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="group relative h-48 sm:h-56 rounded-2xl overflow-hidden border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-4 hover:ring-orange-50"
+                          >
+                            {item.type === "image" ? (
+                              <div className="relative w-full h-full">
+                                <img
+                                  src={item.url}
+                                  alt=""
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                />
+                                {idx === 0 && (
+                                  <div className="absolute top-3 left-3 px-2 py-1 bg-white/90 backdrop-blur shadow-sm rounded-lg border border-gray-100 flex items-center gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-gray-900 uppercase">Primary</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="relative w-full h-full bg-[#081422]">
+                                {item.thumb ? (
+                                  <img
+                                    src={item.thumb}
+                                    alt=""
+                                    className="w-full h-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-700">
+                                    <Video size={48} strokeWidth={1} />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-orange-500 group-hover:border-orange-400">
+                                    <PlayCircle size={24} fill="currentColor" fillOpacity={0.2} />
+                                  </div>
+                                </div>
+                                <div className="absolute top-3 left-3 px-2 py-1 bg-black/50 backdrop-blur shadow-sm rounded-lg border border-white/10 flex items-center gap-1.5">
+                                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Video</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Hover Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                              <button
+                                onClick={() => {
+                                  setMainMedia(item);
+                                  openLightbox(idx);
+                                }}
+                                className="w-full py-2.5 bg-white text-gray-900 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 shadow-lg active:scale-95"
+                              >
+                                <Eye size={14} />
+                                {t("media.view")}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -865,53 +1042,64 @@ function DetailInner({ id }) {
               )}
 
               {activeTab === "specs" && (
-                <div className="space-y-4">
-                  <div className="bg-white border rounded-lg overflow-hidden">
+                <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-gray-50/50 p-4 border-b">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      {t("tabs.specs")}
+                    </h3>
+                  </div>
+                  <div className="p-0">
                     {(product.specs && product.specs.length > 0) ||
                       (product.specifications &&
                         Object.keys(product.specifications).length > 0) ? (
-                      <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
-                          <tr>
-                            <th className="px-6 py-3">{t("fields.attribute")}</th>
-                            <th className="px-6 py-3">{t("fields.value")}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {/* Prefer new specs array format */}
-                          {product.specs && product.specs.length > 0
-                            ? product.specs.map((s, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50">
-                                <td className="px-6 py-3 font-medium text-gray-900 capitalize">
+                      <div className="divide-y divide-gray-100">
+                        {/* Prefer new specs array format */}
+                        {product.specs && product.specs.length > 0
+                          ? product.specs.map((s, idx) => (
+                            <div key={idx} className="flex flex-col md:flex-row md:items-center py-4 px-6 hover:bg-gray-50/50 transition-colors">
+                              <div className="md:w-1/3 mb-1 md:mb-0">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                                   {s.name?.replace(/_/g, " ")}
-                                </td>
-                                <td className="px-6 py-3 text-gray-600">
+                                </span>
+                              </div>
+                              <div className="md:w-2/3">
+                                <p className="text-sm text-gray-900 font-medium">
                                   {typeof s.value === "object"
                                     ? JSON.stringify(s.value)
                                     : s.value}
-                                </td>
-                              </tr>
-                            ))
-                            : /* Fallback to legacy specifications object */
-                            Object.entries(product.specifications || {}).map(
-                              ([key, val]) => (
-                                <tr key={key} className="hover:bg-gray-50">
-                                  <td className="px-6 py-3 font-medium text-gray-900 capitalize">
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                          : /* Fallback to legacy specifications object */
+                          Object.entries(product.specifications || {}).map(
+                            ([key, val]) => (
+                              <div key={key} className="flex flex-col md:flex-row md:items-center py-4 px-6 hover:bg-gray-50/50 transition-colors">
+                                <div className="md:w-1/3 mb-1 md:mb-0">
+                                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                                     {key.replace(/_/g, " ")}
-                                  </td>
-                                  <td className="px-6 py-3 text-gray-600">
+                                  </span>
+                                </div>
+                                <div className="md:w-2/3">
+                                  <p className="text-sm text-gray-900 font-medium">
                                     {typeof val === "object"
                                       ? JSON.stringify(val)
                                       : val}
-                                  </td>
-                                </tr>
-                              )
-                            )}
-                        </tbody>
-                      </table>
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          )}
+                      </div>
                     ) : (
-                      <div className="p-6 text-center text-gray-500">
-                        {t("sections.noSpecs")}
+                      <div className="flex flex-col items-center justify-center py-20 bg-gray-50/30">
+                        <div className="p-4 bg-gray-100 rounded-full text-gray-400 mb-4">
+                          <X size={32} />
+                        </div>
+                        <p className="text-gray-400 text-sm italic font-medium">
+                          {t("sections.noSpecs")}
+                        </p>
                       </div>
                     )}
                   </div>

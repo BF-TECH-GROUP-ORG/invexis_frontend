@@ -1692,7 +1692,7 @@
         "capacity": "Capacité",
         "status": "Statut",
         "createdBy": "Créé par",
-        "shopName": "Nom de la boutique",
+        "shopId": "Boutique",
         "location": "Emplacement",
         "actions": "Actions"
       },
