@@ -317,6 +317,9 @@ const CurrentInventory = () => {
     // Always exclude out-of-stock products from the sales view
     result = result.filter(p => (p.Quantity ?? 0) >= 1);
 
+    // Sort by quantity ascending — lowest stock first so managers can act quickly
+    result = [...result].sort((a, b) => (a.Quantity ?? 0) - (b.Quantity ?? 0));
+
     // Role-based filtering: Sales department workers only see products from their shop
     const userRole = session?.user?.role;
     const assignedDepartments = session?.user?.assignedDepartments || [];
