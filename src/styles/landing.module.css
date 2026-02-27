@@ -617,7 +617,18 @@
   padding: 0.5rem;
   border-radius: 10rem;
   width: fit-content;
+  max-width: 100%;
   margin: 2rem auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+.pricingToggle::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 .toggleBtn {
@@ -627,6 +638,8 @@
   transition: all 0.3s;
   border: none;
   background: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .toggleBtnActive {
@@ -825,6 +838,14 @@
   color: #ffffff;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(249, 115, 22, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+.ctaCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.3), 0 0 20px rgba(249, 115, 22, 0.05);
 }
 
 .ctaCard::after {
@@ -838,6 +859,7 @@
       rgba(249, 115, 22, 0.15) 0%,
       transparent 70%);
   z-index: 0;
+  pointer-events: none;
 }
 
 .ctaTitle {
@@ -873,6 +895,13 @@
   font-weight: 700;
   text-decoration: none;
   transition: all 0.3s;
+  box-shadow: 0 4px 14px 0 rgba(249, 115, 22, 0.39);
+}
+
+.ctaPrimary:hover {
+  background: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
 }
 
 .ctaSecondary {
@@ -884,6 +913,13 @@
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s;
+  backdrop-filter: blur(8px);
+}
+
+.ctaSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .ctaPrimary:hover {
@@ -1473,5 +1509,35 @@
 @media (max-width: 1024px) {
   .sideNav {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ctaSection {
+    padding: 6rem 1rem;
+  }
+
+  .ctaCard {
+    padding: 4rem 1.5rem;
+    border-radius: 2.5rem;
+  }
+
+  .ctaTitle {
+    font-size: 2.25rem;
+    line-height: 1.2;
+  }
+
+  .ctaBtns {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    width: 100%;
+    padding: 1rem 2rem;
+    text-align: center;
   }
 }
