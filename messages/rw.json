@@ -1602,7 +1602,10 @@
         "yes": "Yego",
         "no": "Oya",
         "attribute": "Ikiranga",
-        "value": "Agaciro"
+        "value": "Agaciro",
+        "active": "Bikora",
+        "inactive": "Ntibikora",
+        "private": "Ku muntu umwe"
       },
       "variations": {
         "variant": "Iritandukanye",

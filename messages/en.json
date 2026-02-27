@@ -1587,7 +1587,10 @@
         "yes": "Yes",
         "no": "No",
         "attribute": "Attribute",
-        "value": "Value"
+        "value": "Value",
+        "active": "Active",
+        "inactive": "Inactive",
+        "private": "Private"
       },
       "variations": {
         "variant": "Variant",

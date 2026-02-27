@@ -46,7 +46,7 @@ export default function CompaniesLoading() {
                     <Skeleton className="h-7 w-36" />
                     <div className="flex items-center gap-3 flex-1 md:flex-none md:min-w-[340px]">
                         <Skeleton className="h-10 flex-1 rounded-2xl" />
-                        <Skeleton className="h-10 w-10 rounded-xl flex-shrink-0" />
+                        <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@ export default function CompaniesLoading() {
                             <div className="grid grid-cols-6 gap-4 items-center">
                                 {/* Branch Info (avatar + name) */}
                                 <div className="flex items-center gap-3">
-                                    <Skeleton className="h-10 w-10 rounded-xl flex-shrink-0" />
+                                    <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
                                     <Skeleton className="h-4 w-24" />
                                 </div>
                                 {/* City */}

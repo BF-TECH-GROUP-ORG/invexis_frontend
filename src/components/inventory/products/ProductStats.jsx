@@ -20,7 +20,7 @@ const formatValue = (value, isCompact) => {
   return num.toString();
 };
 
-export default function ProductStats({ stats }) {
+export default function ProductStats({ stats, isMounted }) {
   const t = useTranslations("products.stats");
   const [isCompact, setIsCompact] = useState(true);
 
@@ -65,9 +65,11 @@ export default function ProductStats({ stats }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statCards.map((card, index) => {
         const Icon = card.Icon;
-        const displayValue = card.isCurrency
-          ? `${formatValue(card.value, isCompact)} RWF`
-          : card.value.toLocaleString();
+        const displayValue = !isMounted
+          ? "..."
+          : (card.isCurrency
+            ? `${formatValue(card.value, isCompact)} RWF`
+            : card.value.toLocaleString());
 
         return (
           <motion.div
@@ -79,16 +81,16 @@ export default function ProductStats({ stats }) {
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0 pr-2">
-                <p className="text-sm text-[#6b7280] font-medium mb-1 truncate">
+                <div className="text-sm text-[#6b7280] font-medium mb-1 truncate">
                   {card.title}
-                </p>
+                </div>
                 <div className="flex items-center gap-2">
-                  <p
+                  <div
                     className={`font-bold font-jetbrains text-[#081422] transition-all ${displayValue.length > 12 ? "text-lg" : "text-2xl"
                       }`}
                   >
                     {displayValue}
-                  </p>
+                  </div>
                   {card.hasToggle && (
                     <button
                       onClick={() => setIsCompact(!isCompact)}

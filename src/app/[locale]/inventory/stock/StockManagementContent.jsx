@@ -335,7 +335,7 @@ export default function StockManagementContent({ initialParams = {} }) {
                     )}
 
                     <div className="w-full mt-8 bg-orange-50 p-4 rounded-xl border border-orange-100 text-sm text-gray-700 shadow-inner">
-                      <strong className="block mb-2 text-orange-800 flex items-center gap-2">
+                      <strong className="mb-2 text-orange-800 flex items-center gap-2">
                         <Activity size={16} />
                         {t("scanner.scanMobile.tipsTitle")}
                       </strong>

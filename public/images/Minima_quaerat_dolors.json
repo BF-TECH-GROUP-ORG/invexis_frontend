@@ -1,0 +1,138 @@
+{
+  "_id": "69a19dc1dd4a1fc9abe40a2e",
+  "companyId": "46e5d562-34f2-4892-a83a-c9cf55b60006",
+  "shopId": "39cf5aad-6a0f-4be8-90ba-675930d4b927",
+  "name": "Minima quaerat dolor",
+  "description": "Autem animi ullam q",
+  "brand": "Quis est magna exped",
+  "manufacturer": "Quas vel hic proiden",
+  "tags": [
+    "mollit sed rem quis"
+  ],
+  "supplierName": "Similique nisi in do",
+  "sortOrder": 55,
+  "createdAt": "2026-02-27T13:36:01.405Z",
+  "updatedAt": "2026-02-27T13:36:04.908Z",
+  "slug": "minima-quaerat-dolor",
+  "costPrice": 66,
+  "variations": [],
+  "stock": {
+    "total": 99,
+    "available": 99,
+    "reserved": 0,
+    "inStock": true,
+    "isLowStock": false,
+    "lowStockThreshold": 1,
+    "trackQuantity": false,
+    "allowBackorder": false,
+    "details": [
+      {
+        "_id": "69a19dc1dd4a1fc9abe40a38",
+        "productId": "69a19dc1dd4a1fc9abe40a2e",
+        "variationId": null,
+        "stockQty": 99,
+        "reservedQty": 0,
+        "trackQuantity": false,
+        "allowBackorder": false,
+        "lowStockThreshold": 1,
+        "minReorderQty": 83,
+        "safetyStock": 35,
+        "availableQty": 99,
+        "inStock": true,
+        "isLowStock": false,
+        "avgDailySales": 0,
+        "stockoutRiskDays": 0,
+        "suggestedReorderQty": 0,
+        "lastRestockDate": null,
+        "supplierLeadDays": 7,
+        "lastForecastUpdate": "2026-02-27T13:36:01.487Z",
+        "totalUnitsSold": 0,
+        "totalRevenue": 0,
+        "avgCost": 0,
+        "profitMarginPercent": 0,
+        "createdAt": "2026-02-27T13:36:01.487Z",
+        "updatedAt": "2026-02-27T13:36:01.487Z",
+        "__v": 0
+      }
+    ]
+  },
+  "specifications": {
+    "brand": "Beatae sed sit at do",
+    "color": "Maxime vel harum sus",
+    "type": "Belt"
+  },
+  "specsCategory": "Fashion Accessories",
+  "pricing": {
+    "id": "69a19dc1dd4a1fc9abe40a34",
+    "basePrice": 600,
+    "salePrice": 100,
+    "cost": 66,
+    "currency": "RWF",
+    "marginAmount": 534,
+    "marginPercent": 89,
+    "saleMarginAmount": 34,
+    "saleMarginPercent": 34,
+    "profitRank": "high",
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "previousBasePrice": 600,
+    "priceChangedAt": "2026-02-27T13:36:01.468Z",
+    "revenue": 0,
+    "profit": 0
+  },
+  "codes": {
+    "qrCodeUrl": "https://res.cloudinary.com/dnetsa2kl/image/upload/v1772199363/invexis/companies/46e5d562-34f2-4892-a83a-c9cf55b60006/products/qr/qr_69a19dc1dd4a1fc9abe40a2e_1772199362348.png",
+    "barcodeUrl": "https://res.cloudinary.com/dnetsa2kl/image/upload/v1772199364/invexis/companies/46e5d562-34f2-4892-a83a-c9cf55b60006/products/barcodes/barcode_69a19dc1dd4a1fc9abe40a2e_1772199362297.png",
+    "qrPayload": "MINIMAQUAE-08KGJ",
+    "barcodePayload": "MINIMAQUAE-08KGJ"
+  },
+  "identifiers": {
+    "sku": "MINIMAQUAE-08KGJ",
+    "barcode": "MINIMAQUAE-08KGJ",
+    "qrCode": "MINIMAQUAE-08KGJ",
+    "scanId": "SCAN-MM4XQQVG",
+    "asin": "ASIN99361423",
+    "upc": "711313113909"
+  },
+  "category": {
+    "id": "69602e6b508251e3abc93a11",
+    "name": "AIRFORCE",
+    "slug": "airforce",
+    "level": 3,
+    "parentId": "693bbcd9b3ccc0aa930d30fe",
+    "isActive": true,
+    "attributes": []
+  },
+  "status": {
+    "active": true,
+    "visible": false,
+    "featured": true,
+    "availability": "out_of_stock",
+    "condition": "used",
+    "isDeleted": false,
+    "deletedAt": null,
+    "deletedBy": null
+  },
+  "seo": {
+    "keywords": [],
+    "metaTitle": "",
+    "metaDescription": ""
+  },
+  "sales": {
+    "totalSold": 0,
+    "revenue": 0
+  },
+  "media": {
+    "images": [],
+    "videos": [],
+    "primaryImage": null
+  },
+  "metadata": {
+    "createdAt": "2026-02-27T13:36:01.405Z",
+    "updatedAt": "2026-02-27T13:36:04.908Z",
+    "slug": "minima-quaerat-dolor",
+    "companyId": "46e5d562-34f2-4892-a83a-c9cf55b60006",
+    "shopId": "39cf5aad-6a0f-4be8-90ba-675930d4b927",
+    "sortOrder": 55
+  }
+}

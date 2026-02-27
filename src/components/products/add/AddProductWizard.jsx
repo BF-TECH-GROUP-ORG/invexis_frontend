@@ -56,8 +56,6 @@ export default function AddProductWizard({
 
     // Step 2: Media
     images: [],
-    videoUrls: [],
-    videoFiles: [],
 
     // Step 3: Pricing
     pricing: {
@@ -189,15 +187,15 @@ export default function AddProductWizard({
         // Handle weirdly stringified tags in legacy data
         tags: Array.isArray(initialData.tags)
           ? initialData.tags.flatMap((t) => {
-              if (typeof t === "string" && t.startsWith("[")) {
-                try {
-                  return JSON.parse(t);
-                } catch (e) {
-                  return t;
-                }
+            if (typeof t === "string" && t.startsWith("[")) {
+              try {
+                return JSON.parse(t);
+              } catch (e) {
+                return t;
               }
-              return t;
-            })
+            }
+            return t;
+          })
           : [],
         // Invert variations/variants mapping for consistency with backend logic
         // Backend 'variations' contains attribute definitions -> formData.variants
@@ -316,173 +314,32 @@ export default function AddProductWizard({
     }
   };
 
-  const preparePayload = () => {
-    // Transform specifications object to array of {name, value}
-    const specsArray = Object.entries(formData.specifications || {}).map(
-      ([name, value]) => ({
-        name,
-        value,
-      })
-    );
-
-    // Format images and STRIP base64 URLs if they have a binary file (Performance Fix)
-    const formattedImages = formData.images.map((img, index) => {
-      const isBase64 =
-        typeof img.url === "string" && img.url.startsWith("data:");
-      return {
-        // If it's a new upload with a binary file, don't send the base64 URL in JSON
-        // The backend will receive the actual file and generate its own URL
-        url: isBase64 && img.file ? "" : img.url,
-        alt: img.alt || `${formData.name} - Image ${index + 1}`,
-        isPrimary: index === 0,
-        sortOrder: index + 1,
-      };
-    });
-
-    const payload = {
-      companyId: formData.companyId,
-      shopId: formData.shopId,
-      name: formData.name,
-      description: formData.description,
-      brand: formData.brand,
-      manufacturer: formData.manufacturer,
-      supplierName: formData.supplierName || formData.brand,
-      tags: formData.tags,
-      categoryId: formData.category.id,
-      condition: formData.condition,
-      availability: formData.availability,
-      status: formData.status,
-      visibility: formData.visibility,
-      isFeatured: formData.isFeatured,
-      sortOrder: formData.sortOrder,
-      costPrice: formData.pricing.cost,
-
-      pricing: {
-        basePrice: formData.pricing.basePrice,
-        salePrice: formData.pricing.salePrice,
-        listPrice: formData.pricing.listPrice,
-        cost: formData.pricing.cost,
-        currency: formData.pricing.currency,
-        priceTiers: formData.pricing.priceTiers || [],
-      },
-
-      inventory: {
-        trackQuantity: formData.inventory.trackQuantity,
-        stockQty: formData.inventory.stockQty,
-        lowStockThreshold: formData.inventory.lowStockThreshold,
-        minReorderQty: formData.inventory.minReorderQty,
-        allowBackorder: formData.inventory.allowBackorder,
-        safetyStock: formData.inventory.safetyStock,
-      },
-
-      images: formattedImages,
-      videoUrls: formData.videoUrls,
-
-      specs: specsArray,
-
-      seo: {
-        metaTitle: formData.seo.metaTitle,
-        metaDescription: formData.seo.metaDescription,
-        keywords: formData.seo.keywords,
-      },
-    };
-
-    // Add optional fields only if they have data (Postman alignment)
-    const hasIdentifiers = Object.values(formData.identifiers || {}).some(
-      (v) => v !== ""
-    );
-    if (hasIdentifiers) {
-      payload.identifiers = formData.identifiers;
-    }
-
-    if (formData.variants && formData.variants.length > 0) {
-      // Backend 'variations' contains attribute definitions (formData.variants)
-      payload.variations = formData.variants;
-    }
-
-    if (formData.variations && formData.variations.length > 0) {
-      // Backend 'variants' contains generated combinations (formData.variations)
-      payload.variants = formData.variations;
-    }
-
-    return payload;
-  };
 
   const handleSubmit = async (e) => {
-    if (e) e.preventDefault(); // Prevent default form submission if triggered by event
-
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
 
     try {
       setIsSubmitting(true);
-      const rawPayload = preparePayload();
-      let finalPayload = rawPayload;
-      let isMultipart = false;
 
-      // Check if we have files to upload (images or videos)
-      const hasFiles =
-        formData.images?.some((img) => img.file) ||
-        formData.videoFiles?.some((v) => v.file);
+      const { createProductApiClient } = await import("@/lib/api/createProductApiClient");
 
-      if (hasFiles) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("Constructing Optimized Multipart FormData payload...");
-        }
-        isMultipart = true;
-        const fd = new FormData();
+      const response = await createProductApiClient(formData, {
+        isEdit,
+        productId: initialData?._id
+      });
 
-        // Append the entire optimized metadata as a single JSON field
-        // rawPayload already has base64 URLs stripped where binary files exist
-        fd.append("productData", JSON.stringify(rawPayload));
+      console.log("🚀 Product Operation Success:", response);
 
-        // Append binary files
-        formData.images.forEach((img) => {
-          if (img.file) fd.append("images", img.file);
-        });
-
-        if (formData.videoFiles) {
-          formData.videoFiles.forEach((v) => {
-            if (v.file) fd.append("videos", v.file);
-          });
-        }
-
-        finalPayload = fd;
-      }
-
-      console.log("🚀 Submitting Product Payload:", rawPayload);
-      if (hasFiles) {
-        // Log FormData entries for debugging since console.log(formData) is empty
-        console.log("📦 FormData Entries:");
-        for (let [key, value] of finalPayload.entries()) {
-          console.log(`${key}:`, value);
-        }
-      }
-
-      // Call the products API
-      const { createProduct, updateProduct } = await import(
-        "@/services/productsService"
-      );
-
-      let response;
-      if (isEdit && initialData?._id) {
-        response = await updateProduct(initialData._id, finalPayload);
-      } else {
-        response = await createProduct(finalPayload);
-      }
-
-      // toast.success("Product created successfully!"); // Handled by modal now
       setShowSuccessModal(true);
       notificationBus.success(
         isEdit
           ? "Product updated successfully!"
           : "Product created successfully!"
       );
-
-      // Optional: Reset form or redirect after modal close
-      // router.push(`/${locale}/inventory/products`);
     } catch (error) {
-      console.error("Error creating product:", error);
-      notificationBus.error(error.message || "Failed to create product");
+      console.error("Error in handleSubmit:", error);
+      notificationBus.error(error.message || "Failed to process product");
     } finally {
       setIsSubmitting(false);
     }
@@ -507,8 +364,6 @@ export default function AddProductWizard({
       isFeatured: false,
       status: "active",
       images: [],
-      videoUrls: [],
-      videoFiles: [],
       pricing: {
         basePrice: 0,
         salePrice: null,

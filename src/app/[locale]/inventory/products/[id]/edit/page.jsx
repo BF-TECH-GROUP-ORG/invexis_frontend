@@ -75,10 +75,10 @@ function EditProductPageContent({ params }) {
   );
 }
 
-export default function EditProductPage() {
+export default function EditProductPage({ params }) {
   return (
     <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-      <EditProductPageContent />
+      <EditProductPageContent params={params} />
     </Suspense>
   );
 }

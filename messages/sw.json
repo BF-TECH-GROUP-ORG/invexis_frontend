@@ -1603,7 +1603,10 @@
         "yes": "Ndiyo",
         "no": "Hapana",
         "attribute": "Sifa",
-        "value": "Thamani"
+        "value": "Thamani",
+        "active": "Inatumika",
+        "inactive": "Haitumiki",
+        "private": "Binafsi"
       },
       "variations": {
         "variant": "Tofauti",

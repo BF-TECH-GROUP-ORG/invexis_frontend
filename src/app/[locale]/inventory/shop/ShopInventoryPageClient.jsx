@@ -128,7 +128,7 @@ export default function ShopInventoryPageClient({ initialParams = {} }) {
             <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
+                        <div className="w-12 h-12 bg-linear-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
                             <Plus size={24} className="text-white" />
                         </div>
                         <div>
