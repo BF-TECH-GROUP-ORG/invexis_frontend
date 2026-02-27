@@ -50,7 +50,7 @@ const gatewayColors = {
     manual: "bg-gray-100 text-gray-800",
 };
 
-export default function TransactionsList({ transactions, shops = [], workers = [], initialParams = {} }) {
+export default function TransactionsList({ transactions, shops = [], workers = [], isShopsLoading = false, initialParams = {} }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -84,6 +84,7 @@ export default function TransactionsList({ transactions, shops = [], workers = [
         const targetId = String(id);
         const shop = shops?.find(s => String(s.id || s._id) === targetId);
         if (shop) return shop.name || shop.shopName || "Unnamed Shop";
+        if (isShopsLoading) return "Loading...";
         const worker = workers?.find(w => String(w.id || w._id) === targetId);
         if (worker) return worker.fullName || `${worker.firstName || ''} ${worker.lastName || ''}`.trim() || "Worker";
         return `Shop ${targetId.slice(0, 6)}...`;
