@@ -338,7 +338,7 @@ const DebtsTable = ({
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
   // Fetch shops to resolve names
-  const { data: allShops = [] } = useQuery({
+  const { data: allShops = [], isLoading: isShopsLoading } = useQuery({
     queryKey: ["allShops", companyId],
     queryFn: () => getAllShops(companyId),
     enabled: !!companyId
@@ -346,9 +346,11 @@ const DebtsTable = ({
 
   const shopMap = useMemo(() => {
     const map = {};
-    allShops.forEach(shop => {
-      map[shop._id || shop.id] = shop.name;
-    });
+    if (Array.isArray(allShops)) {
+      allShops.forEach(shop => {
+        if (shop) map[shop._id || shop.id] = shop.name;
+      });
+    }
     return map;
   }, [allShops]);
 
@@ -866,6 +868,7 @@ const DebtsTable = ({
                       {(() => {
                         const sId = typeof debt.shopId === 'object' && debt.shopId ? (debt.shopId._id || debt.shopId.id) : debt.shopId;
                         const sName = typeof debt.shopId === 'object' && debt.shopId?.name ? debt.shopId.name : null;
+                        if (isShopsLoading && !sName) return "Loading...";
                         return shopMap[sId] || sName || sId || "N/A";
                       })()}
                     </Typography>

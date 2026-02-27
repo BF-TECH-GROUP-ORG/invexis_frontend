@@ -101,10 +101,15 @@ function DetailInner({ id }) {
       try {
         const companyObj = session?.user?.companies?.[0];
         const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || session?.user?.companyId || session?.user?.company?._id;
-        const shopData = await shopService.getShopById(product.shopId, companyId);
-        if (shopData?.name) {
-          setResolvedShopName(shopData.name);
+        const shopRes = await shopService.getShopById(product.shopId, companyId);
+
+        // Deep check for name in response
+        const name = shopRes?.name || shopRes?.data?.name || shopRes?.shop?.name;
+
+        if (name) {
+          setResolvedShopName(name);
         } else {
+          // If we got a response but no name, maybe the field is different or it's just the ID
           setResolvedShopName("Invexis Shop");
         }
       } catch (error) {
