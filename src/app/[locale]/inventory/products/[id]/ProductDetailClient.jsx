@@ -10,6 +10,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Edit,
@@ -19,6 +20,10 @@ import {
   X,
   Copy,
   Check,
+  DollarSign,
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 
 const isDev = process.env.NEXT_PUBLIC_APP_PHASE === "development";
@@ -53,6 +58,7 @@ function DetailInner({ id }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [copiedRaw, setCopiedRaw] = useState(false);
+  const [codeSubTab, setCodeSubTab] = useState("qr");
 
   useEffect(() => {
     if (id) dispatch(fetchProductById(id));
@@ -301,15 +307,15 @@ function DetailInner({ id }) {
               ...(isDev ? [{ id: "raw", label: t("tabs.raw") }] : []),
             ].map((tab) => (
               <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={`pb-4 pt-4 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === t.id
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 pt-4 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === tab.id
                   ? "text-orange-600"
                   : "text-gray-500 hover:text-gray-800"
                   }`}
               >
-                {t.label}
-                {activeTab === t.id && (
+                {tab.label}
+                {activeTab === tab.id && (
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 rounded-t-full" />
                 )}
               </button>
@@ -399,29 +405,41 @@ function DetailInner({ id }) {
               {activeTab === "overview" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("cards.sellingPrice")}</p>
-                      <p className="text-xl font-bold text-green-600">
+                    <div className="p-5 bg-gradient-to-br from-green-50 to-white border border-green-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign size={14} className="text-green-500" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.sellingPrice")}</p>
+                      </div>
+                      <p className="text-xl font-extrabold text-green-600">
                         {fmt(product.pricing?.basePrice)}
                       </p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("cards.costPrice")}</p>
-                      <p className="text-xl font-semibold">
+                    <div className="p-5 bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 size={14} className="text-blue-500" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.costPrice")}</p>
+                      </div>
+                      <p className="text-xl font-bold text-gray-900">
                         {fmt(product.pricing?.cost)}
                       </p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("cards.stock")}</p>
-                      <p className="text-xl font-semibold">
+                    <div className="p-5 bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp size={14} className="text-orange-500" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.stock")}</p>
+                      </div>
+                      <p className="text-xl font-bold text-gray-900">
                         {product.inventory?.stockQty ??
                           product.stock?.total ??
                           0}
                       </p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("cards.totalValue")}</p>
-                      <p className="text-xl font-bold text-orange-600">
+                    <div className="p-5 bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingDown size={14} className="text-purple-500" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.totalValue")}</p>
+                      </div>
+                      <p className="text-xl font-extrabold text-[#081422]">
                         {fmt(
                           (product.pricing?.basePrice || 0) *
                           (product.inventory?.stockQty ??
@@ -432,8 +450,9 @@ function DetailInner({ id }) {
                     </div>
                   </div>
 
-                  <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-sm text-gray-600 mb-2 font-bold">
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       {t("sections.details")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -493,8 +512,9 @@ function DetailInner({ id }) {
                     )}
                   </div>
 
-                  <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-sm text-gray-600 mb-2 font-bold">
+                  <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       {t("sections.description")}
                     </h3>
                     <p className="text-sm text-gray-700 whitespace-pre-line">
@@ -726,61 +746,120 @@ function DetailInner({ id }) {
               )}
 
               {activeTab === "codes" && (
-                <div className="space-y-6">
-                  {/* QR Code */}
-                  <div className="bg-white border rounded-lg p-6">
-                    <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
+                <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
+                  {/* Sub-Navigation */}
+                  <div className="flex p-2 bg-gray-50/50 border-b">
+                    <button
+                      onClick={() => setCodeSubTab("qr")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${codeSubTab === "qr"
+                        ? "bg-white text-orange-600 shadow-sm border border-orange-100"
+                        : "text-gray-400 hover:text-gray-600"
+                        }`}
+                    >
+                      <QrCode size={16} />
                       {t("sections.qrCode")}
-                    </h3>
-                    <div className="flex flex-col items-center">
-                      <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200 inline-block">
-                        {product.codes?.qrCodeUrl || product.qrCodeUrl ? (
-                          <img
-                            src={product.codes?.qrCodeUrl || product.qrCodeUrl}
-                            alt={t("sections.qrCode")}
-                            className="w-64 h-64 object-contain"
-                          />
-                        ) : (
-                          <div className="w-64 h-64 flex items-center justify-center text-gray-400 text-sm">
-                            {t("sections.noQr")}
-                          </div>
-                        )}
-                      </div>
-                      {(product.codes?.qrPayload || product.qrCode) && (
-                        <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded">
-                          {product.codes?.qrPayload || product.qrCode}
-                        </p>
-                      )}
-                    </div>
+                    </button>
+                    <button
+                      onClick={() => setCodeSubTab("barcode")}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${codeSubTab === "barcode"
+                        ? "bg-white text-orange-600 shadow-sm border border-orange-100"
+                        : "text-gray-400 hover:text-gray-600"
+                        }`}
+                    >
+                      <BarChart3 size={16} />
+                      {t("sections.barcode")}
+                    </button>
                   </div>
 
-                  {/* Barcode */}
-                  <div className="bg-white border rounded-lg p-6">
-                    <h3 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">
-                      {t("sections.barcode")}
-                    </h3>
-                    <div className="flex flex-col items-center">
-                      <div className="bg-white p-4 inline-block border rounded-lg">
-                        {product.codes?.barcodeUrl || product.barcodeUrl ? (
-                          <img
-                            src={
-                              product.codes?.barcodeUrl || product.barcodeUrl
-                            }
-                            alt={t("sections.barcode")}
-                            className="h-32 object-contain"
-                          />
-                        ) : (
-                          <div className="h-32 w-80 bg-gray-50 flex items-center justify-center text-gray-400 text-sm rounded-lg border-2 border-dashed">
-                            {t("sections.noBarcode")}
+                  {/* Content Area */}
+                  <div className="p-8">
+                    <AnimatePresence mode="wait">
+                      {codeSubTab === "qr" ? (
+                        <motion.div
+                          key="qr"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex flex-col items-center justify-center"
+                        >
+                          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-inner inline-block ring-8 ring-gray-50">
+                            {product.codes?.qrCodeUrl || product.qrCodeUrl ? (
+                              <img
+                                src={product.codes?.qrCodeUrl || product.qrCodeUrl}
+                                alt={t("sections.qrCode")}
+                                className="w-48 h-48 md:w-64 md:h-64 object-contain"
+                              />
+                            ) : (
+                              <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl">
+                                {t("sections.noQr")}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      {(product.codes?.barcodePayload || product.barcode) && (
-                        <p className="mt-3 text-sm text-gray-600 font-mono bg-gray-50 px-4 py-2 rounded tracking-widest">
-                          {product.codes?.barcodePayload || product.barcode}
-                        </p>
+                          {(product.codes?.qrPayload || product.qrCode) && (
+                            <div className="mt-8 px-6 py-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3 group transition-all hover:bg-white hover:border-orange-200">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white border px-2 py-0.5 rounded shadow-sm">
+                                Payload
+                              </span>
+                              <code className="text-sm text-gray-600 font-mono tracking-wider">
+                                {product.codes?.qrPayload || product.qrCode}
+                              </code>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(product.codes?.qrPayload || product.qrCode);
+                                  toast.success("Copied to clipboard");
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="barcode"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex flex-col items-center justify-center"
+                        >
+                          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm inline-block w-full max-w-2xl ring-8 ring-gray-50 overflow-hidden">
+                            {product.codes?.barcodeUrl || product.barcodeUrl ? (
+                              <img
+                                src={product.codes?.barcodeUrl || product.barcodeUrl}
+                                alt={t("sections.barcode")}
+                                className="w-full h-32 object-contain"
+                              />
+                            ) : (
+                              <div className="h-32 w-full bg-gray-50 flex items-center justify-center text-gray-400 text-sm rounded-xl border-2 border-dashed border-gray-200">
+                                {t("sections.noBarcode")}
+                              </div>
+                            )}
+                          </div>
+                          {(product.codes?.barcodePayload || product.barcode) && (
+                            <div className="mt-8 px-6 py-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3 group transition-all hover:bg-white hover:border-orange-200">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white border px-2 py-0.5 rounded shadow-sm">
+                                Payload
+                              </span>
+                              <code className="text-sm text-gray-600 font-mono tracking-[0.3em]">
+                                {product.codes?.barcodePayload || product.barcode}
+                              </code>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(product.codes?.barcodePayload || product.barcode);
+                                  toast.success("Copied to clipboard");
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </motion.div>
                       )}
-                    </div>
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
