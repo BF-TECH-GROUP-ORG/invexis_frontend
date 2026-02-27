@@ -32,7 +32,8 @@ export default function TransferFilters({
     onFilterChange,
     shops = [],
     workers = [],
-    activeFilters = {}
+    activeFilters = {},
+    isShopsLoading = false
 }) {
     const t = useTranslations("transfers.filters");
     const [anchorEl, setAnchorEl] = useState(null);
@@ -216,6 +217,7 @@ export default function TransferFilters({
                                 startAdornment={<Store size={14} className="mr-2 text-gray-400" />}
                             >
                                 <MenuItem value="all">{t("allShops")}</MenuItem>
+                                {isShopsLoading && <MenuItem disabled value="loading">Loading...</MenuItem>}
                                 {shops.map(shop => (
                                     <MenuItem key={shop.id || shop._id} value={shop.id || shop._id}>{shop.name || shop.shopName}</MenuItem>
                                 ))}

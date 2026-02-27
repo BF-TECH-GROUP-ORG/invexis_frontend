@@ -115,6 +115,7 @@ export default function TransactionsPageClient({ initialData, initialParams }) {
                         transactions={transactions}
                         shops={shops}
                         workers={workers}
+                        isShopsLoading={isShopsLoading}
                         initialParams={initialParams}
                     />
                 )}

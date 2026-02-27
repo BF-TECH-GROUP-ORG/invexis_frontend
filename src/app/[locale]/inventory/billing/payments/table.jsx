@@ -240,6 +240,7 @@ const PaymentTable = ({
 
   // Get shop name from ID
   const getShopName = (shopId) => {
+    if (isLoading) return 'Loading...';
     if (!shopId) return 'N/A';
     const shop = shops.find(s => (s._id || s.id) === shopId);
     return shop?.name || shopId;

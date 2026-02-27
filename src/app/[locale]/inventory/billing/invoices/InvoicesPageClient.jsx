@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import InvoiceExplorer from "../components/InvoiceExplorer";
 import Loading from "./loading";
 import { getCompanyInvoices } from "@/services/paymentService";
+import { getAllShops } from "@/services/shopService";
 import { Alert } from "@mui/material";
 
 export default function InvoicesPageClient({ initialData, initialParams }) {
@@ -21,13 +22,22 @@ export default function InvoicesPageClient({ initialData, initialParams }) {
         }
     } : {};
 
-    const { data: invoicesData, isLoading, isError, error } = useQuery({
+    const { data: invoicesData, isLoading: isInvoicesLoading, isError, error } = useQuery({
         queryKey: ['companyInvoices', companyId],
         queryFn: () => getCompanyInvoices(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 30 * 60 * 1000, // 30 minutes
+        staleTime: 5 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
     });
+
+    const { data: shopsData, isLoading: isShopsLoading } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getAllShops(companyId, options),
+        enabled: !!companyId && !!session?.accessToken,
+        staleTime: 60 * 60 * 1000,
+    });
+
+    const isLoading = isInvoicesLoading || isShopsLoading;
 
     const formattedInvoices = useMemo(() => {
         if (!invoicesData?.data || !Array.isArray(invoicesData.data)) return [];
@@ -49,14 +59,19 @@ export default function InvoicesPageClient({ initialData, initialParams }) {
             const shopId = invoice.shop_id || originalEvent.shopId || "";
             const workerId = invoice.seller_id || originalEvent.initiatedBy || "";
 
+            // Resolve real shop name
+            const resolvedShop = shopsData?.find(s => String(s.id || s._id) === String(shopId));
+            const shopName = resolvedShop?.name ||
+                (shopId ? (isShopsLoading ? "Loading..." : `Shop ${shopId.substring(0, 8)}...`) : "Main Shop");
+
             return {
-                id: invoice.invoice_id || invoice.id, // Prefer invoice_id for display if available
+                id: invoice.invoice_id || invoice.id,
                 dbId: invoice.id,
                 customer: {
                     name: invoice.customer?.name || originalEvent.customer?.name || "Guest",
                     email: invoice.customer?.email || originalEvent.customer?.email || "",
                     phone: invoice.customer?.phone || originalEvent.customer?.phone || "",
-                    address: invoice.customer?.address || "Kigali, Rwanda" // Default if missing
+                    address: invoice.customer?.address || "Kigali, Rwanda"
                 },
                 items: items,
                 totalAmount: Number(invoice.amount_due) || 0,
@@ -64,13 +79,13 @@ export default function InvoicesPageClient({ initialData, initialParams }) {
                 paymentMethod: invoice.payment_method || originalEvent.paymentMethod || "Manual",
                 date: invoice.created_at,
                 signature: true,
-                shopName: shopId ? `Shop ${shopId.substring(0, 8)}...` : "Main Shop",
+                shopName: shopName,
                 workerName: workerId ? `Worker ${workerId.substring(0, 8)}...` : "System",
-                type: "Income", // Sales are income
+                type: "Income",
                 pdfUrl: invoice.pdf_url
             };
         });
-    }, [invoicesData]);
+    }, [invoicesData, shopsData, isShopsLoading]);
 
     const showSkeleton = isLoading && !formattedInvoices.length;
 

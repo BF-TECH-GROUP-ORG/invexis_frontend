@@ -88,7 +88,7 @@ export default function TransferList({ initialParams = {} }) {
     }, [router, pathname, searchParams]);
 
     // Fetch Metadata
-    const { data: shopsData } = useQuery({
+    const { data: shopsData, isLoading: isShopsLoading } = useQuery({
         queryKey: ['shops', companyId],
         queryFn: () => getAllShops(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
@@ -187,8 +187,8 @@ export default function TransferList({ initialParams = {} }) {
 
             return {
                 ...item,
-                sourceShopName: sourceShop?.name || sourceShop?.shopName || item.sourceShopName || t("table.unknownShop"),
-                destShopName: destShop?.name || destShop?.shopName || item.destShopName || t("table.unknownShop"),
+                sourceShopName: sourceShop?.name || sourceShop?.shopName || item.sourceShopName || (isShopsLoading ? "Loading..." : t("table.unknownShop")),
+                destShopName: destShop?.name || destShop?.shopName || item.destShopName || (isShopsLoading ? "Loading..." : t("table.unknownShop")),
                 workerName: resolvedWorkerName,
                 destCompanyName: targetCompany?.name || targetCompany?.companyName || item.destCompanyName || t("table.unknown"),
                 companyName: companyNameLabel
@@ -267,6 +267,7 @@ export default function TransferList({ initialParams = {} }) {
                 shops={shops}
                 workers={workers}
                 activeFilters={activeFilters}
+                isShopsLoading={isShopsLoading}
             />
 
             <motion.div
