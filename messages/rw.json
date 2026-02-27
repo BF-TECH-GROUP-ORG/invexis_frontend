@@ -1941,6 +1941,10 @@
       "receivedBy": "Yakiriwe na",
       "soldBy": "Yagurishijwe na",
       "time": "Isaha",
+      "name": "Izina",
+      "phone": "Terefoni",
+      "amount": "Umubare",
+      "method": "Uburyo",
       "loading": "Raporo zirimo gutunganywa...",
       "error": "Habaye ikibazo mu gutunganya raporo. Ongera ugerageze.",
       "noContent": "Ibirimo ntibyasanzwe",
@@ -2080,6 +2084,7 @@
       "title": "Raporo yo Kwishyura",
       "kpis": {
         "totalReceived": "Amafaranga Yakiriwe Yose",
+        "received": "Amafaranga Yakiriwe Yose",
         "pending": "Ayo Kwishyura Ategerejwe",
         "failed": "Ayatabashije Kwishyurwa",
         "avgSize": "Impuzandengo yo Kwishyura"
