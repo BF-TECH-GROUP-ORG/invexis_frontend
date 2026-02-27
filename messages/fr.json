@@ -1604,7 +1604,9 @@
         "value": "Valeur",
         "active": "Actif",
         "inactive": "Inactif",
-        "private": "Privé"
+        "private": "Privé",
+        "salePrice": "Prix de vente",
+        "currency": "Devise"
       },
       "variations": {
         "variant": "Variante",

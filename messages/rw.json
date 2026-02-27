@@ -1605,7 +1605,9 @@
         "value": "Agaciro",
         "active": "Bikora",
         "inactive": "Ntibikora",
-        "private": "Ku muntu umwe"
+        "private": "Ibwite",
+        "salePrice": "Igiciro cyo kugurisha",
+        "currency": "Ifaranga"
       },
       "variations": {
         "variant": "Iritandukanye",

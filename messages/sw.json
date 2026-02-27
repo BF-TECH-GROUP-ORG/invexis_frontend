@@ -1606,7 +1606,9 @@
         "value": "Thamani",
         "active": "Inatumika",
         "inactive": "Haitumiki",
-        "private": "Binafsi"
+        "private": "Binafsi",
+        "salePrice": "Bei ya Mauzo",
+        "currency": "Sarafu"
       },
       "variations": {
         "variant": "Tofauti",
