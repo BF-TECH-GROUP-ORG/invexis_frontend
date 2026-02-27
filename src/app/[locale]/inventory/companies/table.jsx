@@ -119,8 +119,15 @@ const CompaniesTable = ({ initialRows = [], initialParams = {}, updateFilters })
                 border: "1px solid #f3f4f6",
                 borderRadius: "24px",
                 boxShadow: "0 10px 25px -5px rgba(0,0,0,0.04)",
-                overflow: "hidden",
-                bgcolor: 'white'
+                overflowX: "auto",
+                bgcolor: 'white',
+                '&::-webkit-scrollbar': {
+                    height: '6px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '10px',
+                },
             }}
         >
             <ConfirmDialog
@@ -176,7 +183,7 @@ const CompaniesTable = ({ initialRows = [], initialParams = {}, updateFilters })
             </Toolbar>
 
             <TableContainer sx={{ maxHeight: 650 }}>
-                <Table stickyHeader>
+                <Table stickyHeader sx={{ minWidth: 800 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell sx={{ fontWeight: 800, bgcolor: '#f9fafb', color: '#4b5563', fontSize: '0.75rem', textTransform: 'uppercase', tracking: '0.05em' }}>{t("table.branchInfo") || "Branch Info"}</TableCell>

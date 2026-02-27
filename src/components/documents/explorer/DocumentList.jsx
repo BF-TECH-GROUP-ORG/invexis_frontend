@@ -35,13 +35,13 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
     };
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-right-4 duration-1000">
+        <div className="p-4 sm:p-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-right-4 duration-1000">
             {/* Elegant Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 px-2">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-8 mb-8 sm:mb-16 px-2">
                 <div className="flex items-center gap-8">
                     <button
                         onClick={onBack}
-                        className="p-3 bg-white border border-slate-100 hover:border-orange-200 hover:bg-orange-50 rounded-2xl text-slate-400 hover:text-orange-600 transition-all duration-300 shadow-sm"
+                        className="p-3 bg-white border border-slate-100 hover:border-orange-200 hover:bg-orange-50 rounded-2xl text-slate-400 hover:text-orange-600 transition-all duration-300 shadow-sm self-start"
                     >
                         <ArrowLeft size={22} />
                     </button>
@@ -65,14 +65,14 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {documents.map((doc, idx) => {
                     const isSelected = selectedIds?.includes(doc.id);
                     return (
                         <div
                             key={doc.id}
                             style={{ animationDelay: `${idx * 60}ms` }}
-                            className={`group relative flex flex-col sm:flex-row sm:items-center p-6 border rounded-[2rem] transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-12px_rgba(255,120,45,0.1)] overflow-hidden ${isSelected
+                            className={`group relative flex flex-col sm:flex-row sm:items-center p-4 sm:p-6 border rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-12px_rgba(255,120,45,0.1)] overflow-hidden ${isSelected
                                 ? 'bg-orange-50/40 border-orange-200'
                                 : 'bg-white border-slate-50 hover:border-orange-100'
                                 } hover:-translate-y-2`}
@@ -120,8 +120,8 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                                 </div>
                             </div>
 
-                            {/* Action Group */}
-                            <div className="mt-6 sm:mt-0 flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0 relative z-10">
+                            {/* Action Group - always visible on mobile, hover on desktop */}
+                            <div className="mt-4 sm:mt-0 flex items-center gap-3 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-500 sm:translate-x-4 sm:group-hover:translate-x-0 relative z-10">
                                 <button
                                     onClick={() => onOpenValues(doc)}
                                     className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-[#081422] bg-white border border-slate-100 rounded-2xl hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm active:scale-95 flex items-center gap-2"

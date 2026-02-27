@@ -200,8 +200,8 @@ export default function ShopInventoryPageClient({ initialParams = {} }) {
 
             {/* Content */}
             {loading ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <Table size="small">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                    <Table size="small" sx={{ minWidth: 700 }}>
                         <TableHead>
                             <TableRow className="bg-gray-50">
                                 <TableCell className="font-semibold text-gray-700">Product</TableCell>
@@ -238,8 +238,8 @@ export default function ShopInventoryPageClient({ initialParams = {} }) {
                     No inventory items found.
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <Table size="small">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                    <Table size="small" sx={{ minWidth: 700 }}>
                         <TableHead>
                             <TableRow className="bg-gray-50">
                                 <TableCell className="font-semibold text-gray-700">Product</TableCell>
