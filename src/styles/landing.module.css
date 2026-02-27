@@ -107,6 +107,31 @@
   box-shadow: 0 6px 20px rgba(234, 88, 12, 0.23);
 }
 
+/* Premium Login button */
+.navLoginBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  text-decoration: none;
+  background: transparent;
+  border: 1.5px solid rgba(17, 24, 39, 0.15);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: -0.01em;
+}
+
+.navLoginBtn:hover {
+  background: rgba(249, 115, 22, 0.05);
+  border-color: rgba(249, 115, 22, 0.5);
+  color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.08);
+  transform: translateY(-1px);
+}
+
 .hero {
   text-align: center;
   padding: 3rem 1.5rem;
