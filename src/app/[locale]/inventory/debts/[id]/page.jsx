@@ -77,10 +77,10 @@ const DebtDetailPage = () => {
     // Fetch shop details
     const debtShopId = typeof debt?.shopId === 'object' ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
 
-    const { data: shop } = useQuery({
-        queryKey: ["shop", debtShopId],
-        queryFn: () => getShopById(debtShopId),
-        enabled: !!debtShopId,
+    const { data: shop, isLoading: isShopLoading } = useQuery({
+        queryKey: ["shop", debtShopId, companyId],
+        queryFn: () => getShopById(debtShopId, companyId),
+        enabled: !!debtShopId && !!companyId,
     });
 
     // Mutations with Optimistic Updates
@@ -262,7 +262,9 @@ const DebtDetailPage = () => {
                                         <Box>
                                             <Typography variant="caption" color="text.secondary">Shop</Typography>
                                             <Typography variant="body1" fontWeight="medium">
-                                                {shop?.name || (typeof debt.shopId === 'object' ? debt.shopId.name : debt.shopId)}
+                                                {shop?.name ||
+                                                    (isShopLoading ? "Loading..." :
+                                                        (typeof debt.shopId === 'object' ? debt.shopId.name : (debt.shopId || "N/A")))}
                                             </Typography>
                                         </Box>
                                     </Stack>

@@ -80,6 +80,12 @@ export const getShopById = async (shopId, companyId, options = {}) => {
     });
 
     console.log("Shop fetched:", data);
+
+    // Handle nested response structures
+    if (data?.data?.name) return data.data;
+    if (data?.shop?.name) return data.shop;
+    if (data?.name) return data;
+
     return data;
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
