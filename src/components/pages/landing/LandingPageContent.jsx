@@ -326,7 +326,7 @@ function HomePageContent() {
               ) : (
                 <Link
                   href={`/${locale}/auth/login`}
-                  className="text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+                  className={styles.navLoginBtn}
                 >
                   {t("nav.login")}
                 </Link>
