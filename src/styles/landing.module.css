@@ -397,10 +397,10 @@
 }
 
 .featureTitle {
-  font-size: clamp(1.75rem, 8vw, 3.5rem);
+  font-size: clamp(1.2rem, 5vw, 3.5rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1.1;
+  line-height: 1.15;
   margin-bottom: 2rem;
   overflow-wrap: break-word;
 }
@@ -708,15 +708,18 @@
 }
 
 .priceValue {
-
-  /* Pricing section specific tweak */
-  .featureSection:has(#pricing) .featureTitle {
-    font-size: clamp(2rem, 8vw, 3.5rem);
-  }
-
   font-weight: 800;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   margin: 1.5rem 0 0.5rem;
   color: #111827;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+/* Pricing section: title size override */
+.featureSection .featureTitle {
+  font-size: clamp(1.2rem, 5vw, 3.5rem);
 }
 
 .priceSub {
@@ -1222,13 +1225,7 @@
     text-align: center;
   }
 
-  .featureTitle {
-    font-size: 2rem;
-  }
-
-  .waitlistTitle {
-    font-size: 2.75rem;
-  }
+  /* On small phones, let clamp handle sizing — remove static override */
 }
 
 /* Responsive Media Queries */
@@ -1240,11 +1237,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-
-
-  .heroTitle {
-    font-size: 3.5rem;
-  }
+  /* Remove static override — let clamp() do the work */
 }
 
 @media (max-width: 768px) {
@@ -1261,12 +1254,25 @@
     grid-template-columns: 1fr;
   }
 
+  /* Tighter title scaling for tablets */
   .heroTitle {
-    font-size: 2.75rem;
+    font-size: clamp(1.5rem, 7vw, 3rem);
   }
 
   .featureTitle {
-    font-size: 2.25rem;
+    font-size: clamp(1.1rem, 5vw, 2.25rem);
+  }
+
+  .aboutTitle {
+    font-size: clamp(1.1rem, 5vw, 2.25rem);
+  }
+
+  .waitlistTitle {
+    font-size: clamp(1.1rem, 5vw, 2.5rem);
+  }
+
+  .ctaTitle {
+    font-size: clamp(1.1rem, 5vw, 2.25rem);
   }
 
   .waitlistContainer {
@@ -1277,15 +1283,66 @@
   .emailInput {
     text-align: center;
   }
+
+  /* Safe horizontal padding so text never touches screen edges */
+  .featureSection,
+  .blockSection {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
 }
 
 @media (max-width: 480px) {
+
+  /* Ultra-small screens: minimal title sizes */
   .heroTitle {
-    font-size: 2.25rem;
+    font-size: clamp(1.4rem, 8vw, 2rem);
+    letter-spacing: -0.03em;
+  }
+
+  .featureTitle {
+    font-size: clamp(1rem, 4.5vw, 1.5rem);
+  }
+
+  .aboutTitle {
+    font-size: clamp(1rem, 4.5vw, 1.5rem);
+  }
+
+  .waitlistTitle {
+    font-size: clamp(1rem, 4.5vw, 1.6rem);
+  }
+
+  .ctaTitle {
+    font-size: clamp(1rem, 4.5vw, 1.5rem);
+    line-height: 1.2;
+  }
+
+  /* Hero logo: smaller on phones */
+  .heroLogoBox {
+    width: 80px;
+    height: 80px;
+    border-radius: 1rem;
+  }
+
+  .heroLogo {
+    width: 40px;
+    height: 40px;
   }
 
   .nav {
     padding: 1rem;
+  }
+
+  /* Generous horizontal breathing room */
+  .hero {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .featureSection,
+  .blockSection,
+  .waitlistSection {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 
   .scrollTop {
