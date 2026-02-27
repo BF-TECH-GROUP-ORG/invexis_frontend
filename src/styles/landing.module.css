@@ -397,10 +397,10 @@
 }
 
 .featureTitle {
-  font-size: clamp(1.2rem, 5vw, 3.5rem);
+  font-size: clamp(1rem, 4vw, 3.5rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1.15;
+  line-height: 1.2;
   margin-bottom: 2rem;
   overflow-wrap: break-word;
 }
@@ -717,9 +717,10 @@
   justify-content: center;
 }
 
-/* Pricing section: title size override */
-.featureSection .featureTitle {
-  font-size: clamp(1.2rem, 5vw, 3.5rem);
+/* Section title: fluid scaling */
+.featureSection .featureTitle,
+.blockSection .featureTitle {
+  font-size: clamp(1rem, 4vw, 3.5rem);
 }
 
 .priceSub {
@@ -1256,23 +1257,23 @@
 
   /* Tighter title scaling for tablets */
   .heroTitle {
-    font-size: clamp(1.5rem, 7vw, 3rem);
+    font-size: clamp(1.35rem, 6vw, 2.5rem);
   }
 
   .featureTitle {
-    font-size: clamp(1.1rem, 5vw, 2.25rem);
+    font-size: clamp(1rem, 4vw, 2rem);
   }
 
   .aboutTitle {
-    font-size: clamp(1.1rem, 5vw, 2.25rem);
+    font-size: clamp(1rem, 4vw, 2rem);
   }
 
   .waitlistTitle {
-    font-size: clamp(1.1rem, 5vw, 2.5rem);
+    font-size: clamp(1rem, 4vw, 2.25rem);
   }
 
   .ctaTitle {
-    font-size: clamp(1.1rem, 5vw, 2.25rem);
+    font-size: clamp(1rem, 4vw, 2rem);
   }
 
   .waitlistContainer {
@@ -1301,19 +1302,19 @@
   }
 
   .featureTitle {
-    font-size: clamp(1rem, 4.5vw, 1.5rem);
+    font-size: clamp(0.95rem, 3.5vw, 1.35rem);
   }
 
   .aboutTitle {
-    font-size: clamp(1rem, 4.5vw, 1.5rem);
+    font-size: clamp(0.95rem, 3.5vw, 1.35rem);
   }
 
   .waitlistTitle {
-    font-size: clamp(1rem, 4.5vw, 1.6rem);
+    font-size: clamp(0.95rem, 3.5vw, 1.45rem);
   }
 
   .ctaTitle {
-    font-size: clamp(1rem, 4.5vw, 1.5rem);
+    font-size: clamp(0.95rem, 3.5vw, 1.35rem);
     line-height: 1.2;
   }
 

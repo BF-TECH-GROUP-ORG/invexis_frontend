@@ -391,7 +391,7 @@ function HomePageContent() {
                   {t("nav.login")}
                 </Link>
                 <Link
-                  href={`/${locale}/auth/signup`}
+                  href={`/${locale}/welcome`}
                   className={styles.mobileJoinBtn}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -465,7 +465,7 @@ function HomePageContent() {
 
           <motion.div variants={itemVariants}>
             <Link
-              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/auth/signup`}
+              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
               className={styles.joinWaitlist}
               style={{
                 padding: "1.25rem 3rem",
@@ -965,7 +965,7 @@ function HomePageContent() {
           </p>
           <div className={styles.ctaBtns}>
             <Link
-              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/auth/signup`}
+              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
               className={styles.ctaPrimary}
             >
               {isAuthenticated ? t("cta.final.openDashboard") : t("cta.final.startTrial")}
