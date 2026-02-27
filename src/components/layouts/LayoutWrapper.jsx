@@ -138,17 +138,27 @@ export default function LayoutWrapper({ children }) {
 
   // 1. If session is loading, show loader (don't render children yet to avoid flash of unauth content)
   if (status === "loading" && !BYPASS) {
+    const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
     return (
-      <GlobalLoader visible={true} text={loadingText || "Loading..."} />
+      <GlobalLoader
+        visible={true}
+        text={isHome ? "Setting up your experience..." : (loadingText || "Loading...")}
+        forceLight={isHome}
+      />
     );
   }
 
   // 2. Allow access to public routes (home, welcome, auth pages, etc.)
   // Even if logged in, public routes should use the public layout, not the dashboard layout.
   if (isPublicRoute) {
+    const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
     return (
       <>
-        <GlobalLoader visible={showLoader} text={loadingText || "Loading..."} />
+        <GlobalLoader
+          visible={showLoader}
+          text={isHome ? "Preparing Invexix..." : (loadingText || "Loading...")}
+          forceLight={isHome}
+        />
         {!showLoader && (
           <div className="min-h-screen bg-white">
             {children}

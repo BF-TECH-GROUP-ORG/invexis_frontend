@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import useAuth from "@/hooks/useAuth";
 import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
+import GlobalLoader from "@/components/shared/GlobalLoader";
 import {
   Menu,
   X,
@@ -97,7 +98,17 @@ function HomePageContent() {
   const [billing, setBilling] = useState("monthly");
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const langRef = useRef(null);
+
+  useEffect(() => {
+    // Premium loading sequence to ensure branding is seen
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -212,6 +223,7 @@ function HomePageContent() {
 
   return (
     <div className={`${styles.landingBody} font-metropolis`} id="home">
+      <GlobalLoader visible={loading} forceLight={true} />
       <SideSectionNav activeSection={activeSection} sections={sections} />
       {/* Background Circuit Lines - Redesigned with Orange Glow */}
       <div className={styles.circuitLines}>
