@@ -15,6 +15,7 @@ import { useState, useMemo } from "react"
 const SaleProductClient = () => {
     const router = useRouter()
     const t = useTranslations('sellProduct')
+    const tSales = useTranslations('sales')
     const locale = useLocale()
     const { data: session } = useSession()
     const companyObj = session?.user?.companies?.[0]
@@ -33,7 +34,7 @@ const SaleProductClient = () => {
                 className="group mb-4 flex items-center space-x-2 text-sm font-medium text-gray-600 hover:text-orange-600 transition-colors"
             >
                 <ArrowBack className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                <span>{useTranslations('sales')('back')}</span>
+                <span>{tSales('back')}</span>
             </button>
             <br />
 

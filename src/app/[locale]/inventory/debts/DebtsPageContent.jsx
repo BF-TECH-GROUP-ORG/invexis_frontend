@@ -30,6 +30,11 @@ const DebtsPageContent = ({ initialParams = {} }) => {
     const pathname = usePathname();
     const [errorDialogOpen, setErrorDialogOpen] = useState(false);
     const { data: session } = useSession();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const {
         soldBy: initialSoldBy = "",
@@ -130,7 +135,7 @@ const DebtsPageContent = ({ initialParams = {} }) => {
     // Only show full skeleton when there's truly no data yet (first ever load, no cache).
     // When refetching in background (isFetching but debtsData exists), show the cached data
     // and let it update automatically — no blank screen, no blocking.
-    if (isLoading) {
+    if (!mounted || isLoading) {
         return (
             <Box sx={{ p: 4 }}>
                 <Grid container spacing={3} sx={{ mb: 4 }}>

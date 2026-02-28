@@ -129,7 +129,7 @@ const SellProductsInputs = ({ id }) => {
     });
 
     // Validate payment phone for mobile methods
-    if (["mtn", "airtel", "mpesa"].includes(paymentMethod)) {
+    if (["mtn", "airtel"].includes(paymentMethod)) {
       if (!paymentPhone || paymentPhone.length < 10) {
         valid = false;
         newErrors.paymentPhone = tSingle('errors.paymentPhoneRequired');
@@ -191,7 +191,7 @@ const SellProductsInputs = ({ id }) => {
 
       paymentMethod,
       paymentId: Date.now().toString(), // Added as requested
-      paymentPhoneNumber: (["mtn", "airtel", "mpesa"].includes(paymentMethod) && paymentPhone) ? paymentPhone : undefined,
+      paymentPhoneNumber: (["mtn", "airtel"].includes(paymentMethod) && paymentPhone) ? paymentPhone : undefined,
       totalAmount: totalAfterDiscount,
       discountAmount: itemDiscount,
     };
@@ -217,7 +217,7 @@ const SellProductsInputs = ({ id }) => {
         doc.text(`${tSingle('receipt.total')}: ${new Intl.NumberFormat(locale).format(totalAfterDiscount)} FRW`, 20, itemDiscount > 0 ? 100 : 90);
         const methodLabel = tCustomer(paymentMethod);
         doc.text(`${tSingle('receipt.payment')}: ${methodLabel}`, 20, itemDiscount > 0 ? 110 : 100);
-        if (["mtn", "airtel", "mpesa"].includes(paymentMethod) && paymentPhone) {
+        if (["mtn", "airtel"].includes(paymentMethod) && paymentPhone) {
           doc.text(`${tSingle('receipt.paymentPhone')}: ${paymentPhone}`, 20, itemDiscount > 0 ? 120 : 110);
         }
         doc.text(tSingle('receipt.thankYou'), 105, itemDiscount > 0 ? 140 : 130, { align: "center" });
@@ -287,66 +287,18 @@ const SellProductsInputs = ({ id }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">{tCustomer('paymentMethod')} <span className="text-red-500">*</span></label>
-            <div className="grid grid-cols-5 gap-2">
-              {paymentMethods.map((method) => {
-                const methodConfig = SALES_PAYMENT_METHODS[method];
-                return (
-                  <button
-                    key={method}
-                    type="button"
-                    onClick={() => setPaymentMethod(method)}
-                    className={`p-3 rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-200 ${paymentMethod === method
-                      ? "border-orange-500 bg-orange-50"
-                      : "border-gray-300 bg-white hover:border-orange-400"
-                      }`}
-                  >
-                    {methodConfig.image ? (
-                      <img
-                        src={methodConfig.image}
-                        alt={tCustomer(method)}
-                        className={`h-6 w-auto object-contain mb-1 transition-all duration-200 ${paymentMethod === method ? "opacity-100" : "opacity-60"
-                          }`}
-                        style={{
-                          filter: paymentMethod === method ? "none" : "grayscale(100%)"
-                        }}
-                      />
-                    ) : (
-                      <span className="text-lg mb-1">{methodConfig.icon}</span>
-                    )}
-                    <span
-                      className={`text-xs font-semibold text-center transition-colors duration-200 ${paymentMethod === method
-                        ? "text-orange-700"
-                        : "text-gray-600"
-                        }`}
-                    >
-                      {tCustomer(method)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Conditional Phone Input for Mobile Payments */}
-            {["mtn", "airtel", "mpesa"].includes(paymentMethod) && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {tSingle('paymentPhoneLabel')} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  placeholder={tCustomer('phonePlaceholder')}
-                  value={paymentPhone}
-                  onChange={(e) => setPaymentPhone(e.target.value)}
-                  className={`${inputClass} ${paymentPhone && paymentPhone.length < 10
-                    ? "border-red-500 focus:ring-red-400"
-                    : ""
-                    }`}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  {tSingle('paymentPhoneInfo', { method: tCustomer(paymentMethod) })}
-                </p>
-              </div>
+            <PaymentMethodSelector
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={(val) => {
+                setPaymentMethod(val);
+                setErrors(prev => ({ ...prev, paymentPhone: "" }));
+              }}
+              phone={paymentPhone}
+              onPhoneChange={setPaymentPhone}
+              type="sales"
+            />
+            {errors.paymentPhone && (
+              <p className="mt-1 text-xs text-red-500">{errors.paymentPhone}</p>
             )}
           </div>
 

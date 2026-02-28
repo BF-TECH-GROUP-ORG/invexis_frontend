@@ -41,10 +41,8 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import StoreIcon from "@mui/icons-material/Store";
 import HistoryIcon from "@mui/icons-material/History";
 import dayjs from "dayjs";
-import { useState } from "react";
-
-// Reuse the RepayDialog from table.jsx if possible, but for now I'll implement a simplified version or just use the actions.
-// Actually, I'll implement the actions directly on this page for better UX.
+import { useState, useMemo } from "react";
+import { RepayDialog, ConfirmDialog } from "../table";
 
 const DebtDetailPage = () => {
     const params = useParams();
@@ -54,6 +52,9 @@ const DebtDetailPage = () => {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const [repayOpen, setRepayOpen] = useState(false);
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+    const [markPaidDialogOpen, setMarkPaidDialogOpen] = useState(false);
 
     const debtId = params.id;
     const companyObj = session?.user?.companies?.[0];
@@ -151,6 +152,24 @@ const DebtDetailPage = () => {
         onSuccess: () => {
             setSnackbar({ open: true, message: "Debt cancelled!", severity: "success" });
         },
+    });
+
+    // Repayment mutation
+    const repaymentMutation = useMutation({
+        mutationFn: recordRepayment,
+        onSuccess: () => {
+            setSnackbar({ open: true, message: "Payment recorded successfully!", severity: "success" });
+            queryClient.invalidateQueries({ queryKey: ["debtHistory", debtId] });
+            queryClient.invalidateQueries({ queryKey: ["debts"] });
+        },
+        onError: (error) => {
+            console.error("Repayment error:", error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || "Failed to record payment.",
+                severity: "error"
+            });
+        }
     });
 
     if (isLoading) {
@@ -398,19 +417,24 @@ const DebtDetailPage = () => {
                                 <Button
                                     fullWidth
                                     variant="contained"
+                                    color="primary"
+                                    size="large"
+                                    startIcon={<PaymentIcon />}
+                                    disabled={debt.status === "PAID" || debt.status === "CANCELLED" || repaymentMutation.isPending}
+                                    onClick={() => setRepayOpen(true)}
+                                    sx={{ bgcolor: "#FF6D00", "&:hover": { bgcolor: "#E65100" } }}
+                                >
+                                    Record Repayment
+                                </Button>
+
+                                <Button
+                                    fullWidth
+                                    variant="outlined"
                                     color="success"
                                     size="large"
                                     startIcon={<CheckCircleIcon />}
                                     disabled={debt.status === "PAID" || debt.status === "CANCELLED" || markAsPaidMutation.isPending}
-                                    onClick={() => markAsPaidMutation.mutate({
-                                        id: debt._id,
-                                        payload: {
-                                            companyId: debt.companyId,
-                                            paymentMethod: "CASH",
-                                            paymentReference: `MARK-PAID-DETAIL-${Date.now()}`,
-                                            createdBy: session?.user?._id || "temp-user-id"
-                                        }
-                                    })}
+                                    onClick={() => setMarkPaidDialogOpen(true)}
                                 >
                                     Mark as Fully Paid
                                 </Button>
@@ -422,14 +446,7 @@ const DebtDetailPage = () => {
                                     size="large"
                                     startIcon={<CancelIcon />}
                                     disabled={debt.status === "PAID" || debt.status === "CANCELLED" || cancelDebtMutation.isPending}
-                                    onClick={() => cancelDebtMutation.mutate({
-                                        id: debt._id,
-                                        payload: {
-                                            companyId: debt.companyId,
-                                            reason: "customer_requested",
-                                            performedBy: session?.user?._id || "temp-user-id"
-                                        }
-                                    })}
+                                    onClick={() => setCancelDialogOpen(true)}
                                 >
                                     Cancel Debt
                                 </Button>
@@ -449,6 +466,56 @@ const DebtDetailPage = () => {
                     </Card>
                 </Grid>
             </Grid>
+
+            {/* Dialogs */}
+            <RepayDialog
+                open={repayOpen}
+                onClose={() => setRepayOpen(false)}
+                debt={debt}
+                t={t}
+                onRepaymentSuccess={(payload) => repaymentMutation.mutate(payload)}
+            />
+
+            <ConfirmDialog
+                open={cancelDialogOpen}
+                title="Cancel This Debt?"
+                message={`Are you sure you want to cancel the debt for ${debt.customer?.name}? Remaining balance is ${debt.balance?.toLocaleString()} FRW.`}
+                onCancel={() => setCancelDialogOpen(false)}
+                onConfirm={() => {
+                    setCancelDialogOpen(false);
+                    cancelDebtMutation.mutate({
+                        id: debt._id,
+                        payload: {
+                            companyId: debt.companyId,
+                            reason: "customer_requested",
+                            performedBy: session?.user?._id || "temp-user-id"
+                        }
+                    });
+                }}
+                t={t}
+                type="error"
+            />
+
+            <ConfirmDialog
+                open={markPaidDialogOpen}
+                title="Mark Debt as Paid?"
+                message={`This will record a final payment for the remaining ${debt.balance?.toLocaleString()} FRW and clear the debt for ${debt.customer?.name}.`}
+                onCancel={() => setMarkPaidDialogOpen(false)}
+                onConfirm={() => {
+                    setMarkPaidDialogOpen(false);
+                    markAsPaidMutation.mutate({
+                        id: debt._id,
+                        payload: {
+                            companyId: debt.companyId,
+                            paymentMethod: "CASH",
+                            paymentReference: `MARK-PAID-DETAIL-${Date.now()}`,
+                            createdBy: session?.user?._id || "temp-user-id"
+                        }
+                    });
+                }}
+                t={t}
+                type="success"
+            />
 
             <Snackbar
                 open={snackbar.open}
