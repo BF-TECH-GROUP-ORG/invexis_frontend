@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { MapPin } from "lucide-react";
 import { createBranch } from "@/services/branches";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const steps = [
     { label: "Basic Info", description: "Step 1 of 3" },
@@ -33,7 +34,7 @@ const NewBranchPage = () => {
     const router = useRouter();
     const locale = useLocale();
     const [activeStep, setActiveStep] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const queryClient = useQueryClient();
     const [error, setError] = useState("");
 
     const { data: session } = useSession();
@@ -133,7 +134,7 @@ const NewBranchPage = () => {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
-                
+
                 setFormData(prev => ({
                     ...prev,
                     latitude: latitude.toString(),
@@ -144,12 +145,12 @@ const NewBranchPage = () => {
                     const response = await fetch(
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
                     );
-                    
+
                     if (!response.ok) throw new Error('Failed to fetch address');
-                    
+
                     const data = await response.json();
                     const address = data.address || {};
-                    
+
                     setFormData(prev => ({
                         ...prev,
                         address_line1: [address.road, address.house_number].filter(Boolean).join(' ') || '',
@@ -157,7 +158,7 @@ const NewBranchPage = () => {
                         country: address.country_code?.toUpperCase() || '',
                         postal_code: address.postcode || ''
                     }));
-                    
+
                 } catch (error) {
                     console.error("Error getting address:", error);
                     setLocationError("Could not fetch address details");
@@ -178,40 +179,10 @@ const NewBranchPage = () => {
         );
     };
 
-    const handleSubmit = async () => {
-        if (!validateStep(activeStep)) return;
-
-        setLoading(true);
-        setError("");
-
-        try {
-            // Extract user ID from session - try multiple possible fields
-            const userId = session?.user?.id || session?.user?._id || session?.user?.userId || null;
-            
-            console.log("Session data:", session);
-            console.log("User object:", session?.user);
-            console.log("Extracted userId:", userId);
-            
-            const payload = {
-                companyId: formData.companyId,
-                name: formData.name,
-                address_line1: formData.address_line1,
-                city: formData.city,
-                country: formData.country.toUpperCase(),
-                postal_code: formData.postal_code,
-                latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-                longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-                capacity: Number(formData.capacity),
-                timezone: formData.timezone,
-                status: formData.status,
-                created_by: userId,
-            };
-            
-            console.log("Payload being sent:", payload);
-
-            const result = await createBranch(payload);
-            console.log("Branch creation result:", result);
-
+    const createBranchMutation = useMutation({
+        mutationFn: (payload) => createBranch(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["branches", companyId] });
             setSnackbar({
                 open: true,
                 message: "Branch created successfully!",
@@ -221,7 +192,8 @@ const NewBranchPage = () => {
             setTimeout(() => {
                 router.push(`/${locale}/inventory/companies`);
             }, 1500);
-        } catch (err) {
+        },
+        onError: (err) => {
             console.error("Error creating branch:", err);
             setSnackbar({
                 open: true,
@@ -229,9 +201,33 @@ const NewBranchPage = () => {
                 severity: "error"
             });
             setError("Failed to create branch. Please try again.");
-        } finally {
-            setLoading(false);
         }
+    });
+
+    const handleSubmit = async () => {
+        if (!validateStep(activeStep)) return;
+
+        setError("");
+
+        // Extract user ID from session - try multiple possible fields
+        const userId = session?.user?.id || session?.user?._id || session?.user?.userId || null;
+
+        const payload = {
+            companyId: formData.companyId,
+            name: formData.name,
+            address_line1: formData.address_line1,
+            city: formData.city,
+            country: formData.country.toUpperCase(),
+            postal_code: formData.postal_code,
+            latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+            longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+            capacity: Number(formData.capacity),
+            timezone: formData.timezone,
+            status: formData.status,
+            created_by: userId,
+        };
+
+        await createBranchMutation.mutateAsync(payload);
     };
 
     const renderStepContent = (step) => {
@@ -471,7 +467,7 @@ const NewBranchPage = () => {
                     {/* Navigation Buttons */}
                     <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, pt: 3, borderTop: "1px solid #e0e0e0" }}>
                         <Button
-                            disabled={activeStep === 0 || loading}
+                            disabled={activeStep === 0 || createBranchMutation.isLoading}
                             onClick={handleBack}
                             variant="outlined"
                             sx={{ minWidth: 120 }}
@@ -482,14 +478,14 @@ const NewBranchPage = () => {
                             <Button
                                 variant="contained"
                                 onClick={handleSubmit}
-                                disabled={loading}
+                                disabled={createBranchMutation.isLoading}
                                 sx={{
                                     bgcolor: "#FF6D00",
                                     "&:hover": { bgcolor: "#E65100" },
                                     minWidth: 120
                                 }}
                             >
-                                {loading ? <CircularProgress size={24} color="inherit" /> : "Create Branch"}
+                                {createBranchMutation.isLoading ? <CircularProgress size={24} color="inherit" /> : "Create Branch"}
                             </Button>
                         ) : (
                             <Button

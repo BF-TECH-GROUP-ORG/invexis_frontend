@@ -92,8 +92,32 @@ const CompaniesTable = ({ initialRows = [], initialParams = {}, updateFilters })
 
     const deleteMutation = useMutation({
         mutationFn: (branchId) => deleteBranch(branchId, initialParams.companyId),
+        onMutate: async (branchId) => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ["branches", initialParams.companyId] });
+
+            // Snapshot the previous value
+            const previousShops = queryClient.getQueryData(["branches", initialParams.companyId]);
+
+            // Optimistically update to the new value
+            queryClient.setQueryData(["branches", initialParams.companyId], (old) => {
+                const data = old?.data || old || [];
+                const updatedList = data.filter((shop) => shop.id !== branchId);
+                return Array.isArray(old) ? updatedList : { ...old, data: updatedList };
+            });
+
+            return { previousShops };
+        },
+        onError: (err, branchId, context) => {
+            if (context?.previousShops) {
+                queryClient.setQueryData(["branches", initialParams.companyId], context.previousShops);
+            }
+            setSnackbar({ open: true, message: err.response?.data?.message || "Failed to remove branch.", severity: "error" });
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["branches", initialParams.companyId] });
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries(["branches"]);
             setSnackbar({ open: true, message: t("toast.deleted") || "Branch removed successfully!", severity: "success" });
         },
     });

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Box, Button, TextField, MenuItem, Typography, CircularProgress, Stepper, Step, StepLabel, StepConnector, Card, InputAdornment, Select } from "@mui/material";
 import Link from "next/link";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWorker, updateWorker } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
 import { useRouter } from "next/navigation";
@@ -68,6 +68,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const locale = useLocale();
   const { data: session } = useSession();
   const [activeStep, setActiveStep] = useState(0);
+  const queryClient = useQueryClient();
   const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
   const stepLabels = useMemo(() => [
@@ -231,6 +232,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         ? updateWorker(initialData.id || initialData._id, data)
         : createWorker(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
       setSnackbar({
         open: true,
         message: isEditMode
