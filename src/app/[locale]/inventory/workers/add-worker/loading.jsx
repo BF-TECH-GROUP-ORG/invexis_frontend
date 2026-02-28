@@ -1,4 +1,4 @@
-
+"use client";
 import React from 'react';
 import { Box, Paper, Skeleton, Stepper, Step, StepLabel, StepConnector, Typography } from "@mui/material";
 
@@ -20,7 +20,7 @@ export default function AddWorkerLoading() {
                         </div>
                     </Box>
 
-                    <div className="flex-grow space-y-6">
+                    <div className="grow space-y-6">
                         <Skeleton variant="text" width={200} height={32} sx={{ mb: 2 }} />
                         <div className="flex gap-4">
                             <Skeleton variant="rectangular" width="100%" height={56} sx={{ borderRadius: '12px' }} />
