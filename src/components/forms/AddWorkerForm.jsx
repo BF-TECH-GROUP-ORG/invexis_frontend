@@ -63,7 +63,7 @@ const initializeWorkerData = (data) => {
 };
 
 export default function AddWorkerForm({ initialData, isEditMode = false }) {
-  const t = useTranslations("workers.form");
+  const t = useTranslations("management.workers.form");
   const router = useRouter();
   const locale = useLocale();
   const { data: session } = useSession();
@@ -83,11 +83,18 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       ? companyObj
       : companyObj?.id || companyObj?._id;
 
+  const options = useMemo(() =>
+    session?.accessToken
+      ? { headers: { Authorization: `Bearer ${session.accessToken}` } }
+      : null,
+    [session?.accessToken]
+  );
+
   // React Query for branches
   const { data: branchesData } = useQuery({
     queryKey: ["branches", companyId],
-    queryFn: () => getBranches(companyId),
-    enabled: !!companyId,
+    queryFn: () => getBranches(companyId, options),
+    enabled: !!companyId && !!options,
   });
 
   const availableShops = useMemo(() => {
@@ -101,8 +108,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   // React Query for departments
   const { data: departmentsData } = useQuery({
     queryKey: ["departments", companyId],
-    queryFn: () => getDepartmentsByCompany(companyId),
-    enabled: !!companyId,
+    queryFn: () => getDepartmentsByCompany(companyId, options),
+    enabled: !!companyId && !!options,
   });
 
   const availableDepartments = useMemo(() => {
@@ -615,8 +622,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   };
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -812,6 +819,6 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           </Stepper>
         </Box>
       </div>
-    </div>
+    </Box>
   );
 }

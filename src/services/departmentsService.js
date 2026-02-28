@@ -7,7 +7,7 @@ const DEPARTMENTS_URL = process.env.NEXT_PUBLIC_API_URL;
  * @param {string} companyId - The company ID
  * @returns {Promise<Array>} - List of departments
  */
-export const getDepartmentsByCompany = async (companyId) => {
+export const getDepartmentsByCompany = async (companyId, options = {}) => {
   try {
     if (!DEPARTMENTS_URL) {
       throw new Error(
@@ -22,13 +22,11 @@ export const getDepartmentsByCompany = async (companyId) => {
     const url = `${DEPARTMENTS_URL}/company/companies/${companyId}/departments`;
     console.log("Fetching departments from:", url);
 
-    const response = await apiClient.get(url);
+    const response = await apiClient.get(url, { ...options });
 
     console.log("Departments fetched successfully:", response);
 
     // Handle different response structures
-    // apiClient usually returns response.data but interceptors might unwrap it.
-    // Assuming apiClient returns the response payload directly or consistent with other services.
     return response.departments || response.data || response || [];
   } catch (error) {
     const errorMessage =
