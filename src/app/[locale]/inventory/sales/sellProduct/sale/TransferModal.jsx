@@ -23,22 +23,25 @@ import { getBranches } from "@/services/branches";
 import { SellProduct } from "@/services/salesService";
 import TransferSuccessModal from "./TransferSuccessModal";
 import { useTranslations, useLocale } from "next-intl";
+import PaymentMethodSelector from "@/components/forms/PaymentMethodSelector";
 
 export default function TransferModal({ open, onClose, selectedItems, companyId, userId, mode = 'company', currentShopId }) {
     const t = useTranslations('sellProduct.modals.transfer');
     const tAlerts = useTranslations('sellProduct.alerts');
     const tCustomer = useTranslations('sellProduct.modals.customer');
     const tActions = useTranslations('sellProduct.actions');
+    const tSales = useTranslations('sales');
     const locale = useLocale();
     const [targetCompany, setTargetCompany] = useState("");
     const [targetShop, setTargetShop] = useState("");
     const [reason, setReason] = useState("");
-    const [notes, setNotes] = useState("");
     const [validationError, setValidationError] = useState("");
     const [successModalOpen, setSuccessModalOpen] = useState(false);
     const [targetName, setTargetName] = useState("");
     const [isDebt, setIsDebt] = useState(false);
     const [amountPaidNow, setAmountPaidNow] = useState(0);
+    const [paymentMethod, setPaymentMethod] = useState("cash");
+    const [paymentPhone, setPaymentPhone] = useState("");
 
     // Reset state when modal opens or mode changes
     useEffect(() => {
@@ -46,11 +49,12 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             setTargetCompany("");
             setTargetShop("");
             setReason("");
-            setNotes("");
             setValidationError("");
             setSuccessModalOpen(false);
             setIsDebt(false);
             setAmountPaidNow(0);
+            setPaymentMethod("cash");
+            setPaymentPhone("");
         }
     }, [open, mode]);
 
@@ -169,7 +173,9 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
         // Determine target name for display
         let targetDisplayName = "";
         if (mode === 'shop') {
-            const shop = currentCompanyShops?.data?.find(s => (s.id || s._id) === targetShop);
+            const shop = Array.isArray(currentCompanyShops)
+                ? currentCompanyShops.find(s => (s.id || s._id) === targetShop)
+                : currentCompanyShops?.data?.find(s => (s.id || s._id) === targetShop);
             targetDisplayName = shop?.name || shop?.shopName || t('errors.noShops');
         } else {
             const company = eligibleCompanies.find(c => (c.id || c._id) === targetCompany);
@@ -182,12 +188,13 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
             companyId: companyId,
             shopId: currentShopId,
             soldBy: userId,
-            customerName: `${useTranslations('sales')('transfer')}: ${targetDisplayName}`,
+            customerName: `${tSales('transfer')}: ${targetDisplayName}`,
             customerPhone: "N/A",
             customerEmail: "",
             items,
-            paymentMethod: "Transfer",
+            paymentMethod: mode === 'company' ? paymentMethod : "Transfer",
             paymentId: `TRF-${Date.now()}`,
+            paymentPhoneNumber: mode === 'company' ? paymentPhone : undefined,
             totalAmount,
             amountPaidNow: isDebt ? parseFloat(amountPaidNow) || 0 : totalAmount,
             discountAmount: 0,
@@ -216,7 +223,6 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                     toShopId: targetShop,
                     reason: reason,
                     userId: userId,
-                    notes: notes
                 };
             } else {
                 // Cross-Company Payload
@@ -413,7 +419,7 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
 
                 <DialogContent sx={{
                     pt: { xs: 2, md: 4 },
-                    pb: { xs: 20, md: 24 },
+                    pb: { xs: 4, md: 24 },
                     px: { xs: 2, md: 4 },
                     flex: 1,
                     overflow: "auto",
@@ -671,70 +677,23 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                                 />
                             </Box>
 
-                            {/* Notes Field */}
-                            <Box sx={{
-                                mb: 4,
-                                animation: open ? "fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.45s both" : "fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                "@keyframes fadeInUp": {
-                                    from: {
-                                        opacity: 0,
-                                        transform: "translateY(20px)"
-                                    },
-                                    to: {
-                                        opacity: 1,
-                                        transform: "translateY(0)"
-                                    }
-                                },
-                                "@keyframes fadeOutDown": {
-                                    from: {
-                                        opacity: 1,
-                                        transform: "translateY(0)"
-                                    },
-                                    to: {
-                                        opacity: 0,
-                                        transform: "translateY(20px)"
-                                    }
-                                }
-                            }}>
-                                <Typography variant="body2" sx={{
-                                    color: "#111827",
-                                    fontWeight: 600,
-                                    mb: 1.2,
-                                    fontSize: "0.95rem"
-                                }}>
-                                    {t('notes')}
-                                </Typography>
-                                <TextField
-                                    fullWidth
-                                    placeholder={t('placeholders.notes')}
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    multiline
-                                    rows={3}
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            bgcolor: "#FFFFFF",
-                                            borderRadius: "10px",
-                                            fontWeight: 500,
-                                            "& fieldset": {
-                                                borderColor: "#E5E7EB",
-                                                borderWidth: "1.5px"
-                                            },
-                                            "&:hover fieldset": {
-                                                borderColor: "#D1D5DB"
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: "#FF6D00",
-                                                borderWidth: "2px"
-                                            }
-                                        },
-                                        "& .MuiOutlinedInput-input": {
-                                            padding: "12px 16px",
-                                            color: "#111827"
-                                        }
-                                    }}
-                                />
-                            </Box>
+
+                            {/* Payment Method Selection - Only for Cross-Company Mode */}
+                            {mode === 'company' && !isDebt && (
+                                <Box sx={{ mb: 4 }}>
+                                    <PaymentMethodSelector
+                                        paymentMethod={paymentMethod}
+                                        onPaymentMethodChange={(val) => {
+                                            setPaymentMethod(val);
+                                            setValidationError("");
+                                        }}
+                                        phone={paymentPhone}
+                                        onPhoneChange={setPaymentPhone}
+                                        type="sales"
+                                        compact={true}
+                                    />
+                                </Box>
+                            )}
 
                             {/* Debt Transfer Toggle - Only for Cross-Company Mode */}
                             {mode === 'company' && (
@@ -838,11 +797,11 @@ export default function TransferModal({ open, onClose, selectedItems, companyId,
                 {/* Premium Footer - Responsive */}
                 <Box sx={{
                     borderTop: "1px solid #E5E7EB",
-                    padding: { xs: "16px", md: "20px 28px" },
+                    padding: { xs: "12px 16px", md: "20px 28px" },
                     bgcolor: "#F9FAFB",
                     borderRadius: { xs: "0", md: "0 0 16px 16px" },
                     display: "flex",
-                    gap: "12px",
+                    gap: "10px",
                     justifyContent: "flex-end",
                     position: { xs: "relative", md: "absolute" },
                     bottom: { xs: "auto", md: 0 },

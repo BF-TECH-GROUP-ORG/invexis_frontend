@@ -7,7 +7,7 @@ import {
   Menu, MenuItem, ListItemIcon, ListItemText, Dialog,
   DialogTitle, DialogContent, DialogActions, Button, Popover,
   ToggleButton, ToggleButtonGroup, InputAdornment, Select,
-  FormControl, InputLabel, TablePagination, Chip, Avatar, Stack
+  FormControl, InputLabel, TablePagination, Chip, Avatar, Stack, Divider
 } from "@mui/material";
 
 // Icons
@@ -30,7 +30,7 @@ import dayjs from "dayjs";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { recordRepayment, markDebtAsPaid, cancelDebt, getDebtHistory } from "@/services/debts";
@@ -46,119 +46,243 @@ import { DEBT_PAYMENT_METHODS } from "@/constants/paymentMethods";
 // =======================================
 
 // =======================================
-// CONFIRM DIALOG (Cancel Debt)
+// CONFIRM DIALOG (Cancel Debt / Mark as Paid)
 // =======================================
-const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, t }) => (
-  <Dialog open={open} onClose={onCancel}>
-    <DialogTitle>{title}</DialogTitle>
-    <DialogContent>
-      <Typography>{message}</Typography>
+export const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, t, type = "error" }) => (
+  <Dialog
+    open={open}
+    onClose={onCancel}
+    PaperProps={{
+      sx: {
+        borderRadius: "16px",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+        width: "100%",
+        maxWidth: "400px"
+      }
+    }}
+  >
+    <DialogTitle sx={{
+      bgcolor: type === "error" ? "#d32f2f" : "#2e7d32",
+      color: "white",
+      fontWeight: "bold",
+      display: "flex",
+      alignItems: "center",
+      gap: 1.5,
+      py: 2.5
+    }}>
+      {type === "error" ? <CancelIcon /> : <CheckIcon />}
+      {title}
+    </DialogTitle>
+    <DialogContent sx={{ pt: 3, pb: 2 }}>
+      <Typography variant="body1" sx={{ color: "text.primary", fontWeight: 500 }}>
+        {message}
+      </Typography>
     </DialogContent>
-    <DialogActions>
-      <Button onClick={onCancel} variant="outlined">{t("cancel")}</Button>
-      <Button onClick={onConfirm} color="error" variant="contained">{t("confirm")}</Button>
+    <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+      <Button
+        onClick={onCancel}
+        variant="outlined"
+        sx={{
+          borderRadius: "8px",
+          color: "text.secondary",
+          borderColor: "#E5E7EB",
+          textTransform: "none",
+          fontWeight: 600,
+          px: 3,
+          "&:hover": { bgcolor: "#F9FAFB", borderColor: "#D1D5DB" }
+        }}
+      >
+        {t("cancel") || "Cancel"}
+      </Button>
+      <Button
+        onClick={onConfirm}
+        variant="contained"
+        color={type === "error" ? "error" : "success"}
+        sx={{
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+          px: 3,
+          boxShadow: "none"
+        }}
+      >
+        {t("confirm") || "Confirm"}
+      </Button>
     </DialogActions>
   </Dialog>
 );
 
 // =======================================
-// REPAYMENT DIALOG (Beautiful Popup WITH API INTEGRATION)
+// REPAY DIALOG (Premium Split Layout)
 // =======================================
-const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
+export const RepayDialog = ({ open, onClose, debt, t, onRepaymentSuccess }) => {
   const { data: session } = useSession();
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [phone, setPhone] = useState(debt?.customer?.phone?.replace(/\s/g, "") || "");
+  const [phone, setPhone] = useState("");
+  const locale = useLocale();
+
+  // Initialize phone when debt changes
+  useEffect(() => {
+    if (debt?.customer?.phone) {
+      setPhone(debt.customer.phone.replace(/\s/g, ""));
+    }
+  }, [debt]);
 
   const handleConfirm = () => {
-    // Build the repayment payload
     const repaymentPayload = {
       companyId: debt.companyId,
       shopId: debt.shopId,
       debtId: debt._id,
       customer: {
-        name: debt.customer.name,
-        phone: debt.customer.phone
+        name: debt.customer?.name || "Unknown",
+        phone: debt.customer?.phone || "N/A"
       },
       amountPaid: parseInt(amount),
       paymentMethod: paymentMethod,
       paymentReference: `${paymentMethod}-${Date.now()}`,
       paidAt: new Date().toISOString(),
       createdBy: session?.user?._id || "temp-user-id",
-      paymentPhoneNumber: (paymentMethod === "AIRTEL" || paymentMethod === "MTN" || paymentMethod === "MPESA") ? phone : undefined
+      paymentPhoneNumber: ["AIRTEL", "MTN", "MPESA"].includes(paymentMethod) ? phone : undefined
     };
 
-    // Call the mutation with the payload
     onRepaymentSuccess(repaymentPayload);
-
-    // Reset form and close
     onClose();
     setAmount("");
     setPaymentMethod("CASH");
-    setPhone("");
   };
 
-  const isAmountValid = amount && parseInt(amount) > 0 && parseInt(amount) <= (debt?.balance || 0);
+  const balance = debt?.balance || 0;
+  const numAmount = parseInt(amount) || 0;
+  const isOverpaid = numAmount > balance;
+  const isAmountValid = numAmount > 0 && !isOverpaid;
   const isPhoneRequired = ["AIRTEL", "MTN", "MPESA"].includes(paymentMethod);
   const isPhoneValid = !isPhoneRequired || (phone && phone.length >= 10);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ bgcolor: "#FF6D00", color: "white", py: 2.5, fontWeight: "bold" }}>
-        <PaymentIcon sx={{ mr: 1, verticalAlign: "middle", fontSize: 28 }} />
-        Repay Debt — {debt?.customer?.name}
-      </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "16px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.2)",
+          bgcolor: "#FFFFFF",
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          overflow: "hidden",
+          minHeight: { md: "500px" }
+        }
+      }}
+    >
+      {/* Left Side: Summary Panel */}
+      <Box sx={{
+        display: { xs: "none", md: "flex" },
+        background: "linear-gradient(135deg, #1F2937 0%, #111827 100%)",
+        p: 4,
+        flex: "0 0 35%",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        color: "white"
+      }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, letterSpacing: "-0.5px" }}>
+            Record Repayment
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#9CA3AF", lineHeight: 1.6 }}>
+            Process a payment for this debt. Ensure the amount and payment method are accurate.
+          </Typography>
+        </Box>
 
-      <DialogContent sx={{ pt: 4 }}>
-        <Typography variant="body1" fontWeight="medium" gutterBottom>
-          Remaining Amount: <strong style={{ color: "#d32f2f" }}>{debt?.balance?.toLocaleString() || 0} FRW</strong>
-        </Typography>
+        <Box sx={{
+          bgcolor: "rgba(255, 255, 255, 0.05)",
+          p: 3,
+          borderRadius: "12px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(10px)"
+        }}>
+          <Typography variant="caption" sx={{ color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", display: "block", mb: 1 }}>
+            Remaining Balance
+          </Typography>
+          <Typography variant="h4" sx={{ color: "#FBBF24", fontWeight: 800, mb: 1.5 }}>
+            {balance.toLocaleString()} FRW
+          </Typography>
+          <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)", mb: 2 }} />
+          <Typography variant="body2" sx={{ color: "#D1D5DB" }}>
+            Debtor: <strong>{debt?.customer?.name}</strong>
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#D1D5DB" }}>
+            Ref: <strong>{debt?._id?.slice(-6).toUpperCase()}</strong>
+          </Typography>
+        </Box>
+      </Box>
 
-        <TextField
-          autoFocus
-          label="Amount to Record"
-          type="text"
-          fullWidth
-          value={amount}
-          onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
-          InputProps={{
-            startAdornment: <InputAdornment position="start">FRW</InputAdornment>,
-          }}
-          helperText={
-            amount && parseInt(amount) > (debt?.balance || 0)
-              ? "⚠️ Amount exceeds remaining debt"
-              : `Maximum: ${debt?.balance?.toLocaleString() || 0} FRW`
-          }
-          error={amount && parseInt(amount) > (debt?.balance || 0)}
-          sx={{ mt: 3, mb: 3 }}
-        />
+      {/* Right Side: Form Panel */}
+      <DialogContent sx={{ p: { xs: 2.5, md: 5 }, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="subtitle2" sx={{ color: "text.secondary", fontWeight: 600, mb: 1.2, textTransform: "uppercase", fontSize: "0.75rem" }}>
+            Payment Details
+          </Typography>
+          <TextField
+            autoFocus
+            label="Amount to Pay"
+            fullWidth
+            value={amount}
+            onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
+            error={isOverpaid}
+            helperText={isOverpaid ? `⚠️ Cannot exceed ${balance.toLocaleString()} FRW` : `Maximum: ${balance.toLocaleString()} FRW`}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><span style={{ color: "#6B7280", fontWeight: 600 }}>FRW</span></InputAdornment>,
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+                "& fieldset": { borderColor: isOverpaid ? "#EF4444" : "#E5E7EB" },
+                "&.Mui-focused fieldset": { borderColor: isOverpaid ? "#EF4444" : "#FF6D00" }
+              }
+            }}
+          />
+        </Box>
 
-        {/* Payment Method Selection with Icons */}
         <PaymentMethodSelector
           paymentMethod={paymentMethod}
           onPaymentMethodChange={setPaymentMethod}
           phone={phone}
           onPhoneChange={setPhone}
           type="debt"
+          compact={true}
         />
-      </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, gap: 2 }}>
-        <Button onClick={onClose} variant="outlined" size="large">
-          Cancel
-        </Button>
-        <Button
-          onClick={handleConfirm}
-          variant="contained"
-          color="success"
-          size="large"
-          disabled={!isAmountValid || !isPhoneValid}
-          startIcon={<PaymentIcon />}
-          sx={{ minWidth: 180 }}
-        >
-          Record Payment
-        </Button>
-      </DialogActions>
+        <Box sx={{ mt: "auto", pt: { xs: 2.5, md: 4 }, display: "flex", gap: 2 }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={onClose}
+            sx={{ borderRadius: "10px", py: 1.5, textTransform: "none", fontWeight: 600, color: "text.secondary", borderColor: "#E5E7EB" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={!isAmountValid || !isPhoneValid}
+            onClick={handleConfirm}
+            sx={{
+              borderRadius: "10px",
+              py: 1.5,
+              textTransform: "none",
+              fontWeight: 600,
+              bgcolor: "#FF6D00",
+              boxShadow: "0 4px 14px rgba(255, 109, 0, 0.3)",
+              "&:hover": { bgcolor: "#E65100", boxShadow: "0 6px 20px rgba(255, 109, 0, 0.4)" }
+            }}
+          >
+            Authorize Payment
+          </Button>
+        </Box>
+      </DialogContent>
     </Dialog>
   );
 };
@@ -221,89 +345,41 @@ const DebtActionsMenu = ({ debt, onRepaymentSuccess, onMarkAsPaid, onCancelDebt 
       </Menu>
 
       {/* Cancel Debt Confirmation Dialog */}
-      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
-        <DialogTitle sx={{ bgcolor: "#d32f2f", color: "white", fontWeight: "bold" }}>
-          <CancelIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-          Cancel This Debt?
-        </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
-          <Typography variant="body1" gutterBottom>
-            Are you sure you want to cancel this debt?
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Debtor: <strong>{debt.customer?.name}</strong>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Remaining Balance: <strong style={{ color: "#d32f2f" }}>{debt.balance?.toLocaleString()} FRW</strong>
-          </Typography>
-          <Typography variant="body2" color="error" sx={{ mt: 2, fontWeight: "600" }}>
-            ⚠️ This action will mark the debt as CANCELLED and cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={() => setCancelDialogOpen(false)} variant="outlined">
-            {t("cancel") || "Cancel"}
-          </Button>
-          <Button
-            onClick={() => {
-              setCancelDialogOpen(false);
-              onCancelDebt(debt._id, {
-                companyId: debt.companyId,
-                reason: "customer_requested",
-                performedBy: session?.user?._id || "temp-user-id"
-              });
-            }}
-            variant="contained"
-            color="error"
-            startIcon={<CancelIcon />}
-          >
-            {t("confirm") || "Confirm"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        title="Cancel This Debt?"
+        message={`Are you sure you want to cancel the debt for ${debt.customer?.name}? Remaining balance is ${debt.balance?.toLocaleString()} FRW.`}
+        onCancel={() => setCancelDialogOpen(false)}
+        onConfirm={() => {
+          setCancelDialogOpen(false);
+          onCancelDebt(debt._id, {
+            companyId: debt.companyId,
+            reason: "customer_requested",
+            performedBy: session?.user?._id || "temp-user-id"
+          });
+        }}
+        t={t}
+        type="error"
+      />
 
       {/* Mark as Paid Confirmation Dialog */}
-      <Dialog open={markPaidDialogOpen} onClose={() => setMarkPaidDialogOpen(false)}>
-        <DialogTitle sx={{ bgcolor: "#2e7d32", color: "white", fontWeight: "bold" }}>
-          <CheckIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-          Mark Debt as Paid?
-        </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
-          <Typography variant="body1" gutterBottom>
-            Are you sure you want to mark this debt as fully paid?
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Debtor: <strong>{debt.customer?.name}</strong>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Remaining Balance: <strong style={{ color: "#d32f2f" }}>{debt.balance?.toLocaleString()} FRW</strong>
-          </Typography>
-          <Typography variant="body2" color="warning.main" sx={{ mt: 2, fontStyle: "italic" }}>
-            This will create a payment record for the remaining balance and mark the debt as PAID.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={() => setMarkPaidDialogOpen(false)} variant="outlined">
-            {t("cancel") || "Cancel"}
-          </Button>
-          <Button
-            onClick={() => {
-              setMarkPaidDialogOpen(false);
-              onMarkAsPaid(debt._id, {
-                companyId: debt.companyId,
-                paymentMethod: "CASH",
-                paymentReference: `MARK-PAID-${Date.now()}`,
-                createdBy: session?.user?._id || "temp-user-id"
-              });
-            }}
-            variant="contained"
-            color="success"
-            startIcon={<CheckIcon />}
-          >
-            {t("confirm") || "Confirm"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={markPaidDialogOpen}
+        title="Mark Debt as Paid?"
+        message={`This will record a final payment for the remaining ${debt.balance?.toLocaleString()} FRW and clear the debt for ${debt.customer?.name}.`}
+        onCancel={() => setMarkPaidDialogOpen(false)}
+        onConfirm={() => {
+          setMarkPaidDialogOpen(false);
+          onMarkAsPaid(debt._id, {
+            companyId: debt.companyId,
+            paymentMethod: "CASH",
+            paymentReference: `MARK-PAID-${Date.now()}`,
+            createdBy: session?.user?._id || "temp-user-id"
+          });
+        }}
+        t={t}
+        type="success"
+      />
 
       <RepayDialog
         open={repayOpen}

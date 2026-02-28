@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import TransferModal from "./TransferModal";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import PaymentMethodSelector from "@/components/forms/PaymentMethodSelector";
 
 
 
@@ -254,6 +255,7 @@ const CurrentInventory = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentPhone, setPaymentPhone] = useState("");
   const [amountPaidNow, setAmountPaidNow] = useState(0);
   const [customerErrors, setCustomerErrors] = useState({});
   const [filteredCustomers, setFilteredCustomers] = useState([]); // For live search results
@@ -538,6 +540,7 @@ const CurrentInventory = () => {
       items,
       paymentMethod,
       paymentId: Date.now().toString(),
+      paymentPhoneNumber: (["mtn", "airtel"].includes(paymentMethod) && paymentPhone) ? paymentPhone : undefined,
       totalAmount,
       amountPaidNow: isDebt ? parseFloat(amountPaidNow) || 0 : totalAmount,
       discountAmount: 0,
@@ -552,6 +555,7 @@ const CurrentInventory = () => {
     setCustomerPhone("");
     setCustomerEmail("");
     setPaymentMethod("cash");
+    setPaymentPhone("");
     setAmountPaidNow(0);
     setCustomerErrors({});
   };
@@ -1313,7 +1317,7 @@ const CurrentInventory = () => {
 
         <DialogContent sx={{
           pt: { xs: 2, md: 4 },
-          pb: { xs: 20, md: 24 },
+          pb: { xs: 4, md: 24 },
           px: { xs: 2, md: 4 },
           flex: 1,
           overflow: "auto",
@@ -1541,136 +1545,20 @@ const CurrentInventory = () => {
             </Box>
           )}
 
-          {/* Payment Method Selection - Premium Design */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="body2" sx={{
-              color: "#111827",
-              fontWeight: 600,
-              mb: 2,
-              fontSize: "0.95rem"
-            }}>
-              {tCustomer('paymentMethodLabel')} <span style={{ color: "#FF6D00" }}>*</span>
-            </Typography>
-            <Box sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "repeat(4, 1fr)", sm: "repeat(4, 1fr)" },
-              gap: { xs: "8px", md: "10px" }
-            }}>
-              {[
-                { id: "cash", label: tCustomer('paymentMethods.cash'), img: "/images/cash.jpeg" },
-                { id: "mtn", label: tCustomer('paymentMethods.mtn'), img: "/images/mtn-momo-mobile-money-uganda-logo-png_seeklogo-556395.png" },
-                { id: "airtel", label: tCustomer('paymentMethods.airtel'), img: "/images/Airtel Money Uganda Logo PNG Vector (PDF) Free Download.jpeg" },
-                { id: "bank_transfer", label: tCustomer('paymentMethods.bank'), img: "/images/🏦 Bank Emoji.jpeg" },
-              ].map((method) => {
-                const isSelected = paymentMethod === method.id;
-                return (
-                  <Box
-                    key={method.id}
-                    onClick={() => setPaymentMethod(method.id)}
-                    sx={{
-                      aspectRatio: "1/1",
-                      borderRadius: "12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1,
-                      bgcolor: isSelected ? "#F3F4F6" : "#F9FAFB",
-                      border: isSelected ? "2.5px solid #FF6D00" : "",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      position: "relative",
-                      overflow: "hidden",
-                      "&:hover": {
-                        border: isSelected ? "2.5px solid #FF6D00" : "2px solid #D1D5DB",
-                        bgcolor: isSelected ? "#E5E7EB" : "#F3F4F6",
-                        transform: "translateY(-2px)",
-                        boxShadow: isSelected ? "0 8px 24px rgba(255, 109, 0, 0.15)" : "0 4px 12px rgba(0, 0, 0, 0.08)"
-                      }
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={method.img}
-                      alt={method.label}
-                      sx={{
-                        height: "40px",
-                        width: "auto",
-                        maxWidth: "85%",
-                        objectFit: "contain",
-                        transition: "all 0.3s ease"
-                      }}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: "0.7rem",
-                        color: isSelected ? "#FF6D00" : "#6B7280",
-                        textAlign: "center",
-                        letterSpacing: "0.3px"
-                      }}
-                    >
-                      {method.label}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
+          {/* Payment Method Selection - Centralized Component */}
+          <Box sx={{ mb: 2 }}>
+            <PaymentMethodSelector
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={(val) => {
+                setPaymentMethod(val);
+                setCustomerErrors(prev => ({ ...prev, amountPaidNow: "" }));
+              }}
+              phone={paymentPhone}
+              onPhoneChange={setPaymentPhone}
+              type="sales"
+              compact={true}
+            />
           </Box>
-
-          {/* Conditional Phone Input for Mobile Payments */}
-          {(paymentMethod === "airtel" || paymentMethod === "mtn") && (
-            <Box>
-              <Typography variant="body2" sx={{
-                color: "#111827",
-                fontWeight: 600,
-                mb: 1.2,
-                fontSize: "0.95rem"
-              }}>
-                {tCustomer('paymentPhoneLabel')} <span style={{ color: "#FF6D00" }}>*</span>
-              </Typography>
-              <TextField
-                fullWidth
-                placeholder={`e.g. +250788123456`}
-                value={customerPhone}
-                onChange={(e) => {
-                  setCustomerPhone(e.target.value);
-                  setCustomerErrors({ ...customerErrors, customerPhone: "" });
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: "#FFFFFF",
-                    borderRadius: "8px",
-                    fontWeight: 500,
-                    "& fieldset": {
-                      borderColor: "#FFD4A3",
-                      borderWidth: "1.5px"
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#FFC080"
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#FF6D00",
-                      borderWidth: "2px"
-                    }
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "10px 14px",
-                    fontSize: "0.9rem"
-                  }
-                }}
-              />
-              <Typography variant="caption" sx={{
-                color: "#EA580C",
-                display: "block",
-                marginTop: "8px",
-                fontWeight: 500
-              }}>
-                ℹ {tCustomer('paymentPhoneInfo', { method: paymentMethod.toUpperCase() })}
-              </Typography>
-            </Box>
-          )}
 
           {/* Amount Paid Now (Only for Debt) */}
           {isDebt && (
@@ -1735,11 +1623,11 @@ const CurrentInventory = () => {
         {/* Premium Footer - Responsive */}
         <Box sx={{
           borderTop: "1px solid #E5E7EB",
-          padding: { xs: "16px", md: "20px 28px" },
+          padding: { xs: "12px 16px", md: "20px 28px" },
           bgcolor: "#F9FAFB",
           borderRadius: { xs: "0", md: "0 0 16px 16px" },
           display: "flex",
-          gap: "12px",
+          gap: "10px",
           justifyContent: "flex-end",
           position: { xs: "relative", md: "absolute" },
           bottom: { xs: "auto", md: 0 },

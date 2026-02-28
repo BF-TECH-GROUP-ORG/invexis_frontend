@@ -616,6 +616,7 @@
     "filter": "filter",
     "export": "Export",
     "sale": "Sale",
+    "transfer": "Transfer",
     "productName": "Product Name",
     "category": "Category",
     "unitPrice": "Unit Price",

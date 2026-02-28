@@ -29,15 +29,6 @@ export const DEBT_PAYMENT_METHODS = {
     requiresPhone: true,
     backendValue: "AIRTEL"
   },
-  MPESA: {
-    id: "MPESA",
-    label: "M-Pesa",
-    icon: null,
-    image: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png",
-    description: "Pay via M-Pesa",
-    requiresPhone: true,
-    backendValue: "MPESA"
-  },
   BANK_TRANSFER: {
     id: "BANK_TRANSFER",
     label: "Bank Transfer",
@@ -76,15 +67,6 @@ export const SALES_PAYMENT_METHODS = {
     description: "Pay via Airtel Money",
     requiresPhone: true,
     backendValue: "airtel"
-  },
-  mpesa: {
-    id: "mpesa",
-    label: "M-Pesa",
-    icon: null,
-    image: "https://upload.wikimedia.org/wikipedia/commons/0/03/M-pesa-logo.png",
-    description: "Pay via M-Pesa",
-    requiresPhone: true,
-    backendValue: "mpesa"
   },
   bank_transfer: {
     id: "bank_transfer",
