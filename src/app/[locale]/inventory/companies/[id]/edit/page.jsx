@@ -87,8 +87,8 @@ const EditBranchPage = () => {
     const updateMutation = useMutation({
         mutationFn: ({ id, data, companyId }) => updateBranch(id, data, companyId),
         onSuccess: () => {
-            queryClient.invalidateQueries(["branches"]);
-            queryClient.invalidateQueries(["branch", branchId]);
+            queryClient.invalidateQueries({ queryKey: ["branches", companyId] });
+            queryClient.invalidateQueries({ queryKey: ["branch", branchId] });
 
             setSnackbar({
                 open: true,

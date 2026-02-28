@@ -121,8 +121,22 @@ export default function WorkersTable({ initialParams = {} }) {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteWorker(id, companyId, session?.accessToken),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["workers", companyId]);
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["workers", companyId] });
+      const previousWorkers = queryClient.getQueryData(["workers", companyId]);
+      queryClient.setQueryData(["workers", companyId], (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.filter((w) => (w.id || w._id) !== id);
+      });
+      return { previousWorkers };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousWorkers) {
+        queryClient.setQueryData(["workers", companyId], context.previousWorkers);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
       setDeleteModalOpen(false);
     },
   });
@@ -172,7 +186,7 @@ export default function WorkersTable({ initialParams = {} }) {
           </Box>
         </Box>
 
-        <TableContainer sx={{ 
+        <TableContainer sx={{
           maxHeight: 600,
           overflowX: 'auto',
           '&::-webkit-scrollbar': {
