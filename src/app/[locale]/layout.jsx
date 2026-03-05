@@ -25,6 +25,7 @@ export const metadata = {
   keywords: ["Invexis", "Inventory", "Business Management", "POS", "Rwanda", "Africa", "SaaS", "Dashboard"],
   authors: [{ name: "MIP Devs" }],
   creator: "MIP Devs",
+  applicationName: "Invexis",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'),
   alternates: {
     canonical: '/',
@@ -35,6 +36,21 @@ export const metadata = {
       'sw': '/sw',
     },
   },
+  // iOS / PWA meta tags — required for Safari to correctly handle auth cookies and standalone mode
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover', // allows content to fill under the iOS notch/safe area
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#111827' },
+  ],
+  appleWebApp: {
+    capable: true,
+    title: 'Invexis',
+    statusBarStyle: 'black-translucent',
+  },
   openGraph: {
     title: "Invexis - Smart Business Management",
     description: "Streamline your inventory, sales, and staff management with Invexis.",
@@ -42,7 +58,7 @@ export const metadata = {
     siteName: 'Invexis',
     images: [
       {
-        url: '/images/dashboard-hero.png', // Fallback OG image
+        url: '/images/dashboard-hero.png',
         width: 1200,
         height: 630,
         alt: 'Invexis Dashboard Preview',
@@ -55,12 +71,15 @@ export const metadata = {
     card: 'summary_large_image',
     title: "Invexis - Smart Business Management",
     description: "Streamline your inventory, sales, and staff management with Invexis.",
-    images: ['/images/dashboard-hero.png'], // Fallback Twitter image
+    images: ['/images/dashboard-hero.png'],
   },
   icons: {
     icon: "/images/Invexix Logo-Light Mode.png",
     shortcut: "/images/Invexix Logo-Light Mode.png",
-    apple: "/images/Invexix Logo-Light Mode.png",
+    // Apple touch icon — required for "Add to Home Screen" on iOS
+    apple: [
+      { url: "/images/Invexix Logo-Light Mode.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 

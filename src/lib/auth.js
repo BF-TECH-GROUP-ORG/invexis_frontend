@@ -97,7 +97,43 @@ async function refreshAccessToken(token) {
  * NextAuth configuration options
  * @type {import("next-auth").NextAuthOptions}
  */
+// Detect if we're running over HTTPS (ngrok, production, etc.)
+const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
 export const authOptions = {
+    // iOS Safari fix: explicitly configure cookies with correct SameSite/Secure flags
+    // Without this, Safari blocks session cookies in cross-origin contexts (e.g., ngrok)
+    useSecureCookies,
+    cookies: {
+        sessionToken: {
+            name: `${cookiePrefix}next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: useSecureCookies ? "none" : "lax",
+                path: "/",
+                secure: useSecureCookies,
+            },
+        },
+        callbackUrl: {
+            name: `${cookiePrefix}next-auth.callback-url`,
+            options: {
+                httpOnly: true,
+                sameSite: useSecureCookies ? "none" : "lax",
+                path: "/",
+                secure: useSecureCookies,
+            },
+        },
+        csrfToken: {
+            name: `${useSecureCookies ? "__Host-" : ""}next-auth.csrf-token`,
+            options: {
+                httpOnly: true,
+                sameSite: useSecureCookies ? "none" : "lax",
+                path: "/",
+                secure: useSecureCookies,
+            },
+        },
+    },
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -243,5 +279,6 @@ export const authOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
     debug: process.env.NODE_ENV === "development",
+    // trustHost allows next-auth to accept requests from any host (needed for ngrok tunnels)
     trustHost: true,
 };
