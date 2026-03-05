@@ -26,9 +26,21 @@ import {
   ArrowUp,
   Package,
   Users,
+  MapPin,
+  Phone,
+  Mail,
+  Twitter,
+  Youtube,
+  Instagram,
 } from "lucide-react";
 import { useRef } from "react";
 import Antigravity from "@/components/Antigravity";
+import {
+  FaFacebookF,
+  FaXTwitter,
+  FaYoutube,
+  FaInstagram
+} from "react-icons/fa6";
 
 // Counting Animation Component
 function CountingNumber({ value, duration = 2 }) {
@@ -134,6 +146,7 @@ function HomePageContent() {
     { id: "how", label: t("nav.how") },
     { id: "why", label: t("nav.why") },
     { id: "faq", label: t("nav.faq") },
+    { id: "contact", label: t("contact.badge") },
   ];
 
   const locales = [
@@ -279,6 +292,7 @@ function HomePageContent() {
           <a href="#pricing">{t("nav.pricing")}</a>
           <a href="#why">{t("nav.why")}</a>
           <a href="#faq">{t("nav.faq")}</a>
+          <a href="#contact">{t("nav.contact")}</a>
         </div>
 
         <div className="flex items-center gap-4">
@@ -577,7 +591,9 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className={styles.featureTitle}
           >
-            {t("how.title")}
+            {t.rich("how.title", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -592,46 +608,37 @@ function HomePageContent() {
 
         <div className={styles.howGrid}>
           {[
-            {
-              key: "s1",
-              icon: <Layout size={22} />,
-            },
-            {
-              key: "s2",
-              icon: <Package size={22} />,
-            },
-            {
-              key: "s3",
-              icon: <Zap size={22} />,
-            },
-            {
-              key: "s4",
-              icon: <Database size={22} />,
-            },
+            { key: "s1" },
+            { key: "s2" },
+            { key: "s3" },
+            { key: "s4" },
           ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={styles.howCard}
-            >
-              <div className={styles.howIconWrapper}>{item.icon}</div>
-              <div className={styles.howStepTag}>{`Step 0${i + 1}`}</div>
-              <h4 className={styles.howCardTitle}>
-                {t(`how.steps.${item.key}.title`)}
-              </h4>
-              <p className={styles.howCardDesc}>
-                {t(`how.steps.${item.key}.desc`)}
-              </p>
+            <div key={i} className={styles.howRow}>
+              {/* Central Spine Node */}
+              <div className={styles.howStepIndicator} />
 
-              <div className={styles.howCardTags}>
-                {t.raw(`how.steps.${item.key}.tags`).map((tag, idx) => (
-                  <span key={idx} className={styles.howTag}>{tag}</span>
-                ))}
-              </div>
-            </motion.div>
+              {/* Connector Branch */}
+              <div className={styles.howConnector} />
+
+              <motion.div
+                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{
+                  duration: 0.8,
+                  delay: i * 0.1,
+                  ease: [0.16, 1, 0.3, 1]
+                }}
+                className={styles.howCard}
+              >
+                <h4 className={styles.howCardTitle}>
+                  {t(`how.steps.${item.key}.title`)}
+                </h4>
+                <p className={styles.howCardDesc}>
+                  {t(`how.steps.${item.key}.desc`)}
+                </p>
+              </motion.div>
+            </div>
           ))}
         </div>
       </section >
@@ -654,7 +661,9 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className={styles.featureTitle}
           >
-            {t("features.subtitle")}
+            {t.rich("features.subtitle", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </motion.h2>
         </div>
 
@@ -723,7 +732,9 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className={styles.featureTitle}
           >
-            {t("pricing.title")}
+            {t.rich("pricing.title", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -805,7 +816,11 @@ function HomePageContent() {
         <div className="mt-40">
           <div className="text-center mb-10">
             <div className={styles.featureBadge}>{t("comparison.badge")}</div>
-            <h3 className="text-4xl font-bold">{t("comparison.title")}</h3>
+            <h3 className={styles.featureTitle}>
+              {t.rich("comparison.title", {
+                spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+              })}
+            </h3>
           </div>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -897,6 +912,10 @@ function HomePageContent() {
               key: "scales",
               icon: <ArrowRight size={22} />,
             },
+            {
+              key: "support",
+              icon: <Users size={22} />,
+            },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -920,7 +939,11 @@ function HomePageContent() {
       < section id="faq" className={styles.featureSection} >
         <div className="text-center mb-10">
           <div className={styles.featureBadge}>{t("faq.badge")}</div>
-          <h2 className={styles.featureTitle}>{t("faq.title")}</h2>
+          <h2 className={styles.featureTitle}>
+            {t.rich("faq.title", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
+          </h2>
         </div>
 
         <div className={styles.faqContainer}>
@@ -970,7 +993,9 @@ function HomePageContent() {
           className={styles.ctaCard}
         >
           <h2 className={styles.ctaTitle}>
-            {t("cta.final.title")}
+            {t.rich("cta.final.title", {
+              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+            })}
           </h2>
           <p className={styles.ctaSubtext}>
             {t("cta.final.subtitle")}
@@ -1069,6 +1094,104 @@ function HomePageContent() {
           </motion.div>
         </div>
       </section >
+
+      {/* Contact Us Section */}
+      <section id="contact" className={styles.contactSection}>
+        <div className={styles.contactWrapper}>
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className={styles.contactInfo}
+          >
+            <div className={styles.featureBadge}>{t("contact.badge")}</div>
+            <h2 className={styles.contactTitle}>
+              {t.rich("contact.title", {
+                spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
+              })}
+            </h2>
+            <p className={styles.contactSubtitle}>{t("contact.subtitle")}</p>
+
+            <div className={styles.contactDetails}>
+              <div className={styles.contactItem}>
+                <div className={styles.contactIconCircle}>
+                  <MapPin size={24} />
+                </div>
+                <div>
+                  <h4 className={styles.contactItemLabel}>{t("contact.address.label")}</h4>
+                  <p className={styles.contactItemValue}>{t("contact.address.value")}</p>
+                </div>
+              </div>
+
+              <div className={styles.contactItem}>
+                <div className={styles.contactIconCircle}>
+                  <Phone size={24} />
+                </div>
+                <div>
+                  <h4 className={styles.contactItemLabel}>{t("contact.phone.label")}</h4>
+                  <p className={styles.contactItemValue}>{t("contact.phone.value")}</p>
+                </div>
+              </div>
+
+              <div className={styles.contactItem}>
+                <div className={styles.contactIconCircle}>
+                  <Mail size={24} />
+                </div>
+                <div>
+                  <h4 className={styles.contactItemLabel}>{t("contact.email.label")}</h4>
+                  <p className={styles.contactItemValue}>{t("contact.email.value")}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.socialFollow}>
+              <h4 className={styles.socialFollowLabel}>{t("contact.follow")}</h4>
+              <div className={styles.socialGrid}>
+                {[
+                  { Icon: FaFacebookF, href: "https://facebook.com" },
+                  { Icon: FaXTwitter, href: "https://twitter.com" },
+                  { Icon: FaYoutube, href: "https://youtube.com" },
+                  { Icon: FaInstagram, href: "https://instagram.com" }
+                ].map(({ Icon, href }, i) => {
+                  const IconComponent = Icon;
+                  return (
+                    <Link key={i} href={href} target="_blank" className={styles.socialIcon}>
+                      <IconComponent size={20} />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={styles.contactFormCard}
+          >
+            <h3 className={styles.formTitle}>{t("contact.form.title")}</h3>
+            <form className={styles.contactForm} onSubmit={(e) => e.preventDefault()}>
+              <div className={styles.formField}>
+                <input type="text" placeholder={t("contact.form.name")} className={styles.formInput} />
+              </div>
+              <div className={styles.formField}>
+                <input type="email" placeholder={t("contact.form.email")} className={styles.formInput} />
+              </div>
+              <div className={styles.formField}>
+                <textarea placeholder={t("contact.form.message")} className={styles.formTextarea} rows={4}></textarea>
+              </div>
+
+              <div className={styles.formFooter}>
+                <p className={styles.formDisclaimer}>{t("contact.form.disclaimer")}</p>
+                <button type="submit" className={styles.formSubmit}>
+                  {t("contact.form.submit")}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Premium Footer */}
       < footer className={styles.premiumFooter} >

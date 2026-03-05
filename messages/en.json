@@ -301,7 +301,8 @@
       "why": "Why Us",
       "faq": "FAQ",
       "login": "Login",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "contact": "Contact"
     },
     "hero": {
       "badge": "Futuristic Business Intelligence",
@@ -322,7 +323,7 @@
       "demo": "Request a Demo",
       "dashboard": "Go to Dashboard",
       "final": {
-        "title": "Run Your Business Smarter—Starting Today",
+        "title": "Run Your <spanClassName>Business Smarter</spanClassName>",
         "subtitle": "Get full control, real-time insights, and peace of mind with Invexix.",
         "openDashboard": "Open Dashboard",
         "startTrial": "Start Free Trial"
@@ -343,7 +344,7 @@
     },
     "features": {
       "title": "Comprehensive Modules",
-      "subtitle": "Everything you need to run operations in real time.",
+      "subtitle": "Everything you need to <spanClassName>run operations in real time.</spanClassName>",
       "items": {
         "inventory": {
           "title": "Stock Management",
@@ -373,7 +374,7 @@
     },
     "how": {
       "badge": "How Invexix Works",
-      "title": "Seamless Implementation",
+      "title": "Seamless <spanClassName>Implementation</spanClassName>",
       "subtitle": "Set up, configure, and monitor in minutes.",
       "explore": "Explore",
       "steps": {
@@ -434,12 +435,16 @@
         "scales": {
           "title": "Scales With You",
           "desc": "From one shop to a global enterprise, we grow with your business."
+        },
+        "support": {
+          "title": "Expert Support",
+          "desc": "Our dedicated team is here to help you every step of the way."
         }
       }
     },
     "pricing": {
       "badge": "Plans That Grow With You",
-      "title": "Pricing Options",
+      "title": "Pricing <spanClassName>Options</spanClassName>",
       "subtitle": "Choose the subscription plan that suits your needs",
       "toggle": {
         "monthly": "Monthly",
@@ -504,7 +509,7 @@
     },
     "comparison": {
       "badge": "Detailed Breakdown",
-      "title": "Pricing Comparison",
+      "title": "Pricing <spanClassName>Comparison</spanClassName>",
       "headers": {
         "feature": "Feature Hierarchy",
         "basic": "Basic",
@@ -535,7 +540,7 @@
     },
     "faq": {
       "badge": "FAQ",
-      "title": "Frequently Asked Questions",
+      "title": "Frequently Asked <spanClassName>Questions</spanClassName>",
       "items": {
         "who": {
           "q": "Who is Invexix for?",
@@ -571,6 +576,32 @@
         "wholesale": "Wholesale",
         "services": "Services",
         "logistics": "Logistics"
+      }
+    },
+    "contact": {
+      "badge": "Get In Touch",
+      "title": "Let's <spanClassName>connect</spanClassName> with us",
+      "subtitle": "Have questions or need a custom solution? Our team is here to help you scale your business operations.",
+      "address": {
+        "label": "Address",
+        "value": "Rwanda / Kigali / Gisozi"
+      },
+      "phone": {
+        "label": "Phone Number",
+        "value": "+250 789 321 535"
+      },
+      "email": {
+        "label": "E-Mail",
+        "value": "support@invexix.com / onboard@invexix.com"
+      },
+      "follow": "Follow Us:",
+      "form": {
+        "title": "Send a Message",
+        "name": "Name",
+        "email": "E-mail address",
+        "message": "Message",
+        "submit": "Submit",
+        "disclaimer": "By Submitting, you agree to the processing of your personal data by Invexix as described in the Privacy Statement."
       }
     },
     "footer": {

@@ -301,7 +301,8 @@
       "why": "Kuki Twe",
       "faq": "F&Q",
       "login": "Injira",
-      "dashboard": "Dashibodi"
+      "dashboard": "Dashibodi",
+      "contact": "Twandikire"
     },
     "hero": {
       "badge": "Business Intelligence y'Igiye Kuzaza",
@@ -317,8 +318,8 @@
       }
     },
     "pricing": {
-      "badge": "Ibiciro Bijyanye na Business Yawe",
-      "title": "Amahitamo y'Ibiciro",
+      "badge": "Inyandiko zikura hamwe nawe",
+      "title": "Uburyo bwo <spanClassName>Kwishura</spanClassName>",
       "subtitle": "Hitamo uburyo bwo kwishyura bukubangamiye",
       "toggle": {
         "monthly": "Kwezi",
@@ -387,7 +388,7 @@
       "demo": "Saba Demo",
       "dashboard": "Gana kuri Dashboard",
       "final": {
-        "title": "Tangira gucunga ubucuruzi bwawe neza — Uyu munsi",
+        "title": "Cunga ubucuruzi bwawe mu buryo <spanClassName>bwenge guhera uyu munsi</spanClassName>",
         "subtitle": "Bona igenzura ryuzuye, amakuru ako kanya, n'ituze hamwe na Invexix.",
         "openDashboard": "Fungura Dashboard",
         "startTrial": "Tangira Kugera"
@@ -407,8 +408,8 @@
       "heading": "Ikoreshwa na 150+ by'ibigo ku isi hose"
     },
     "features": {
-      "title": "Moduli Zuzuye",
-      "subtitle": "Byose ukeneye kugira ngo ukore mu gihe nyacyo.",
+      "title": "Imiyoboro yose hamwe",
+      "subtitle": "Byose ukeneye kugira ngo <spanClassName>ukore mu gihe nyacyo.</spanClassName>",
       "items": {
         "inventory": {
           "title": "Igenamiterere ry'Ububiko",
@@ -437,8 +438,8 @@
       }
     },
     "how": {
-      "badge": "Uko Invexix Ikora",
-      "title": "Gushyira mu Bikorwa bitagoranye",
+      "badge": "Uko Invexix ikora",
+      "title": "Igenamiterere <spanClassName>ryoroshye</spanClassName>",
       "subtitle": "Andika, gura, kandi ugenzure mu minota mike.",
       "explore": "Sura",
       "steps": {
@@ -493,18 +494,22 @@
           "desc": "Fata imyanzuro ukoresheje amakuru y'ako kanya, atari raporo zarengeje igihe."
         },
         "secure": {
-          "title": "Itekanye kandi Yizewe",
+          "title": "Itekane kandi Yizewe",
           "desc": "Uruhushya rugarukira ku nshingano, amateka y'ibyakozwe, n'uburinzi bw'amakuru."
         },
         "scales": {
           "title": "Ikura hamwe nawe",
-          "desc": "Kuva ku iduka rimwe kugeza ku mashami menshi — Invexix ikura uko business yawe ikura."
+          "desc": "Kuva ku iduka rimwe kugeza ku kigo gikomeye ku isi, turakura hamwe nawe."
+        },
+        "support": {
+          "title": "Ubufasha bwa Kompanyi",
+          "desc": "Ipepi yacu yiteguye kugufasha muri buri ntambwe yose uteye."
         }
       }
     },
     "comparison": {
-      "badge": "Isesengura Ryimbitse",
-      "title": "Igereranya ry'Ibiciro",
+      "badge": "Isesengura rirambuye",
+      "title": "Igereranya ry' <spanClassName>Ibiciro</spanClassName>",
       "headers": {
         "feature": "Ibiranga Plan",
         "basic": "Ibanze",
@@ -535,7 +540,7 @@
     },
     "faq": {
       "badge": "FAQ",
-      "title": "Ibibazo Bikunze Kubazwa",
+      "title": "Ibibazo <spanClassName>bikunze kubazwa</spanClassName>",
       "items": {
         "who": {
           "q": "Invexix igenewe ba nde?",
@@ -571,6 +576,32 @@
         "wholesale": "Jumla",
         "services": "Huduma",
         "logistics": "Vifaa"
+      }
+    },
+    "contact": {
+      "badge": "Twandikire",
+      "title": "Reka <spanClassName>tuvugane</spanClassName>",
+      "subtitle": "Afite ibibazo cyangwa ukeneye igisubizo cyihariye? Ikipe yacu ihari kugira ngo igufashe.",
+      "address": {
+        "label": "Aho duherereye",
+        "value": "Rwanda / Kigali / Gisozi"
+      },
+      "phone": {
+        "label": "Telefoni",
+        "value": "+250 789 321 535"
+      },
+      "email": {
+        "label": "E-Mail",
+        "value": "support@invexix.com / onboard@invexix.com"
+      },
+      "follow": "Tukurikirane kuri:",
+      "form": {
+        "title": "Yandika ubutumwa",
+        "name": "Izina",
+        "email": "Imeri",
+        "message": "Ubutumwa",
+        "submit": "Ohereza",
+        "disclaimer": "Iyo wohereje, uba wemeye ko Invexix ikoresha amakuru yawe nk'uko bisobanuye mu mategeko yo kubika ibanga."
       }
     },
     "footer": {

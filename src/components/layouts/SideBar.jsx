@@ -670,7 +670,7 @@ export default function SideBar({
       {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
       {/* Hidden on mobile, visible on md and up */}
       <aside
-        className={`hidden md:block fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${expanded ? "w-[280px]" : "w-[72px]"
+        className={`hidden md:flex fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ease-in-out flex-col ${expanded ? "w-[280px]" : "w-[72px]"
           }`}
       >
         {/* HEADER */}
