@@ -2167,5 +2167,40 @@
       "allTabs": "All Tabs as Report",
       "allTabsDesc": "Export all {count} tabs as a complete system-wide report"
     }
+  },
+  "checkout": {
+    "title": "Complete Your <spanClassName>Registration</spanClassName>",
+    "subtitle": "Join thousands of businesses scaling with Invexix.",
+    "summary": {
+      "title": "Order Summary",
+      "plan": "Selected Plan",
+      "billing": "Billing Cycle",
+      "total": "Total Amount",
+      "change": "Change Plan"
+    },
+    "form": {
+      "business": {
+        "title": "Business Information",
+        "name": "Business Name",
+        "type": "Business Type",
+        "location": "Business Location",
+        "address": "Full Address",
+        "owner": "Business Owner"
+      },
+      "contact": {
+        "title": "Contact Details",
+        "email": "Email Address",
+        "phone": "Phone Number",
+        "whatsapp": "WhatsApp Number (Optional)"
+      },
+      "payment": {
+        "title": "Payment Method",
+        "momo": "Mobile Money",
+        "card": "Credit/Debit Card",
+        "bank": "Bank Transfer",
+        "button": "Process Payment",
+        "secure": "Safe & Secure Checkout"
+      }
+    }
   }
 }

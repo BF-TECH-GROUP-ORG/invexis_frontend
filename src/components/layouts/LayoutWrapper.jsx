@@ -105,7 +105,8 @@ export default function LayoutWrapper({ children }) {
     pathname?.includes("/auth/") ||
     pathname?.includes("/errors/") ||
     pathname?.includes("/not-found") ||
-    pathname?.includes("/unauthorized");
+    pathname?.includes("/unauthorized") ||
+    pathname?.includes("/checkout/");
 
   if (isErrorOrStandalonePage) {
     return (
@@ -129,6 +130,7 @@ export default function LayoutWrapper({ children }) {
     /^\/[a-z]{2}\/errors\//, // "/errors/*" pages
     /^\/[a-z]{2}\/not-found$/, // "/not-found" page
     /^\/[a-z]{2}\/unauthorized$/, // "/unauthorized" page
+    /^\/[a-z]{2}\/checkout\//, // "/checkout/*" pages
   ];
 
   const isPublicRoute = PUBLIC_ROUTES_PATTERNS.some((pattern) =>

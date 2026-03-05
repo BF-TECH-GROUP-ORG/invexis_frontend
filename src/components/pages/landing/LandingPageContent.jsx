@@ -804,11 +804,12 @@ function HomePageContent() {
                   </li>
                 ))}
               </ul>
-              <button
-                className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""}`}
+              <Link
+                href={`/checkout/${plan.key}?billing=${billing}`}
+                className={`${styles.priceBtn} ${!plan.featured ? styles.priceBtnSecondary : ""} text-center`}
               >
                 {t(`pricing.plans.${plan.key}.btn`)}
-              </button>
+              </Link>
             </motion.div>
           ))}
         </div>
@@ -1200,7 +1201,7 @@ function HomePageContent() {
             <div className={styles.footerBrand}>
               <div className="flex items-center gap-3 mb-6">
                 <Image
-                  src="/logo/Invexix Logo - Dark Mode.svg"
+                  src="/images/Invexix Logo-Light Mode.png"
                   alt="Logo"
                   width={38}
                   height={38}

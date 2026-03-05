@@ -2180,5 +2180,40 @@
       "allTabs": "Tab Zote kama Ripoti",
       "allTabsDesc": "Hamisha tab zote {count} kama ripoti kamili ya mfumo"
     }
+  },
+  "checkout": {
+    "title": "Kamilisha <spanClassName>Usajili</spanClassName> Wako",
+    "subtitle": "Jiunge na maelfu ya biashara zinazokua na Invexix.",
+    "summary": {
+      "title": "Muhtasari wa Agizo",
+      "plan": "Mpango Uliochaguliwa",
+      "billing": "Mzunguko wa Malipo",
+      "total": "Jumla ya Kiasi",
+      "change": "Badilisha Mpango"
+    },
+    "form": {
+      "business": {
+        "title": "Habari ya Biashara",
+        "name": "Jina la Biashara",
+        "type": "Aina ya Biashara",
+        "location": "Mahali pa Biashara",
+        "address": "Anwani Kamili",
+        "owner": "Mmiliki wa Biashara"
+      },
+      "contact": {
+        "title": "Maelezo ya Mawasiliano",
+        "email": "Anwani ya Barua Pepe",
+        "phone": "Nambari ya Simu",
+        "whatsapp": "Nambari ya WhatsApp (Hiari)"
+      },
+      "payment": {
+        "title": "Njia ya Malipo",
+        "momo": "Pesa kwa Simu",
+        "card": "Kadi ya Mikopo/Deni",
+        "bank": "Uhamisho wa Benki",
+        "button": "Lipa Sasa",
+        "secure": "Malipo Salama na ya Kuaminika"
+      }
+    }
   }
 }
