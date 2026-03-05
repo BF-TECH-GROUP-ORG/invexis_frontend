@@ -2179,5 +2179,40 @@
       "allTabs": "Amatab Yose nka Raporo",
       "allTabsDesc": "Kohereza amatab yose {count} nka raporo yuzuye ya sisitemu"
     }
+  },
+  "checkout": {
+    "title": "Uzuza <spanClassName>Iyandikisha</spanClassName>",
+    "subtitle": "Fatanya n'ibihumbi by'ubucuruzi bukura na Invexix.",
+    "summary": {
+      "title": "Incamake y'ibyo uguze",
+      "plan": "Gahunda wahisemo",
+      "billing": "Igihe cyo kwishyura",
+      "total": "Ayose hamwe",
+      "change": "Hindura gahunda"
+    },
+    "form": {
+      "business": {
+        "title": "Amakuru y'ubucuruzi",
+        "name": "Izina ry'ubucuruzi",
+        "type": "Ubwoko bw'ubucuruzi",
+        "location": "Aho buherereye",
+        "address": "Aho uherereye hose",
+        "owner": "Nyir'ubucuruzi"
+      },
+      "contact": {
+        "title": "Amakuru yo kugushaka",
+        "email": "Imeri",
+        "phone": "Inomero ya telefone",
+        "whatsapp": "Inomero ya WhatsApp (Niba uyifite)"
+      },
+      "payment": {
+        "title": "Uburyo bwo kwishyura",
+        "momo": "Mtn Mobile Money",
+        "card": "Ikarita ya banki",
+        "bank": "Kwirinda kuri banki",
+        "button": "Ishyura ubu",
+        "secure": "Kwishyura neza kandi wizewe"
+      }
+    }
   }
 }

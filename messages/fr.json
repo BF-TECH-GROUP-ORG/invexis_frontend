@@ -2181,5 +2181,40 @@
       "allTabs": "Tous les Onglets en tant que Rapport",
       "allTabsDesc": "Exporter les {count} onglets en tant que rapport complet du système"
     }
+  },
+  "checkout": {
+    "title": "Complétez votre <spanClassName>Inscription</spanClassName>",
+    "subtitle": "Rejoignez des milliers d'entreprises qui se développent avec Invexix.",
+    "summary": {
+      "title": "Résumé de la commande",
+      "plan": "Plan sélectionné",
+      "billing": "Cycle de facturation",
+      "total": "Montant total",
+      "change": "Changer de plan"
+    },
+    "form": {
+      "business": {
+        "title": "Informations sur l'entreprise",
+        "name": "Nom de l'entreprise",
+        "type": "Type d'entreprise",
+        "location": "Emplacement de l'entreprise",
+        "address": "Adresse complète",
+        "owner": "Propriétaire de l'entreprise"
+      },
+      "contact": {
+        "title": "Coordonnées de contact",
+        "email": "Adresse e-mail",
+        "phone": "Numéro de téléphone",
+        "whatsapp": "Numéro WhatsApp (Optionnel)"
+      },
+      "payment": {
+        "title": "Mode de paiement",
+        "momo": "Paiement Mobile",
+        "card": "Carte de crédit/débit",
+        "bank": "Virement bancaire",
+        "button": "Procéder au paiement",
+        "secure": "Paiement sécurisé et fiable"
+      }
+    }
   }
 }

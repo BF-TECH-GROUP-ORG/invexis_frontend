@@ -1,0 +1,253 @@
+.checkoutContainer {
+    min-height: 100vh;
+    background: #ffffff;
+    padding: 8rem 1rem 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.checkoutContainer::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.05) 0%, transparent 70%);
+    z-index: 0;
+}
+
+.checkoutContainer::after {
+    content: "";
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.03) 0%, transparent 70%);
+    z-index: 0;
+}
+
+.contentWrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 3rem;
+}
+
+@media (max-width: 1024px) {
+    .contentWrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+.headerSection {
+    text-align: center;
+    margin-bottom: 4rem;
+    grid-column: 1 / -1;
+}
+
+.title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.gradientText {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: #4b5563;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Form Styles */
+.formCard {
+    background: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 2rem;
+    padding: 3rem;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.05);
+}
+
+.formSection {
+    margin-bottom: 3rem;
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.inputGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .inputGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.input {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    color: #111827;
+    transition: all 0.3s ease;
+}
+
+.input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+/* Payment Methods */
+.paymentGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.paymentOption {
+    border: 2px solid #f3f4f6;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.paymentOption:hover {
+    border-color: #f97316;
+    background: rgba(249, 115, 22, 0.02);
+}
+
+.paymentSelected {
+    border-color: #f97316;
+    background: #fff7ed;
+}
+
+.paymentIcon {
+    width: 32px;
+    height: 32px;
+    color: #f97316;
+}
+
+/* Summary Card */
+.summaryCard {
+    background: #111827;
+    border-radius: 2rem;
+    padding: 2.5rem;
+    color: #ffffff;
+    height: fit-content;
+    position: sticky;
+    top: 6rem;
+}
+
+.summaryTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+.summaryItem {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summaryLabel {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.summaryValue {
+    font-weight: 600;
+}
+
+.totalSection {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.totalLabel {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.totalAmount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #f97316;
+}
+
+.payButton {
+    width: 100%;
+    background: #f97316;
+    color: #ffffff;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4);
+}
+
+.payButton:hover {
+    background: #ea580c;
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px -5px rgba(249, 115, 22, 0.5);
+}
+
+.secureText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-top: 1.5rem;
+}
