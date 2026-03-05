@@ -404,7 +404,7 @@ const EditBranchPage = () => {
         <div>
             <div className="flex flex-col-reverse lg:flex-row gap-8 min-h-[600px] max-w-6xl mx-auto p-6">
                 {/* Main Form Area */}
-                <div className="flex-grow w-full lg:w-3/4">
+                <div className="grow w-full lg:w-3/4">
                     {renderStepContent(activeStep)}
 
                     {/* Navigation Buttons */}
@@ -470,7 +470,7 @@ const EditBranchPage = () => {
                             >
                                 <div
                                     className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center font-semibold text-base mr-3 flex-shrink-0 transition-all duration-300
+                                        w-10 h-10 rounded-full flex items-center justify-center font-semibold text-base mr-3 shrink-0 transition-all duration-300
                                         ${index === activeStep
                                             ? "bg-[#FF6D00] text-white ring-2 ring-[#FF6D00] ring-offset-2"
                                             : "bg-white text-gray-500 border-2 border-gray-200"}

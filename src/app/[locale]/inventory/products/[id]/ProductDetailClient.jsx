@@ -467,7 +467,7 @@ function DetailInner({ id }) {
           {/* Gallery Preview (Left Col) */}
           <div className="col-span-1">
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="w-full h-72 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center relative bg-black">
+              <div className="w-full h-72 bg-black rounded-md overflow-hidden flex items-center justify-center relative">
                 {mainMedia ? (
                   mainMedia.type === "youtube" ? (
                     <iframe
@@ -545,7 +545,7 @@ function DetailInner({ id }) {
               {activeTab === "overview" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-5 bg-gradient-to-br from-green-50 to-white border border-green-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                    <div className="p-5 bg-linear-to-br from-green-50 to-white border border-green-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
                       <div className="flex items-center gap-2 mb-2">
                         <DollarSign size={14} className="text-green-500" />
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.sellingPrice")}</p>
@@ -554,7 +554,7 @@ function DetailInner({ id }) {
                         {fmt(product.pricing?.basePrice)}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                    <div className="p-5 bg-linear-to-br from-blue-50 to-white border border-blue-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
                       <div className="flex items-center gap-2 mb-2">
                         <BarChart3 size={14} className="text-blue-500" />
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.costPrice")}</p>
@@ -563,7 +563,7 @@ function DetailInner({ id }) {
                         {fmt(product.pricing?.cost)}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                    <div className="p-5 bg-linear-to-br from-orange-50 to-white border border-orange-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
                       <div className="flex items-center gap-2 mb-2">
                         <TrendingUp size={14} className="text-orange-500" />
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.stock")}</p>
@@ -574,7 +574,7 @@ function DetailInner({ id }) {
                           0}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                    <div className="p-5 bg-linear-to-br from-purple-50 to-white border border-purple-100 rounded-2xl shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
                       <div className="flex items-center gap-2 mb-2">
                         <TrendingDown size={14} className="text-purple-500" />
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t("cards.totalValue")}</p>
@@ -952,7 +952,7 @@ function DetailInner({ id }) {
                             )}
 
                             {/* Hover Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
                               <button
                                 onClick={() => {
                                   setMainMedia(item);

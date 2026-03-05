@@ -301,7 +301,8 @@
       "why": "Pourquoi nous",
       "faq": "FAQ",
       "login": "Connexion",
-      "dashboard": "Tableau de bord"
+      "dashboard": "Tableau de bord",
+      "contact": "Contact"
     },
     "hero": {
       "badge": "Business Intelligence Futuriste",
@@ -322,7 +323,7 @@
       "demo": "Demander une démo",
       "dashboard": "Aller au tableau de bord",
       "final": {
-        "title": "Gérez votre entreprise plus intelligemment — Dès aujourd'hui",
+        "title": "Gérez votre entreprise plus <spanClassName>intelligemment aujourd'hui</spanClassName>",
         "subtitle": "Bénéficiez d'un contrôle total, d'informations en temps réel et d'une tranquillité d'esprit avec Invexix.",
         "openDashboard": "Ouvrir le tableau de bord",
         "startTrial": "Commencer l'essai gratuit"
@@ -343,7 +344,7 @@
     },
     "features": {
       "title": "Modules Complets",
-      "subtitle": "Tout ce dont vous avez besoin pour gérer vos opérations en temps réel.",
+      "subtitle": "Tout ce dont vous avez besoin pour <spanClassName>gérer vos opérations en temps réel.</spanClassName>",
       "items": {
         "inventory": {
           "title": "Gestion des Stocks",
@@ -372,8 +373,8 @@
       }
     },
     "how": {
-      "badge": "Comment fonctionne Invexis",
-      "title": "Mise en œuvre transparente",
+      "badge": "Comment ça marche",
+      "title": "Mise en œuvre <spanClassName>transparente</spanClassName>",
       "subtitle": "Configurez, paramétrez et surveillez en quelques minutes.",
       "explore": "Explorer",
       "steps": {
@@ -434,12 +435,16 @@
         "scales": {
           "title": "Évolue Avec Vous",
           "desc": "D'un seul magasin à plusieurs succursales — Invexix grandit avec vous."
+        },
+        "support": {
+          "title": "Support Expert",
+          "desc": "Notre équipe dévouée est là pour vous aider à chaque étape."
         }
       }
     },
     "pricing": {
-      "badge": "Des Plans Qui Évoluent Avec Vous",
-      "title": "Options de Tarification",
+      "badge": "Des forfaits qui évoluent avec vous",
+      "title": "Options de <spanClassName>Tarification</spanClassName>",
       "subtitle": "Choisissez l'abonnement qui convient à vos besoins",
       "toggle": {
         "monthly": "Mensuel",
@@ -503,8 +508,8 @@
       }
     },
     "comparison": {
-      "badge": "Analyse Détaillée",
-      "title": "Comparaison des Prix",
+      "badge": "Répartition détaillée",
+      "title": "Comparaison de <spanClassName>Tarification</spanClassName>",
       "headers": {
         "feature": "Hiérarchie des fonctionnalités",
         "basic": "Basique",
@@ -535,7 +540,7 @@
     },
     "faq": {
       "badge": "FAQ",
-      "title": "Questions Fréquemment Posées",
+      "title": "Questions <spanClassName>Fréquemment Posées</spanClassName>",
       "items": {
         "who": {
           "q": "Pour qui est fait Invexix ?",
@@ -571,6 +576,32 @@
         "wholesale": "Commerce de gros",
         "services": "Services",
         "logistics": "Logistique"
+      }
+    },
+    "contact": {
+      "badge": "Contactez-nous",
+      "title": "Restons <spanClassName>connectés</spanClassName>",
+      "subtitle": "Vous avez des questions ou besoin d'une solution personnalisée ? Notre équipe est là pour vous aider.",
+      "address": {
+        "label": "Adresse",
+        "value": "Rwanda / Kigali / Gisozi"
+      },
+      "phone": {
+        "label": "Numéro de téléphone",
+        "value": "+250 789 321 535"
+      },
+      "email": {
+        "label": "E-Mail",
+        "value": "support@invexix.com / onboard@invexix.com"
+      },
+      "follow": "Suivez-nous :",
+      "form": {
+        "title": "Envoyer un message",
+        "name": "Nom",
+        "email": "Adresse e-mail",
+        "message": "Message",
+        "submit": "Envoyer",
+        "disclaimer": "En soumettant, vous acceptez le traitement de vos données personnelles par Invexix comme décrit dans la déclaration de confidentialité."
       }
     },
     "footer": {

@@ -301,7 +301,8 @@
       "why": "Kwanini Sisi",
       "faq": "F&Q",
       "login": "Ingia",
-      "dashboard": "Dashibodi"
+      "dashboard": "Dashibodi",
+      "contact": "Wasiliana"
     },
     "hero": {
       "badge": "Business Intelligence ya Kizazi Kijacho",
@@ -322,7 +323,7 @@
       "demo": "Omba Demo",
       "dashboard": "Nenda kwenye Dashibodi",
       "final": {
-        "title": "Simamia Biashara Yako Kwa Njia Nadhifu — Kuanzia Leo",
+        "title": "Endesha Biashara Yako <spanClassName>Kijanja—Kuanzia Leo</spanClassName>",
         "subtitle": "Pata udhibiti kamili, maarifa ya wakati halisi, na utulivu wa akili ukiwa na Invexis.",
         "openDashboard": "Fungua Dashibodi",
         "startTrial": "Anza Jaribio Bila Malipo"
@@ -343,7 +344,7 @@
     },
     "features": {
       "title": "Moduli Kamili",
-      "subtitle": "Kila kitu unachohitaji ili kuendesha shughuli kwa wakati halisi.",
+      "subtitle": "Kila kitu unachohitaji ili <spanClassName>kuendesha shughuli kwa wakati halisi.</spanClassName>",
       "items": {
         "inventory": {
           "title": "Usimamizi wa Hesabu",
@@ -372,8 +373,8 @@
       }
     },
     "how": {
-      "badge": "Jinsi Invexis Inavyofanya Kazi",
-      "title": "Utekelezaji Usio na Mfumo",
+      "badge": "Jinsi Invexix Inavyofanya Kazi",
+      "title": "Utekelezaji <spanClassName>Usio na Mshono</spanClassName>",
       "subtitle": "Anza, usanidi, na ufuatilie kwa dakika chache.",
       "explore": "Chunguza",
       "steps": {
@@ -432,14 +433,18 @@
           "desc": "Ufikiaji kulingana na majukumu, kumbukumbu za ukaguzi, na ulinzi wa data uliojengwa ndani."
         },
         "scales": {
-          "title": "Hukua na Wewe",
-          "desc": "Kuanzia duka moja hadi matawi mengi — Invexix hukua unavyokua."
+          "title": "Inakua Nawe",
+          "desc": "Kutoka duka moja hadi biashara ya kimataifa, tunakua na biashara yako."
+        },
+        "support": {
+          "title": "Msaada wa Kitaalam",
+          "desc": "Timu yetu iliyojitolea iko hapa kukusaidia kila hatua."
         }
       }
     },
     "pricing": {
       "badge": "Mipango Inayokua na Wewe",
-      "title": "Chaguzi za Bei",
+      "title": "Chaguzi za <spanClassName>Bei</spanClassName>",
       "subtitle": "Chagua mpango wa usajili unaofaa mahitaji yako",
       "toggle": {
         "monthly": "Mwezi",
@@ -504,7 +509,7 @@
     },
     "comparison": {
       "badge": "Mchanganuo wa Kina",
-      "title": "Ulinganishi wa Bei",
+      "title": "Ulinganifu wa <spanClassName>Bei</spanClassName>",
       "headers": {
         "feature": "Vipengele",
         "basic": "Msingi",
@@ -535,7 +540,7 @@
     },
     "faq": {
       "badge": "FAQ",
-      "title": "Maswali Yanayoulizwa Mara kwa Mara",
+      "title": "Maswali <spanClassName>Yanayoulizwa Sana</spanClassName>",
       "items": {
         "who": {
           "q": "Invexix ni kwa nani?",
@@ -571,6 +576,32 @@
         "wholesale": "Jumla",
         "services": "Huduma",
         "logistics": "Vifaa"
+      }
+    },
+    "contact": {
+      "badge": "Wasiliana nasi",
+      "title": "Wacha <spanClassName>tuwasiliane</spanClassName>",
+      "subtitle": "Je, una maswali au unahitaji suluhisho maalum? Timu yetu iko hapa kukusaidia.",
+      "address": {
+        "label": "Anwani",
+        "value": "Rwanda / Kigali / Gisozi"
+      },
+      "phone": {
+        "label": "Namba ya Simu",
+        "value": "+250 789 321 535"
+      },
+      "email": {
+        "label": "E-Mail",
+        "value": "support@invexix.com / onboard@invexix.com"
+      },
+      "follow": "Tufuate:",
+      "form": {
+        "title": "Tuma Ujumbe",
+        "name": "Jina",
+        "email": "Barua pepe",
+        "message": "Ujumbe",
+        "submit": "Tuma",
+        "disclaimer": "Kwa kutuma, unakubali usindikaji wa data yako ya kibinafsi na Invexix kama ilivyoelezwa katika Taarifa ya Faragha."
       }
     },
     "footer": {
