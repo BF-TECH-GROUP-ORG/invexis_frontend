@@ -567,7 +567,7 @@ export default function SideBar({
                 {/* Menu Items */}
                 <div className="overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-6 space-y-2">
                   {navItems
-                    .slice(3)
+                    .slice(2)
                     .filter(visibleFor)
                     .map((item) => {
                       const parentActive = item.children?.some((c) =>
@@ -714,7 +714,7 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(0, 3)
+              .slice(0, 2)
               .filter(visibleFor)
               .map((item) => (
                 <div
@@ -757,7 +757,7 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(3)
+              .slice(2)
               .filter(visibleFor)
               .map((item) => {
                 const parentActive = item.children?.some((c) =>
@@ -800,14 +800,25 @@ export default function SideBar({
                       item.children.filter(visibleFor).length > 0 && (
                         <>
                           <div
-                            onClick={() =>
-                              expanded &&
-                              setOpenMenus((prev) =>
-                                prev.includes(item.title)
-                                  ? prev.filter((x) => x !== item.title)
-                                  : [...prev, item.title]
-                              )
-                            }
+                            onClick={(e) => {
+                              if (expanded) {
+                                // Expanded sidebar: toggle the accordion
+                                setOpenMenus((prev) =>
+                                  prev.includes(item.title)
+                                    ? prev.filter((x) => x !== item.title)
+                                    : [...prev, item.title]
+                                );
+                              } else {
+                                // Collapsed sidebar (icon-only): toggle the hover popup on click
+                                if (hoverItem?.title === item.title) {
+                                  setHoverItem(null); // already open → close it
+                                } else {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setHoverItem(item);
+                                  setHoverPosition({ top: rect.top });
+                                }
+                              }
+                            }}
                             className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
                               ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                               : "text-gray-700 hover:bg-orange-50"
