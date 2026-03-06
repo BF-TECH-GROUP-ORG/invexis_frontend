@@ -567,7 +567,7 @@ export default function SideBar({
                 {/* Menu Items */}
                 <div className="overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-6 space-y-2">
                   {navItems
-                    .slice(2)
+                    .slice(3)
                     .filter(visibleFor)
                     .map((item) => {
                       const parentActive = item.children?.some((c) =>
@@ -714,37 +714,112 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(0, 2)
+              .slice(0, 3)
               .filter(visibleFor)
-              .map((item) => (
-                <div
-                  key={item.title}
-                  onMouseEnter={(e) => handleHoverEnter(e, item)}
-                  onMouseLeave={handleHoverLeave}
-                >
-                  <Link
-                    href={item.path}
-                    onMouseEnter={() => prefetchData(item)}
-                    onClick={() => {
-                      if (!isActive(item.path)) {
-                        setOptimisticPath(item.path);
-                        startNavigating();
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
-                      ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                      : "text-gray-700 hover:bg-orange-50"
-                      }`}
+              .map((item) => {
+                const parentActive = item.children?.some((c) =>
+                  isActive(c.path)
+                );
+
+                return (
+                  <div
+                    key={item.title}
+                    onMouseEnter={(e) => handleHoverEnter(e, item)}
+                    onMouseLeave={handleHoverLeave}
                   >
-                    <div className="flex items-center justify-center shrink-0 w-6">
-                      {item.icon}
-                    </div>
-                    <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-                      {item.title}
-                    </span>
-                  </Link>
-                </div>
-              ))}
+                    {/* Single-item */}
+                    {!item.children && (
+                      <Link
+                        href={item.path}
+                        onMouseEnter={() => prefetchData(item)}
+                        onClick={() => {
+                          if (!isActive(item.path)) {
+                            setOptimisticPath(item.path);
+                            startNavigating();
+                          }
+                        }}
+                        className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
+                          ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                          : "text-gray-700 hover:bg-orange-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center shrink-0 w-6">
+                          {item.icon}
+                        </div>
+                        <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                          {item.title}
+                        </span>
+                      </Link>
+                    )}
+
+                    {/* Parent Dropdown */}
+                    {item.children && (
+                      <>
+                        <div
+                          onClick={(e) => {
+                            if (expanded) {
+                              setOpenMenus((prev) =>
+                                prev.includes(item.title)
+                                  ? prev.filter((x) => x !== item.title)
+                                  : [...prev, item.title]
+                              );
+                            } else {
+                              if (hoverItem?.title === item.title) {
+                                setHoverItem(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setHoverItem(item);
+                                setHoverPosition({ top: rect.top });
+                              }
+                            }
+                          }}
+                          className={`relative flex items-center justify-between px-3 py-3 cursor-pointer transition ${parentActive
+                            ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                            : "text-gray-700 hover:bg-orange-50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="flex items-center justify-center shrink-0 w-6">
+                              {item.icon}
+                            </div>
+                            <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                              {item.title}
+                            </span>
+                          </div>
+                          <ChevronDown
+                            size={18}
+                            className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`}
+                          />
+                        </div>
+
+                        {expanded && item.children && (
+                          <div className={`ml-10 mt-1 transition-all duration-300 ease-in-out overflow-hidden ${openMenus.includes(item.title) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                            {item.children.filter(visibleFor).map((child) => (
+                              <Link
+                                key={child.title}
+                                href={child.path}
+                                onMouseEnter={() => prefetchData(child)}
+                                onClick={() => {
+                                  if (!isActive(child.path)) {
+                                    setOptimisticPath(child.path);
+                                    startNavigating();
+                                  }
+                                }}
+                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                  ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
+                                  : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {child.title}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
           </section>
 
           {/* MANAGEMENT */}
@@ -757,7 +832,7 @@ export default function SideBar({
             </h3>
 
             {navItems
-              .slice(2)
+              .slice(3)
               .filter(visibleFor)
               .map((item) => {
                 const parentActive = item.children?.some((c) =>
