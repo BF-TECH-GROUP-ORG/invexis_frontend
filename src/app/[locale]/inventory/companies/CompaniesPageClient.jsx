@@ -35,18 +35,21 @@ const CompaniesPageClient = ({ initialParams = {} }) => {
         }
     } : {}, [session?.accessToken]);
 
-    // Stale-while-revalidate: show cached/prefetched data instantly, background refetch on every visit.
-    // staleTime: Infinity → data never auto-stales, prevents races with optimistic updates
-    // refetchOnMount: 'always' → always background-refetch on every page visit regardless of staleTime
-    // refetchOnWindowFocus: 'always' → also refresh when switching back to this tab
+    // Stale-while-revalidate (pure SWR — no polling):
+    // On every page visit the user sees cached data instantly while a background
+    // fetch runs silently. When fresh data arrives it replaces the cache seamlessly.
+    // staleTime: Infinity → never auto-stales so optimistic updates can't race
+    // gcTime: 5 min       → cache survives navigation so back-navigation is instant
+    // refetchOnMount: 'always'       → always background-fetches on every visit
+    // refetchOnWindowFocus: 'always' → also refreshes when switching back to this tab
     const { data: shopsRes = [], isLoading } = useQuery({
         queryKey: ["branches", companyId],
         queryFn: () => getBranches(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
         staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
-        gcTime: 5 * 60 * 1000,         // Keep cache for 5 min so navigating back is always instant
-        refetchOnMount: 'always',       // Always background-refetch on every page visit
-        refetchOnWindowFocus: 'always', // Refetch when user switches back to this tab
+        gcTime: 5 * 60 * 1000,         // Keep cache 5 min so back-navigation is instant
+        refetchOnMount: 'always',       // Background-fetch on every page visit
+        refetchOnWindowFocus: 'always', // Refresh when switching back to this tab
     });
 
     const shops = useMemo(() => {
