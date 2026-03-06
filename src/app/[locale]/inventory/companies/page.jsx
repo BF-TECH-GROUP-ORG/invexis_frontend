@@ -6,6 +6,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 import CompaniesPageClient from "./CompaniesPageClient";
 import { getBranches } from "@/services/branches";
+import { unstable_cache } from "next/cache";
 
 export default async function CompaniesPage({ searchParams }) {
   const session = await getServerSession(authOptions);
@@ -29,11 +30,18 @@ export default async function CompaniesPage({ searchParams }) {
       }
     };
 
-    // Prefetch shops
+    // Prefetch shops — use unstable_cache to avoid re-hitting the backend on every
+    // SSR request when data hasn't changed (same pattern as sales/history/page.jsx)
     if (companyId) {
+      const getCachedBranches = unstable_cache(
+        async () => getBranches(companyId, options),
+        [`shops`, companyId],
+        { revalidate: 60, tags: ['shops', `company-${companyId}`] }
+      );
+
       await queryClient.prefetchQuery({
         queryKey: ["branches", companyId],
-        queryFn: () => getBranches(companyId, options),
+        queryFn: getCachedBranches,
       });
     }
   }
