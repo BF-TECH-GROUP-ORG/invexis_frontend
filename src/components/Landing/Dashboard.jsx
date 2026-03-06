@@ -382,7 +382,7 @@ export default function AnalyticsDashboard({
 
                   {/* Dropdown Menu */}
                   {isShopDropdownOpen && (
-                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                    <div className="absolute  left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                       <button
                         onClick={() => handleShopSelect("All Shops")}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
