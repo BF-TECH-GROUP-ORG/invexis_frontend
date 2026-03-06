@@ -56,6 +56,7 @@ export default function AddProductWizard({
 
     // Step 2: Media
     images: [],
+    videoUrls: [],
 
     // Step 3: Pricing
     pricing: {
@@ -352,7 +353,7 @@ export default function AddProductWizard({
     setFormData({
       // Reset to initial state (simplified for brevity, ideally use initial state constant)
       companyId: companyId || "",
-      shopId: shopId || "",
+      shopId: propShopId || "",
       name: "",
       description: "",
       brand: "",

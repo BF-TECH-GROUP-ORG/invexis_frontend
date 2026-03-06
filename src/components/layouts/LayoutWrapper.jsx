@@ -48,6 +48,9 @@ export default function LayoutWrapper({ children }) {
   const BYPASS = getBypass();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  // Watchdog: if session stays "loading" for more than 4s, treat as resolved
+  // to prevent the infinite GlobalLoader on slow/offline localhost
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
 
   useEffect(() => {
     // 1. Initial State: Sidebar starts OPEN as requested
@@ -71,6 +74,18 @@ export default function LayoutWrapper({ children }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Watchdog: break out of "loading" after 4s to prevent infinite loader
+  useEffect(() => {
+    if (status !== "loading") {
+      setLoadingTimedOut(false); // reset on every status change
+      return;
+    }
+    const watchdog = setTimeout(() => {
+      setLoadingTimedOut(true);
+    }, 4000);
+    return () => clearTimeout(watchdog);
+  }, [status]);
 
   // Automatically dismiss global loader once the navigation is complete
   // This addresses the "stuck loader" after login/logout
@@ -140,8 +155,8 @@ export default function LayoutWrapper({ children }) {
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
   const isLoggedIn = BYPASS || status === "authenticated";
 
-  // 1. If session is loading, show loader (don't render children yet to avoid flash of unauth content)
-  if (status === "loading" && !BYPASS) {
+  // 1. If session is loading AND hasn't timed out, show loader
+  if (status === "loading" && !BYPASS && !loadingTimedOut) {
     const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
     return (
       <GlobalLoader
