@@ -35,11 +35,18 @@ const CompaniesPageClient = ({ initialParams = {} }) => {
         }
     } : {}, [session?.accessToken]);
 
+    // Stale-while-revalidate: show cached/prefetched data instantly, background refetch on every visit.
+    // staleTime: Infinity → data never auto-stales, prevents races with optimistic updates
+    // refetchOnMount: 'always' → always background-refetch on every page visit regardless of staleTime
+    // refetchOnWindowFocus: 'always' → also refresh when switching back to this tab
     const { data: shopsRes = [], isLoading } = useQuery({
         queryKey: ["branches", companyId],
         queryFn: () => getBranches(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
-        staleTime: 5 * 60 * 1000,
+        staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
+        gcTime: 5 * 60 * 1000,         // Keep cache for 5 min so navigating back is always instant
+        refetchOnMount: 'always',       // Always background-refetch on every page visit
+        refetchOnWindowFocus: 'always', // Refetch when user switches back to this tab
     });
 
     const shops = useMemo(() => {
