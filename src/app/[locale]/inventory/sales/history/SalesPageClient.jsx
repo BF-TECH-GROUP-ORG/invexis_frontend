@@ -30,7 +30,7 @@ const SalesPageClient = ({ initialData }) => {
 
     const currentSoldBy = searchParams.get('soldBy') || initialSoldBy || "";
     const currentShopId = searchParams.get('shopId') || initialShopId || "";
-    const currentMonth = searchParams.get('month') || initialMonth || "";
+    const currentDate = searchParams.get('date') || initialMonth || "";
 
     // Stale-while-revalidate: show cached data instantly, background refetch on every visit.
     // staleTime: Infinity → data never auto-stales, prevents races with delete/return optimistic updates
@@ -50,7 +50,7 @@ const SalesPageClient = ({ initialData }) => {
     });
 
     // Sync filter updates with the URL
-    const updateFilters = (newSoldBy, newShopId, newMonth) => {
+    const updateFilters = (newSoldBy, newShopId, newDate) => {
         const params = new URLSearchParams(searchParams);
         if (newSoldBy !== null) {
             if (newSoldBy) params.set('soldBy', newSoldBy);
@@ -60,9 +60,9 @@ const SalesPageClient = ({ initialData }) => {
             if (newShopId) params.set('shopId', newShopId);
             else params.delete('shopId');
         }
-        if (newMonth !== null) {
-            if (newMonth) params.set('month', newMonth);
-            else params.delete('month');
+        if (newDate !== null) {
+            if (newDate) params.set('date', newDate);
+            else params.delete('date');
         }
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
@@ -114,8 +114,8 @@ const SalesPageClient = ({ initialData }) => {
                     shops={shops}
                     selectedShopId={currentShopId}
                     setSelectedShopId={(id) => updateFilters(null, id, null)}
-                    selectedMonth={currentMonth}
-                    setSelectedMonth={(m) => updateFilters(null, null, m)}
+                    selectedMonth={currentDate}
+                    setSelectedMonth={(d) => updateFilters(null, null, d)}
                     isWorker={isWorker}
                     isLoading={isSalesLoading}
                 />

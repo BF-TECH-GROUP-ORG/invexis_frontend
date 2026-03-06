@@ -947,14 +947,11 @@ const DataTable = ({
   const filteredRows = useMemo(() => {
     let currentRows = rows;
 
-    // Filter by selected month (default: current month)
+    // Filter by selected date (default: none)
     if (selectedMonth) {
       currentRows = currentRows.filter((row) => {
-        const rowDate = new Date(row.rawDate);
-        const rowMonth = rowDate.getMonth() + 1;
-        const rowYear = rowDate.getFullYear();
-        const [filterYear, filterMonth] = selectedMonth.split('-').map(Number);
-        return rowMonth === filterMonth && rowYear === filterYear;
+        const rowDate = new Date(row.rawDate).toISOString().split('T')[0];
+        return rowDate === selectedMonth;
       });
     }
 
@@ -1183,9 +1180,9 @@ const DataTable = ({
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <TextField
-              type="month"
+              type="date"
               size="small"
-              label="Select Month"
+              label="Select Date"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               InputLabelProps={{ shrink: true }}

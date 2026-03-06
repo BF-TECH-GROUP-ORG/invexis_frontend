@@ -17,7 +17,7 @@ export default async function SalesPage({ searchParams }) {
   const resolvedParams = await (searchParams || {});
   const soldBy = resolvedParams.soldBy || "";
   const shopId = resolvedParams.shopId || "";
-  const month = resolvedParams.month || "";
+  const month = resolvedParams.date || "";
 
   if (session?.accessToken) {
     const user = session.user;
