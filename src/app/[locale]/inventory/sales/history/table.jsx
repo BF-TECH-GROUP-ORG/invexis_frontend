@@ -407,13 +407,6 @@ const RowActionsMenu = ({ rowId, productId, invoiceUrl, onRedirect, onDeleteRequ
     handleClose();
   };
 
-  const handleDelete = (event) => {
-    event.stopPropagation();
-    handleClose();
-    if (typeof onDeleteRequest === "function") {
-      onDeleteRequest(rowId)(true); // open modal for this id
-    }
-  };
 
   const handleReturn = (event) => {
     event.stopPropagation();
@@ -477,10 +470,6 @@ const RowActionsMenu = ({ rowId, productId, invoiceUrl, onRedirect, onDeleteRequ
         <MenuItem onClick={handleReturn}>
           <ListItemIcon><Undo2 fontSize="small" color="#333" size={20} /></ListItemIcon>
           <ListItemText primary={t('actions.return')} />
-        </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: "error.main" }} /></ListItemIcon>
-          <ListItemText primary={t('actions.delete')} />
         </MenuItem>
       </Menu>
     </>
@@ -746,9 +735,9 @@ const DataTable = ({
         Date: sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : "N/A",
         rawDate: sale.createdAt,
         TotalValue: sale.totalAmount || 0,
-        shopId: sale.shopId,
-        soldBy: sale.soldBy,
-        ShopName: shops.find(s => (s._id || s.id) === sale.shopId)?.name || "N/A",
+        shopId: typeof sale.shopId === 'object' ? (sale.shopId._id || sale.shopId.id) : sale.shopId,
+        soldBy: typeof sale.soldBy === 'object' ? (sale.soldBy._id || sale.soldBy.id) : sale.soldBy,
+        ShopName: shops.find(s => String(s._id || s.id) === String(typeof sale.shopId === 'object' ? (sale.shopId._id || sale.shopId.id) : sale.shopId))?.name || "N/A",
         invoiceUrl: sale.invoiceUrl,
         action: "more"
       };
@@ -999,11 +988,11 @@ const DataTable = ({
 
     // Client-side fallback for Worker and Shop filters
     if (selectedWorkerId) {
-      currentRows = currentRows.filter(row => row.soldBy === selectedWorkerId);
+      currentRows = currentRows.filter(row => String(row.soldBy) === String(selectedWorkerId));
     }
 
     if (selectedShopId) {
-      currentRows = currentRows.filter(row => row.shopId === selectedShopId);
+      currentRows = currentRows.filter(row => String(row.shopId) === String(selectedShopId));
     }
 
     return currentRows;

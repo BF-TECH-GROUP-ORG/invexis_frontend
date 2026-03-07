@@ -24,8 +24,9 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import SettingsDropdown from "./SettingsDropdown";
 
-function PasswordField({ field, isPassword }) {
+function FormField({ field }) {
   const [showPassword, setShowPassword] = useState(false);
+  const isPasswordField = field.type === "password";
 
   return (
     <div className="flex flex-col gap-3">
@@ -33,7 +34,7 @@ function PasswordField({ field, isPassword }) {
       <TextField
         name={field.name}
         label={field.label}
-        type={isPassword && !showPassword ? "password" : field.type}
+        type={isPasswordField ? (showPassword ? "text" : "password") : field.type}
         value={field.value}
         onChange={field.onChange}
         required={field.required}
@@ -52,7 +53,10 @@ function PasswordField({ field, isPassword }) {
           },
         }}
         InputProps={{
-          endAdornment: isPassword ? (
+          ...field.InputProps,
+          endAdornment: field.InputProps?.endAdornment ? (
+            field.InputProps.endAdornment
+          ) : isPasswordField ? (
             <InputAdornment position="end">
               <IconButton
                 onClick={() => setShowPassword((prev) => !prev)}
@@ -62,7 +66,7 @@ function PasswordField({ field, isPassword }) {
               </IconButton>
             </InputAdornment>
           ) : (
-            field.InputProps?.endAdornment
+            null
           ),
         }}
       />
@@ -159,12 +163,11 @@ export default function FormWrapper({
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         {fields.map((field, idx) => {
           if (field.hidden) return null;
-          const isPassword = field.type === "password";
           const colSpan = field.colSpan || 2;
 
           return (
             <div key={idx} className={colSpan === 1 ? "col-span-1" : "col-span-1 md:col-span-2"}>
-              <PasswordField field={field} isPassword={isPassword} />
+              <FormField field={field} />
             </div>
           );
         })}
