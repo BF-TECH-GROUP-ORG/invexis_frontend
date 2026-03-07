@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL + "/notification";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL_SW
 
 /**
  * Get User Notifications

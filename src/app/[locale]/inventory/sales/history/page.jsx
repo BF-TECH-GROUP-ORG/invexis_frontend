@@ -30,8 +30,12 @@ export default async function SalesPage({ searchParams }) {
       }
     };
 
+    const userRole = user?.role;
+    const assignedDepartments = user?.assignedDepartments || [];
+    const isWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
+
     const filters = {
-      soldBy: soldBy || user?.id || user?._id || "",
+      soldBy: soldBy || (isWorker ? (user?.id || user?._id || "") : ""),
       shopId: shopId || ""
     };
 
