@@ -281,16 +281,22 @@ const CurrentInventory = () => {
   const { data: products = [], isLoading: loading } = useQuery({
     queryKey: ["allProducts", companyId],
     queryFn: () => getAllProducts(companyId),
-    staleTime: 5 * 60 * 1000,
     enabled: !!companyId,
+    staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
+    gcTime: 5 * 60 * 1000,         // Keep cache for 5 min
+    refetchOnMount: 'always',       // Always background-refetch on visit
+    refetchOnWindowFocus: 'always', // Refetch on focus
   });
 
   // Fetch customers
   const { data: customers = [] } = useQuery({
     queryKey: ["customers", companyId],
     queryFn: getCustomers,
-    staleTime: 5 * 60 * 1000,
     enabled: !!companyId,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   // Sell mutation
