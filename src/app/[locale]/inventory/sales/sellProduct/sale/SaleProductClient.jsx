@@ -25,6 +25,10 @@ const SaleProductClient = () => {
         queryKey: ["allProducts", companyId],
         queryFn: () => getAllProducts(companyId),
         enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 5 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
     })
 
     return (
