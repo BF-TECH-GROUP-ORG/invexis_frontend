@@ -340,8 +340,11 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
       const errMsg = error.response?.data?.message || error.message;
       alert(tAlerts('saleFailed', { error: errMsg }));
     },
-    onSettled: () => {
-      // Always refetch after error or success to ensure data is correct
+    onSettled: async () => {
+      // Small delay (800ms) to allow the backend and local cache to fully settle
+      // This prevents the "flash" of old data that can occur if a refetch happens 
+      // before the server-side side effects are fully committed or indexed.
+      await new Promise(resolve => setTimeout(resolve, 800));
       queryClient.invalidateQueries({ queryKey: ["allProducts"] });
       queryClient.invalidateQueries({ queryKey: ["salesHistory"] });
     }
@@ -358,7 +361,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
     result = [...result].sort((a, b) => (a.Quantity ?? 0) - (b.Quantity ?? 0));
 
     // Role-based filtering: Sales department workers only see products from their shop
-    const userRole = session?.user?.role;
+    const userRole = session?.user?.role?.toLowerCase();
     const assignedDepartments = session?.user?.assignedDepartments || [];
     const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
     const userShopId = session?.user?.shops?.[0];

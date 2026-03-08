@@ -103,7 +103,7 @@ const StockCards = ({ products = [], isLoading = false }) => {
 
     const stats = useMemo(() => {
         // Role-based filtering for stats
-        const userRole = session?.user?.role;
+        const userRole = session?.user?.role?.toLowerCase();
         const assignedDepartments = session?.user?.assignedDepartments || [];
         const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
         const userShopId = session?.user?.shops?.[0];
