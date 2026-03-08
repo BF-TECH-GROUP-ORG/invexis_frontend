@@ -33,19 +33,7 @@ export default function LayoutWrapper({ children }) {
 
   const isComingFromAuth = prevPathRef.current?.includes("/auth/");
 
-  // authToken not stored in client-side storage; NextAuth session contains tokens
-  // Consider runtime localStorage toggle for bypass (DEV_BYPASS_AUTH) as well
-  const getBypass = () => {
-    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return true;
-    try {
-      if (typeof window !== "undefined") {
-        return localStorage.getItem("DEV_BYPASS_AUTH") === "true";
-      }
-    } catch (e) {
-      return false;
-    }
-  };
-  const BYPASS = getBypass();
+  // bypass is derived from state (set after mount) to avoid hydration mismatch
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(true);
   // Watchdog: if session stays "loading" for more than 4s, treat as resolved
