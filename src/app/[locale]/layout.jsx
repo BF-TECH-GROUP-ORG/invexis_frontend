@@ -14,7 +14,7 @@ import { setRequestLocale, getMessages } from "next-intl/server";
 import AuthProvider from "@/providers/AuthProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import WebSocketProvider from "@/providers/WebSocketProvider";
-import JsonLd from "@/components/seo/JsonLd";
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 
 export const metadata = {
   title: {
@@ -133,19 +133,21 @@ export default async function RootLayout({ children, params }) {
         />
       </head>
       <body className="font-metropolis antialiased" suppressHydrationWarning>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClientProviders session={session}>
-            <LoadingProvider>
-              <ThemeRegistry>
-                {/* Initialize settings from localStorage */}
-                <SettingsInitializer />
-                <Suspense fallback={null}>
-                  <LayoutWrapper>{children}</LayoutWrapper>
-                </Suspense>
-              </ThemeRegistry>
-            </LoadingProvider>
-          </ClientProviders>
-        </NextIntlClientProvider>
+        <AppRouterCacheProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ClientProviders session={session}>
+              <LoadingProvider>
+                <ThemeRegistry>
+                  {/* Initialize settings from localStorage */}
+                  <SettingsInitializer />
+                  <Suspense fallback={null}>
+                    <LayoutWrapper>{children}</LayoutWrapper>
+                  </Suspense>
+                </ThemeRegistry>
+              </LoadingProvider>
+            </ClientProviders>
+          </NextIntlClientProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );
