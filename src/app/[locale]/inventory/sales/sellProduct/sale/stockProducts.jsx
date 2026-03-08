@@ -219,7 +219,7 @@ const SuccessModal = ({ open, onClose }) => {
 };
 
 // Main Component with Multi-Product Sales
-const CurrentInventory = () => {
+const CurrentInventory = ({ products: externalProducts, isLoading: externalLoading }) => {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('sellProduct');
@@ -278,15 +278,9 @@ const CurrentInventory = () => {
     setPage(0);
   };
 
-  const { data: products = [], isLoading: loading } = useQuery({
-    queryKey: ["allProducts", companyId],
-    queryFn: () => getAllProducts(companyId),
-    enabled: !!companyId,
-    staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
-    gcTime: 5 * 60 * 1000,         // Keep cache for 5 min
-    refetchOnMount: 'always',       // Always background-refetch on visit
-    refetchOnWindowFocus: 'always', // Refetch on focus
-  });
+  // We now receive products from the parent via props to ensure consistent state
+  const products = externalProducts || [];
+  const loading = externalLoading;
 
   // Fetch customers
   const { data: customers = [] } = useQuery({
@@ -299,22 +293,57 @@ const CurrentInventory = () => {
     refetchOnWindowFocus: 'always',
   });
 
-  // Sell mutation
+  // Sell mutation with Optimistic Update algorithm
   const sellMutation = useMutation({
     mutationFn: ({ payload, isDebt }) => SellProduct(payload, isDebt),
+    onMutate: async ({ payload }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["allProducts", companyId] });
+
+      // Snapshot the previous products
+      const previousProducts = queryClient.getQueryData(["allProducts", companyId]);
+
+      // Optimistically update the cache
+      if (previousProducts) {
+        const soldItemsMap = new Map();
+        payload.items.forEach(item => {
+          soldItemsMap.set(item.productId, item.quantity);
+        });
+
+        const updatedProducts = previousProducts.map(product => {
+          const soldQty = soldItemsMap.get(product.id);
+          if (soldQty) {
+            return {
+              ...product,
+              Quantity: Math.max(0, (product.Quantity || 0) - soldQty)
+            };
+          }
+          return product;
+        });
+
+        queryClient.setQueryData(["allProducts", companyId], updatedProducts);
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousProducts };
+    },
     onSuccess: () => {
       setSelectedItems({});
-      // Invalidate products (stock quantities changed) AND sales history (new sale added)
-      // salesHistory invalidation triggers a background refetch so the history table
-      // shows the new sale instantly when the user navigates back — no page reload needed.
-      queryClient.invalidateQueries({ queryKey: ["allProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["salesHistory"] });
       setSuccessModalOpen(true);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousProducts) {
+        queryClient.setQueryData(["allProducts", companyId], context.previousProducts);
+      }
       console.error("Sale failed:", error);
       const errMsg = error.response?.data?.message || error.message;
       alert(tAlerts('saleFailed', { error: errMsg }));
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure data is correct
+      queryClient.invalidateQueries({ queryKey: ["allProducts"] });
+      queryClient.invalidateQueries({ queryKey: ["salesHistory"] });
     }
   });
 
