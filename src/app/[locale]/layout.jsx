@@ -10,7 +10,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { routing } from "@/i18n/routing";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getMessages } from "next-intl/server";
 import AuthProvider from "@/providers/AuthProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import WebSocketProvider from "@/providers/WebSocketProvider";
@@ -36,16 +36,7 @@ export const metadata = {
       'sw': '/sw',
     },
   },
-  // iOS / PWA meta tags — required for Safari to correctly handle auth cookies and standalone mode
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    viewportFit: 'cover', // allows content to fill under the iOS notch/safe area
-  },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#111827' },
-  ],
+  // iOS / PWA meta tags - handled by separate viewport export in Next.js 15
   appleWebApp: {
     capable: true,
     title: 'Invexis',
@@ -83,6 +74,16 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover', // allows content to fill under the iOS notch/safe area
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#111827' },
+  ],
+};
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -98,6 +99,7 @@ export default async function RootLayout({ children, params }) {
   setRequestLocale(locale);
 
   const session = await getServerSession(authOptions);
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -131,7 +133,7 @@ export default async function RootLayout({ children, params }) {
         />
       </head>
       <body className="font-metropolis antialiased" suppressHydrationWarning>
-        <NextIntlClientProvider locale={locale}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ClientProviders session={session}>
             <AuthProvider>
               <LoadingProvider>
