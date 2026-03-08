@@ -71,9 +71,7 @@ export default function LayoutWrapper({ children }) {
 
   const sidebarRem = expanded ? 16 : 5;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // useEffect for setMounted(true) moved to top initialization effect
 
   // Watchdog: break out of "loading" after 4s to prevent infinite loader
   useEffect(() => {
@@ -153,10 +151,15 @@ export default function LayoutWrapper({ children }) {
   );
 
   // In dev you can set NEXT_PUBLIC_BYPASS_AUTH=true to render app without logging in
-  const isLoggedIn = BYPASS || status === "authenticated";
+  const isLoggedIn = bypass || status === "authenticated";
+
+  // 0. Hydration Safety: Ensure initial render matches server
+  if (!mounted) {
+    return null;
+  }
 
   // 1. If session is loading AND hasn't timed out, show loader
-  if (status === "loading" && !BYPASS && !loadingTimedOut) {
+  if (status === "loading" && !bypass && !loadingTimedOut) {
     const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
     return (
       <GlobalLoader
