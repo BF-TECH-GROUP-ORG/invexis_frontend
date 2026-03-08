@@ -2,7 +2,7 @@
 
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import DevBypassToggle from "@/components/shared/DevBypassToggle";
 import DashboardLayout from "./DashboardLayout";
@@ -98,6 +98,34 @@ export default function LayoutWrapper({ children }) {
       return () => clearTimeout(timer);
     }
   }, [pathname, setLoading, globalLoading]);
+
+  // Client-side route guard for Sales Department
+  const router = useRouter();
+  useEffect(() => {
+    if (status === "authenticated" && user && pathname.includes("/inventory/")) {
+      const userRole = user?.role;
+      const assignedDepartments = user?.assignedDepartments || [];
+      const isSalesOnly = assignedDepartments.includes("sales") && userRole !== "company_admin";
+
+      if (isSalesOnly) {
+        const allowedSalesPaths = [
+          "/inventory/notifications",
+          "/inventory/sales",
+          "/inventory/debts",
+        ];
+
+        // Normalise path by removing locale prefix if present
+        // e.g., /en/inventory/dashboard -> /inventory/dashboard
+        const normalizedPath = pathname.replace(/^\/[a-z]{2}\//, "/");
+        const isAllowed = allowedSalesPaths.some(path => normalizedPath.startsWith(path));
+
+        if (!isAllowed) {
+          console.warn(`[RouteGuard] Sales user blocked from ${pathname}, redirecting...`);
+          router.replace(`/${locale}/inventory/sales/history`);
+        }
+      }
+    }
+  }, [status, user, pathname, locale, router]);
 
   // pathname moved to top
 

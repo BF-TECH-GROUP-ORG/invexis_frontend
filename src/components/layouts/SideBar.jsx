@@ -350,58 +350,36 @@ export default function SideBar({
   const visibleFor = (item) => {
     if (!item) return false;
 
-    // Admin: role is company_admin OR no assigned departments
-    if (userRole === "company_admin" || assignedDepartments.length === 0) {
+    // Admin: always sees everything
+    if (userRole === "company_admin") {
       return true;
     }
 
     const itemTitle = item.title.trim();
     const itemPath = item.path || "";
-    const isManager = assignedDepartments.includes("management");
-    const isWorker = assignedDepartments.includes("sales");
+    const isSales = assignedDepartments.includes("sales");
+    const isManagement = assignedDepartments.includes("management");
 
-    // Features for Worker (Sales)
-    const workerFeatures = [
-      "Dashboard",
-      "Inventory",
-      "Sales",
-      "Sales History",
-      "Stock-out",
-      "Debts",
-      "Notifications",
-      "Overview",
-      "Products",
-      "Categories",
-      "Debts List",
-      "Debts Details",
-      "Debts Analytics",
-    ];
-
-    // Paths that workers are NOT allowed to see even if the parent is allowed
-    const workerBlockedPaths = [
-      "/inventory/report",
-      "/inventory/stock",
-    ];
-
-    if (isWorker) {
-      if (workerBlockedPaths.some(p => itemPath.startsWith(p))) return false;
-      return workerFeatures.includes(itemTitle);
-    }
-
-    // Features for Manager (Management)
-    if (isManager) {
-      const managerFeatures = [
-        ...workerFeatures,
-        "Staff & Shops",
-        "Billing & Payments",
-        "E-commerce",
-        "Analytics",
-        "Reports",
-        "Documents",
+    // Sales department: ONLY Notifications, Sales (and its children), and Debts
+    if (isSales) {
+      const salesAllowedTitles = [
+        t("sidebar.notifications"),
+        t("sidebar.sales"),
+        t("sidebar.salesHistory"),
+        t("sidebar.stockOut"),
+        t("sidebar.debts"),
       ];
-      return managerFeatures.includes(itemTitle);
+      return salesAllowedTitles.includes(itemTitle);
     }
 
+    // Management department: sees everything except company_admin-only items
+    if (isManagement) {
+      // company_admin-only items are already gated by roles in navItems,
+      // but we allow all non-admin items for managers
+      return true;
+    }
+
+    // No recognised department → show nothing extra
     return false;
   };
 
@@ -741,7 +719,7 @@ export default function SideBar({
                         className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
                           ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                           : "text-gray-700 hover:bg-orange-50"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-center shrink-0 w-6">
                           {item.icon}
@@ -776,7 +754,7 @@ export default function SideBar({
                           className={`relative flex items-center justify-between px-3 py-3 cursor-pointer transition ${parentActive
                             ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
                             : "text-gray-700 hover:bg-orange-50"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
                             <div className="flex items-center justify-center shrink-0 w-6">
@@ -808,7 +786,7 @@ export default function SideBar({
                                 className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
                                   ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                   : "text-gray-600 hover:bg-gray-100"
-                                }`}
+                                  }`}
                               >
                                 {child.title}
                               </Link>
