@@ -9,6 +9,7 @@ import useAuth from "@/hooks/useAuth";
 import { useState, useEffect, Suspense } from "react";
 import styles from "@/styles/landing.module.css";
 import GlobalLoader from "@/components/shared/GlobalLoader";
+import dynamic from "next/dynamic";
 import {
   Menu,
   X,
@@ -34,7 +35,7 @@ import {
   Instagram,
 } from "lucide-react";
 import { useRef } from "react";
-import Antigravity from "@/components/Antigravity";
+const Antigravity = dynamic(() => import("@/components/Antigravity"), { ssr: false });
 import {
   FaFacebookF,
   FaXTwitter,
@@ -73,7 +74,7 @@ function CountingNumber({ value, duration = 2 }) {
     return () => observer.disconnect();
   }, [value, duration]);
 
-  return <span ref={countRef}>{count.toLocaleString()}</span>;
+  return <span ref={countRef} suppressHydrationWarning>{count.toLocaleString()}</span>;
 }
 
 
@@ -176,6 +177,12 @@ function HomePageContent() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Hydration fix: ensures we don't render mobile-only count on server
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   useEffect(() => {
@@ -432,23 +439,25 @@ function HomePageContent() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.antigravityWrapper}>
-          <Antigravity
-            count={isMobile ? 150 : 500}
-            magnetRadius={isMobile ? 6 : 8}
-            ringRadius={isMobile ? 8 : 10}
-            waveSpeed={0.3}
-            waveAmplitude={0.8}
-            particleSize={isMobile ? 0.35 : 0.6}
-            lerpSpeed={0.06}
-            color="#4f46e5"
-            autoAnimate
-            particleVariance={1}
-            rotationSpeed={0.1}
-            depthFactor={1.2}
-            pulseSpeed={2}
-            particleShape="capsule"
-            fieldStrength={isMobile ? 8 : 12}
-          />
+          {isMounted && (
+            <Antigravity
+              count={isMobile ? 150 : 500}
+              magnetRadius={isMobile ? 6 : 8}
+              ringRadius={isMobile ? 8 : 10}
+              waveSpeed={0.3}
+              waveAmplitude={0.8}
+              particleSize={isMobile ? 0.35 : 0.6}
+              lerpSpeed={0.06}
+              color="#4f46e5"
+              autoAnimate
+              particleVariance={1}
+              rotationSpeed={0.1}
+              depthFactor={1.2}
+              pulseSpeed={2}
+              particleShape="capsule"
+              fieldStrength={isMobile ? 8 : 12}
+            />
+          )}
         </div>
 
         <motion.div
