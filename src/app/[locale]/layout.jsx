@@ -15,6 +15,7 @@ import AuthProvider from "@/providers/AuthProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import WebSocketProvider from "@/providers/WebSocketProvider";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata = {
   title: {
