@@ -41,11 +41,16 @@ export default async function middleware(req) {
         req.nextUrl.protocol === "https:" ||
         process.env.NODE_ENV === "production";
 
-    const token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-        secureCookie: isHttps,
-    });
+    let token = null;
+    try {
+        token = await getToken({
+            req,
+            secret: process.env.NEXTAUTH_SECRET,
+            secureCookie: isHttps,
+        });
+    } catch (error) {
+        console.error("[Middleware] getToken error:", error);
+    }
 
     // 4. Already Logged In -> Redirect away from Auth Pages
     const isAuthPage = normalizedPath.includes("/auth/login") || normalizedPath.includes("/auth/signup");

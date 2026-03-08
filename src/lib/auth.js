@@ -110,7 +110,7 @@ export const authOptions = {
             name: `${cookiePrefix}next-auth.session-token`,
             options: {
                 httpOnly: true,
-                sameSite: useSecureCookies ? "none" : "lax",
+                sameSite: "lax",
                 path: "/",
                 secure: useSecureCookies,
             },
@@ -119,16 +119,16 @@ export const authOptions = {
             name: `${cookiePrefix}next-auth.callback-url`,
             options: {
                 httpOnly: true,
-                sameSite: useSecureCookies ? "none" : "lax",
+                sameSite: "lax",
                 path: "/",
                 secure: useSecureCookies,
             },
         },
         csrfToken: {
-            name: `${useSecureCookies ? "__Host-" : ""}next-auth.csrf-token`,
+            name: `${cookiePrefix}next-auth.csrf-token`,
             options: {
                 httpOnly: true,
-                sameSite: useSecureCookies ? "none" : "lax",
+                sameSite: "lax",
                 path: "/",
                 secure: useSecureCookies,
             },
