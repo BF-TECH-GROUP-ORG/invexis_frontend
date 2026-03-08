@@ -11,10 +11,12 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.4",
+    "@mui/material-nextjs": "^7.3.9",
     "@mui/x-data-grid": "^8.11.3",
     "@mui/x-date-pickers": "^8.19.0",
     "@radix-ui/react-slot": "^1.2.3",
