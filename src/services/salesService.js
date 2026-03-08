@@ -17,16 +17,19 @@ export const getAllProducts = async (companyId = null, options = {}) => {
 
     const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy, ...options });
 
-    console.log('Products fetched:', apiData.data);
+    console.log('Products API data:', apiData);
 
-    // Safely handle success flag
-    if (apiData.success === false) {
-      console.error("API returned error:", apiData.message);
-      return [];
+    // Handle both cases: API returns { success: true, data: [...] } OR API returns array directly
+    let rawProducts = [];
+    if (Array.isArray(apiData)) {
+      rawProducts = apiData;
+    } else if (apiData && apiData.data && Array.isArray(apiData.data)) {
+      rawProducts = apiData.data;
+    } else if (apiData && apiData.products && Array.isArray(apiData.products)) {
+      rawProducts = apiData.products;
     }
 
-    const rawProducts = apiData.data || [];
-    console.log("Products fetched:", rawProducts);
+    console.log("Raw products for mapping:", rawProducts.length);
 
     return rawProducts.map((product) => ({
       id: product._id || product.id,
@@ -118,11 +121,11 @@ export const SellProduct = async (saleData, isDebt = false) => {
       }
     }
 
-    // Clear relevant caches
-    apiClient.clearCache("/sales");
-    apiClient.clearCache("/inventory");
+    // Clear relevant caches - using broader patterns to ensure all variations are caught
+    apiClient.clearCache("sales");
+    apiClient.clearCache("inventory");
     if (isDebt) {
-      apiClient.clearCache("/debts");
+      apiClient.clearCache("debt");
     }
 
     console.log("Transaction processed successfully.");
