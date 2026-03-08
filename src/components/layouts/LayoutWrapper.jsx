@@ -35,6 +35,7 @@ export default function LayoutWrapper({ children }) {
 
   // bypass is derived from state (set after mount) to avoid hydration mismatch
   const [mounted, setMounted] = useState(false);
+  const [bypass, setBypass] = useState(false);
   const [expanded, setExpanded] = useState(true);
   // Watchdog: if session stays "loading" for more than 4s, treat as resolved
   // to prevent the infinite GlobalLoader on slow/offline localhost
@@ -59,7 +60,20 @@ export default function LayoutWrapper({ children }) {
 
   const sidebarRem = expanded ? 16 : 5;
 
-  // useEffect for setMounted(true) moved to top initialization effect
+  // Set mounted=true after first render, and read bypass flag client-side to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+      setBypass(true);
+    } else {
+      try {
+        setBypass(localStorage.getItem("DEV_BYPASS_AUTH") === "true");
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, []);
+
 
   // Watchdog: break out of "loading" after 4s to prevent infinite loader
   useEffect(() => {
