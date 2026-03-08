@@ -1,4 +1,3 @@
-
 import { Suspense } from "react";
 import LandingPageContent from "@/components/pages/landing/LandingPageContent";
 import WhatsAppButton from "@/components/pages/landing/WhatsAppButton";
