@@ -65,7 +65,13 @@ export default async function middleware(req) {
         if (callbackUrl) {
             return NextResponse.redirect(new URL(callbackUrl, req.url));
         }
-        return NextResponse.redirect(new URL(`/${locale}/inventory/dashboard`, req.url));
+
+        // Sales Department Redirection
+        const depts = token?.user?.assignedDepartments || [];
+        const isSalesOnly = depts.includes("sales") && token?.user?.role !== "company_admin";
+        const defaultPath = isSalesOnly ? "/inventory/sales/history" : "/inventory/dashboard";
+
+        return NextResponse.redirect(new URL(`/${locale}${defaultPath}`, req.url));
     }
 
     // 5. Not Logged In -> Redirect to Login (unless public)
@@ -77,7 +83,28 @@ export default async function middleware(req) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // 6. Otherwise, let intl handle it
+    // 6. Route Guard for Sales Department
+    if (token && normalizedPath.startsWith("/inventory")) {
+        const depts = token?.user?.assignedDepartments || [];
+        const isSalesOnly = depts.includes("sales") && token?.user?.role !== "company_admin";
+
+        if (isSalesOnly) {
+            const allowedSalesPaths = [
+                "/inventory/notifications",
+                "/inventory/sales",
+                "/inventory/debts",
+            ];
+
+            const isAllowed = allowedSalesPaths.some(path => normalizedPath.startsWith(path));
+
+            if (!isAllowed) {
+                // If trying to access unauthorized inventory route, redirect to sales history
+                return NextResponse.redirect(new URL(`/${locale}/inventory/sales/history`, req.url));
+            }
+        }
+    }
+
+    // 7. Otherwise, let intl handle it
     return intlMiddleware(req);
 }
 
