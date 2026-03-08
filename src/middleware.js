@@ -35,9 +35,12 @@ export default async function middleware(req) {
         return normalizedPath === page;
     });
 
-    // 3. Get token (iOS/Safari fix: also check for HTTPS in actual request URL)
-    // secureCookie must be true when the request is over HTTPS (e.g. ngrok tunnel on iOS)
-    const isHttps = req.nextUrl.protocol === "https:" || process.env.NODE_ENV === "production";
+    // 3. Get token (iOS/Safari fix: robust HTTPS detection)
+    const isHttps =
+        req.headers.get("x-forwarded-proto") === "https" ||
+        req.nextUrl.protocol === "https:" ||
+        process.env.NODE_ENV === "production";
+
     const token = await getToken({
         req,
         secret: process.env.NEXTAUTH_SECRET,
