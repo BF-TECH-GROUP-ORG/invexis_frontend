@@ -231,8 +231,16 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
   const tCustomer = useTranslations('sellProduct.modals.customer');
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const companyObj = session?.user?.companies?.[0];
+  const user = session?.user;
+  const userRole = user?.role?.toLowerCase();
+  const assignedDepartments = user?.assignedDepartments || [];
+  const companyObj = user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
+
+  // Access Control Logic
+  const isAdmin = userRole === "company_admin";
+  const isManagement = assignedDepartments.includes("management") || isAdmin;
+  const isSalesOnly = assignedDepartments.includes("sales") && !isManagement;
 
   const [search, setSearch] = useState("");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -361,9 +369,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
     result = [...result].sort((a, b) => (a.Quantity ?? 0) - (b.Quantity ?? 0));
 
     // Role-based filtering: Sales department workers only see products from their shop
-    const userRole = session?.user?.role?.toLowerCase();
-    const assignedDepartments = session?.user?.assignedDepartments || [];
-    const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
+    const isSalesWorker = assignedDepartments.includes("sales") && !isAdmin;
     const userShopId = session?.user?.shops?.[0];
 
     if (isSalesWorker && userShopId) {
@@ -485,6 +491,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
 
   // Open price modal
   const handleOpenPriceModal = (product) => {
+    if (isSalesOnly) return; // Safeguard
     const item = selectedItems[product.id];
     setPriceModal({ open: true, product });
     setTempPrice(item?.price || product.Price);
@@ -844,7 +851,11 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
                   <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('minPrice')}</TableCell>
                   <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('sellingPrice')}</TableCell>
                   <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }} >{tTable('quantity')}</TableCell>
-                  <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable('actions')}</TableCell>
+                  {isManagement && (
+                    <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>
+                      {tTable('actions')}
+                    </TableCell>
+                  )}
                 </TableRow>
               </TableHead>
 
@@ -1050,32 +1061,34 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
                           </Box>
                         </TableCell>
 
-                        {/* Set Price Button */}
-                        <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                          <MuiButton
-                            variant="outlined"
-                            size="small"
-                            disabled={!isSelected}
-                            onClick={() => handleOpenPriceModal(product)}
-                            sx={{
-                              borderColor: "#FF6D00",
-                              color: "#FF6D00",
-                              fontWeight: 600,
-                              borderRadius: "8px",
-                              textTransform: "none",
-                              "&:hover": {
-                                borderColor: "#E65100",
-                                bgcolor: "#FFF3E0"
-                              },
-                              "&:disabled": {
-                                borderColor: "#ddd",
-                                color: "#999"
-                              }
-                            }}
-                          >
-                            Set Price
-                          </MuiButton>
-                        </TableCell>
+                        {/* Set Price Button - Only show for Management/Admin */}
+                        {isManagement && (
+                          <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                            <MuiButton
+                              variant="outlined"
+                              size="small"
+                              disabled={!isSelected}
+                              onClick={() => handleOpenPriceModal(product)}
+                              sx={{
+                                borderColor: "#FF6D00",
+                                color: "#FF6D00",
+                                fontWeight: 600,
+                                borderRadius: "8px",
+                                textTransform: "none",
+                                "&:hover": {
+                                  borderColor: "#E65100",
+                                  bgcolor: "#FFF3E0"
+                                },
+                                "&:disabled": {
+                                  borderColor: "#ddd",
+                                  color: "#999"
+                                }
+                              }}
+                            >
+                              Set Price
+                            </MuiButton>
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })
