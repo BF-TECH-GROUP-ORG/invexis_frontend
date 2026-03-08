@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, onMessage, getToken } from "firebase/messaging";
+import { getMessaging, onMessage, getToken, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,11 +17,14 @@ const app = initializeApp(firebaseConfig);
 let messaging = null;
 
 if (typeof window !== "undefined") {
-    try {
-        messaging = getMessaging(app);
-    } catch (err) {
-        console.warn("Firebase Messaging not supported in this browser:", err);
-    }
+    isSupported().then(supported => {
+        if (supported) {
+            messaging = getMessaging(app);
+            console.log("Firebase Messaging initialized.");
+        }
+    }).catch(err => {
+        console.warn("Firebase Messaging skip initialization:", err.message);
+    });
 }
 
 export { app, messaging, getToken, onMessage };

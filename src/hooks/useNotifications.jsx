@@ -19,7 +19,7 @@ export const useNotifications = () => {
         console.log('[Notifications] Hook Effect triggered', {
             hasSession: !!session?.accessToken,
             initialized: initialized.current,
-            permission: typeof window !== 'undefined' ? Notification.permission : 'n/a'
+            permission: typeof window !== 'undefined' && typeof Notification !== 'undefined' ? Notification.permission : 'n/a'
         });
 
         // Only run when session is available and we haven't initialized yet
@@ -32,8 +32,8 @@ export const useNotifications = () => {
 
         // 1. Setup Firebase Messaging (Push)
         const setupPush = async () => {
-            if (!messaging) {
-                console.error('[Notifications] Firebase Messaging not initialized.');
+            if (!messaging || typeof Notification === 'undefined') {
+                console.warn('[Notifications] Messaging or Notification API not supported.');
                 return;
             }
 
@@ -219,7 +219,7 @@ export const useNotifications = () => {
 
         // Professional Permission Request
         const checkPermissionAndSetup = async () => {
-            if (typeof window === 'undefined' || !('Notification' in window)) return;
+            if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
 
             try {
                 if (Notification.permission === 'default') {
