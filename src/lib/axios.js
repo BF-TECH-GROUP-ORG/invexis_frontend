@@ -8,8 +8,13 @@ import { notificationBus } from "@/lib/notificationBus";
  * -----------------------------------------------------
  */
 
+const isServer = typeof window === 'undefined';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
+  // In the browser, use the local proxy to hide the actual API URL.
+  // In SSR, call the API directly for better performance.
+  baseURL: isServer ? API_BASE_URL : "/api/proxy",
   timeout: 15000, // prevent hanging requests
   withCredentials: false, // Set to false to avoid CORS issues with Bearer tokens
   headers: {
@@ -73,6 +78,15 @@ api.interceptors.request.use(
 
     // Client-side NextAuth token attachment
     if (typeof window !== "undefined") {
+      // SKIP token injection if we are using the proxy route.
+      // The proxy route handles token injection server-side for better security.
+      if (config.baseURL === "/api/proxy") {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[Axios] Skipping client-side token for proxied request: ${config.url}`);
+        }
+        return config;
+      }
+
       try {
         // Simple singleton/memoization to avoid race conditions with multiple concurrent requests
         if (!window._next_auth_session_promise) {
