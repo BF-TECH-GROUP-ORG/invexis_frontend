@@ -90,7 +90,10 @@ export default function WorkersTable({ initialParams = {} }) {
     queryKey: ["workers", companyId],
     queryFn: () => getWorkersByCompanyId(companyId, options),
     enabled: !!companyId && !!session?.accessToken,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
+    gcTime: 5 * 60 * 1000,         // Keep cache for 5 min
+    refetchOnMount: 'always',       // Always background-refetch on visit
+    refetchOnWindowFocus: 'always', // Refetch on focus
   });
 
   const workers = useMemo(() => {

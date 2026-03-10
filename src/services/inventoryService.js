@@ -156,12 +156,22 @@ const InventoryService = {
   getTransfers: async (companyId, params = {}, options = {}) => {
     if (!companyId) return { data: [], pagination: {} };
 
-    // axios handles query params automatically if passed in config
-    return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers`, {
+    // Use regular cache strategy instead of disabling it to allow stale-while-revalidate
+    // but default to a short TTL if none provided in options
+    const cacheStrategy = options.cache || { ttl: 60000 };
+
+    const response = await apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers`, {
       params,
-      cache: { noStore: true },
+      cache: cacheStrategy,
       ...options
     });
+
+    // Handle both wrapped { data: [...] } and direct [...] responses
+    if (Array.isArray(response)) {
+      return { data: response, pagination: {} };
+    }
+
+    return response;
   },
 
   /**
@@ -170,10 +180,12 @@ const InventoryService = {
   getTransferById: async (companyId, transferId, options = {}) => {
     if (!companyId || !transferId) return null;
 
-    return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers/${transferId}`, {
-      cache: { noStore: true },
+    const response = await apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/transfers/${transferId}`, {
+      cache: options.cache || { ttl: 60000 },
       ...options
     });
+
+    return response?.data || response;
   },
 
   /**

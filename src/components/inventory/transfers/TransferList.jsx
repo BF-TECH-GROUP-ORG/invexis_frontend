@@ -149,6 +149,10 @@ export default function TransferList({ initialParams = {} }) {
         queryKey: ['transfers', companyId, fetchParams],
         queryFn: () => InventoryService.getTransfers(companyId, fetchParams, options),
         enabled: !!companyId && !!session?.accessToken,
+        staleTime: Infinity,            // Never auto-stale -> no races with background fetches
+        gcTime: 5 * 60 * 1000,         // Keep cache for 5 min so navigating back is always instant
+        refetchOnMount: 'always',       // Always background-refetch on every page visit
+        refetchOnWindowFocus: 'always', // Refetch when user switches back to this tab
     });
 
     const transfers = useMemo(() => {
