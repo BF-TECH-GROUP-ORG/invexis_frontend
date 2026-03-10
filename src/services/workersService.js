@@ -41,20 +41,20 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
 
         const response = await apiClient.get(url, {
             ...config,
-            cache: { ttl: 5 * 60 * 1000 }
+            cache: { ttl: 60 * 60 * 1000 } // Extended TTL for service layer cache
         });
         console.log("Workers API Raw Response:", response);
 
-        // Axios response.data contains the actual response body
         const responseData = response.data || response;
 
-        // Handle different possible response structures
+        // Handle different possible response structures robustly
         if (Array.isArray(responseData)) return responseData;
-        if (responseData.workers && Array.isArray(responseData.workers)) return responseData.workers;
         if (responseData.data && Array.isArray(responseData.data)) return responseData.data;
+        if (responseData.workers && Array.isArray(responseData.workers)) return responseData.workers;
+        if (responseData.users && Array.isArray(responseData.users)) return responseData.users;
 
         console.warn("Unexpected workers response structure:", responseData);
-        return Array.isArray(responseData) ? responseData : (responseData.workers || []);
+        return [];
     } catch (error) {
         console.error('Failed to fetch workers by company:', error);
         console.error('Error details:', {

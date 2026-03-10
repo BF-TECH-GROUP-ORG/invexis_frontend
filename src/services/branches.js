@@ -17,31 +17,26 @@ export const getBranches = async (companyId, options = {}) => {
 
     // Axios wraps the response in response.data
     // Backend returns: {success: true, data: Array(...), pagination: {...}}
-    const apiResponse = response.data;
+    const apiResponse = response.data || response;
 
-    // Check if we have the nested data structure
-    if (apiResponse && typeof apiResponse === 'object') {
-      // Case 1: Standard API response with data property containing array
-      if (apiResponse.data && Array.isArray(apiResponse.data)) {
-        console.log("✓ Extracting from response.data.data - found array with", apiResponse.data.length, "items");
-        return apiResponse.data;
-      }
+    // Support both wrapped { data: [...] } and direct [...] responses
+    let branches = [];
+    if (Array.isArray(apiResponse)) {
+      branches = apiResponse;
+    } else if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+      branches = apiResponse.data;
+    } else if (apiResponse && apiResponse.shops && Array.isArray(apiResponse.shops)) {
+      branches = apiResponse.shops;
+    } else if (apiResponse && apiResponse.branches && Array.isArray(apiResponse.branches)) {
+      branches = apiResponse.branches;
+    }
 
-      // Case 2: Direct array in response (shouldn't happen with this API)
-      if (Array.isArray(apiResponse)) {
-        console.log("✓ Response is direct array with", apiResponse.length, "items");
-        return apiResponse;
-      }
-
-      // Case 3: Array directly (edge case)
-      if (apiResponse.length !== undefined && apiResponse.length >= 0) {
-        console.log("✓ Response detected as array with", apiResponse.length, "items");
-        return apiResponse;
-      }
+    if (branches.length > 0 || Array.isArray(branches)) {
+      return branches;
     }
 
     console.warn("⚠️ Unexpected branches response structure:", apiResponse);
-    throw new Error(`Invalid branches response structure. Expected array or {data: Array}, got: ${JSON.stringify(apiResponse).substring(0, 100)}`);
+    return [];
   } catch (error) {
     console.error("❌ Error fetching branches:", error);
     throw error;
