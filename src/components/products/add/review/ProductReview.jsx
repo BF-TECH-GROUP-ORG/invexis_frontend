@@ -142,31 +142,21 @@ export default function ProductReview({ formData, onEdit, steps }) {
           <div>
             <dt className="text-sm text-gray-600">Base Price</dt>
             <dd className="font-medium text-gray-900">
-              {formData.pricing.basePrice?.toFixed(2) || "0.00"}{" "}
-              {formData.pricing.currency}
+              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600">Sale Price</dt>
             <dd className="font-medium text-gray-900">
               {formData.pricing.salePrice
-                ? `${formData.pricing.salePrice.toFixed(2)} ${
-                    formData.pricing.currency
-                  }`
+                ? `${formData.pricing.salePrice.toLocaleString()} RWF`
                 : "N/A"}
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600">Cost Price</dt>
             <dd className="font-medium text-gray-900">
-              {formData.pricing.cost?.toFixed(2) || "0.00"}{" "}
-              {formData.pricing.currency}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Currency</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.currency}
+              {formData.pricing.cost?.toLocaleString() || "0"} RWF
             </dd>
           </div>
         </dl>

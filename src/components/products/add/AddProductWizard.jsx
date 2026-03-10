@@ -370,7 +370,7 @@ export default function AddProductWizard({
         salePrice: null,
         listPrice: 0,
         costPrice: 0,
-        currency: "USD",
+        currency: "RWF",
         priceTiers: [],
       },
       inventory: {
