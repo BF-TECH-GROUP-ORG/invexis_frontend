@@ -267,11 +267,14 @@ export default stockService;
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-transfer
  */
 export async function transferToShop(companyId, shopId, payload, options = {}) {
-  return apiClient.post(
+  const res = await apiClient.post(
     buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`),
     payload,
     options
   );
+  apiClient.clearCache("transfers");
+  apiClient.clearCache("inventory");
+  return res;
 }
 
 /**
@@ -279,11 +282,14 @@ export async function transferToShop(companyId, shopId, payload, options = {}) {
  * POST /api/v1/companies/:companyId/shops/:shopId/bulk-cross-company-transfer
  */
 export async function transferToCompany(companyId, shopId, payload, options = {}) {
-  return apiClient.post(
+  const res = await apiClient.post(
     buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`),
     payload,
     options
   );
+  apiClient.clearCache("transfers");
+  apiClient.clearCache("inventory");
+  return res;
 }
 
 /**
