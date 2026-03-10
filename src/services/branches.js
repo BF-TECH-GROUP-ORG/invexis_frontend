@@ -65,6 +65,8 @@ export const createBranch = async (branchData) => {
 
   try {
     const response = await apiClient.post(`${BASE_URL}/shop`, branchData);
+    apiClient.clearCache("shop");
+    apiClient.clearCache("branches");
     console.log("Branch created:", response);
     return response;
   } catch (error) {
@@ -82,6 +84,8 @@ export const updateBranch = async (branchId, branchData, companyId) => {
         params: { companyId },
       }
     );
+    apiClient.clearCache("shop");
+    apiClient.clearCache("branches");
     console.log("Branch updated:", response);
     return response;
   } catch (error) {
@@ -95,6 +99,8 @@ export const deleteBranch = async (branchId, companyId) => {
     const response = await apiClient.delete(`${BASE_URL}/shop/${branchId}`, {
       params: { companyId },
     });
+    apiClient.clearCache("shop");
+    apiClient.clearCache("branches");
     console.log("Branch deleted:", response);
     return response;
   } catch (error) {

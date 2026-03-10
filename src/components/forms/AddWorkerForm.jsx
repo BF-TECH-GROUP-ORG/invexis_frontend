@@ -240,6 +240,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         : createWorker(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
+      // Invalidate broader patterns just in case
+      queryClient.invalidateQueries({ queryKey: ["workers"] });
+
       setSnackbar({
         open: true,
         message: isEditMode
@@ -247,7 +250,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           : t("buttons.create") + " - Success",
         severity: "success",
       });
+
+      // Force Next.js router refresh to pick up server-side changes
       router.refresh();
+
       setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);
     },
     onError: (error) => {

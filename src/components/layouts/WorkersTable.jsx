@@ -140,6 +140,7 @@ export default function WorkersTable({ initialParams = {} }) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
+      router.refresh(); // Ensure consistency with server segment
       setDeleteModalOpen(false);
     },
   });

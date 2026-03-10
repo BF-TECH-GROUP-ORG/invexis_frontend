@@ -116,6 +116,7 @@ const CompaniesTable = ({ initialRows = [], initialParams = {}, updateFilters })
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["branches", initialParams.companyId] });
+            router.refresh(); // Force pick up of server-side data changes
         },
         onSuccess: () => {
             setSnackbar({ open: true, message: t("toast.deleted") || "Branch removed successfully!", severity: "success" });

@@ -183,11 +183,17 @@ const NewBranchPage = () => {
         mutationFn: (payload) => createBranch(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["branches", companyId] });
+            // Invalidate broader patterns
+            queryClient.invalidateQueries({ queryKey: ["branches"] });
+
             setSnackbar({
                 open: true,
                 message: "Branch created successfully!",
                 severity: "success"
             });
+
+            // Force refresh to update server-side segments
+            router.refresh();
 
             setTimeout(() => {
                 router.push(`/${locale}/inventory/companies`);

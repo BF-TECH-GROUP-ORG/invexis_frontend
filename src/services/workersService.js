@@ -15,6 +15,7 @@ const ensureUrl = (url, name) => {
 export const createWorker = async (workerData, options = {}) => {
     try {
         const response = await apiClient.post(`/auth/register`, workerData, options);
+        apiClient.clearCache("workers");
         console.log("Worker created successfully:", response);
         console.log('payload is' + workerData)
         console.log('response is' + response)
@@ -105,6 +106,7 @@ export const deleteWorker = async (workerId, companyId, options = {}) => {
     try {
         const url = `/auth/company/${companyId}/workers/${workerId}`;
         const response = await apiClient.delete(url, options);
+        apiClient.clearCache("workers");
         console.log("Worker deleted successfully:", response);
         return response;
     } catch (error) {
@@ -117,6 +119,7 @@ export const updateWorker = async (workerId, workerData, options = {}) => {
     try {
         // Note: Adjust endpoint if needed based on backend API
         const response = await apiClient.put(`/auth/users/${workerId}`, workerData, options);
+        apiClient.clearCache("workers");
         console.log("Worker updated successfully:", response);
         return response;
     } catch (error) {
