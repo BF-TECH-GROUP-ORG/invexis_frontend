@@ -10,8 +10,11 @@ import {
     TextField,
     CircularProgress,
     Snackbar,
-    Alert
+    Alert,
+    InputAdornment,
+    Tooltip
 } from "@mui/material";
+import { HiLocationMarker } from "react-icons/hi";
 import { getBranchById, updateBranch } from "@/services/branches";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -32,6 +35,8 @@ const EditBranchPage = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationError, setLocationError] = useState("");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -43,6 +48,8 @@ const EditBranchPage = () => {
         country: "",
         postal_code: "",
         timezone: "UTC",
+        latitude: "",
+        longitude: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -80,6 +87,8 @@ const EditBranchPage = () => {
                 country: branchData.country || "",
                 postal_code: branchData.postal_code || "",
                 timezone: branchData.timezone || "UTC",
+                latitude: branchData.latitude !== undefined && branchData.latitude !== null ? branchData.latitude.toString() : "",
+                longitude: branchData.longitude !== undefined && branchData.longitude !== null ? branchData.longitude.toString() : "",
             });
         }
     }, [branchData]);
@@ -110,6 +119,63 @@ const EditBranchPage = () => {
             setError("Failed to update branch. Please try again.");
         }
     });
+
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            setLocationError("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setLocationLoading(true);
+        setLocationError("");
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                setFormData(prev => ({
+                    ...prev,
+                    latitude: latitude.toString(),
+                    longitude: longitude.toString()
+                }));
+
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+                    );
+
+                    if (!response.ok) throw new Error('Failed to fetch address');
+
+                    const data = await response.json();
+                    const address = data.address || {};
+
+                    setFormData(prev => ({
+                        ...prev,
+                        address_line1: [address.road, address.house_number].filter(Boolean).join(' ') || '',
+                        city: address.city || address.town || address.village || '',
+                        country: address.country_code?.toUpperCase() || '',
+                        postal_code: address.postcode || ''
+                    }));
+
+                } catch (error) {
+                    console.error("Error getting address:", error);
+                    setLocationError("Could not fetch address details");
+                } finally {
+                    setLocationLoading(false);
+                }
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                setLocationError("Unable to retrieve your location");
+                setLocationLoading(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -176,6 +242,8 @@ const EditBranchPage = () => {
                 postal_code: formData.postal_code,
                 capacity: Number(formData.capacity),
                 timezone: formData.timezone,
+                latitude: formData.latitude !== "" ? parseFloat(formData.latitude) : null,
+                longitude: formData.longitude !== "" ? parseFloat(formData.longitude) : null,
             };
 
             await updateMutation.mutateAsync({ id: branchId, data: payload, companyId });
@@ -321,6 +389,35 @@ const EditBranchPage = () => {
                                 </Box>
                             </Box>
 
+                            <Box>
+                                <Button
+                                    onClick={handleGetLocation}
+                                    disabled={locationLoading}
+                                    startIcon={locationLoading ? <CircularProgress size={16} color="inherit" /> : <HiLocationMarker />}
+                                    sx={{
+                                        textTransform: 'none',
+                                        color: '#FF6D00',
+                                        borderColor: '#FF6D00',
+                                        '&:hover': {
+                                            borderColor: '#E65100',
+                                            bgcolor: 'rgba(255, 109, 0, 0.04)'
+                                        },
+                                        fontWeight: 600,
+                                        borderRadius: '12px',
+                                        px: 3,
+                                        py: 1
+                                    }}
+                                    variant="outlined"
+                                >
+                                    {locationLoading ? "Fetching..." : "Use My Current Location"}
+                                </Button>
+                                {locationError && (
+                                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                                        {locationError}
+                                    </Typography>
+                                )}
+                            </Box>
+
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 <Box sx={{ flex: 1 }}>
                                     <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
@@ -370,6 +467,39 @@ const EditBranchPage = () => {
                             Please review your information before updating. Once submitted, the branch will be updated with the new information.
                         </Alert>
 
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 4 }}>
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                        Latitude
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        name="latitude"
+                                        type="number"
+                                        placeholder="e.g., 40.7128"
+                                        value={formData.latitude}
+                                        onChange={handleChange}
+                                        variant="outlined"
+                                    />
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>
+                                        Longitude
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        name="longitude"
+                                        type="number"
+                                        placeholder="e.g., -74.0060"
+                                        value={formData.longitude}
+                                        onChange={handleChange}
+                                        variant="outlined"
+                                    />
+                                </Box>
+                            </Box>
+                        </Box>
+
                         <Box sx={{ mt: 4, p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
                             <Typography variant="body2" fontWeight="600" sx={{ mb: 2 }}>
                                 Review Your Changes:
@@ -383,6 +513,8 @@ const EditBranchPage = () => {
                                 <Typography variant="body2"><strong>Country:</strong> {formData.country}</Typography>
                                 <Typography variant="body2"><strong>Postal Code:</strong> {formData.postal_code || 'N/A'}</Typography>
                                 <Typography variant="body2"><strong>Timezone:</strong> {formData.timezone}</Typography>
+                                <Typography variant="body2"><strong>Latitude:</strong> {formData.latitude || 'N/A'}</Typography>
+                                <Typography variant="body2"><strong>Longitude:</strong> {formData.longitude || 'N/A'}</Typography>
                             </Box>
                         </Box>
                     </Box>
