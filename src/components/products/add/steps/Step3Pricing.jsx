@@ -1,13 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { convertCurrency } from "@/services/currencyService";
-import { toast } from "react-hot-toast";
+import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function Step3Pricing({ formData, updateFormData }) {
-  const [isConverting, setIsConverting] = useState(false);
-
   const handlePricingChange = (field, value) => {
     updateFormData({
       pricing: {
@@ -15,62 +11,6 @@ export default function Step3Pricing({ formData, updateFormData }) {
         [field]: value === "" ? null : parseFloat(value),
       },
     });
-  };
-
-  const handleCurrencyChange = async (newCurrency) => {
-    const oldCurrency = formData.pricing.currency;
-    if (oldCurrency === newCurrency) return;
-
-    const { basePrice, salePrice, listPrice, cost } = formData.pricing;
-
-    // If no prices set, just switch currency immediately
-    if (!basePrice && !salePrice && !listPrice && !cost) {
-      updateFormData({
-        pricing: { ...formData.pricing, currency: newCurrency },
-      });
-      return;
-    }
-
-    setIsConverting(true);
-    try {
-      // Get conversion rate for 1 unit
-      const rate = await convertCurrency(1, oldCurrency, newCurrency);
-
-      if (rate) {
-        updateFormData({
-          pricing: {
-            ...formData.pricing,
-            currency: newCurrency,
-            basePrice: basePrice
-              ? parseFloat((basePrice * rate).toFixed(2))
-              : basePrice,
-            salePrice: salePrice
-              ? parseFloat((salePrice * rate).toFixed(2))
-              : salePrice,
-            listPrice: listPrice
-              ? parseFloat((listPrice * rate).toFixed(2))
-              : listPrice,
-            cost: cost ? parseFloat((cost * rate).toFixed(2)) : cost,
-          },
-        });
-        toast.success(`Prices converted to ${newCurrency}`);
-      } else {
-        // API failed or limit reached -> just switch currency
-        updateFormData({
-          pricing: { ...formData.pricing, currency: newCurrency },
-        });
-        toast.error(
-          "Exchange rate API limit reached. Currency changed but prices preserved."
-        );
-      }
-    } catch (error) {
-      console.error("Conversion error:", error);
-      updateFormData({
-        pricing: { ...formData.pricing, currency: newCurrency },
-      });
-    } finally {
-      setIsConverting(false);
-    }
   };
 
   const profitMargin = useMemo(() => {
@@ -100,12 +40,6 @@ export default function Step3Pricing({ formData, updateFormData }) {
             Set the pricing details for your product
           </p>
         </div>
-        {isConverting && (
-          <div className="flex items-center text-orange-600 text-sm bg-orange-50 px-3 py-1 rounded-full">
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Converting prices...
-          </div>
-        )}
       </div>
 
       {/* Prices Grid */}
@@ -117,21 +51,14 @@ export default function Step3Pricing({ formData, updateFormData }) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-              {formData.pricing.currency === "RWF"
-                ? "FRw"
-                : formData.pricing.currency === "EUR"
-                ? "€"
-                : formData.pricing.currency === "GBP"
-                ? "£"
-                : "$"}
+              FRw
             </span>
             <input
               type="number"
               step="0.01"
               value={formData.pricing.basePrice || ""}
               onChange={(e) => handlePricingChange("basePrice", e.target.value)}
-              disabled={isConverting}
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="0.00"
               required
             />
@@ -145,21 +72,14 @@ export default function Step3Pricing({ formData, updateFormData }) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-              {formData.pricing.currency === "RWF"
-                ? "FRw"
-                : formData.pricing.currency === "EUR"
-                ? "€"
-                : formData.pricing.currency === "GBP"
-                ? "£"
-                : "$"}
+              FRw
             </span>
             <input
               type="number"
               step="0.01"
               value={formData.pricing.cost || ""}
               onChange={(e) => handlePricingChange("cost", e.target.value)}
-              disabled={isConverting}
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="0.00"
             />
           </div>
@@ -172,21 +92,14 @@ export default function Step3Pricing({ formData, updateFormData }) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-              {formData.pricing.currency === "RWF"
-                ? "FRw"
-                : formData.pricing.currency === "EUR"
-                ? "€"
-                : formData.pricing.currency === "GBP"
-                ? "£"
-                : "$"}
+              FRw
             </span>
             <input
               type="number"
               step="0.01"
               value={formData.pricing.salePrice || ""}
               onChange={(e) => handlePricingChange("salePrice", e.target.value)}
-              disabled={isConverting}
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="0.00"
             />
           </div>
@@ -204,47 +117,25 @@ export default function Step3Pricing({ formData, updateFormData }) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-              {formData.pricing.currency === "RWF"
-                ? "FRw"
-                : formData.pricing.currency === "EUR"
-                ? "€"
-                : formData.pricing.currency === "GBP"
-                ? "£"
-                : "$"}
+              FRw
             </span>
             <input
               type="number"
               step="0.01"
               value={formData.pricing.listPrice || ""}
               onChange={(e) => handlePricingChange("listPrice", e.target.value)}
-              disabled={isConverting}
-              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="0.00"
             />
           </div>
         </div>
       </div>
 
-      {/* Currency Selection (Full Width since Tax Rate Removed) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Currency
-        </label>
-        <select
-          value={formData.pricing.currency}
-          onChange={(e) => handleCurrencyChange(e.target.value)}
-          disabled={isConverting}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
-        >
-          <option value="USD">USD ($)</option>
-          <option value="EUR">EUR (€)</option>
-          <option value="GBP">GBP (£)</option>
-          <option value="RWF">RWF (FRw)</option>
-        </select>
-        <p className="text-xs text-gray-500 mt-1">
-          Changing currency will automatically convert existing prices.
-        </p>
+      {/* RWF Notice (Background) */}
+      <div className="text-xs text-gray-500 mt-1">
+        All prices are in Rwandan Francs (RWF).
       </div>
+
 
       {/* Profit Margin Card */}
       {formData.pricing.basePrice > 0 && formData.pricing.cost >= 0 && (
@@ -260,10 +151,10 @@ export default function Step3Pricing({ formData, updateFormData }) {
             {formData.pricing.currency === "RWF"
               ? "FRw"
               : formData.pricing.currency === "EUR"
-              ? "€"
-              : formData.pricing.currency === "GBP"
-              ? "£"
-              : "$"}
+                ? "€"
+                : formData.pricing.currency === "GBP"
+                  ? "£"
+                  : "$"}
             {(formData.pricing.basePrice - formData.pricing.cost).toFixed(2)}
           </p>
         </div>
