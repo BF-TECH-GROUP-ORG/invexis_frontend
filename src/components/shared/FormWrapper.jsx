@@ -15,14 +15,22 @@ import {
   HiArrowRight,
   HiCog6Tooth,
   HiEye,
-  HiDevicePhoneMobile,
-  HiKey,
 } from "react-icons/hi2";
 import { HiEyeOff } from "react-icons/hi";
-import { FaApple } from "react-icons/fa";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import SettingsDropdown from "./SettingsDropdown";
+
+// Official Google SVG logo
+const GoogleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    <path fill="none" d="M0 0h48v48H0z"/>
+  </svg>
+);
 
 function FormField({ field }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -208,52 +216,22 @@ export default function FormWrapper({
         </div>
       )}
 
-      {/* OAuth + Phone + OTP Authentication */}
-      <div className="flex justify-center gap-4 flex-wrap">
-        {/* Google OAuth option removed — intentionally omitted */}
-        {oauthOptions.includes("apple") && (
-          <IconButton
-            sx={{
-              borderRadius: "50%",
-              border: "1px solid #e0e0e0",
-              width: "50px",
-              height: "50px",
+      {/* OAuth Buttons */}
+      {oauthOptions.includes("google") && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.invexix.com/api";
+              window.location.href = `${apiBase}/auth/google/signin`;
             }}
+            className="flex items-center justify-center gap-3 w-full max-w-sm h-[52px] rounded-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-sm font-semibold text-gray-700 dark:text-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
           >
-            <FaApple className="text-2xl text-black" />
-          </IconButton>
-        )}
-
-        {oauthOptions.includes("phone") && (
-          <IconButton
-            onClick={() => (window.location.href = "#")}
-            sx={{
-              borderRadius: "50%",
-              border: "1px solid #e0e0e0",
-              width: "50px",
-              height: "50px",
-            }}
-          >
-            <HiDevicePhoneMobile className="text-2xl text-blue-600" />
-          </IconButton>
-        )}
-
-        {oauthOptions.includes("otp") && (
-          <IconButton
-            onClick={() =>
-              (window.location.href = `/${locale}/auth/otp-login/request`)
-            }
-            sx={{
-              borderRadius: "50%",
-              border: "1px solid #e0e0e0",
-              width: "50px",
-              height: "50px",
-            }}
-          >
-            <HiKey className="text-2xl text-green-600" />
-          </IconButton>
-        )}
-      </div>
+            <GoogleIcon />
+            <span>Continue with Google</span>
+          </button>
+        </div>
+      )}
 
       {/* Extra Links */}
       {extraLinks.length > 0 && (
