@@ -2212,5 +2212,57 @@
         "secure": "Safe & Secure Checkout"
       }
     }
+  },
+  "userGuide": {
+    "step": "Step {current} of {total}",
+    "next": "Next",
+    "finish": "Finish Tour",
+    "back": "Back",
+    "steps": {
+      "dashboard": {
+        "title": "Dashboard Overview",
+        "desc": "Your business at a glance. Access key metrics and recent sales data."
+      },
+      "search": {
+        "title": "Global Search",
+        "desc": "Quickly find products, invoices, or customers from anywhere in the platform."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Stay updated with important system alerts, low stock warnings, and announcements."
+      },
+      "management": {
+        "title": "Staff & Shops",
+        "desc": "Manage your team members, assign permissions, and control multiple shop branches."
+      },
+      "inventory": {
+        "title": "Inventory Management",
+        "desc": "Add products, manage stock levels, and coordinate transfers between shops."
+      },
+      "sales": {
+        "title": "Track Sales",
+        "desc": "Process new transactions and access your complete sales history."
+      },
+      "debts": {
+        "title": "Debts & Credits",
+        "desc": "Monitor customer debts, record scheduled payment plans, and manage outstanding balances."
+      },
+      "billing": {
+        "title": "Billing & Payments",
+        "desc": "Generate professional invoices, track payment status, and review billing history."
+      },
+      "documents": {
+        "title": "Documents",
+        "desc": "Centralized storage for your important business files, contracts, and export reports."
+      },
+      "logs": {
+        "title": "Logs & Audits",
+        "desc": "A complete audit trail of user actions for transparency and security (Admin only)."
+      },
+      "profile": {
+        "title": "Your Profile",
+        "desc": "Manage your account settings and preferences here."
+      }
+    }
   }
 }

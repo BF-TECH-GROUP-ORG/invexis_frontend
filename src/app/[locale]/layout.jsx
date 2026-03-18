@@ -132,17 +132,25 @@ export default async function RootLayout({ children, params }) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      <body className="font-metropolis antialiased" suppressHydrationWarning>
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Invexis',
+            url: process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com',
+            logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'}/images/Invexix Logo-Light Mode.png`,
+            sameAs: [
+              'https://twitter.com/invexix',
+              'https://facebook.com/invexix',
+              'https://linkedin.com/company/invexix',
+            ],
+          }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
-      </head>
-      <body className="font-metropolis antialiased" suppressHydrationWarning>
         <AppRouterCacheProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <ClientProviders session={session}>
