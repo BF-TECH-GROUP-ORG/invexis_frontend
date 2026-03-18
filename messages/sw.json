@@ -131,14 +131,20 @@
         "subtitle": "Ingiza barua pepe au nambari ya simu ili kupokea nenosiri la mara moja",
         "label": "Barua pepe au Simu",
         "sendButton": "Tuma OTP",
-        "sending": "Tunatumia..."
+        "sending": "Tunatumia...",
+        "successMessage": "OTP imetumwa! Tafadhali kagua barua pepe au simu yako."
       },
       "verify": {
         "title": "Thibitisha OTP",
         "subtitle": "Ingiza OTP iliyotumwa kwa barua pepe au simu yako",
         "label": "Nenosiri la Mara Moja",
+        "identifierLabel": "Barua pepe au nambari ya simu",
         "verifyButton": "Thibitisha OTP",
-        "verifying": "Tunathibitisha..."
+        "verifying": "Tunathibitisha...",
+        "errorInvalidOtp": "OTP isiyo sahihi. Tafadhali ingiza tarakimu 6.",
+        "errorIdentifierRequired": "Barua pepe au simu inahitajika.",
+        "errorVerificationFailed": "Uthibitishaji umeshindwa. Tafadhali jaribu tena.",
+        "errorUnexpected": "Hitilafu isiyotarajiwa imetokea."
       }
     },
     "reset": {
@@ -146,7 +152,8 @@
         "title": "Omba Urejeshaji wa Nenosiri",
         "subtitle": "Tafadhali ingiza anwani ya barua pepe iliyohusishwa na akaunti yako na tutakuwasilisha kiungo ili kurekebisha nenosiri lako.",
         "sendButton": "Tuma Kiungo",
-        "sending": "Tunatumia..."
+        "sending": "Tunatumia...",
+        "successMessage": "Kiungo cha kubadilisha nenosiri kimetumwa! Tafadhali kagua barua pepe yako."
       },
       "reset": {
         "title": "Badilisha Nenosiri",
@@ -154,13 +161,17 @@
         "newPassword": "Nenosiri Jipya",
         "confirmNewPassword": "Thibitisha Nenosiri Jipya",
         "resetButton": "Rekebisha Nenosiri",
-        "resetting": "Tunarekebisha..."
+        "resetting": "Tunarekebisha...",
+        "successMessage": "Nenosiri limebadilishwa kwa mafanikio!",
+        "errorPasswordsDoNotMatch": "Manenosiri hayalingani",
+        "errorInvalidToken": "Kiungo cha kubadilisha nenosiri si sahihi au kimeisha muda wake"
       }
     },
     "loginButton": "Ingia",
     "signupButton": "Jisajili",
     "logout": "Ondoka",
     "forgotPassword": "Umesahau nenosiri?",
+    "loginWithOtp": "Ingia na OTP",
     "backToHome": "Rudi Nyumbani",
     "rememberMe": "Nikumbuke",
     "returnToLogin": "Rudi kwa Kuingia"

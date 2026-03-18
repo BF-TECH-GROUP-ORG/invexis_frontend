@@ -131,14 +131,20 @@
         "subtitle": "Shyiramo imeyili cyangwa telefoni yawe kugira ngo wakire ijambo ry'ibanga ry'igihe kimwe",
         "label": "Imeyili cyangwa Telefoni",
         "sendButton": "Ohereza OTP",
-        "sending": "Kohereza..."
+        "sending": "Kohereza...",
+        "successMessage": "OTP yoherejwe! Nyamuneka genzura imeyili cyangwa telefoni yawe."
       },
       "verify": {
-        "title": "Emeza OTP",
-        "subtitle": "Shyiramo OTP yoherejwe ku imeyili cyangwa telefoni yawe",
-        "label": "Ijambo ry'ibanga ry'igihe kimwe",
-        "verifyButton": "Emeza OTP",
-        "verifying": "Kugenzura..."
+        "title": "Genzura OTP",
+        "subtitle": "Yinjiza imibare ya OTP yohererejwe kuri email cyangwa telefone yawe",
+        "label": "Ijambo ry'ibanga ry'inshuro imwe",
+        "identifierLabel": "Email cyangwa Telefone",
+        "verifyButton": "Genzura OTP",
+        "verifying": "Irimo kugenzurwa...",
+        "errorInvalidOtp": "OTP ntabwo ariyo. Nyamuneka yinjiza imibare 6.",
+        "errorIdentifierRequired": "Email cyangwa Telefone irakenewe.",
+        "errorVerificationFailed": "Kugenzura byanze. Nyamuneka ongera ugerageze.",
+        "errorUnexpected": "Hagaragaye ikibazo kitunguranye."
       }
     },
     "reset": {
@@ -146,22 +152,27 @@
         "title": "Saba guhindura ijambo ry'ibanga",
         "subtitle": "Nyamuneka shyiramo aderesi ya imeyili yahujwe n'ikonti yawe kandi tuzakohereza kiungo cyo gusubiramo ijambo ry'ibanga ryawe.",
         "sendButton": "Ohereza Kiungo",
-        "sending": "Kohereza..."
+        "sending": "Kohereza...",
+        "successMessage": "Ihuza ryo guhindura ryoherejwe! Nyamuneka genzura email yawe."
       },
       "reset": {
-        "title": "Hindura ijambo ry'ibanga",
-        "subtitle": "Shyiramo ijambo ry'ibanga rishya ryawe hepfo",
-        "newPassword": "Ijambo ry'ibanga Rishya",
-        "confirmNewPassword": "Emeza Ijambo ry'ibanga Rishya",
-        "resetButton": "Subiramo Ijambo ry'ibanga",
-        "resetting": "Kusubiramo..."
+        "title": "Guhindura Ijambo ry'ibanga",
+        "subtitle": "Yinjiza ijambo ry'ibanga rishya hano munsi",
+        "newPassword": "Ijambo ry'ibanga rishya",
+        "confirmNewPassword": "Gufata neza ijambo ry'ibanga rishya",
+        "resetButton": "Hindura Ijambo ry'ibanga",
+        "resetting": "Ririmo guhindurwa...",
+        "successMessage": "Ijambo ry'ibanga rihinduwe neza!",
+        "errorPasswordsDoNotMatch": "Amagambo y'ibanga ntabwo ahuye",
+        "errorInvalidToken": "Ihuza ryo guhindura ntaryo cyangwa ryamaze kurenga igihe"
       }
     },
     "loginButton": "Injira",
     "signupButton": "Iyandikishe",
     "logout": "Sohoka",
     "forgotPassword": "Wibagiwe ijambo ry'ibanga?",
-    "backToHome": "Saba ku rupapuro rw'ibanze",
+    "loginWithOtp": "Injira ukoresheje OTP",
+    "backToHome": "Subira Ahabanza",
     "rememberMe": "Wibuke",
     "returnToLogin": "Subira ku Kwinjira"
   },

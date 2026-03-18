@@ -6,6 +6,7 @@ import { HiChevronLeft, HiArrowRight } from "react-icons/hi";
 import FormWrapper from "@/components/shared/FormWrapper";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import { AuthService } from "@/services/AuthService";
 
 export default function RequestResetPasswordPage() {
   const t = useTranslations("auth.reset.request");
@@ -26,8 +27,12 @@ export default function RequestResetPasswordPage() {
     setSuccess("");
 
     try {
-      setSuccess("Request sent successfully! Please check your email.");
-      router.push(`/${locale}/auth/reset-password/reset`);
+      const response = await AuthService.requestPasswordReset(email);
+      if (response.ok) {
+        setSuccess(t("successMessage") || "Request sent successfully! Please check your email.");
+      } else {
+        setError(response.message || "Failed to send reset link");
+      }
     } catch (err) {
       setError(err.message || "Failed to send reset link");
     } finally {

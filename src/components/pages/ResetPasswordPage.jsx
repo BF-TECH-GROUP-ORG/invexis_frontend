@@ -1,20 +1,19 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import FormWrapper from "@/components/shared/FormWrapper";
 import { HiChevronLeft } from "react-icons/hi";
 import { useTranslations, useLocale } from "next-intl";
+import { AuthService } from "@/services/AuthService";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const t = useTranslations("auth.reset.reset");
   const tForm = useTranslations("form");
   const tAuth = useTranslations("auth");
   const locale = useLocale();
   const router = useRouter();
-  const params = useParams();
-  const { token } = params;
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,9 +21,41 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError(t("errorPasswordsDoNotMatch") || "Passwords do not match");
+      return;
+    }
+    if (!token) {
+      setError(t("errorInvalidToken") || "Invalid or missing token");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await AuthService.confirmPasswordReset(token, password);
+      if (response.ok) {
+        setSuccess(t("successMessage") || "Password reset successfully!");
+        setTimeout(() => {
+          router.push(`/${locale}/auth/login`);
+        }, 2000);
+      } else {
+        setError(response.message || "Failed to reset password");
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="w-screen h-screen flex flex-col md:flex-row bg-white dark:bg-[#1a1a1a]">
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-orange-100">
+      <div className="w-full md:w-1/2 flex items-center justify-center bg-orange-100 dark:bg-zinc-800">
         <Image
           src="/images/reset-password.png"
           alt="Reset Password Illustration"
@@ -35,9 +66,11 @@ export default function ResetPasswordPage() {
       </div>
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-10">
         <FormWrapper
-          title={`${t("title")} [key]`}
+          title={`${t("title")}`}
           desc={t("subtitle")}
           submitLabel={submitting ? t("resetting") : t("resetButton")}
+          onSubmit={handleSubmit}
+          isLoading={submitting}
           fields={[
             {
               label: t("newPassword"),
@@ -66,5 +99,13 @@ export default function ResetPasswordPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
