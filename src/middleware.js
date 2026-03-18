@@ -7,6 +7,10 @@ const publicPages = [
     "/",
     "/auth/login",
     "/auth/signup",
+    "/auth/callback",
+    "/auth/verify-email",
+    "/auth/reset-password/*",
+    "/auth/otp-login/*",
     "/welcome",
     "/errors/*"
 ];

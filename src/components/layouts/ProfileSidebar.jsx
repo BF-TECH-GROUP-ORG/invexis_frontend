@@ -62,7 +62,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
             </div>
 
             {/* Profile Info */}
-            <div className="p-8 text-center border-b relative overflow-hidden group">
+            <div id="profile-info-section" className="p-8 text-center border-b relative overflow-hidden group">
               <div className="absolute inset-0 bg-orange-50/30 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative inline-block">
                 <div className="w-24 h-24 rounded-full mx-auto ring-4 ring-white shadow-lg overflow-hidden relative">
@@ -140,7 +140,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
                 </div>
 
                 {/* Language Switcher Section */}
-                <div className="pt-4 border-t mt-4">
+                <div id="language-switcher-section" className="pt-4 border-t mt-4">
                   <div className="flex items-center gap-2 mb-4 px-4">
                     <Globe size={16} className="text-orange-500" />
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">

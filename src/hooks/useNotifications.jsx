@@ -87,18 +87,9 @@ export const useNotifications = () => {
 
                         console.log(needsSync ? '[Notifications] Periodic sync triggered.' : '[Notifications] Token/Session refreshed. Registering...');
 
-                        // Register token with Auth Service
-                        let deviceUrl = API_URL.replace(/\/+$/, "");
-
-                        if (deviceUrl.includes('/api/auth')) {
-                            if (!deviceUrl.endsWith('/devices')) {
-                                deviceUrl = deviceUrl.split('/api/auth')[0] + '/api/auth/devices';
-                            }
-                        } else if (deviceUrl.includes('/api')) {
-                            deviceUrl = deviceUrl.split('/api')[0] + '/api/auth/devices';
-                        } else {
-                            deviceUrl = `${deviceUrl}/api/auth/devices`;
-                        }
+                        // Register token with Auth Service via local proxy
+                        // This avoids CORS issues and protocol mismatches
+                        const deviceUrl = '/api/proxy/auth/devices';
 
                         const payload = {
                             fcmToken,

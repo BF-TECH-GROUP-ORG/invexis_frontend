@@ -4,6 +4,7 @@ import "../../styles/globals.css";
 import ClientProviders from "../../providers/ClientProviders";
 import { ThemeRegistry } from "../../providers/ThemeRegistry";
 import LayoutWrapper from "@/components/layouts/LayoutWrapper";
+import GlobalAssistant from "@/components/layouts/GlobalAssistant";
 import SettingsInitializer from "@/components/shared/SettingsInitializer";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -89,6 +90,8 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+import Script from "next/script";
+
 export default async function RootLayout({ children, params }) {
   const { locale } = await params;
 
@@ -102,35 +105,41 @@ export default async function RootLayout({ children, params }) {
   const session = await getServerSession(authOptions);
   const messages = await getMessages();
 
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Invexis',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com',
+    logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'}/images/Invexix Logo-Light Mode.png`,
+    sameAs: [
+      'https://twitter.com/invexix',
+      'https://facebook.com/invexix',
+      'https://linkedin.com/company/invexix',
+    ],
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Invexix',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'}/search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <JsonLd
-          data={{
-            '@context': 'https://schema.org',
-            '@type': 'Organization',
-            name: 'Invexis',
-            url: process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com',
-            logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'}/images/Invexix Logo-Light Mode.png`,
-            sameAs: [
-              'https://twitter.com/invexix',
-              'https://facebook.com/invexix',
-              'https://linkedin.com/company/invexix',
-            ],
-          }}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <JsonLd
-          data={{
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: 'Invexix',
-            url: process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com',
-            potentialAction: {
-              '@type': 'SearchAction',
-              target: `${process.env.NEXT_PUBLIC_APP_URL || 'https://invexix.com'}/search?q={search_term_string}`,
-              'query-input': 'required name=search_term_string',
-            },
-          }}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
       </head>
       <body className="font-metropolis antialiased" suppressHydrationWarning>
@@ -141,6 +150,8 @@ export default async function RootLayout({ children, params }) {
                 <ThemeRegistry>
                   {/* Initialize settings from localStorage */}
                   <SettingsInitializer />
+                  {/* Global AI Assistant */}
+                  <GlobalAssistant />
                   <Suspense fallback={null}>
                     <LayoutWrapper>{children}</LayoutWrapper>
                   </Suspense>

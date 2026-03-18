@@ -42,52 +42,49 @@ const getNavItems = (t) => [
     icon: <LayoutDashboard size={22} />,
     path: "/inventory/dashboard",
     prefetch: true,
+    id: "sidebar-dashboard",
   },
   {
     title: t("sidebar.notifications"),
     icon: <Bell size={22} />,
     path: "/inventory/notifications",
     prefetch: true,
+    id: "sidebar-notifications",
   },
-  // {
-  //   title: t("sidebar.reports"),
-  //   icon: <BarChart3 size={22} />,
-  //   path: "/inventory/reports",
-  //   roles: ["worker", "company_admin"],
-  //   prefetch: true,
-  // },
 
   // MANAGEMENT
   {
     title: t("sidebar.staffAndShops"),
     icon: <Users size={22} />,
     roles: ["company_admin"],
+    id: "sidebar-mgmt-staff",
     children: [
-      { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true },
-      { title: t("sidebar.shops"), path: "/inventory/companies", prefetch: true },
+      { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true, id: "sidebar-staff-list" },
+      { title: t("sidebar.shops"), path: "/inventory/companies", prefetch: true, id: "sidebar-shops" },
     ],
   },
   {
     title: t("sidebar.inventory"),
     icon: <Package size={22} />,
     roles: ["worker", "company_admin"],
+    id: "sidebar-mgmt-inventory",
     children: [
-      // { title: t("inventoryOverview.header.title"), path: "/inventory/Overview", prefetch: true },
-      { title: t("categories.list.title"), path: "/inventory/categories", prefetch: true },
-      { title: t("sidebar.products"), path: "/inventory/products", prefetch: true },
-      { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true },
-      { title: t("sidebar.stockOps"), path: "/inventory/stock", prefetch: true },
+      { title: t("categories.list.title"), path: "/inventory/categories", prefetch: true, id: "sidebar-categories" },
+      { title: t("sidebar.products"), path: "/inventory/products", prefetch: true, id: "sidebar-products" },
+      { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true, id: "sidebar-transfers" },
+      { title: t("sidebar.stockOps"), path: "/inventory/stock", prefetch: true, id: "sidebar-stock" },
     ],
   },
 
-  // SALES → WITH CHILDREN
+  // SALES
   {
     title: t("sidebar.sales"),
     icon: <ShoppingBag size={22} />,
     roles: ["sales_manager", "company_admin"],
+    id: "sidebar-mgmt-sales",
     children: [
-      { title: t("sidebar.salesHistory"), path: "/inventory/sales/history", prefetch: true },
-      { title: t("sidebar.stockOut"), path: "/inventory/sales/sellProduct/sale", prefetch: true },
+      { title: t("sidebar.salesHistory"), path: "/inventory/sales/history", prefetch: true, id: "sidebar-sales-history" },
+      { title: t("sidebar.stockOut"), path: "/inventory/sales/sellProduct/sale", prefetch: true, id: "sidebar-pos" },
     ],
   },
 
@@ -97,27 +94,17 @@ const getNavItems = (t) => [
     path: "/inventory/debts",
     roles: ["sales_manager", "company_admin"],
     prefetch: true,
+    id: "sidebar-debts",
   },
   {
     title: t("sidebar.billingAndPayments"),
     icon: <Receipt size={22} />,
     roles: ["sales_manager", "company_admin"],
+    id: "sidebar-mgmt-billing",
     children: [
-      {
-        title: t("sidebar.invoices"),
-        path: "/inventory/billing/invoices",
-        prefetch: true,
-      },
-      {
-        title: t("sidebar.payments"),
-        path: "/inventory/billing/payments",
-        prefetch: true,
-      },
-      {
-        title: t("sidebar.transactions"),
-        path: "/inventory/billing/transactions",
-        prefetch: true,
-      }
+      { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
+      { title: t("sidebar.payments"), path: "/inventory/billing/payments", prefetch: true, id: "sidebar-payments" },
+      { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" }
     ],
   },
   {
@@ -126,14 +113,15 @@ const getNavItems = (t) => [
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
     prefetch: true,
+    id: "sidebar-documents",
   },
-  // company_admin-only logs link
   {
     title: t("sidebar.logsAndAudits"),
     icon: <History size={22} />,
     path: "/inventory/logs",
     roles: ["company_admin"],
     prefetch: true,
+    id: "sidebar-logs",
   },
 ];
 
@@ -671,12 +659,14 @@ export default function SideBar({
             )}
             {expanded && (
               <button
+                id="sidebar-toggle-btn"
                 onClick={() => setExpanded(!expanded)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
               >
                 <Menu size={22} />
               </button>
             )}
+
           </div>
         </div>
 
@@ -709,6 +699,7 @@ export default function SideBar({
                     {!item.children && (
                       <Link
                         href={item.path}
+                        id={item.id}
                         onMouseEnter={() => prefetchData(item)}
                         onClick={() => {
                           if (!isActive(item.path)) {
@@ -734,6 +725,7 @@ export default function SideBar({
                     {item.children && (
                       <>
                         <div
+                          id={item.id}
                           onClick={(e) => {
                             if (expanded) {
                               setOpenMenus((prev) =>

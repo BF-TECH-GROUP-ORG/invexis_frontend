@@ -52,8 +52,9 @@ const AnalyticsService = {
         if (filters.dateRange?.start) params.startDate = filters.dateRange.start;
         if (filters.dateRange?.end) params.endDate = filters.dateRange.end;
 
-        const baseUrl = BASE_API.endsWith('/') ? BASE_API.slice(0, -1) : BASE_API;
-        const fullPath = `${baseUrl}/analytics/reports/${reportPath}`;
+        const baseUrl = BASE_API.endsWith('/') ? BASE_API : `${BASE_API}/`;
+        const url = new URL(`analytics/reports/${reportPath}`, baseUrl);
+        const fullPath = url.toString();
 
         if (process.env.NODE_ENV === "development") {
             console.log(`[AnalyticsService] Requesting: ${fullPath}`, params);
