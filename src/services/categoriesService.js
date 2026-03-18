@@ -6,7 +6,7 @@ import { getCacheStrategy } from "@/lib/cacheConfig";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 if (typeof window !== "undefined") {
-  console.info("CategoriesService: using API base ->", API_BASE);
+  console.info("CategoriesService: using API base");
 }
 
 /**
