@@ -559,6 +559,7 @@ export default function ProductList({ initialParams = {} }) {
             </button>
 
             <Link
+              id="add-product-btn"
               prefetch={true}
               href={routes.add}
               className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"

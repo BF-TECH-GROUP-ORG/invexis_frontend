@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, Bell, ChevronDown, Sparkles } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -137,6 +137,7 @@ export default function TopNavBar({ expanded = true }) {
         <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
           {/* Notifications Trigger */}
           <button
+            id="nav-notifications"
             className="relative p-2.5 rounded-xl border border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition-all group overflow-visible"
             onClick={() => setNotifOpen(true)}
             aria-label="Notifications"
@@ -160,6 +161,7 @@ export default function TopNavBar({ expanded = true }) {
 
           {/* User Profile Trigger */}
           <button
+            id="nav-profile"
             onClick={() => setProfileOpen(true)}
             className="flex items-center gap-3 p-1.5 pl-1.5 pr-3 rounded-2xl border border-transparent hover:border-gray-200 hover:bg-gray-50/50 transition-all group active:scale-95"
           >

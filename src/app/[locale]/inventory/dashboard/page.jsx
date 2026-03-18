@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import dayjs from "dayjs";
 import { Suspense } from "react";
 import StatsCardsSection from "./features/StatsCardsSection";
