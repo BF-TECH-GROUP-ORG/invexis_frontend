@@ -2226,5 +2226,57 @@
         "secure": "Malipo Salama na ya Kuaminika"
       }
     }
+  },
+  "userGuide": {
+    "step": "Hatua {current} ya {total}",
+    "next": "Inayofuata",
+    "finish": "Maliza",
+    "back": "Rudi",
+    "steps": {
+      "dashboard": {
+        "title": "Muhtasari wa Dashibodi",
+        "desc": "Biashara yako kwa ufupi. Angalia vipimo muhimu na mauzo ya hivi karibuni."
+      },
+      "search": {
+        "title": "Utafutaji Kamili",
+        "desc": "Pata haraka bidhaa, ankara, au wateja kutoka popote kwenye jukwaa."
+      },
+      "notifications": {
+        "title": "Arifa",
+        "desc": "Pata taarifa za mfumo, tahadhari za akiba ndogo, na matangazo."
+      },
+      "management": {
+        "title": "Wafanyakazi & Maduka",
+        "desc": "Simamia timu yako, panga ruhusa, na dhibiti matawi mengi."
+      },
+      "inventory": {
+        "title": "Usimamizi wa Akiba",
+        "desc": "Ongeza bidhaa, dhibiti viwango vya akiba, na uratibu uhamishaji wa vitu."
+      },
+      "sales": {
+        "title": "Fuatilia Mauzo",
+        "desc": "Fanya miamala mipya na upate historia kamili ya mauzo yako."
+      },
+      "debts": {
+        "title": "Madeni & Mikopo",
+        "desc": "Fuatilia madeni ya wateja, mipango ya malipo, na madeni yaliyobaki."
+      },
+      "billing": {
+        "title": "Ankara & Malipo",
+        "desc": "Andaa ankara za kitaalamu, fuatilia malipo, na kagua historia ya bili."
+      },
+      "documents": {
+        "title": "Nyaraka",
+        "desc": "Hifadhi ya kati kwa faili zako muhimu, mikataba, na ripoti za mauzo."
+      },
+      "logs": {
+        "title": "Kumbukumbu",
+        "desc": "Orodha kamili ya vitendo vya watumiaji kwa uwazi na usalama (Admin)."
+      },
+      "profile": {
+        "title": "Wasifu Wako",
+        "desc": "Simamia mipangilio na mapendeleo ya akaunti yako hapa."
+      }
+    }
   }
 }

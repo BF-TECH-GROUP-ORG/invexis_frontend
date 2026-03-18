@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import SideBar from "./SideBar";
 import TopNavBar from "./NavBar";
+import UserGuide from "@/components/ui/UserGuide";
 
 export default function DashboardLayout({ children, expanded: controlledExpanded, setExpanded: controlledSetExpanded }) {
   const [internalExpanded, setInternalExpanded] = useState(true);
@@ -44,6 +45,8 @@ export default function DashboardLayout({ children, expanded: controlledExpanded
       >
         {children}
       </main>
+
+      <UserGuide />
     </div>
   );
 }
