@@ -7,6 +7,8 @@ import FormWrapper from "@/components/shared/FormWrapper";
 import { HiChevronLeft } from "react-icons/hi";
 import { useTranslations, useLocale } from "next-intl";
 
+import { AuthService } from "@/services/AuthService";
+
 export default function RequestOTPPage() {
   const t = useTranslations("auth.otp.request");
   const tAuth = useTranslations("auth");
@@ -23,7 +25,12 @@ export default function RequestOTPPage() {
     setError("");
 
     try {
-      router.push(`/${locale}/auth/otp-login/verify`);
+      const response = await AuthService.requestOtpLogin(identifier);
+      if (response.ok) {
+        router.push(`/${locale}/auth/otp-login/verify?identifier=${encodeURIComponent(identifier)}`);
+      } else {
+        setError(response.message || "Failed to send OTP");
+      }
     } catch (err) {
       setError(err.message || "Failed to send OTP");
     } finally {

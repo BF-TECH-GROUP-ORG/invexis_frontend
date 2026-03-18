@@ -137,8 +137,13 @@
         "title": "Verify OTP",
         "subtitle": "Enter the OTP sent to your email or phone",
         "label": "One-Time Password",
+        "identifierLabel": "Email or Phone Number",
         "verifyButton": "Verify OTP",
-        "verifying": "Verifying..."
+        "verifying": "Verifying...",
+        "errorInvalidOtp": "Invalid OTP. Please enter 6 digits.",
+        "errorIdentifierRequired": "Email or Phone is required.",
+        "errorVerificationFailed": "Verification failed. Please try again.",
+        "errorUnexpected": "An unexpected error occurred."
       }
     },
     "reset": {
@@ -146,7 +151,8 @@
         "title": "Reset Password",
         "subtitle": "Please enter the email address associated with your account and we'll email you a link to reset your password.",
         "sendButton": "Send Link",
-        "sending": "Sending..."
+        "sending": "Sending...",
+        "successMessage": "Reset link sent! Please check your email."
       },
       "reset": {
         "title": "Reset Password",
@@ -154,13 +160,17 @@
         "newPassword": "New Password",
         "confirmNewPassword": "Confirm New Password",
         "resetButton": "Reset Password",
-        "resetting": "Resetting..."
+        "resetting": "Resetting...",
+        "successMessage": "Password reset successfully!",
+        "errorPasswordsDoNotMatch": "Passwords do not match",
+        "errorInvalidToken": "Invalid or expired reset token"
       }
     },
     "loginButton": "Log in",
     "signupButton": "Sign up",
     "logout": "Log out",
     "forgotPassword": "Forgot password?",
+    "loginWithOtp": "Login with OTP",
     "backToHome": "Back to Home",
     "rememberMe": "Remember me",
     "returnToLogin": "Return to Login"

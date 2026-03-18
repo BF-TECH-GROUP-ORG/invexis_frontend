@@ -36,6 +36,15 @@ function FormField({ field }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPasswordField = field.type === "password";
 
+  if (field.type === "custom") {
+    return (
+      <div className="flex flex-col gap-3">
+        {field.label && <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{field.label}</label>}
+        {field.render ? field.render() : null}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {field.before && <section>{field.before}</section>}
@@ -210,28 +219,44 @@ export default function FormWrapper({
       {/* Divider */}
       {showDivider && (
         <div className="col-span-1 md:col-span-2 flex items-center my-10">
-          <Divider className="flex-grow" />
+          <Divider className="grow" />
           <span className="px-4 text-gray-500 font-medium">{t("or")}</span>
-          <Divider className="flex-grow" />
+          <Divider className="grow" />
         </div>
       )}
 
-      {/* OAuth Buttons */}
-      {oauthOptions.includes("google") && (
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => {
-              const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.invexix.com/api";
-              window.location.href = `${apiBase}/auth/google/signin`;
-            }}
-            className="flex items-center justify-center gap-3 w-full max-w-sm h-[52px] rounded-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-sm font-semibold text-gray-700 dark:text-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
-          >
-            <GoogleIcon />
-            <span>Continue with Google</span>
-          </button>
-        </div>
-      )}
+      {/* OAuth & Alternative Login Buttons */}
+      <div className="flex flex-col gap-4">
+        {oauthOptions.includes("google") && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.invexix.com/api";
+                window.location.href = `${apiBase}/auth/google/signin`;
+              }}
+              className="flex items-center justify-center gap-3 w-full h-[52px] rounded-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-sm font-semibold text-gray-700 dark:text-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+            >
+              <GoogleIcon />
+              <span>Continue with Google</span>
+            </button>
+          </div>
+        )}
+
+        {oauthOptions.includes("otp") && (
+          <div className="flex justify-center">
+            <Link
+              href={`/${locale}/auth/otp-login/request`}
+              className="flex items-center justify-center gap-3 w-full h-[52px] rounded-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-sm font-semibold text-zinc-900 dark:text-zinc-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12ZM16 12V16.5C16 17.3284 16.6716 18 17.5 18C18.3284 18 19 17.3284 19 16.5V12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19H14.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Login with One-Time Code</span>
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Extra Links */}
       {extraLinks.length > 0 && (

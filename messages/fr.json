@@ -134,11 +134,16 @@
         "sending": "Envoi en cours..."
       },
       "verify": {
-        "title": "Vérifier l'OTP",
-        "subtitle": "Entrez l'OTP envoyé à votre e-mail ou téléphone",
+        "title": "Vérifier le code OTP",
+        "subtitle": "Entrez le code OTP envoyé à votre e-mail ou téléphone",
         "label": "Mot de passe à usage unique",
-        "verifyButton": "Vérifier OTP",
-        "verifying": "Vérification..."
+        "identifierLabel": "E-mail ou numéro de téléphone",
+        "verifyButton": "Vérifier l'OTP",
+        "verifying": "Vérification...",
+        "errorInvalidOtp": "OTP invalide. Veuillez saisir 6 chiffres.",
+        "errorIdentifierRequired": "L'e-mail ou le téléphone est requis.",
+        "errorVerificationFailed": "La vérification a échoué. Veuillez réessayer.",
+        "errorUnexpected": "Une erreur inattendue s'est produite."
       }
     },
     "reset": {
@@ -154,13 +159,17 @@
         "newPassword": "Nouveau mot de passe",
         "confirmNewPassword": "Confirmer le nouveau mot de passe",
         "resetButton": "Réinitialiser le mot de passe",
-        "resetting": "Réinitialisation..."
+        "resetting": "Réinitialisation...",
+        "successMessage": "Mot de passe réinitialisé avec succès !",
+        "errorPasswordsDoNotMatch": "Les mots de passe ne correspondent pas",
+        "errorInvalidToken": "Jeton de réinitialisation invalide ou expiré"
       }
     },
     "loginButton": "Se connecter",
     "signupButton": "S'inscrire",
     "logout": "Se déconnecter",
     "forgotPassword": "Mot de passe oublié ?",
+    "loginWithOtp": "Se connecter avec OTP",
     "backToHome": "Retour à l'accueil",
     "rememberMe": "Se souvenir de moi",
     "returnToLogin": "Retour à la connexion"
