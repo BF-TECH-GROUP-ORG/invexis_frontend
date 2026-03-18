@@ -86,13 +86,13 @@ function VerifyOTPContent() {
 
   return (
     <div className="w-screen h-screen flex flex-col md:flex-row bg-white dark:bg-[#1a1a1a]">
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-orange-100 dark:bg-zinc-800">
+      <div className="hidden md:flex md:w-1/2 md:h-full items-center justify-center relative">
         <Image
-          src="/images/7.png"
-          alt="Verify OTP Illustration"
-          width={600}
-          height={600}
-          className="object-contain hidden md:block md:max-h-[30%] lg:max-h-[50%]"
+          src="/images/login.jpg"
+          alt="Login Illustration"
+          fill
+          className="object-cover"
+          priority
         />
       </div>
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-10">
