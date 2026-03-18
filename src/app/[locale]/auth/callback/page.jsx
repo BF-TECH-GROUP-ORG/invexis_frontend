@@ -40,7 +40,7 @@ function CallbackHandler() {
           if (result?.error) {
             console.error("NextAuth seed error:", result.error);
             toast.error("Failed to initialize session.");
-            router.push(`/${locale}/auth/login`);
+            window.location.href = `/${locale}/auth/login`;
             return;
           }
 
@@ -51,16 +51,18 @@ function CallbackHandler() {
 
           toast.success("Welcome back!");
 
-          // Redirect to dashboard or profile completion
+          // 🔄 Use window.location.href (full page reload) so the middleware
+          // reads the fresh NextAuth session cookie correctly.
+          // router.push() is a client-side nav and can race with signIn() cookie commit.
           if (user.requiresProfileCompletion) {
-            router.push(`/${locale}/welcome`);
+            window.location.href = `/${locale}/welcome`;
           } else {
-            router.push(`/${locale}/inventory/dashboard`);
+            window.location.href = `/${locale}/inventory/dashboard`;
           }
         } catch (e) {
           console.error("Error parsing auth data:", e);
           toast.error("Failed to process login data.");
-          router.push(`/${locale}/auth/login`);
+          window.location.href = `/${locale}/auth/login`;
         }
       }
     };
