@@ -12,7 +12,7 @@ export const AuthService = {
 
   requestOtpLogin: async (identifier) => {
     try {
-      const response = await api.post("/auth/login/otp", { identifier });
+      const response = await api.post("/auth/login/otp/request", { identifier });
       return response.data;
     } catch (err) {
       throw err.response?.data || err;
@@ -91,7 +91,7 @@ export const AuthService = {
 
   updateProfile: async (profileData) => {
     try {
-      const response = await api.put("/auth/me", profileData);
+      const response = await api.put("/auth/profile", profileData);
       return response.data;
     } catch (err) {
       throw err.response?.data || err;
@@ -100,7 +100,7 @@ export const AuthService = {
 
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await api.post("/auth/me/password/change", {
+      const response = await api.post("/auth/password/change", {
         currentPassword,
         newPassword,
       });
@@ -111,17 +111,17 @@ export const AuthService = {
   },
 
   setup2FA: async () => {
-    const response = await api.post("/auth/me/2fa/setup");
+    const response = await api.post("/auth/2fa/setup");
     return response.data;
   },
 
   verify2FASetup: async (token) => {
-    const response = await api.post("/auth/me/2fa/verify", { token });
+    const response = await api.post("/auth/2fa/verify", { token });
     return response.data;
   },
 
   disable2FA: async (token) => {
-    const response = await api.post("/auth/me/2fa/disable", { token });
+    const response = await api.post("/auth/2fa/disable", { token });
     return response.data;
   },
 
