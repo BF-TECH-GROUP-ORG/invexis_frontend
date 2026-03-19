@@ -2225,5 +2225,57 @@
         "secure": "Kwishyura neza kandi wizewe"
       }
     }
+  },
+  "userGuide": {
+    "step": "Akarere {current} kuri {total}",
+    "next": "Ibikurikira",
+    "finish": "Soza",
+    "back": "Subira Inyuma",
+    "steps": {
+      "dashboard": {
+        "title": "Ikibaho cy'Ibanze",
+        "desc": "Reba ubusobanuro bw'ibanze bw'ubucuruzi bwawe ndetse n'igurisha rya vuba."
+      },
+      "search": {
+        "title": "Gushakisha Muri Byose",
+        "desc": "Shaka byihuse ibicuruzwa, inyemezabuguzi, cyangwa abakiriya aho ari ho hose."
+      },
+      "notifications": {
+        "title": "Amakuru",
+        "desc": "Menya amakuru y'ingenzi muri sisitemu, umuburo w'ibicuruzwa bike, n'amatangazo."
+      },
+      "management": {
+        "title": "Abakozi n'Amaduka",
+        "desc": "Cunga abakozi bawe, ubaha uburenganzira, kandi ucunge amashami menshi."
+      },
+      "inventory": {
+        "title": "Gucunga Ububiko",
+        "desc": "Ongeramo ibicuruzwa, cunga ingano yabyo, kandi wimure ibicuruzwa hagati y'amaduka."
+      },
+      "sales": {
+        "title": "Igurisha",
+        "desc": "Yandikisha igurisha rishya urebe n'amateka yose y'ibyagurishijwe."
+      },
+      "debts": {
+        "title": "Imyenda",
+        "desc": "Kora igenzura ry'imyenda y'abakiriya, gahunda zo kwishyura, n'ibitarishyurwa."
+      },
+      "billing": {
+        "title": "Kwiyandikisha & Kwishyura",
+        "desc": "Tanga inyemezabuguzi zinoze, kurikirana uko kwishyura bigenda, n'amateka yabyo."
+      },
+      "documents": {
+        "title": "Inyandiko",
+        "desc": "Ububiko rusange bw'inyandiko zawe z'ingenzi z'ubucuruzi na za rapolo."
+      },
+      "logs": {
+        "title": "Amateka y'ibyakozwe",
+        "desc": "Reba ibyakozwe byose kugira ngo habeho gukorera mu mucyo (Kuri Admin gusa)."
+      },
+      "profile": {
+        "title": "Umwirondoro Wawe",
+        "desc": "Cunga imiterere y'akonti yawe n'amahitamo yawe hano."
+      }
+    }
   }
 }
