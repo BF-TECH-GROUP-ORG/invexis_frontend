@@ -42,6 +42,7 @@ const getNavItems = (t) => [
     icon: <LayoutDashboard size={22} />,
     path: "/inventory/dashboard",
     prefetch: true,
+    tourId: "tour-dashboard",
     id: "sidebar-dashboard",
   },
   {
@@ -49,6 +50,7 @@ const getNavItems = (t) => [
     icon: <Bell size={22} />,
     path: "/inventory/notifications",
     prefetch: true,
+    tourId: "tour-notifications-sidebar",
     id: "sidebar-notifications",
   },
 
@@ -57,16 +59,16 @@ const getNavItems = (t) => [
     title: t("sidebar.staffAndShops"),
     icon: <Users size={22} />,
     roles: ["company_admin"],
-    id: "sidebar-mgmt-staff",
+    tourId: "tour-management",
     children: [
       { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true, id: "sidebar-staff-list" },
-      { title: t("sidebar.shops"), path: "/inventory/companies", prefetch: true, id: "sidebar-shops" },
     ],
   },
   {
     title: t("sidebar.inventory"),
     icon: <Package size={22} />,
     roles: ["worker", "company_admin"],
+    tourId: "tour-inventory",
     id: "sidebar-mgmt-inventory",
     children: [
       { title: t("categories.list.title"), path: "/inventory/categories", prefetch: true, id: "sidebar-categories" },
@@ -81,6 +83,7 @@ const getNavItems = (t) => [
     title: t("sidebar.sales"),
     icon: <ShoppingBag size={22} />,
     roles: ["sales_manager", "company_admin"],
+    tourId: "tour-sales",
     id: "sidebar-mgmt-sales",
     children: [
       { title: t("sidebar.salesHistory"), path: "/inventory/sales/history", prefetch: true, id: "sidebar-sales-history" },
@@ -94,16 +97,16 @@ const getNavItems = (t) => [
     path: "/inventory/debts",
     roles: ["sales_manager", "company_admin"],
     prefetch: true,
+    tourId: "tour-debts",
     id: "sidebar-debts",
   },
   {
     title: t("sidebar.billingAndPayments"),
     icon: <Receipt size={22} />,
     roles: ["sales_manager", "company_admin"],
-    id: "sidebar-mgmt-billing",
+    tourId: "tour-billing",
     children: [
       { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
-      { title: t("sidebar.payments"), path: "/inventory/billing/payments", prefetch: true, id: "sidebar-payments" },
       { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" }
     ],
   },
@@ -113,7 +116,7 @@ const getNavItems = (t) => [
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
     prefetch: true,
-    id: "sidebar-documents",
+    tourId: "tour-documents",
   },
   {
     title: t("sidebar.logsAndAudits"),
@@ -121,6 +124,7 @@ const getNavItems = (t) => [
     path: "/inventory/logs",
     roles: ["company_admin"],
     prefetch: true,
+    tourId: "tour-logs",
     id: "sidebar-logs",
   },
 ];
@@ -699,6 +703,7 @@ export default function SideBar({
                     {!item.children && (
                       <Link
                         href={item.path}
+                        data-tour={item.tourId}
                         id={item.id}
                         onMouseEnter={() => prefetchData(item)}
                         onClick={() => {
@@ -725,6 +730,7 @@ export default function SideBar({
                     {item.children && (
                       <>
                         <div
+                          data-tour={item.tourId}
                           id={item.id}
                           onClick={(e) => {
                             if (expanded) {
@@ -819,6 +825,7 @@ export default function SideBar({
                     {!item.children && visibleFor(item) && (
                       <Link
                         href={item.path}
+                        data-tour={item.tourId}
                         onMouseEnter={() => prefetchData(item)}
                         onClick={() => {
                           if (!isActive(item.path)) {
@@ -845,6 +852,7 @@ export default function SideBar({
                       item.children.filter(visibleFor).length > 0 && (
                         <>
                           <div
+                            data-tour={item.tourId}
                             onClick={(e) => {
                               if (expanded) {
                                 // Expanded sidebar: toggle the accordion

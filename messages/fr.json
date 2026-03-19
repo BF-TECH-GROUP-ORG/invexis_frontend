@@ -2225,5 +2225,57 @@
         "secure": "Paiement sécurisé et fiable"
       }
     }
+  },
+  "userGuide": {
+    "step": "Étape {current} sur {total}",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "back": "Retour",
+    "steps": {
+      "dashboard": {
+        "title": "Tableau de Bord",
+        "desc": "Votre entreprise en un coup d'œil. Accédez aux indicateurs clés et aux données récentes."
+      },
+      "search": {
+        "title": "Recherche Globale",
+        "desc": "Trouvez rapidement des produits, des factures ou des clients partout sur la plateforme."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Restez informé des alertes système, avertissements de stock faible et annonces."
+      },
+      "management": {
+        "title": "Personnel & Boutiques",
+        "desc": "Gérez les membres de votre équipe, attribuez des permissions et gérez plusieurs succursales."
+      },
+      "inventory": {
+        "title": "Gestion des Stocks",
+        "desc": "Ajoutez des produits, gérez les niveaux de stock et coordonnez les transferts."
+      },
+      "sales": {
+        "title": "Suivi des Ventes",
+        "desc": "Traitez de nouvelles transactions et accédez à l'historique de vos ventes."
+      },
+      "debts": {
+        "title": "Dettes & Crédits",
+        "desc": "Suivez les dettes des clients, les échéanciers de paiement et gérez les soldes en suspens."
+      },
+      "billing": {
+        "title": "Facturation & Paiements",
+        "desc": "Générez des factures professionnelles, suivez les paiements et revoyez l'historique."
+      },
+      "documents": {
+        "title": "Documents",
+        "desc": "Stockage centralisé pour vos fichiers importants, contrats et rapports d'exportation."
+      },
+      "logs": {
+        "title": "Journaux d'Audit",
+        "desc": "Une trace complète des actions des utilisateurs pour la transparence et la sécurité (Admin)."
+      },
+      "profile": {
+        "title": "Votre Profil",
+        "desc": "Gérez les paramètres et préférences de votre compte ici."
+      }
+    }
   }
 }

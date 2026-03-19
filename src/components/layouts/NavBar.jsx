@@ -112,7 +112,7 @@ export default function TopNavBar({ expanded = true }) {
         </div>
 
         {/* Middle Section - Modern Search Bar */}
-        <div className="flex-1 max-w-2xl mx-8 hidden md:block">
+        <div className="flex-1 max-w-2xl mx-8 hidden md:block" data-tour="tour-search">
           <div className="relative group">
             <input
               ref={searchInputRef}
@@ -141,6 +141,7 @@ export default function TopNavBar({ expanded = true }) {
             className="relative p-2.5 rounded-xl border border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition-all group overflow-visible"
             onClick={() => setNotifOpen(true)}
             aria-label="Notifications"
+            data-tour="tour-notifications"
           >
             <motion.div animate={controls}>
               <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
@@ -164,6 +165,7 @@ export default function TopNavBar({ expanded = true }) {
             id="nav-profile"
             onClick={() => setProfileOpen(true)}
             className="flex items-center gap-3 p-1.5 pl-1.5 pr-3 rounded-2xl border border-transparent hover:border-gray-200 hover:bg-gray-50/50 transition-all group active:scale-95"
+            data-tour="tour-profile"
           >
             <div className="relative">
               <Image
