@@ -9,6 +9,7 @@ const publicPages = [
     "/auth/signup",
     "/auth/callback",
     "/auth/verify-email",
+    "/auth/verify-otp",
     "/auth/reset-password/*",
     "/auth/otp-login/*",
     "/welcome",
