@@ -29,8 +29,8 @@ function VerifyOTPContent() {
     if (otpParam) setOtp(otpParam);
     if (identifierParam) setIdentifier(identifierParam);
 
-    // Auto-submit if both are present
-    if (otpParam && identifierParam) {
+    // Auto-submit if both are present and not already submitting
+    if (otpParam && identifierParam && !submitting) {
       handleVerify(otpParam, identifierParam);
     }
   }, [searchParams]);
