@@ -16,6 +16,9 @@ import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { startTour, tourMapping } from "@/lib/assistant/tourService";
 
+// Import tour styles
+import "@/styles/tour.css";
+
 export default function AssistantSidePanel({ isOpen, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -84,18 +87,13 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     
     const text = textOverride || input;
     
-    // We use the audioBlob from the state. 
-    // If we're currently recording, the user must stop first.
-    if (isRecording) {
-        return; // Button should be disabled or not show anyway
-    }
+    if (isRecording) return;
 
     if (!text.trim() && !selectedImage && !audioBlob) return;
 
     let finalPrompt = text;
     let finalImage = selectedImage;
 
-    // If there's a voice recording but no text, we transcribe first
     if (audioBlob && !text.trim()) {
         setIsTranscribing(true);
         try {
@@ -171,23 +169,34 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     const tour = tourMapping[targetPath];
     setIsNavigating(true);
     onClose(); 
+    
+    // Auto-expand sidebar if it's an inventory page and sidebar is collapsed
     if (!isSidebarExpanded && targetPath.startsWith('/inventory')) {
-        const sidebarToggle = document.querySelector('#sidebar-toggle-btn') || document.querySelector('[aria-label="Expand sidebar"]');
+        const sidebarToggle = document.querySelector('#sidebar-toggle-btn');
         if (sidebarToggle) {
             await simulateCursorToElement('#sidebar-toggle-btn');
             sidebarToggle.click();
             await new Promise(r => setTimeout(r, 500));
         }
     }
+    
     if (!tour) {
         router.push(targetPath);
         setIsNavigating(false);
         setNavPending(null);
         return;
     }
-    await simulateCursorToElement(tour.steps[0].element);
-    setCursorPos(prev => ({ ...prev, opacity: 0 }));
-    startTour(targetPath, () => { setIsNavigating(false); setNavPending(null); }, pathname);
+
+    // Start the enhanced tour with navigation support
+    startTour(
+      targetPath, 
+      () => { 
+        setIsNavigating(false); 
+        setNavPending(null); 
+      }, 
+      pathname, 
+      (p) => router.push(p)
+    );
   };
 
   const formatTime = (date) => {
@@ -205,12 +214,6 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
   return (
     <>
       <style jsx global>{`
-        .inara-tour-popover { border-radius: 20px !important; padding: 20px !important; border: 1px solid #ff782d !important; background: white !important; color: #081422 !important; box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important; max-width: 300px !important; }
-        .dark .inara-tour-popover { background: #081422 !important; color: white !important; }
-        .driver-popover-title { color: #ff782d !important; font-family: 'Outfit', 'Metropolis', sans-serif !important; font-weight: 800 !important; font-size: 18px !important; margin-bottom: 8px !important; }
-        .driver-popover-description { color: #475569 !important; font-family: inherit !important; font-size: 14px !important; line-height: 1.5 !important; }
-        .dark .driver-popover-description { color: #cbd5e1 !important; }
-        .driver-popover-next-btn, .driver-popover-prev-btn { background: #ff782d !important; border-radius: 12px !important; border: none !important; text-shadow: none !important; color: white !important; font-weight: 700 !important; padding: 8px 16px !important; }
         .inara-click-ripple { position: fixed; width: 40px; height: 40px; background: rgba(255, 120, 45, 0.4); border-radius: 50%; transform: translate(-50%, -50%) scale(0); animation: inara-ripple 0.8s ease-out; pointer-events: none; z-index: 9999; }
         @keyframes inara-ripple { to { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
       `}</style>

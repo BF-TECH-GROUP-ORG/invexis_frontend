@@ -131,36 +131,32 @@ export default async function RootLayout({ children, params }) {
   };
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-      </head>
-      <body className="font-metropolis antialiased" suppressHydrationWarning>
-        <AppRouterCacheProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ClientProviders session={session}>
-              <LoadingProvider>
-                <ThemeRegistry>
-                  {/* Initialize settings from localStorage */}
-                  <SettingsInitializer />
-                  {/* Global AI Assistant */}
-                  <GlobalAssistant />
-                  <Suspense fallback={null}>
-                    <LayoutWrapper>{children}</LayoutWrapper>
-                  </Suspense>
-                </ThemeRegistry>
-              </LoadingProvider>
-            </ClientProviders>
-          </NextIntlClientProvider>
-        </AppRouterCacheProvider>
-      </body>
-    </html>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <AppRouterCacheProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ClientProviders session={session}>
+            <LoadingProvider>
+              <ThemeRegistry>
+                {/* Initialize settings from localStorage */}
+                <SettingsInitializer />
+                {/* Global AI Assistant */}
+                <GlobalAssistant />
+                <Suspense fallback={null}>
+                  <LayoutWrapper>{children}</LayoutWrapper>
+                </Suspense>
+              </ThemeRegistry>
+            </LoadingProvider>
+          </ClientProviders>
+        </NextIntlClientProvider>
+      </AppRouterCacheProvider>
+    </>
   );
 }
