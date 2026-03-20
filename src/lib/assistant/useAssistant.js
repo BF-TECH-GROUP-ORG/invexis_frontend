@@ -8,10 +8,13 @@ export function useAssistant() {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);
 
-  const sendUserMessage = useCallback(async (text, extraContext = {}) => {
+  const sendUserMessage = useCallback(async (text, extraContext = {}, image = null) => {
+    if (!text && !image) return;
+
     const timestamp = new Date();
-    const newMessages = [...messages, { role: 'user', content: text, timestamp }];
-    setMessages(newMessages);
+    const userMessage = { role: 'user', content: text, timestamp };
+    
+    setMessages(prev => [...prev, userMessage]);
     setLoading(true);
     setError(null);
 
@@ -21,17 +24,31 @@ export function useAssistant() {
         userRole: user?.role,
         ...extraContext 
       };
-      const reply = await sendMessage(newMessages, context);
+      
+      // We need the current messages + the new one for the API
+      // Since setMessages is async, we use the functional update or just build it here
+      const historyForApi = [...messages, userMessage];
+      
+      const reply = await sendMessage(historyForApi, context, image);
+      
+      if (!reply) throw new Error("No response from assistant");
+
       setMessages(prev => [...prev, { role: 'assistant', content: reply, timestamp: new Date() }]);
       return reply;
     } catch (err) {
-      setError(err.message);
+      console.error("Assistant Error:", err);
+      setError(err.message || "Failed to get a response. Please check your connection.");
+      // Optional: remove the user message if it failed? 
+      // Usually better to keep it and let user retry.
     } finally {
       setLoading(false);
     }
   }, [messages, isAuthenticated, user]);
 
-  const clearMessages = () => setMessages([]);
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
 
   return { messages, loading, error, sendUserMessage, clearMessages };
 }

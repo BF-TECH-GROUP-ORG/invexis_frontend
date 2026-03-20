@@ -33,6 +33,7 @@ export default function UsersPageHeader({ onAddUser }) {
         </div>
 
         <Button
+          id="add-worker-btn"
           variant="contained"
           startIcon={<HiUserAdd size={20} />}
           onClick={onAddUser}
