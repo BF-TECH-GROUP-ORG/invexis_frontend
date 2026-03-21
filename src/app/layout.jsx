@@ -1,4 +1,6 @@
 
+import NetworkBanner from '@/components/ui/NetworkBanner';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -7,6 +9,7 @@ export default function RootLayout({ children }) {
             though metadata export handles most of them. */}
       </head>
       <body className="font-metropolis antialiased" suppressHydrationWarning>
+        <NetworkBanner />
         {children}
       </body>
     </html>

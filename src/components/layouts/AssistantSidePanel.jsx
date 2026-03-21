@@ -7,24 +7,43 @@ import {
   Compass, Languages, ShieldCheck, Zap, MousePointer2, 
   Copy, RotateCcw, Edit2, Check, CheckCircle2, ChevronRight,
   Package, ShoppingCart, Users, Settings, Mic, MicOff, Image as ImageIcon, 
-  Play, Pause, Paperclip, Square, RotateCw
+  Play, Pause, Paperclip, Square, RotateCw, RefreshCcw
 } from "lucide-react";
 import { useAssistant } from "@/lib/assistant/useAssistant";
-import { transcribeAudio } from "@/lib/assistant/aiClient";
+import { transcribeAudio, sendMessage } from "@/lib/assistant/aiClient";
 import { useVoiceRecorder } from "@/lib/assistant/useVoiceRecorder";
+import { useTextToSpeech } from "@/lib/assistant/useTextToSpeech";
 import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { startTour, tourMapping } from "@/lib/assistant/tourService";
+import InaraResponse from "../Assistant/InaraResponse";
+import AssistantNetworkError from "../Assistant/AssistantNetworkError";
+import ReadAloudButton from "../Assistant/ReadAloudButton";
 
 // Import tour styles
 import "@/styles/tour.css";
-
 export default function AssistantSidePanel({ isOpen, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
-  const { messages, loading, error, sendUserMessage, clearMessages } = useAssistant();
+  const { messages, setMessages, loading, error, quality, online, sendUserMessage, clearMessages, dismissError } = useAssistant();
+  const tts = useTextToSpeech();
+
+  const [ttsLang, setTtsLang] = useState(locale); // Global TTS language
   const [input, setInput] = useState("");
+  // ... rest of state ...
+
+  const cycleTtsLang = () => {
+    const langs = ['en', 'fr', 'sw', 'rw'];
+    const nextIdx = (langs.indexOf(ttsLang) + 1) % langs.length;
+    setTtsLang(langs[nextIdx]);
+  };
+
+  const getLangLabel = (l) => {
+    const labels = { en: 'English', fr: 'French', sw: 'Swahili', rw: 'Kinyarwanda' };
+    return labels[l] || l.toUpperCase();
+  };
+
   const [navPending, setNavPending] = useState(null); 
   const [isNavigating, setIsNavigating] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0, opacity: 0 });
@@ -147,6 +166,28 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     }
   };
 
+  const handleCopy = (text, id) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleEdit = (text, index) => {
+    setInput(text);
+    // Remove the message and all subsequent messages
+    setMessages(prev => prev.slice(0, index));
+  };
+
+  const handleRefresh = async (index) => {
+    // Find the user message before this assistant message
+    const userMsg = messages[index - 1];
+    if (userMsg && userMsg.role === 'user') {
+      // Remove the assistant message and re-send
+      setMessages(prev => prev.slice(0, index));
+      handleSend(null, userMsg.content);
+    }
+  };
+
   const simulateCursorToElement = async (selector) => {
     const element = document.querySelector(selector);
     if (!element) return;
@@ -216,6 +257,66 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
       <style jsx global>{`
         .inara-click-ripple { position: fixed; width: 40px; height: 40px; background: rgba(255, 120, 45, 0.4); border-radius: 50%; transform: translate(-50%, -50%) scale(0); animation: inara-ripple 0.8s ease-out; pointer-events: none; z-index: 9999; }
         @keyframes inara-ripple { to { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
+
+        /* Enhanced Markdown Styling */
+        .inara-markdown-content {
+          color: inherit;
+          font-family: inherit;
+        }
+        .inara-markdown-content p {
+          margin-bottom: 12px;
+        }
+        .inara-markdown-content p:last-child {
+          margin-bottom: 0;
+        }
+        .inara-markdown-content strong {
+          color: #ff782d;
+          font-weight: 800;
+        }
+        .inara-markdown-content em {
+          color: #64748b;
+          font-style: italic;
+        }
+        .inara-markdown-content h1, 
+        .inara-markdown-content h2, 
+        .inara-markdown-content h3 {
+          color: #081422;
+          font-weight: 900;
+          margin-top: 16px;
+          margin-bottom: 8px;
+          line-height: 1.2;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+        }
+        .inara-markdown-content h1 { font-size: 1.25rem; }
+        .inara-markdown-content h2 { font-size: 1.1rem; }
+        .inara-markdown-content h3 { font-size: 1rem; }
+        
+        .inara-markdown-content ul, 
+        .inara-markdown-content ol {
+          margin-bottom: 12px;
+          padding-left: 20px;
+        }
+        .inara-markdown-content li {
+          margin-bottom: 6px;
+          position: relative;
+        }
+        .inara-markdown-content ul li::before {
+          content: "•";
+          color: #ff782d;
+          font-weight: bold;
+          display: inline-block; 
+          width: 1em;
+          margin-left: -1em;
+        }
+        .inara-markdown-content code {
+          background: rgba(0,0,0,0.05);
+          padding: 2px 6px;
+          border-radius: 6px;
+          font-family: monospace;
+          font-size: 0.9em;
+          color: #ea580c;
+        }
       `}</style>
 
       {/* MINI FLOATING ACTION BUTTON */}
@@ -255,6 +356,14 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 relative z-10">
+                  <button 
+                    onClick={cycleTtsLang} 
+                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/5 rounded-xl transition-all active:scale-95 group" 
+                    title={`Reading Language: ${getLangLabel(ttsLang)}`}
+                  >
+                    <Languages size={18} className="text-[#ff782d]" />
+                    <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-white">{ttsLang}</span>
+                  </button>
                   <button onClick={clearMessages} className="p-2 hover:bg-white/5 rounded-xl transition-all active:scale-90" title="Clear Chat"><Trash2 size={18} className="text-slate-400" /></button>
                   <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-all active:scale-90"><X size={22} className="text-slate-400" /></button>
                 </div>
@@ -287,11 +396,39 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Inara Guide</span>
                           </div>
                       )}
-                      <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
-                          {msg.content.replace(/```(?:json)?\s*[\s\S]*?```/g, "").replace(/\{[\s\S]*?"action"\s*:\s*"navigate"[\s\S]*?\}/g, "").trim()}
+                      <div className="text-[14px] leading-relaxed">
+                          {msg.role === "assistant" 
+                            ? <InaraResponse content={msg.content} /> 
+                            : <div className="whitespace-pre-wrap">{msg.content}</div>
+                          }
                       </div>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 px-2">{formatTime(msg.timestamp)}</span>
+                    
+                    {/* Interactive Controls Row */}
+                    <div className={`flex items-center gap-3 mt-1.5 px-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{formatTime(msg.timestamp)}</span>
+                        
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleCopy(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Copy">
+                                {copiedId === idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                            </button>
+                            
+                            {msg.role === 'user' && (
+                                <button onClick={() => handleEdit(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Edit">
+                                    <Edit2 size={12} />
+                                </button>
+                            )}
+                            
+                            {msg.role === 'assistant' && (
+                                <>
+                                    <button onClick={() => handleRefresh(idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Regenerate">
+                                        <RefreshCcw size={12} />
+                                    </button>
+                                    <ReadAloudButton text={msg.content} id={idx} tts={tts} lang={ttsLang} />
+                                </>
+                            )}
+                        </div>
+                    </div>
                   </motion.div>
                 ))}
 
@@ -331,9 +468,24 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                 {/* Error Display */}
                 <AnimatePresence>
                   {error && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600" >
-                      <div className="p-1 bg-red-100 rounded-lg"><X size={14} /></div>
-                      <p className="text-[11px] font-bold leading-tight">{error}</p>
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4" >
+                      {error.type === 'offline' || error.type === 'slow' ? (
+                        <AssistantNetworkError 
+                          quality={quality} 
+                          onRetry={() => {
+                            dismissError();
+                            error.retryFn?.();
+                          }} 
+                        />
+                      ) : (
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600">
+                          <div className="p-1 bg-red-100 rounded-lg"><X size={14} /></div>
+                          <div className="flex-1">
+                            <p className="text-[11px] font-bold leading-tight">{error.message || String(error)}</p>
+                          </div>
+                          <button type="button" onClick={dismissError} className="p-1 hover:bg-red-100 rounded-lg transition-colors"><X size={12} /></button>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
