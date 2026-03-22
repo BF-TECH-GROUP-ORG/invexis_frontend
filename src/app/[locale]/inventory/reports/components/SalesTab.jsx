@@ -165,90 +165,60 @@ const SalesTab = ({ dateRange }) => {
                 </Box>
 
                 {/* Top 5 KPIs */}
-                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4 }}>
-                    {/* KPI 1: Total Sales Revenue */}
-                    <Grid item xs={1}>
-                        <Box
-                            onClick={() => handleKPIClick('revenue')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        >
-                            <ReportKPI
-                                title={t('sales.kpis.revenue')}
-                                value={formatCurrency(stats?.totalRevenue || 0)}
-                                icon={AttachMoneyIcon}
-                                color="#FF6D00"
-                                trend={stats?.growthPercent >= 0 ? "up" : "down"}
-                                trendValue={`${stats?.growthPercent}%`}
-                                index={0}
-                            />
-                        </Box>
-                    </Grid>
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    <div onClick={() => handleKPIClick('revenue')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+                        <ReportKPI
+                            title={t('sales.kpis.revenue')}
+                            value={formatCurrency(stats?.totalRevenue || 0)}
+                            icon={AttachMoneyIcon}
+                            color="#FF6D00"
+                            trend={stats?.growthPercent >= 0 ? "up" : "down"}
+                            trendValue={`${stats?.growthPercent}%`}
+                            index={0}
+                        />
+                    </div>
 
-                    {/* KPI 2: Total Sales Transactions */}
-                    <Grid item xs={1}>
-                        <Box
-                            onClick={() => handleKPIClick('transactions')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        >
-                            <ReportKPI
-                                title={t('sales.kpis.transactions')}
-                                value={stats?.totalTransactions || 0}
-                                icon={ShoppingCartIcon}
-                                color="#3B82F6"
-                                index={1}
-                            />
-                        </Box>
-                    </Grid>
+                    <div onClick={() => handleKPIClick('transactions')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+                        <ReportKPI
+                            title={t('sales.kpis.transactions')}
+                            value={stats?.totalTransactions || 0}
+                            icon={ShoppingCartIcon}
+                            color="#3B82F6"
+                            index={1}
+                        />
+                    </div>
 
-                    {/* KPI 3: Average Sale Value */}
-                    <Grid item xs={1}>
-                        <Box
-                            onClick={() => handleKPIClick('avgValue')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        >
-                            <ReportKPI
-                                title={t('sales.kpis.avgValue')}
-                                value={formatCurrency(stats?.averageOrderValue || 0)}
-                                icon={ReceiptLongIcon}
-                                color="#8B5CF6"
-                                index={2}
-                            />
-                        </Box>
-                    </Grid>
+                    <div onClick={() => handleKPIClick('avgValue')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+                        <ReportKPI
+                            title={t('sales.kpis.avgValue')}
+                            value={formatCurrency(stats?.averageOrderValue || 0)}
+                            icon={ReceiptLongIcon}
+                            color="#8B5CF6"
+                            index={2}
+                        />
+                    </div>
 
-                    {/* KPI 4: Top-Selling Product */}
-                    <Grid item xs={1}>
-                        <Box
-                            onClick={() => handleKPIClick('topProduct')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        >
-                            <ReportKPI
-                                title={t('sales.kpis.topProduct')}
-                                value={`${stats?.topProduct} (${stats?.topProductQuantity} ${t('common.units')})`}
-                                icon={EmojiEventsIcon}
-                                color="#F59E0B"
-                                index={3}
-                            />
-                        </Box>
-                    </Grid>
+                    <div onClick={() => handleKPIClick('topProduct')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+                        <ReportKPI
+                            title={t('sales.kpis.topProduct')}
+                            value={`${stats?.topProduct} (${stats?.topProductQuantity} ${t('common.units')})`}
+                            icon={EmojiEventsIcon}
+                            color="#F59E0B"
+                            index={3}
+                        />
+                    </div>
 
-                    {/* KPI 5: Sales Growth / Decline */}
-                    <Grid item xs={1}>
-                        <Box
-                            onClick={() => handleKPIClick('growth')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        >
-                            <ReportKPI
-                                title={t('sales.kpis.growth')}
-                                value={`${stats?.growthPercent}%`}
-                                icon={WhatshotIcon}
-                                color={stats?.growthPercent >= 0 ? "#10B981" : "#EF4444"}
-                                trend={stats?.growthPercent >= 0 ? "up" : "down"}
-                                index={4}
-                            />
-                        </Box>
-                    </Grid>
-                </Grid>
+                    <div onClick={() => handleKPIClick('growth')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+                        <ReportKPI
+                            title={t('sales.kpis.growth')}
+                            value={`${stats?.growthPercent}%`}
+                            icon={WhatshotIcon}
+                            color={stats?.growthPercent >= 0 ? "#10B981" : "#EF4444"}
+                            trend={stats?.growthPercent >= 0 ? "up" : "down"}
+                            index={4}
+                        />
+                    </div>
+                </div>
 
                 {/* Hierarchical Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
