@@ -6,7 +6,7 @@ const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales`;
 const DEBT_URL = `/debt`;
 
 export const getAllProducts = async (companyId = null, options = {}) => {
-  const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
+  const cacheStrategy = getCacheStrategy("INVENTORY", "STOCK");
 
 
   try {

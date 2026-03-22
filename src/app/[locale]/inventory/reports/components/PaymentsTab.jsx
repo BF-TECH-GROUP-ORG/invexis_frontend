@@ -29,6 +29,14 @@ const PaymentsTab = ({ dateRange }) => {
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
 
+    // Filtering State
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
+    const [selectedActor, setSelectedActor] = useState(t('common.all'));
+
+    // Menu Anchors
+    const [branchAnchor, setBranchAnchor] = useState(null);
+    const [actorAnchor, setActorAnchor] = useState(null);
+
     const {
         data: rawPayments = [],
         isLoading: loading,
@@ -42,14 +50,6 @@ const PaymentsTab = ({ dateRange }) => {
         refetchOnMount: 'always',
         refetchOnWindowFocus: 'always',
     });
-
-    // Filtering State
-    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
-    const [selectedActor, setSelectedActor] = useState(t('common.all'));
-
-    // Menu Anchors
-    const [branchAnchor, setBranchAnchor] = useState(null);
-    const [actorAnchor, setActorAnchor] = useState(null);
 
     // Process KPIs and report data structure
     const { kpis, reportData } = React.useMemo(() => {
