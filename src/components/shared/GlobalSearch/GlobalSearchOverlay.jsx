@@ -154,7 +154,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                   animate={{ opacity: 1, y: 0 }}
                   className="py-16 text-center"
                 >
-                  <div className="inline-flex p-6 rounded-[2rem] bg-gray-100 dark:bg-gray-800 mb-6">
+                  <div className="inline-flex p-6 rounded-4xl bg-gray-100 dark:bg-gray-800 mb-6">
                     <Search className="w-10 h-10 text-gray-400" />
                   </div>
                   <h3 className="text-2xl font-black text-gray-900 dark:text-white">Quick Search</h3>
@@ -183,7 +183,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                   className="space-y-6"
                 >
                   {isRecentView && (
-                    <div className="flex items-center justify-between px-2 mb-[-1rem]">
+                    <div className="flex items-center justify-between px-2 -mb-4">
                       <div className="flex items-center gap-2 opacity-50">
                         <Clock size={14} className="text-gray-400" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Recent Searches</span>
@@ -205,7 +205,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                         variants={itemVariants}
                         onClick={() => handleSelect(item)}
                         onMouseEnter={() => setActiveIndex(index)}
-                        className={`w-full flex items-center gap-5 p-4 rounded-[1.5rem] transition-all duration-300 group text-left ${
+                        className={`w-full flex items-center gap-5 p-4 rounded-3xl transition-all duration-300 group text-left ${
                           activeIndex === index 
                             ? "bg-white dark:bg-gray-800 shadow-sm ring-1 ring-orange-500/20" 
                             : "hover:bg-white/40 dark:hover:bg-gray-800/40"
@@ -254,7 +254,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                   animate={{ opacity: 1, scale: 1 }}
                   className="py-16 text-center"
                 >
-                  <div className="inline-flex p-6 rounded-[2rem] bg-gray-100 dark:bg-gray-800 mb-6 border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <div className="inline-flex p-6 rounded-4xl bg-gray-100 dark:bg-gray-800 mb-6 border-2 border-dashed border-gray-200 dark:border-gray-700">
                     <Search className="w-10 h-10 text-gray-300" />
                   </div>
                   <h3 className="text-2xl font-black text-gray-400">No results for "{query}"</h3>

@@ -30,19 +30,17 @@ const InventoryTab = ({ dateRange }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const filter = dateRange.filter || 'daily';
 
     const {
         data: rawReportData,
         isLoading: loading,
         error
     } = useQuery({
-        queryKey: ['report-inventory', companyId, startDate, endDate],
-        queryFn: () => reportService.getStockMovement({ companyId, startDate, endDate }),
+        queryKey: ['report-inventory', companyId, startDate, endDate, filter],
+        queryFn: () => reportService.getInventoryReport(companyId, { startDate, endDate, filter }),
         enabled: !!companyId,
-        staleTime: Infinity,
-        gcTime: 10 * 60 * 1000,
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: 'always',
+        staleTime: 5 * 60 * 1000,
     });
 
     // Header Selection State
@@ -51,37 +49,68 @@ const InventoryTab = ({ dateRange }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
 
-    // Transform and group data by date and shop if necessary
-    const reportData = React.useMemo(() => {
-        if (!rawReportData) return [];
-        
-        // If the backend already returns the nested structure, return it
-        if (Array.isArray(rawReportData) && rawReportData.length > 0 && rawReportData[0].date) {
-            let data = rawReportData;
-            if (selectedBranch === t('common.none')) return [];
-            if (selectedBranch !== t('common.all')) {
-                data = data.map(day => ({
-                    ...day,
-                    shops: day.shops.filter(shop => shop.name === selectedBranch || shop.shopId === selectedBranch)
-                }));
-            }
-            return data;
-        }
-
-        // Otherwise, return as is or handle flat list (assuming nested structure for now as it matches UI)
-        return rawReportData.data || rawReportData;
-    }, [rawReportData, selectedBranch, t]);
-
-    // Summary KPIs from data
+    // Summary KPIs from data (grandTotal)
     const summary = React.useMemo(() => {
-        if (!rawReportData) return null;
-        return rawReportData.summary || {
-            totalValue: 0,
-            totalItems: 0,
-            lowStockCount: 0,
-            outOfStockCount: 0
+        if (!rawReportData?.data?.grandTotal) return null;
+        const gt = rawReportData.data.grandTotal;
+        return {
+            totalValue: gt.value?.totalValue || 0,
+            totalItems: gt.kpis?.totalItems || 0,
+            lowStockCount: gt.kpis?.lowStockItems || 0,
+            outOfStockCount: gt.kpis?.outOfStock || 0,
+            abcCounts: gt.kpis?.abcCounts || { a: 0, b: 0, c: 0 }
         };
     }, [rawReportData]);
+
+    // Transform and group data by date and shop if necessary
+    const reportData = React.useMemo(() => {
+        if (!rawReportData?.data) return [];
+        const { branches, period } = rawReportData.data;
+        
+        // The backend returns a single snapshot for the period.
+        // We'll wrap it in a pseudo-"day" structure to maintain the current table rendering logic
+        // but using the period string as the date.
+        const periodText = period 
+            ? `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`
+            : t('common.currentPeriod');
+
+        const filteredBranches = selectedBranch === t('common.all') 
+            ? branches 
+            : branches.filter(b => b.name === selectedBranch || b.shopId === selectedBranch);
+
+        return [{
+            date: periodText,
+            shops: filteredBranches.map(branch => ({
+                id: branch.shopId,
+                name: branch.name || `Branch (${branch.shopId.substring(0,8)})`,
+                products: branch.products.map(p => ({
+                    id: p.productId,
+                    name: p.productName,
+                    category: p.categoryName || 'Uncategorized',
+                    movement: {
+                        open: p.stats.movement.open,
+                        in: p.stats.movement.in,
+                        out: p.stats.movement.out,
+                        close: p.stats.movement.close
+                    },
+                    value: {
+                        unitCost: p.stats.value.unitCost,
+                        totalValue: p.stats.value.totalValue
+                    },
+                    status: {
+                        reorder: p.stats.status.reorderThreshold,
+                        status: p.stats.status.stockStatus,
+                        age: p.stats.status.ageDays,
+                        abcClass: p.stats.status.abcClass
+                    },
+                    tracking: {
+                        lastRestock: p.stats.tracking.lastRestockDate ? dayjs(p.stats.tracking.lastRestockDate).format('YYYY-MM-DD') : '-',
+                        lastMove: p.stats.tracking.lastMoveDate ? dayjs(p.stats.tracking.lastMoveDate).format('YYYY-MM-DD HH:mm') : '-'
+                    }
+                }))
+            }))
+        }];
+    }, [rawReportData, selectedBranch, t]);
 
     if (loading) {
         return (
@@ -281,7 +310,14 @@ const InventoryTab = ({ dateRange }) => {
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center">{product.status.age}</TableCell>
-                                                        <TableCell align="center">{product.tracking.lastRestock}</TableCell>
+                                                        <TableCell align="center">
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                                <Typography variant="caption" sx={{ fontWeight: '700', color: product.status.abcClass === 'A' ? '#16A34A' : product.status.abcClass === 'B' ? '#D97706' : '#6B7280' }}>
+                                                                    Class {product.status.abcClass}
+                                                                </Typography>
+                                                                <Typography sx={{ fontSize: '0.65rem' }}>{product.tracking.lastRestock}</Typography>
+                                                            </Box>
+                                                        </TableCell>
                                                         <TableCell align="center" sx={{ borderRight: "none" }}>{product.tracking.lastMove}</TableCell>
                                                     </TableRow>
                                                 );
@@ -305,10 +341,11 @@ const InventoryTab = ({ dateRange }) => {
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
-                    <Divider />
-                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                    {rawReportData?.data?.branches?.map((branch) => (
+                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.name || branch.shopId)}>
+                            {branch.name || `Branch ${branch.shopId.substring(0, 8)}`}
+                        </MenuItem>
+                    ))}
                 </Menu>
             </Box>
         </Fade>
