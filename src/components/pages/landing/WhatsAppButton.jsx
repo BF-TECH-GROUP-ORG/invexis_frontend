@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 
-const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
+const WhatsAppButton = ({ phoneNumber = '+250789321535' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
     const containerRef = useRef(null);
@@ -43,7 +43,7 @@ const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
         container: {
             position: 'fixed',
             bottom: '20px',
-            right: '20px',
+            right: '24px',
             zIndex: 1000,
             fontFamily: "'Space Mono', monospace",
         },
@@ -102,8 +102,8 @@ const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
             backgroundColor: '#1fa855',
         },
         floatingButton: {
-            width: '40px',
-            height: '40px',
+            width: '45px',
+            height: '45px',
             borderRadius: '12px',
             backgroundColor: '#25d366',
             border: 'none',
@@ -116,7 +116,7 @@ const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
             position: 'relative',
         },
         floatingButtonHover: {
-            transform: 'scale(1.1)',
+            transform: 'scale(1.2)',
             boxShadow: '0 6px 20px rgba(37, 211, 102, 0.6)',
         },
         whatsappIcon: {
