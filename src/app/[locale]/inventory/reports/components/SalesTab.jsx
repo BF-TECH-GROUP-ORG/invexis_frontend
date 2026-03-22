@@ -27,6 +27,13 @@ const SalesTab = ({ dateRange }) => {
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
 
+    // Filtering State
+    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
+    const [filterByKPI, setFilterByKPI] = useState(null);
+    const [selectedActor, setSelectedActor] = useState(t('common.all'));
+    const [branchAnchor, setBranchAnchor] = useState(null);
+    const [actorAnchor, setActorAnchor] = useState(null);
+
     const {
         data: rawSales = [],
         isLoading: loading,
@@ -45,13 +52,6 @@ const SalesTab = ({ dateRange }) => {
         refetchOnMount: 'always',
         refetchOnWindowFocus: 'always',
     });
-
-    // Filtering State
-    const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
-    const [filterByKPI, setFilterByKPI] = useState(null);
-    const [selectedActor, setSelectedActor] = useState(t('common.all'));
-    const [branchAnchor, setBranchAnchor] = useState(null);
-    const [actorAnchor, setActorAnchor] = useState(null);
 
     // Process stats and report data structure
     const { stats, reportData } = React.useMemo(() => {
