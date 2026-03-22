@@ -18,7 +18,7 @@ import {
 
 /**
  * Registry of all searchable static pages in the application.
- * Normalized format: { id, title, subtitle, icon, link, type: 'page' }
+ * Added 'keywords' for semantic/intelligent search.
  */
 export const getSearchablePages = (t) => [
   {
@@ -28,6 +28,7 @@ export const getSearchablePages = (t) => [
     icon: <LayoutDashboard size={20} />,
     link: "/inventory/dashboard",
     type: "page",
+    keywords: ["home", "main", "overview", "stats", "analytics", "summary"]
   },
   {
     id: "nav-notifications",
@@ -36,6 +37,7 @@ export const getSearchablePages = (t) => [
     icon: <Bell size={20} />,
     link: "/inventory/notifications",
     type: "page",
+    keywords: ["alerts", "messages", "inbox", "updates", "news"]
   },
   {
     id: "nav-reports",
@@ -44,6 +46,7 @@ export const getSearchablePages = (t) => [
     icon: <BarChart3 size={20} />,
     link: "/inventory/reports",
     type: "page",
+    keywords: ["analytics", "charts", "data", "performance", "business", "stats"]
   },
   {
     id: "nav-workers",
@@ -52,6 +55,7 @@ export const getSearchablePages = (t) => [
     icon: <Users size={20} />,
     link: "/inventory/workers/list",
     type: "page",
+    keywords: ["staff", "employees", "team", "people", "management", "workers"]
   },
   {
     id: "nav-shops",
@@ -60,6 +64,7 @@ export const getSearchablePages = (t) => [
     icon: <Database size={20} />,
     link: "/inventory/companies",
     type: "page",
+    keywords: ["branches", "locations", "stores", "outlets", "business units"]
   },
   {
     id: "nav-categories",
@@ -68,6 +73,7 @@ export const getSearchablePages = (t) => [
     icon: <Tags size={20} />,
     link: "/inventory/categories",
     type: "page",
+    keywords: ["groups", "types", "sorting", "inventory classification"]
   },
   {
     id: "nav-products",
@@ -76,6 +82,7 @@ export const getSearchablePages = (t) => [
     icon: <Package size={20} />,
     link: "/inventory/products",
     type: "page",
+    keywords: ["inventory", "items", "stock", "goods", "catalog"]
   },
   {
     id: "nav-transfers",
@@ -84,6 +91,7 @@ export const getSearchablePages = (t) => [
     icon: <Truck size={20} />,
     link: "/inventory/transfer",
     type: "page",
+    keywords: ["moving", "shipping", "internal", "branch to branch", "stock move"]
   },
   {
     id: "nav-stock",
@@ -92,6 +100,7 @@ export const getSearchablePages = (t) => [
     icon: <Database size={20} />,
     link: "/inventory/stock",
     type: "page",
+    keywords: ["inventory", "levels", "adjustment", "stocktake", "counting"]
   },
   {
     id: "nav-sales-history",
@@ -100,6 +109,7 @@ export const getSearchablePages = (t) => [
     icon: <History size={20} />,
     link: "/inventory/sales/history",
     type: "page",
+    keywords: ["receipts", "past orders", "sold items", "archive"]
   },
   {
     id: "nav-pos",
@@ -108,6 +118,7 @@ export const getSearchablePages = (t) => [
     icon: <ShoppingBag size={20} />,
     link: "/inventory/sales/sellProduct/sale",
     type: "page",
+    keywords: ["pos", "selling", "checkout", "retail", "cashier"]
   },
   {
     id: "nav-debts",
@@ -116,6 +127,7 @@ export const getSearchablePages = (t) => [
     icon: <Wallet size={20} />,
     link: "/inventory/debts",
     type: "page",
+    keywords: ["money", "unpaid", "credit", "balances", "customers", "debtors"]
   },
   {
     id: "nav-invoices",
@@ -124,6 +136,7 @@ export const getSearchablePages = (t) => [
     icon: <FileSearch size={20} />,
     link: "/inventory/billing/invoices",
     type: "page",
+    keywords: ["billing", "paperwork", "orders", "payment requests"]
   },
   {
     id: "nav-transactions",
@@ -132,6 +145,7 @@ export const getSearchablePages = (t) => [
     icon: <CreditCard size={20} />,
     link: "/inventory/billing/transactions",
     type: "page",
+    keywords: ["payments", "cash", "bank", "audit", "money move"]
   },
   {
     id: "nav-documents",
@@ -140,6 +154,7 @@ export const getSearchablePages = (t) => [
     icon: <Files size={20} />,
     link: "/inventory/documents",
     type: "page",
+    keywords: ["files", "uploads", "contracts", "records", "pdf"]
   },
   {
     id: "nav-logs",
@@ -148,5 +163,6 @@ export const getSearchablePages = (t) => [
     icon: <History size={20} />,
     link: "/inventory/logs",
     type: "page",
+    keywords: ["security", "audit", "tracking", "history", "actions"]
   },
 ];

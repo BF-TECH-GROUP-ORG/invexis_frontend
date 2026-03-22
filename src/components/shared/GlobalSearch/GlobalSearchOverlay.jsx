@@ -3,11 +3,26 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Command, CornerDownLeft, Sparkles, Loader2 } from "lucide-react";
+import { Search, X, Command, CornerDownLeft, Sparkles, Loader2, Clock, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import useGlobalSearch from "./useGlobalSearch";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 }
+};
 
 export default function GlobalSearchOverlay({ isOpen, onClose }) {
   const [query, setQuery] = useState("");
@@ -17,7 +32,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
   const { data: session } = useSession();
   const router = useRouter();
   const locale = useLocale();
-  const { results, isLoading } = useGlobalSearch(query, session);
+  const { results, isLoading, saveRecentSearch, recentSearches } = useGlobalSearch(query, session);
 
   // Auto-focus input when opened
   useEffect(() => {
@@ -62,146 +77,204 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
   }, [activeIndex]);
 
   const handleSelect = (item) => {
+    saveRecentSearch(item);
     onClose();
     router.push(item.link);
   };
 
+  const clearQuery = () => {
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
   if (typeof document === "undefined") return null;
+
+  // Group results for better UI
+  const hasResults = results.length > 0;
+  const isRecentView = query.length < 2 && hasResults;
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-100 flex items-start justify-center pt-[10vh] px-4">
-          {/* Backdrop with Blur */}
+          {/* Backdrop with Dynamic Blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-gray-900/40 backdrop-blur-md transition-opacity"
+            className="fixed inset-0 bg-gray-950/60 backdrop-blur-xl transition-opacity"
           />
 
-          {/* Command Palette Modal */}
+          {/* Magical Command Palette Modal */}
           <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: -20 }}
+            initial={{ scale: 0.9, opacity: 0, y: -40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: -20 }}
-            className="relative w-full max-w-2xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col"
+            exit={{ scale: 0.9, opacity: 0, y: -40 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-2xl bg-white/95 dark:bg-gray-900/95 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-white/20 overflow-hidden flex flex-col backdrop-blur-3xl"
           >
             {/* Search Header */}
-            <div className="relative flex items-center p-6 border-b border-gray-100 dark:border-gray-800">
-              <Search className={`w-6 h-6 mr-4 transition-colors ${isLoading ? 'text-orange-500 animate-pulse' : 'text-gray-400'}`} />
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Search products, staff, pages..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-0 outline-none"
-              />
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 text-gray-400 animate-spin mr-4" />
-              ) : (
-                <div className="flex items-center gap-2 mr-4">
-                  <kbd className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-500 border border-gray-200 dark:border-gray-700 shadow-sm">ESC</kbd>
-                </div>
-              )}
+            <div className="relative flex items-center p-8 pb-6">
+              <div className="relative flex items-center flex-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl px-5 py-4 border border-transparent focus-within:border-orange-500/50 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all duration-300">
+                <Search className={`w-6 h-6 mr-4 transition-colors ${isLoading ? 'text-orange-500 animate-pulse' : 'text-gray-400'}`} />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search products, staff, pages..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 bg-transparent border-none text-xl text-gray-900 dark:text-white placeholder-gray-400/70 focus:ring-0 outline-none font-medium"
+                />
+                {query && !isLoading && (
+                  <button onClick={clearQuery} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <X size={16} className="text-gray-400" />
+                  </button>
+                )}
+                {isLoading && (
+                  <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                )}
+              </div>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                className="ml-4 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl transition-all hover:rotate-90 duration-300"
               >
-                <X size={20} className="text-gray-400" />
+                <X size={24} className="text-gray-400" />
               </button>
             </div>
 
             {/* Results Area */}
             <div 
               ref={scrollRef}
-              className="max-h-[60vh] overflow-y-auto custom-scrollbar p-3"
+              className="max-h-[55vh] overflow-y-auto custom-scrollbar px-8 pb-8"
             >
-              {query.length < 2 ? (
-                <div className="py-12 text-center">
-                  <div className="inline-flex p-4 rounded-3xl bg-orange-50 dark:bg-orange-500/10 mb-4">
-                    <Sparkles className="w-8 h-8 text-orange-500" />
+              {!hasResults && query.length < 2 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="py-16 text-center"
+                >
+                  <div className="inline-flex p-6 rounded-[2rem] bg-linear-to-br from-orange-400 to-orange-600 shadow-xl shadow-orange-500/20 mb-6">
+                    <Sparkles className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">Start typing to search...</h3>
-                  <p className="text-sm text-gray-500 mt-1 px-12">Search for products, staff members, shops, or jump to any page in the application.</p>
-                </div>
-              ) : results.length > 0 ? (
-                <div className="space-y-6 pb-4">
-                  {/* Category Groups could be added here, but for now we'll just list them with highlights */}
-                  <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">The Magical Search</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mt-2 px-12 leading-relaxed">
+                    Search for products, staff members, shops, or jump to any page in the application.
+                  </p>
+                  <div className="mt-8 flex flex-wrap justify-center gap-2">
+                    {['Products', 'Reports', 'Staff', 'Sales'].map(tag => (
+                      <button 
+                        key={tag}
+                        onClick={() => setQuery(tag)} 
+                        className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-orange-500 hover:text-white transition-all active:scale-95"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {hasResults && (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="space-y-6"
+                >
+                  {isRecentView && (
+                    <div className="flex items-center gap-2 px-2 opacity-50 mb-[-1rem]">
+                      <Clock size={14} className="text-gray-400" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Recent Searches</span>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
                     {results.map((item, index) => (
-                      <button
+                      <motion.button
                         key={`${item.type}-${item.id}`}
                         id={`search-result-${index}`}
+                        variants={itemVariants}
                         onClick={() => handleSelect(item)}
                         onMouseEnter={() => setActiveIndex(index)}
-                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 group text-left ${
+                        className={`w-full flex items-center gap-5 p-4 rounded-[1.5rem] transition-all duration-300 group text-left ${
                           activeIndex === index 
-                            ? "bg-orange-50 dark:bg-orange-500/10 ring-1 ring-orange-200 dark:ring-orange-500/30" 
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                            ? "bg-white dark:bg-gray-800 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.1)] ring-1 ring-orange-500/20" 
+                            : "hover:bg-white/40 dark:hover:bg-gray-800/40"
                         }`}
                       >
-                        <div className={`p-3 rounded-xl transition-colors ${
-                          activeIndex === index ? "bg-white dark:bg-gray-800 shadow-sm" : "bg-gray-100 dark:bg-gray-800"
+                        <div className={`p-4 rounded-2xl transition-all duration-500 ${
+                          activeIndex === index ? "bg-orange-500 text-white scale-110 rotate-3" : "bg-gray-100 dark:bg-gray-800 text-gray-500 opacity-70"
                         }`}>
                           {item.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-base font-bold transition-colors ${activeIndex === index ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>
                               {item.title}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-500 uppercase tracking-widest border border-gray-200 dark:border-gray-700">
+                            <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                              activeIndex === index 
+                                ? "bg-orange-100 text-orange-600 border-orange-200" 
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700"
+                            }`}>
                               {item.type}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate font-medium">
                             {item.subtitle}
                           </p>
                         </div>
                         {activeIndex === index && (
                           <motion.div 
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-2 text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-500/20 px-2 py-1 rounded-lg"
+                            layoutId="indicator"
+                            className="flex items-center gap-2 text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-100/50 dark:bg-orange-500/10 px-3 py-1.5 rounded-xl border border-orange-200/50"
                           >
                             <span>SELECT</span>
                             <CornerDownLeft size={10} />
                           </motion.div>
                         )}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
-                </div>
-              ) : !isLoading && (
-                <div className="py-12 text-center">
-                  <div className="inline-flex p-4 rounded-3xl bg-gray-50 dark:bg-gray-800/10 mb-4 border border-gray-100 dark:border-gray-800">
-                    <Command className="w-8 h-8 text-gray-400" />
+                </motion.div>
+              )}
+
+              {!hasResults && query.length >= 2 && !isLoading && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="py-16 text-center"
+                >
+                  <div className="inline-flex p-6 rounded-[2rem] bg-gray-100 dark:bg-gray-800 mb-6 border-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <Trash2 className="w-10 h-10 text-gray-300" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-500">No results found for "{query}"</h3>
-                  <p className="text-sm text-gray-400 mt-1">Try adjusting your search terms or jumping to a common page.</p>
-                </div>
+                  <h3 className="text-2xl font-black text-gray-400">No results for "{query}"</h3>
+                  <p className="text-sm text-gray-400 mt-2 px-12 font-medium">
+                    We couldn't find anything matching your search. Try using more general keywords like <span className="text-orange-500">"stock"</span>, <span className="text-orange-500">"money"</span>, or <span className="text-orange-500">"team"</span>.
+                  </p>
+                </motion.div>
               )}
             </div>
 
-            {/* Footer */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/20 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px] text-gray-400 font-medium">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xs text-center min-w-[20px]">↑</kbd>
-                  <kbd className="px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xs text-center min-w-[20px]">↓</kbd>
-                  <span>to navigate</span>
+            {/* Premium Footer */}
+            <div className="p-6 bg-gray-50/80 dark:bg-gray-900/40 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <kbd className="px-1.5 py-1 rounded-lg bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700 shadow-sm min-w-[24px]">↑</kbd>
+                    <kbd className="px-1.5 py-1 rounded-lg bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700 shadow-sm min-w-[24px]">↓</kbd>
+                  </div>
+                  <span className="opacity-60">to navigate</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xs min-w-[20px]">ENTER</kbd>
-                  <span>to select</span>
+                <div className="flex items-center gap-2">
+                  <kbd className="px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700 shadow-sm">ENTER</kbd>
+                  <span className="opacity-60">to select</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-60">
-                <Sparkles size={12} className="text-orange-500" />
-                <span>Powered by Invexix Global Search</span>
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-orange-500" />
+                <span className="bg-linear-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">Magical Intelligence</span>
               </div>
             </div>
           </motion.div>
