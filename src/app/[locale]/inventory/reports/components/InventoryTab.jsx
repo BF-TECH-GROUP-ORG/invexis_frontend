@@ -21,6 +21,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
 
 const InventoryTab = ({ dateRange }) => {
@@ -49,6 +50,20 @@ const InventoryTab = ({ dateRange }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
 
+    // Fetch shops for name mapping
+    const { data: shops = [] } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+    });
+
+    const getShopName = (shopId) => {
+        if (!shopId || shopId === 'Default') return 'Default';
+        const shop = shops.find(s => String(s._id || s.id) === String(shopId));
+        return shop ? shop.name : shopId;
+    };
+
     // Summary KPIs from data (grandTotal)
     const summary = React.useMemo(() => {
         if (!rawReportData?.data?.grandTotal) return null;
@@ -76,13 +91,13 @@ const InventoryTab = ({ dateRange }) => {
 
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 
-            : branches.filter(b => b.name === selectedBranch || b.shopId === selectedBranch);
+            : branches.filter(b => b.shopId === selectedBranch);
 
         return [{
             date: periodText,
             shops: filteredBranches.map(branch => ({
                 id: branch.shopId,
-                name: branch.name || `Branch (${branch.shopId.substring(0,8)})`,
+                name: getShopName(branch.shopId),
                 products: branch.products.map(p => ({
                     id: p.productId,
                     name: p.productName,
@@ -94,7 +109,7 @@ const InventoryTab = ({ dateRange }) => {
                         close: p.stats.movement.close
                     },
                     value: {
-                        unitCost: p.stats.value.unitCost,
+                        unitPrice: p.stats.value.unitPrice,
                         totalValue: p.stats.value.totalValue
                     },
                     status: {
@@ -120,7 +135,10 @@ const InventoryTab = ({ dateRange }) => {
         );
     }
 
-    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null) return "0 FRW";
+        return `${val.toLocaleString()} FRW`;
+    };
 
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
     const handleClose = () => { setBranchAnchor(null); };
@@ -233,7 +251,7 @@ const InventoryTab = ({ dateRange }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">{t('common.product')}</TableCell>
@@ -295,7 +313,7 @@ const InventoryTab = ({ dateRange }) => {
                                                         <TableCell align="center">{product.movement.in}</TableCell>
                                                         <TableCell align="center">{product.movement.out}</TableCell>
                                                         <TableCell align="center">{product.movement.close}</TableCell>
-                                                        <TableCell align="center">{formatCurrency(product.value.unitCost)}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(product.value.unitPrice)}</TableCell>
                                                         <TableCell align="center">{formatCurrency(product.value.totalValue)}</TableCell>
                                                         <TableCell align="center">{product.status.reorder}</TableCell>
                                                         <TableCell align="center">
@@ -341,9 +359,10 @@ const InventoryTab = ({ dateRange }) => {
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <Divider />
                     {rawReportData?.data?.branches?.map((branch) => (
-                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.name || branch.shopId)}>
-                            {branch.name || `Branch ${branch.shopId.substring(0, 8)}`}
+                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.shopId)}>
+                            {getShopName(branch.shopId)}
                         </MenuItem>
                     ))}
                 </Menu>

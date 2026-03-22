@@ -2056,7 +2056,7 @@
         "in": "In",
         "out": "Out",
         "close": "Close",
-        "unitCost": "Unit Cost",
+        "unitCost": "Unit Price",
         "totalValue": "Total Value",
         "reorder": "Reorder",
         "age": "Age(D)",
