@@ -54,6 +54,16 @@ const getNavItems = (t) => [
     id: "sidebar-notifications",
   },
 
+    {
+    title: t("sidebar.reports"),
+    icon: <BarChart3 size={22} />,
+    path: "/inventory/reports",
+    prefetch: true,
+    tourId: "tour-reports-sidebar",
+    id: "sidebar-reports",
+  },
+
+
   // MANAGEMENT
   {
     title: t("sidebar.staffAndShops"),
