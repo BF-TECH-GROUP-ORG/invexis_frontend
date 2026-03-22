@@ -599,32 +599,6 @@ export default function SideBar({
               <h3 className={`text-xs font-semibold text-gray-500 uppercase mb-4 px-3 transition-opacity duration-300 whitespace-nowrap ${expanded ? "opacity-100" : "opacity-0"}`}>
                 {t("sidebar.overview")}
               </h3>
-              {navItems.slice(0, 3).filter(visibleFor).map((item) => (
-                <div key={item.title} onMouseEnter={(e) => handleHoverEnter(e, item)} onMouseLeave={handleHoverLeave}>
-                  <Link
-                    href={item.path}
-                    id={item.id}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!isActive(item.path)) {
-                        setOptimisticPath(item.path);
-                        startNavigating();
-                        router.push(item.path);
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
-                      ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                      : "text-gray-700 hover:bg-orange-50"
-                      }`}
-                  >
-                    <div className={`flex items-center justify-center shrink-0 w-6 ${isActive(item.path) ? "text-orange-500" : ""}`}>{item.icon}</div>
-                    <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-                      {item.title}
-                    </span>
-                  </Link>
-                </div>
-              ))}
-
               {navItems
                 .slice(0, 3)
                 .filter(visibleFor)

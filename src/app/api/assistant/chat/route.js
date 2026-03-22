@@ -14,12 +14,19 @@ async function executeTool(toolName, toolArgs) {
 }
 
 export async function POST(req) {
+  // Guard: fail fast with a clear error if keys are missing (catches cloud misconfiguration)
+  const groqKey = process.env.GROQ_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+
   try {
     const { messages, context, image } = await req.json();
     const { aiProvider } = ASSISTANT_CONFIG;
     const systemPrompt = buildSystemPrompt(INVEXIX_APP_INFO, context);
 
     if (aiProvider === 'groq') {
+      if (!groqKey) {
+        return NextResponse.json({ error: 'GROQ_API_KEY is not set. Add it to your environment variables.' }, { status: 500 });
+      }
       const lastMessage = messages[messages.length - 1]?.content || '';
 
       // Dynamic Model Selection
@@ -46,7 +53,7 @@ export async function POST(req) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.VITE_GROQ_API_KEY}`,
+          'Authorization': `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
           model: model,
@@ -72,7 +79,7 @@ export async function POST(req) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.VITE_GROQ_API_KEY}`,
+            'Authorization': `Bearer ${groqKey}`,
           },
           body: JSON.stringify({
             model: model,
@@ -93,6 +100,9 @@ export async function POST(req) {
     }
 
     if (aiProvider === 'claude') {
+      if (!anthropicKey) {
+        return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set. Add it to your environment variables.' }, { status: 500 });
+      }
       const payloadMessages = messages.map(m => ({
         role: m.role === 'assistant' ? 'assistant' : 'user',
         content: m.content,
@@ -121,7 +131,7 @@ export async function POST(req) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.VITE_ANTHROPIC_API_KEY,
+          'x-api-key': anthropicKey,
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
@@ -143,7 +153,7 @@ export async function POST(req) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.VITE_ANTHROPIC_API_KEY,
+            'x-api-key': anthropicKey,
             'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
