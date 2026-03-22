@@ -1950,7 +1950,7 @@
   },
   "reports": {
     "header": {
-      "title": "Ripoti na Uchambuzi wa Mfumo",
+      "title": "Ripoti na Uchambuzi wa Kampuni",
       "subtitle": "Mtandao jumuishi wa shughuli zako zote za biashara"
     },
     "controls": {
@@ -1970,7 +1970,8 @@
       "sales": "Utendaji wa Mauzo",
       "debts": "Madeni na Mikopo",
       "payments": "Njia za Malipo",
-      "staff": "Wafanyakazi na Matawi"
+      "staff": "Wafanyakazi na Matawi",
+      "visualize": "Tazama"
     },
     "common": {
       "date": "Tarehe",
@@ -2189,9 +2190,9 @@
     },
     "export": {
       "pdfTitle": "Ripoti ya {tab}",
-      "pdfSystemTitle": "Ripoti za Mfumo",
-      "pdfSystemFullTitle": "Ripoti na Uchambuzi wa Mfumo",
-      "excelSystemTitle": "Ripoti-za-Mfumo",
+      "pdfSystemTitle": "Ripoti za Kampuni",
+      "pdfSystemFullTitle": "Ripoti na Uchambuzi wa Kampuni",
+      "excelSystemTitle": "Ripoti-za-Kampuni",
       "excelTabTitle": "Ripoti ya {tab}",
       "scopeTitle": "Chagua Upeo wa Hamisho",
       "scopeSubtitle": "Chagua unachotaka kuhamisha:",

@@ -92,7 +92,7 @@ export const generateFullReportHTML = (tabs) => {
     let html = `
         <div style="font-family: Arial, sans-serif; margin: 20px;">
             <h1 style="color: #333; text-align: center; border-bottom: 3px solid #FF6D00; padding-bottom: 15px;">
-                System-Wide Reports & Analytics
+                Company-Wide Reports & Analytics
             </h1>
             <p style="color: #666; font-size: 12px; text-align: center;">Generated on: ${timestamp}</p>
     `;

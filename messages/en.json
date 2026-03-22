@@ -1936,7 +1936,7 @@
   },
   "reports": {
     "header": {
-      "title": "System-Wide Reports & Analytics",
+      "title": "Company-Wide Reports & Analytics",
       "subtitle": "Consolidated insights across all your business operations"
     },
     "controls": {
@@ -1956,7 +1956,8 @@
       "sales": "Sales Performance",
       "debts": "Debts & Credit",
       "payments": "Payment Methods",
-      "staff": "Staff & Branches"
+      "staff": "Staff & Branches",
+      "visualize": "Visualize"
     },
     "common": {
       "date": "Date",
@@ -2175,9 +2176,9 @@
     },
     "export": {
       "pdfTitle": "{tab} Report",
-      "pdfSystemTitle": "System-Wide Reports",
-      "pdfSystemFullTitle": "System-Wide Reports & Analytics",
-      "excelSystemTitle": "System-Wide-Reports",
+      "pdfSystemTitle": "Company-Wide Reports",
+      "pdfSystemFullTitle": "Company-Wide Reports & Analytics",
+      "excelSystemTitle": "Company-Wide-Reports",
       "excelTabTitle": "{tab}-Report",
       "scopeTitle": "Choose Export Scope",
       "scopeSubtitle": "Select what you would like to export:",

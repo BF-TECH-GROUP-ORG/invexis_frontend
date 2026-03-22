@@ -1949,7 +1949,7 @@
   },
   "reports": {
     "header": {
-      "title": "Raporo n'Imibare bya Sisitemu",
+      "title": "Raporo n'Imibare by'Ikigo",
       "subtitle": "Incanyamahanga y'ibikorwa byose by'ubucuruzi bwawe"
     },
     "controls": {
@@ -1969,7 +1969,8 @@
       "sales": "Imiyoborere y'Igurisha",
       "debts": "Imyenda n'Inguzanyo",
       "payments": "Uburyo bwo Kwishyura",
-      "staff": "Abakozi n'Amashami"
+      "staff": "Abakozi n'Amashami",
+      "visualize": "Kugaragaza"
     },
     "common": {
       "date": "Itariki",
@@ -2188,9 +2189,9 @@
     },
     "export": {
       "pdfTitle": "Raporo rya {tab}",
-      "pdfSystemTitle": "Raporo za Sisitemu",
-      "pdfSystemFullTitle": "Raporo n'Imibare bya Sisitemu",
-      "excelSystemTitle": "Raporo-za-Sisitemu",
+      "pdfSystemTitle": "Raporo z'Ikigo",
+      "pdfSystemFullTitle": "Raporo n'Imibare by'Ikigo",
+      "excelSystemTitle": "Raporo-z'Ikigo",
       "excelTabTitle": "Raporo-{tab}",
       "scopeTitle": "Hitamo Ibyoherezwa",
       "scopeSubtitle": "Hitamo ibyo wifuza kohereza:",

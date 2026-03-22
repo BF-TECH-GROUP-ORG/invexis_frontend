@@ -15,7 +15,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
-import paymentService from '@/services/paymentService';
+import * as paymentService from '@/services/paymentService';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

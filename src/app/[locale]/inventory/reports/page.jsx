@@ -38,6 +38,7 @@ const DebtsTab = lazy(() => import('./components/DebtsTab'));
 const PaymentsTab = lazy(() => import('./components/PaymentsTab'));
 const StaffTab = lazy(() => import('./components/StaffTab'));
 const GeneralTab = lazy(() => import('./components/GeneralTab'));
+const VisualizeTab = lazy(() => import('./components/VisualizeTab'));
 
 // Tab loading skeleton for better UX during component load
 const TabSkeleton = () => (
@@ -107,7 +108,7 @@ const ReportsPage = () => {
         setDateRange({ startDate: start, endDate: end });
     }, [reportView, selectedDate]);
 
-    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff', 'visualize'];
     const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
@@ -602,6 +603,11 @@ const ReportsPage = () => {
                             <StaffTab dateRange={dateRange} />
                         </Suspense>
                     </Box>
+                    <Box ref={(el) => (tabRefs.current[6] = el)} sx={{ display: currentTab === 6 ? 'block' : 'none' }}>
+                        <Suspense fallback={<TabSkeleton />}>
+                            <VisualizeTab dateRange={dateRange} reportView={reportView} />
+                        </Suspense>
+                    </Box>
                 </ErrorBoundary>
             </Box>
 
@@ -641,7 +647,7 @@ const ReportsPage = () => {
                                         {t('export.allTabs')}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: '#999' }}>
-                                        {t('export.allTabsDesc', { count: 6 })}
+                                        {t('export.allTabsDesc', { count: tabKeys.length })}
                                     </Typography>
                                 </Box>
                             }
