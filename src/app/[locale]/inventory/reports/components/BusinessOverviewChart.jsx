@@ -108,7 +108,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const BusinessOverviewChart = ({ reportView = 'monthly' }) => {
+const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
     const [viewType, setViewType] = useState(reportView || 'monthly'); // 'daily', 'weekly', 'monthly', 'yearly'
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [selectedYear, setSelectedYear] = useState(dayjs().year());
@@ -121,6 +121,18 @@ const BusinessOverviewChart = ({ reportView = 'monthly' }) => {
     }, [reportView]);
 
     const chartData = useMemo(() => {
+        // If real data is provided, transform branches into chart data
+        if (data && data.branches && data.branches.length > 0) {
+            return data.branches.map(branch => ({
+                name: branch.shopId || 'Default',
+                netSales: branch.totals?.sales?.net || 0,
+                paymentsReceived: branch.totals?.payments?.received || 0,
+                outstandingDebts: branch.totals?.debt?.balance || 0,
+                inventoryValue: branch.totals?.inventory?.stockValue || 0,
+            }));
+        }
+
+        // Fallback to mock data if no real data is available
         switch (viewType) {
             case 'daily':
                 return generateHourlyData(selectedDate);
@@ -132,9 +144,11 @@ const BusinessOverviewChart = ({ reportView = 'monthly' }) => {
             default:
                 return generateMonthlyData(selectedDate);
         }
-    }, [viewType, selectedDate, selectedYear]);
+    }, [data, viewType, selectedDate, selectedYear]);
 
     const getTitle = () => {
+        if (data && data.branches) return "Branch Performance Comparison";
+        
         switch (viewType) {
             case 'daily':
                 return `Daily Breakdown for ${selectedDate.format('MMMM DD, YYYY')}`;
@@ -149,6 +163,8 @@ const BusinessOverviewChart = ({ reportView = 'monthly' }) => {
     };
 
     const getSubtitle = () => {
+        if (data && data.branches) return "Comparison of key metrics across all branches";
+
         switch (viewType) {
             case 'daily':
                 return 'Performance by hour (24-hour breakdown)';
@@ -163,6 +179,8 @@ const BusinessOverviewChart = ({ reportView = 'monthly' }) => {
     };
 
     const getXAxisDataKey = () => {
+        if (data && data.branches) return 'name';
+
         switch (viewType) {
             case 'daily':
                 return 'hour';

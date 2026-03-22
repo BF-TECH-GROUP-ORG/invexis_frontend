@@ -574,7 +574,7 @@ const ReportsPage = () => {
                     {/* Lazy load each tab to reduce initial page size and compile time */}
                     <Box ref={(el) => (tabRefs.current[0] = el)} sx={{ display: currentTab === 0 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>
-                            <GeneralTab dateRange={dateRange} />
+                            <GeneralTab dateRange={dateRange} reportView={reportView} />
                         </Suspense>
                     </Box>
                     <Box ref={(el) => (tabRefs.current[1] = el)} sx={{ display: currentTab === 1 ? 'block' : 'none' }}>

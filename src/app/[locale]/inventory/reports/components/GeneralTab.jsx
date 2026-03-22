@@ -19,7 +19,7 @@ import BusinessOverviewChart from './BusinessOverviewChart';
 import reportService from '@/services/reportService';
 import dayjs from 'dayjs';
 
-const GeneralTab = ({ dateRange }) => {
+const GeneralTab = ({ dateRange, reportView }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
@@ -171,7 +171,7 @@ const GeneralTab = ({ dateRange }) => {
                     ))}
                 </div>
 
-                <BusinessOverviewChart />
+                <BusinessOverviewChart data={reportData} reportView={reportView} />
                 {/* Hierarchical Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
                     <Table size="small">
@@ -192,7 +192,7 @@ const GeneralTab = ({ dateRange }) => {
                                 </TableCell>
                                 <TableCell align="center">{t('common.product')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('general.table.inventory')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{t('general.table.sales')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('general.table.sales')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('general.table.payments')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('general.table.debts')}</TableCell>
                                 <TableCell align="center">{t('general.table.cost')}</TableCell>
@@ -206,6 +206,7 @@ const GeneralTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('general.table.stockValue')}</TableCell>
                                 <TableCell align="center">{t('general.table.grossSales')}</TableCell>
                                 <TableCell align="center">{t('general.table.discounts')}</TableCell>
+                                <TableCell align="center">{t('general.table.netSales') || 'Net Sales'}</TableCell>
                                 <TableCell align="center">{t('general.table.received')}</TableCell>
                                 <TableCell align="center">{t('general.table.pending')}</TableCell>
                                 <TableCell align="center">{t('general.table.debtAmount')}</TableCell>
@@ -250,6 +251,7 @@ const GeneralTab = ({ dateRange }) => {
                                                 <TableCell align="center">{formatCurrency(product.stats.inventory.stockValue)}</TableCell>
                                                 <TableCell align="center">{formatCurrency(product.stats.sales.gross)}</TableCell>
                                                 <TableCell align="center">{formatCurrency(product.stats.sales.discounts)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(product.stats.sales.net)}</TableCell>
                                                 <TableCell align="center">{formatCurrency(product.stats.payments.received)}</TableCell>
                                                 <TableCell align="center">{formatCurrency(product.stats.payments.pending)}</TableCell>
                                                 <TableCell align="center">{formatCurrency(product.stats.debt.incurred)}</TableCell>
@@ -268,6 +270,7 @@ const GeneralTab = ({ dateRange }) => {
                                             <TableCell align="center">{formatCurrency(shop.totals.inventory.stockValue)}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.sales.gross)}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.sales.discounts)}</TableCell>
+                                            <TableCell align="center">{formatCurrency(shop.totals.sales.net)}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.payments.received)}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.payments.pending)}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.debt.incurred)}</TableCell>
@@ -292,6 +295,7 @@ const GeneralTab = ({ dateRange }) => {
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.inventory?.stockValue || 0)}</TableCell>
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.gross || 0)}</TableCell>
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.discounts || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.net || 0)}</TableCell>
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.received || 0)}</TableCell>
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.pending || 0)}</TableCell>
                                 <TableCell align="center">{formatCurrency(reportData?.grandTotal?.debt?.incurred || 0)}</TableCell>
@@ -321,12 +325,6 @@ const GeneralTab = ({ dateRange }) => {
                     ))}
                 </Menu>
 
-                {/* Recommendation Section */}
-                <Box sx={{ mt: 4, p: 3, bgcolor: "white", border: "1px solid #e5e7eb", borderRadius: 0, boxShadow: "none" }}>
-                    <Typography variant="body2" sx={{ color: "#374151", fontWeight: "500" }}>
-                        <Box component="span" sx={{ color: "#ea580c", fontWeight: "800" }}>{t('common.recommendation')}:</Box> {selectedBranch === t('common.all') ? t('general.recommendations.all') : t('general.recommendations.specific', { branch: selectedBranch })}
-                    </Typography>
-                </Box>
             </Box>
         </Fade>
     );
