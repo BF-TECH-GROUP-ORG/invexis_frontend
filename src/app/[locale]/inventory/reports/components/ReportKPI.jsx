@@ -40,6 +40,7 @@ const ReportKPI = ({
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 height: '100%',
+                width: '100%',
                 minHeight: '120px',
                 position: 'relative'
             }}

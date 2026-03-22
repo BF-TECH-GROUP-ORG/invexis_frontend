@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
 import analyticsService from '@/services/analyticsService';
 import { getWorkersByCompanyId } from '@/services/workersService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -59,6 +60,19 @@ const StaffTab = ({ dateRange }) => {
 
     const loading = loadingPerf || loadingShop || loadingWorkers;
 
+    const { data: shopsList = [] } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+    });
+
+    const getShopName = (shopId) => {
+        if (!shopId || shopId === 'Default') return 'Default';
+        const shop = shopsList.find(s => String(s._id || s.id) === String(shopId));
+        return shop ? shop.name : shopId;
+    };
+
     // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [selectedActor, setSelectedActor] = useState(t('common.all'));
@@ -89,7 +103,7 @@ const StaffTab = ({ dateRange }) => {
 
         // Formatted Branch Data
         const formattedBranch = shopPerformance.map(perf => ({
-            branchName: perf.shopName || perf.shopId || 'Default',
+            branchName: getShopName(perf.shopId) || perf.shopName || 'Default',
             location: 'N/A', // Not available in analytics
             transactions: perf.orderCount || 0,
             revenue: parseFloat(perf.totalRevenue || 0),

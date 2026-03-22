@@ -152,15 +152,7 @@ const DebtsTab = ({ dateRange }) => {
                 </Box>
 
                 {/* Top KPIs */}
-                <div style={{
-                    width: '100%',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '16px',
-                    marginBottom: '32px'
-                }}
-                    className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                >
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <ReportKPI
                         title={t('debts.kpis.totalOutstanding')}
                         value={(() => {
