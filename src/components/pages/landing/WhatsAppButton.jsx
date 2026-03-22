@@ -102,9 +102,9 @@ const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
             backgroundColor: '#1fa855',
         },
         floatingButton: {
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
             backgroundColor: '#25d366',
             border: 'none',
             cursor: 'pointer',
@@ -120,7 +120,7 @@ const WhatsAppButton = ({ phoneNumber = '250789321535' }) => {
             boxShadow: '0 6px 20px rgba(37, 211, 102, 0.6)',
         },
         whatsappIcon: {
-            fontSize: '32px',
+            fontSize: '20px',
             color: '#fff',
         },
         closeBtn: {

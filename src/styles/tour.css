@@ -1,0 +1,101 @@
+/* src/styles/tour.css */
+
+/* ─── Override Driver.js z-index to sit above fixed sidebars ─── */
+.driver-overlay {
+  z-index: 99998 !important;
+}
+
+.driver-active-element {
+  z-index: 99999 !important;
+  border-radius: 8px !important;
+}
+
+.driver-popover {
+  z-index: 100000 !important;
+}
+
+/* ─── Inara dark theme ─── */
+.inara-tour-popover.driver-popover {
+  background: #081422 !important;
+  border: 1px solid rgba(255, 120, 45, 0.3) !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+  min-width: 280px !important;
+  max-width: 340px !important;
+  color: white !important;
+
+  /* ─── FIX: popover follows element, not center ─── */
+  position: fixed !important;
+}
+
+.inara-tour-popover .driver-popover-title {
+  color: #ff782d !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  margin-bottom: 10px !important;
+  font-family: 'Metropolis', 'Outfit', sans-serif !important;
+}
+
+.inara-tour-popover .driver-popover-description {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important;
+}
+
+.inara-tour-popover .driver-popover-progress-text {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inara-tour-popover .driver-popover-next-btn {
+  background: #ff782d !important;
+  border: none !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  padding: 10px 20px !important;
+  text-shadow: none !important;
+  transition: all 0.2s ease;
+}
+
+.inara-tour-popover .driver-popover-next-btn:hover {
+  background: #ea580c !important;
+  transform: translateY(-1px);
+}
+
+.inara-tour-popover .driver-popover-prev-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-weight: 700 !important;
+  padding: 10px 20px !important;
+  text-shadow: none !important;
+}
+
+.inara-tour-popover .driver-popover-close-btn {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.inara-tour-popover .driver-popover-close-btn:hover {
+  color: #ff782d !important;
+}
+
+/* Arrow pointing to element */
+.inara-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-right-color: #081422 !important;
+}
+.inara-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-left-color: #081422 !important;
+}
+.inara-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-bottom-color: #081422 !important;
+}
+.inara-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-top-color: #081422 !important;
+}
