@@ -71,6 +71,7 @@ const getNavItems = (t) => [
     id: "sidebar-mgmt-staff",
     children: [
       { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true, id: "sidebar-staff-list" },
+      { title: t("sidebar.shops"), path: "/inventory/companies", prefetch: true, id: "sidebar-shops" },
     ],
   },
   {
@@ -116,6 +117,7 @@ const getNavItems = (t) => [
     id: "sidebar-mgmt-billing",
     children: [
       { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
+      { title: t("sidebar.payments"), path: "/inventory/billing/payments", prefetch: true, id: "sidebar-payments" },
       { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" },
     ],
   },
