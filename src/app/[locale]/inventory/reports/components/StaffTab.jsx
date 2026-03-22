@@ -59,7 +59,7 @@ const StaffTab = ({ dateRange }) => {
         refetchOnWindowFocus: 'always',
     });
 
-    const loading = loadingPerf || loadingShop || loadingWorkers;
+    const loading = loadingStaff || loadingShops || loadingWorkers;
 
     const { data: shopsList = [] } = useQuery({
         queryKey: ['shops', companyId],
