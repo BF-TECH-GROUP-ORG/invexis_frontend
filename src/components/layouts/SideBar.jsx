@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import {
   LayoutDashboard,
-  FileSpreadsheet,
   Users,
   Package,
   ShoppingBag,
@@ -53,8 +52,7 @@ const getNavItems = (t) => [
     tourId: "tour-notifications-sidebar",
     id: "sidebar-notifications",
   },
-
-    {
+  {
     title: t("sidebar.reports"),
     icon: <BarChart3 size={22} />,
     path: "/inventory/reports",
@@ -63,13 +61,13 @@ const getNavItems = (t) => [
     id: "sidebar-reports",
   },
 
-
   // MANAGEMENT
   {
     title: t("sidebar.staffAndShops"),
     icon: <Users size={22} />,
     roles: ["company_admin"],
     tourId: "tour-management",
+    id: "sidebar-mgmt-staff",
     children: [
       { title: t("sidebar.staffList"), path: "/inventory/workers/list", prefetch: true, id: "sidebar-staff-list" },
     ],
@@ -100,7 +98,6 @@ const getNavItems = (t) => [
       { title: t("sidebar.stockOut"), path: "/inventory/sales/sellProduct/sale", prefetch: true, id: "sidebar-pos" },
     ],
   },
-
   {
     title: t("sidebar.debts"),
     icon: <Wallet size={22} />,
@@ -115,9 +112,10 @@ const getNavItems = (t) => [
     icon: <Receipt size={22} />,
     roles: ["sales_manager", "company_admin"],
     tourId: "tour-billing",
+    id: "sidebar-mgmt-billing",
     children: [
       { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
-      { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" }
+      { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" },
     ],
   },
   {
@@ -127,6 +125,7 @@ const getNavItems = (t) => [
     roles: ["manager", "company_admin"],
     prefetch: true,
     tourId: "tour-documents",
+    id: "sidebar-documents",
   },
   {
     title: t("sidebar.logsAndAudits"),
@@ -152,13 +151,12 @@ export default function SideBar({
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
 
-  // Get translated nav items
-  const navItems = getNavItems(t);
-
   const { data: session } = useSession();
   const user = session?.user;
   const userRole = user?.role;
   const assignedDepartments = user?.assignedDepartments || [];
+
+  const navItems = getNavItems(t);
 
   const [expandedInternal, setExpandedInternal] = useState(true);
   const [openMenus, setOpenMenus] = useState([]);
@@ -261,24 +259,18 @@ export default function SideBar({
     }
   }, [queryClient, session]);
 
-  /* hover prefetch with debounce to prevent sluggishness */
   const handleHoverEnter = useCallback(
     (e, item) => {
       cleanTimeout();
 
-      // Debounce prefetching (only fire if user hovers for > 80ms)
       if (prefetchTimeoutRef.current) clearTimeout(prefetchTimeoutRef.current);
 
       prefetchTimeoutRef.current = setTimeout(() => {
-        // 1. Prefetch Route (Next.js)
         if (item.path && !isActive(item.path)) {
           router.prefetch(`/${locale}${item.path}`);
         }
-
-        // 2. Prefetch Data (React Query)
         prefetchData(item);
 
-        // Prefetch routes for first few children to be ready, but DON'T fetch data yet
         if (item.children) {
           item.children.slice(0, 6).forEach(child => {
             if (child.path && !isActive(child.path)) {
@@ -294,7 +286,7 @@ export default function SideBar({
         setHoverPosition({ top: rect.top });
       }
     },
-    [expanded, locale, router, prefetchData]
+    [expanded, locale, router, prefetchData, isActive]
   );
 
   const handleHoverLeave = () => {
@@ -312,7 +304,7 @@ export default function SideBar({
       .filter((item) => item.children?.some((child) => isActive(child.path)))
       .map((item) => item.title);
     setOpenMenus(activeParents);
-  }, [pathname, isActive]);
+  }, [pathname, isActive, navItems]);
 
   /* Clear optimistic path on actual navigation */
   useEffect(() => {
@@ -330,10 +322,7 @@ export default function SideBar({
     try {
       setLoadingText("Logging out...");
       setLoading(true);
-
-      // Sign out from NextAuth
       await signOut({ redirect: false });
-
       router.push(`/${locale}/auth/login`);
     } catch (error) {
       console.error("Logout failed:", error);
@@ -342,27 +331,18 @@ export default function SideBar({
         message: "Logout failed. Please try again.",
       });
     } finally {
-      // Don't turn off loading here, let the redirect page handle it or it clears on unmount
-      // preventing flicker
+      setLoading(false);
     }
   };
 
-
-
   const visibleFor = (item) => {
     if (!item) return false;
-
-    // Admin: always sees everything
-    if (userRole === "company_admin") {
-      return true;
-    }
+    if (userRole === "company_admin") return true;
 
     const itemTitle = item.title.trim();
-    const itemPath = item.path || "";
     const isSales = assignedDepartments.includes("sales");
     const isManagement = assignedDepartments.includes("management");
 
-    // Sales department: ONLY Notifications, Sales (and its children), and Debts
     if (isSales) {
       const salesAllowedTitles = [
         t("sidebar.notifications"),
@@ -374,26 +354,17 @@ export default function SideBar({
       return salesAllowedTitles.includes(itemTitle);
     }
 
-    // Management department: sees everything except company_admin-only items
-    if (isManagement) {
-      // company_admin-only items are already gated by roles in navItems,
-      // but we allow all non-admin items for managers
-      return true;
-    }
-
-    // No recognised department → show nothing extra
+    if (isManagement) return true;
     return false;
   };
 
   /* Mobile detection */
   useEffect(() => {
     if (!mounted) return;
-
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -417,19 +388,18 @@ export default function SideBar({
           background: #374151;
         }
         .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-          background: #fdba74; /* orange-300 */
+          background: #fdba74;
         }
         .dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-          background: #ea580c; /* orange-600 */
+          background: #ea580c;
         }
       `}</style>
+
       {/* MOBILE VIEW */}
       {isMobile ? (
         <>
-          {/* BOTTOM NAVIGATION BAR */}
           <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t shadow-lg rounded-t-3xl px-6 py-4 md:hidden">
             <div className="flex items-center justify-around max-w-md mx-auto">
-              {/* Dashboard */}
               <Link
                 href="/inventory/dashboard"
                 onClick={() => {
@@ -440,20 +410,12 @@ export default function SideBar({
                 }}
                 className="flex flex-col items-center gap-1 group"
               >
-                <div
-                  className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard")
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                >
+                <div className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard") ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
                   <LayoutDashboard size={24} />
                 </div>
-                {isActive("/inventory/dashboard") && (
-                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
-                )}
+                {isActive("/inventory/dashboard") && <div className="w-1 h-1 bg-orange-500 rounded-full"></div>}
               </Link>
 
-              {/* Notifications */}
               <Link
                 href="/inventory/notifications"
                 onClick={() => {
@@ -464,20 +426,12 @@ export default function SideBar({
                 }}
                 className="flex flex-col items-center gap-1 group"
               >
-                <div
-                  className={`p-3 rounded-xl transition ${isActive("/inventory/notifications")
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                >
+                <div className={`p-3 rounded-xl transition ${isActive("/inventory/notifications") ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
                   <Bell size={24} />
                 </div>
-                {isActive("/inventory/notifications") && (
-                  <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
-                )}
+                {isActive("/inventory/notifications") && <div className="w-1 h-1 bg-orange-500 rounded-full"></div>}
               </Link>
 
-              {/* Reports */}
               {visibleFor(navItems[2]) && (
                 <Link
                   href="/inventory/reports"
@@ -489,157 +443,88 @@ export default function SideBar({
                   }}
                   className="flex flex-col items-center gap-1 group"
                 >
-                  <div
-                    className={`p-3 rounded-xl transition ${isActive("/inventory/reports")
-                      ? "bg-orange-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                  >
+                  <div className={`p-3 rounded-xl transition ${isActive("/inventory/reports") ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
                     <BarChart3 size={24} />
                   </div>
-                  {isActive("/inventory/reports") && (
-                    <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
-                  )}
+                  {isActive("/inventory/reports") && <div className="w-1 h-1 bg-orange-500 rounded-full"></div>}
                 </Link>
               )}
 
-              {/* More */}
-              <button
-                onClick={() => setMoreModalOpen(true)}
-                className="flex flex-col items-center gap-1"
-              >
-                <div
-                  className={`p-3 rounded-xl transition ${moreModalOpen
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                >
+              <button onClick={() => setMoreModalOpen(true)} className="flex flex-col items-center gap-1">
+                <div className={`p-3 rounded-xl transition ${moreModalOpen ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
                   <MoreVertical size={24} />
                 </div>
               </button>
             </div>
           </nav>
 
-          {/* SLIDE-UP MODAL */}
           {moreModalOpen && (
             <>
-              {/* Backdrop */}
-              <div
-                onClick={() => setMoreModalOpen(false)}
-                className="fixed inset-0 bg-black/50 z-40 animate-fadeIn"
-              ></div>
-
-              {/* Modal Content */}
+              <div onClick={() => setMoreModalOpen(false)} className="fixed inset-0 bg-black/50 z-40 animate-fadeIn"></div>
               <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slideUp max-h-[80vh] overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b bg-linear-to-r from-orange-50 to-white">
-                  <h2 className="text-lg font-bold text-gray-800 ">
-                    {t("sidebar.management")}
-                  </h2>
-                  <button
-                    onClick={() => setMoreModalOpen(false)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition"
-                  >
+                  <h2 className="text-lg font-bold text-gray-800">{t("sidebar.management")}</h2>
+                  <button onClick={() => setMoreModalOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition">
                     <X size={24} className="text-gray-600" />
                   </button>
                 </div>
-
-                {/* Menu Items */}
                 <div className="overflow-y-auto max-h-[calc(80vh-80px)] px-4 py-6 space-y-2">
-                  {navItems
-                    .slice(3)
-                    .filter(visibleFor)
-                    .map((item) => {
-                      const parentActive = item.children?.some((c) =>
-                        isActive(c.path)
-                      );
-
-                      return (
-                        <div key={item.title} className="space-y-1">
-                          {/* Single Item (Sales) */}
-                          {!item.children && (
-                            <Link
-                              href={item.path}
-                              onClick={() => {
-                                setMoreModalOpen(false);
-                                if (!isActive(item.path)) {
-                                  setOptimisticPath(item.path);
-                                  startNavigating();
-                                }
-                              }}
-                              className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path)
-                                ? "bg-orange-500 text-white shadow-lg"
-                                : "text-gray-700 hover:bg-orange-50"
-                                }`}
+                  {navItems.slice(3).filter(visibleFor).map((item) => {
+                    const parentActive = item.children?.some((c) => isActive(c.path));
+                    return (
+                      <div key={item.title} className="space-y-1">
+                        {!item.children ? (
+                          <Link
+                            href={item.path}
+                            onClick={() => {
+                              setMoreModalOpen(false);
+                              if (!isActive(item.path)) {
+                                setOptimisticPath(item.path);
+                                startNavigating();
+                              }
+                            }}
+                            className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path) ? "bg-orange-500 text-white shadow-lg" : "text-gray-700 hover:bg-orange-50"}`}
+                          >
+                            {item.icon}
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        ) : (
+                          <div>
+                            <div
+                              onClick={() => setOpenMenus(prev => prev.includes(item.title) ? prev.filter(x => x !== item.title) : [...prev, item.title])}
+                              className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive ? "bg-orange-50 text-orange-700 border border-orange-200" : "text-gray-700 hover:bg-orange-50"}`}
                             >
-                              {item.icon}
-                              <span className="font-medium">{item.title}</span>
-                            </Link>
-                          )}
-
-                          {/* Parent with Children */}
-                          {item.children && (
-                            <div>
-                              <div
-                                onClick={() =>
-                                  setOpenMenus((prev) =>
-                                    prev.includes(item.title)
-                                      ? prev.filter((x) => x !== item.title)
-                                      : [...prev, item.title]
-                                  )
-                                }
-                                className={`flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer transition ${parentActive
-                                  ? "bg-orange-50 text-orange-700 border border-orange-200"
-                                  : "text-gray-700 hover:bg-orange-50"
-                                  }`}
-                              >
-                                <div className="flex items-center gap-4">
-                                  {item.icon}
-                                  <span className="font-medium">
-                                    {item.title}
-                                  </span>
-                                </div>
-                                <ChevronDown
-                                  size={20}
-                                  className={`transition-transform ${openMenus.includes(item.title)
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
-                                />
+                              <div className="flex items-center gap-4">
+                                {item.icon}
+                                <span className="font-medium">{item.title}</span>
                               </div>
-
-                              {/* Children Links */}
-                              {openMenus.includes(item.title) &&
-                                item.children && (
-                                  <div className="ml-12 mt-2 space-y-1">
-                                    {item.children
-                                      .filter(visibleFor)
-                                      .map((child) => (
-                                        <Link
-                                          key={child.title}
-                                          href={child.path}
-                                          onClick={() => {
-                                            setMoreModalOpen(false);
-                                            if (!isActive(child.path)) {
-                                              setOptimisticPath(child.path);
-                                              startNavigating();
-                                            }
-                                          }}
-                                          className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path)
-                                            ? "bg-orange-500 text-white"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                            }`}
-                                        >
-                                          {child.title}
-                                        </Link>
-                                      ))}
-                                  </div>
-                                )}
+                              <ChevronDown size={20} className={`transition-transform ${openMenus.includes(item.title) ? "rotate-180" : ""}`} />
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {openMenus.includes(item.title) && (
+                              <div className="ml-12 mt-2 space-y-1">
+                                {item.children.filter(visibleFor).map((child) => (
+                                  <Link
+                                    key={child.title}
+                                    href={child.path}
+                                    onClick={() => {
+                                      setMoreModalOpen(false);
+                                      if (!isActive(child.path)) {
+                                        setOptimisticPath(child.path);
+                                        startNavigating();
+                                      }
+                                    }}
+                                    className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                                  >
+                                    {child.title}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -647,385 +532,160 @@ export default function SideBar({
         </>
       ) : null}
 
-      {/* DESKTOP VIEW - ORIGINAL SIDEBAR */}
-      {/* Hidden on mobile, visible on md and up */}
-      <aside
-        className={`hidden md:flex fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ease-in-out flex-col ${expanded ? "w-[280px]" : "w-[72px]"
-          }`}
-      >
-        {/* HEADER */}
-        <div className="flex overflow-y-auto overflow-x-hidden shrink-0 items-center px-4 h-16 border-b overflow-hidden">
+      {/* DESKTOP VIEW */}
+      <aside className={`hidden md:flex fixed inset-y-0 left-0 z-30 bg-white border-r transition-all duration-300 ease-in-out flex-col ${expanded ? "w-[280px]" : "w-[72px]"}`}>
+        <div className="flex shrink-0 items-center px-4 h-16 border-b overflow-hidden">
           <div className={`flex items-center transition-all duration-300 ease-in-out ${expanded ? "w-full justify-between" : "w-full justify-center"}`}>
-            {expanded ? (
-              <div className="flex items-center gap-2 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-                <img
-                  src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
-                  alt="Invexis"
-                  className="h-8 w-auto object-contain"
-                />
-              </div>
-            ) : (
-              <img
-                src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
-                alt="Invexis"
-                className="h-8 w-8 object-contain transition-all duration-300"
-              />
-            )}
+            <img
+              src={isDarkMode ? "/images/Invexix Logo-Dark Mode.png" : "/images/Invexix Logo-Light Mode.png"}
+              alt="Invexis"
+              className={expanded ? "h-8 w-auto object-contain animate-in fade-in slide-in-from-left-2 duration-300" : "h-8 w-8 object-contain"}
+            />
             {expanded && (
-              <button
-                id="sidebar-toggle-btn"
-                onClick={() => setExpanded(!expanded)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
-              >
+              <button onClick={() => setExpanded(!expanded)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0">
                 <Menu size={22} />
               </button>
             )}
-
           </div>
         </div>
 
-        {/* NAVIGATION */}
         <nav className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-4 space-y-6 custom-scrollbar ${expanded ? "px-3" : "px-2"}`}>
-          {/* OVERVIEW */}
           <section>
-            <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-4 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
-                }`}
-            >
+            <h3 className={`text-xs font-semibold text-gray-500 uppercase mb-4 px-3 transition-opacity duration-300 whitespace-nowrap ${expanded ? "opacity-100" : "opacity-0"}`}>
               {t("sidebar.overview")}
             </h3>
-
-            {navItems
-              .slice(0, 3)
-              .filter(visibleFor)
-              .map((item) => {
-                const parentActive = item.children?.some((c) =>
-                  isActive(c.path)
-                );
-
-                return (
-                  <div
-                    key={item.title}
-                    onMouseEnter={(e) => handleHoverEnter(e, item)}
-                    onMouseLeave={handleHoverLeave}
-                  >
-                    {/* Single-item */}
-                    {!item.children && (
-                      <Link
-                        href={item.path}
-                        data-tour={item.tourId}
-                        id={item.id}
-                        onMouseEnter={() => prefetchData(item)}
-                        onClick={() => {
-                          if (!isActive(item.path)) {
-                            setOptimisticPath(item.path);
-                            startNavigating();
-                          }
-                        }}
-                        className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
-                          ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                          : "text-gray-700 hover:bg-orange-50"
-                          }`}
-                      >
-                        <div className="flex items-center justify-center shrink-0 w-6">
-                          {item.icon}
-                        </div>
-                        <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-                          {item.title}
-                        </span>
-                      </Link>
-                    )}
-
-                    {/* Parent Dropdown */}
-                    {item.children && (
-                      <>
-                        <div
-                          data-tour={item.tourId}
-                          id={item.id}
-                          onClick={(e) => {
-                            if (expanded) {
-                              setOpenMenus((prev) =>
-                                prev.includes(item.title)
-                                  ? prev.filter((x) => x !== item.title)
-                                  : [...prev, item.title]
-                              );
-                            } else {
-                              if (hoverItem?.title === item.title) {
-                                setHoverItem(null);
-                              } else {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                setHoverItem(item);
-                                setHoverPosition({ top: rect.top });
-                              }
-                            }
-                          }}
-                          className={`relative flex items-center justify-between px-3 py-3 cursor-pointer transition ${parentActive
-                            ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                            : "text-gray-700 hover:bg-orange-50"
-                            }`}
-                        >
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="flex items-center justify-center shrink-0 w-6">
-                              {item.icon}
-                            </div>
-                            <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-                              {item.title}
-                            </span>
-                          </div>
-                          <ChevronDown
-                            size={18}
-                            className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`}
-                          />
-                        </div>
-
-                        {expanded && item.children && (
-                          <div className={`ml-10 mt-1 transition-all duration-300 ease-in-out overflow-hidden ${openMenus.includes(item.title) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                            {item.children.filter(visibleFor).map((child) => (
-                              <Link
-                                key={child.title}
-                                href={child.path}
-                                onMouseEnter={() => prefetchData(child)}
-                                onClick={() => {
-                                  if (!isActive(child.path)) {
-                                    setOptimisticPath(child.path);
-                                    startNavigating();
-                                  }
-                                }}
-                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
-                                  ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
-                                  : "text-gray-600 hover:bg-gray-100"
-                                  }`}
-                              >
-                                {child.title}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
+            {navItems.slice(0, 3).filter(visibleFor).map((item) => (
+              <div key={item.title} onMouseEnter={(e) => handleHoverEnter(e, item)} onMouseLeave={handleHoverLeave}>
+                <Link
+                  href={item.path}
+                  id={item.id}
+                  onClick={() => { if (!isActive(item.path)) { setOptimisticPath(item.path); startNavigating(); } }}
+                  className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
+                >
+                  <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
+                  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                    {item.title}
+                  </span>
+                </Link>
+              </div>
+            ))}
           </section>
 
-          {/* MANAGEMENT */}
-          <section className="">
-            <h3
-              className={`text-xs font-semibold text-gray-500 uppercase mb-3 px-3 transition-opacity duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100" : "opacity-0"
-                }`}
-            >
+          <section>
+            <h3 className={`text-xs font-semibold text-gray-500 uppercase mb-3 px-3 transition-opacity duration-300 whitespace-nowrap ${expanded ? "opacity-100" : "opacity-0"}`}>
               {t("sidebar.management")}
             </h3>
-
-            {navItems
-              .slice(3)
-              .filter(visibleFor)
-              .map((item) => {
-                const parentActive = item.children?.some((c) =>
-                  isActive(c.path)
-                );
-
-                return (
-                  <div
-                    key={item.title}
-                    onMouseEnter={(e) => handleHoverEnter(e, item)}
-                    onMouseLeave={handleHoverLeave}
+            {navItems.slice(3).filter(visibleFor).map((item) => (
+              <div key={item.title} onMouseEnter={(e) => handleHoverEnter(e, item)} onMouseLeave={handleHoverLeave}>
+                {!item.children ? (
+                  <Link
+                    href={item.path}
+                    onClick={() => { if (!isActive(item.path)) { setOptimisticPath(item.path); startNavigating(); } }}
+                    className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                   >
-                    {/* Single-item (Sales) */}
-                    {!item.children && visibleFor(item) && (
-                      <Link
-                        href={item.path}
-                        data-tour={item.tourId}
-                        onMouseEnter={() => prefetchData(item)}
-                        onClick={() => {
-                          if (!isActive(item.path)) {
-                            setOptimisticPath(item.path);
-                            startNavigating();
-                          }
-                        }}
-                        className={`flex items-center gap-3 px-3 py-3  transition ${isActive(item.path)
-                          ? "bg-gray-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                          : "text-gray-700 hover:bg-orange-50"
-                          }`}
-                      >
-                        <div className="flex items-center justify-center shrink-0 w-6">
-                          {item.icon}
-                        </div>
+                    <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
+                    <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
+                      {item.title}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    <div
+                      onClick={(e) => {
+                        if (expanded) {
+                          setOpenMenus(prev => prev.includes(item.title) ? prev.filter(x => x !== item.title) : [...prev, item.title]);
+                        } else {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setHoverItem(item);
+                          setHoverPosition({ top: rect.top });
+                        }
+                      }}
+                      className={`flex items-center justify-between px-3 py-3 cursor-pointer transition ${item.children.some(c => isActive(c.path)) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
                         <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
                           {item.title}
                         </span>
-                      </Link>
-                    )}
-
-                    {/* Parent Dropdown */}
-                    {item.children &&
-                      item.children.filter(visibleFor).length > 0 && (
-                        <>
-                          <div
-                            data-tour={item.tourId}
-                            onClick={(e) => {
-                              if (expanded) {
-                                // Expanded sidebar: toggle the accordion
-                                setOpenMenus((prev) =>
-                                  prev.includes(item.title)
-                                    ? prev.filter((x) => x !== item.title)
-                                    : [...prev, item.title]
-                                );
-                              } else {
-                                // Collapsed sidebar (icon-only): toggle the hover popup on click
-                                if (hoverItem?.title === item.title) {
-                                  setHoverItem(null); // already open → close it
-                                } else {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setHoverItem(item);
-                                  setHoverPosition({ top: rect.top });
-                                }
-                              }
-                            }}
-                            className={`relative flex items-center justify-between px-3 py-3  cursor-pointer transition ${parentActive
-                              ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
-                              : "text-gray-700 hover:bg-orange-50"
-                              }`}
+                      </div>
+                      <ChevronDown size={18} className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`} />
+                    </div>
+                    {expanded && openMenus.includes(item.title) && (
+                      <div className="ml-10 mt-1 space-y-1">
+                        {item.children.filter(visibleFor).map((child) => (
+                          <Link
+                            key={child.title}
+                            href={child.path}
+                            onClick={() => { if (!isActive(child.path)) { setOptimisticPath(child.path); startNavigating(); } }}
+                            className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path) ? "font-bold text-orange-500" : "text-gray-600 hover:text-orange-500"}`}
                           >
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <div className="flex items-center justify-center shrink-0 w-6">
-                                {item.icon}
-                              </div>
-                              <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
-                                {item.title}
-                              </span>
-                            </div>
-
-                            <ChevronDown
-                              size={18}
-                              className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`}
-                            />
-                          </div>
-
-                          {/* Children → FIXED WITH SAFE CHECK */}
-                          {expanded && item.children && (
-                            <div className={`ml-10 mt-1 transition-all duration-300 ease-in-out overflow-hidden ${openMenus.includes(item.title) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                              {item.children.filter(visibleFor).map((child) => (
-                                <Link
-                                  key={child.title}
-                                  href={child.path}
-                                  onMouseEnter={() => prefetchData(child)}
-                                  onClick={() => {
-                                    if (!isActive(child.path)) {
-                                      setOptimisticPath(child.path);
-                                      startNavigating();
-                                    }
-                                  }}
-                                  className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
-                                    ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
-                                    : "text-gray-600 hover:bg-gray-100"
-                                    }`}
-                                >
-                                  {child.title}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      )}
-                  </div>
-                );
-              })}
+                            {child.title}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
           </section>
         </nav>
 
-        {/* LOGOUT SECTION */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className={`flex items-center gap-3 w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-xl transition ${expanded ? "justify-start" : "justify-center"}`}
+          >
+            <LogOut size={22} />
+            {expanded && <span className="font-medium">{t("sidebar.logout")}</span>}
+          </button>
+        </div>
 
-        {/* TOGGLE BUTTON - Bottom Right */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="absolute bottom-[54px] right-0 translate-x-1/2 z-40 p-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-full shadow-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 hover:scale-110 group"
-          aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          className="absolute bottom-[100px] right-0 translate-x-1/2 z-40 p-2 bg-white border border-gray-200 text-gray-500 rounded-full shadow-md hover:bg-gray-50 transition-all"
         >
-          <svg
-            className={`w-4 h-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? "rotate-90" : "-rotate-90"}`} />
         </button>
-      </aside >
+      </aside>
 
-      {/* HOVER MENU */}
-      {hoverItem && mounted &&
-        createPortal(
-          <div
-            style={{
-              top: hoverPosition.top,
-              left: 72,
-              opacity: hoverItem ? 1 : 0,
-              transform: hoverItem ? 'translateX(0)' : 'translateX(-10px)'
-            }}
-            className="fixed w-56 bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-700 py-2 z-50 transition-all duration-200 animate-in fade-in slide-in-from-left-2"
-            onMouseEnter={cleanTimeout}
-            onMouseLeave={handleHoverLeave}
-          >
-            {/* Header/Main Link */}
-            {!hoverItem.children ? (
+      {/* HOVER MENU PORTAL */}
+      {hoverItem && mounted && createPortal(
+        <div
+          style={{ top: hoverPosition.top, left: 72 }}
+          className="fixed w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-left-2"
+          onMouseEnter={cleanTimeout}
+          onMouseLeave={handleHoverLeave}
+        >
+          <div className="px-4 py-2 border-b font-bold text-sm text-gray-900 flex items-center justify-between">
+            {hoverItem.title}
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+          </div>
+          <div className="py-2 px-2 space-y-1">
+            {hoverItem.children ? (
+              hoverItem.children.filter(visibleFor).map((child) => (
+                <Link
+                  key={child.title}
+                  href={child.path}
+                  onClick={() => { setHoverItem(null); if (!isActive(child.path)) { setOptimisticPath(child.path); startNavigating(); } }}
+                  className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+                >
+                  {child.title}
+                </Link>
+              ))
+            ) : (
               <Link
                 href={hoverItem.path}
-                onMouseEnter={() => prefetchData(hoverItem)}
-                onClick={() => {
-                  setHoverItem(null);
-                  if (!isActive(hoverItem.path)) {
-                    setOptimisticPath(hoverItem.path);
-                    startNavigating();
-                  }
-                }}
-                className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all ${isActive(hoverItem.path)
-                  ? "bg-orange-500 text-white font-bold shadow-md"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-600 dark:hover:text-orange-400"
-                  }`}
+                onClick={() => { setHoverItem(null); if (!isActive(hoverItem.path)) { setOptimisticPath(hoverItem.path); startNavigating(); } }}
+                className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(hoverItem.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
               >
-                <span className="text-sm">{hoverItem.title}</span>
+                {t("common.open")}
               </Link>
-            ) : (
-              <>
-                <div className="px-4 py-2 mb-1 border-b border-gray-50 dark:border-gray-700 font-bold text-gray-900 dark:text-white text-sm flex items-center justify-between">
-                  {hoverItem.title}
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
-                </div>
-
-                <div className="space-y-0.5 px-2">
-                  {hoverItem.children.filter(visibleFor).map((child) => (
-                    <Link
-                      key={child.title}
-                      href={child.path}
-                      onMouseEnter={() => prefetchData(child)}
-                      onClick={() => {
-                        setHoverItem(null);
-                        if (!isActive(child.path)) {
-                          setOptimisticPath(child.path);
-                          startNavigating();
-                        }
-                      }}
-                      className={`block px-3 py-2 text-sm rounded-lg transition-all ${isActive(child.path)
-                        ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-                        }`}
-                    >
-                      {child.title}
-                    </Link>
-                  ))}
-                </div>
-              </>
             )}
-          </div>,
-          document.body
-        )
-      }
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }
