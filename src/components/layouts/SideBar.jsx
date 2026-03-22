@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Users,
@@ -38,7 +39,7 @@ const getNavItems = (t) => [
   // OVERVIEW
   {
     title: t("sidebar.dashboard"),
-    icon: <LayoutDashboard size={22} />,
+    icon: <LayoutDashboard size={20} />,
     path: "/inventory/dashboard",
     prefetch: true,
     tourId: "tour-dashboard",
@@ -46,7 +47,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.notifications"),
-    icon: <Bell size={22} />,
+    icon: <Bell size={20} />,
     path: "/inventory/notifications",
     prefetch: true,
     tourId: "tour-notifications-sidebar",
@@ -54,7 +55,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.reports"),
-    icon: <BarChart3 size={22} />,
+    icon: <BarChart3 size={20} />,
     path: "/inventory/reports",
     prefetch: true,
     tourId: "tour-reports-sidebar",
@@ -64,7 +65,7 @@ const getNavItems = (t) => [
   // MANAGEMENT
   {
     title: t("sidebar.staffAndShops"),
-    icon: <Users size={22} />,
+    icon: <Users size={20} />,
     roles: ["company_admin"],
     tourId: "tour-management",
     id: "sidebar-mgmt-staff",
@@ -74,7 +75,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.inventory"),
-    icon: <Package size={22} />,
+    icon: <Package size={20} />,
     roles: ["worker", "company_admin"],
     tourId: "tour-inventory",
     id: "sidebar-mgmt-inventory",
@@ -89,7 +90,7 @@ const getNavItems = (t) => [
   // SALES
   {
     title: t("sidebar.sales"),
-    icon: <ShoppingBag size={22} />,
+    icon: <ShoppingBag size={20} />,
     roles: ["sales_manager", "company_admin"],
     tourId: "tour-sales",
     id: "sidebar-mgmt-sales",
@@ -100,7 +101,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.debts"),
-    icon: <Wallet size={22} />,
+    icon: <Wallet size={20} />,
     path: "/inventory/debts",
     roles: ["sales_manager", "company_admin"],
     prefetch: true,
@@ -109,7 +110,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.billingAndPayments"),
-    icon: <Receipt size={22} />,
+    icon: <Receipt size={20} />,
     roles: ["sales_manager", "company_admin"],
     tourId: "tour-billing",
     id: "sidebar-mgmt-billing",
@@ -120,7 +121,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.documents"),
-    icon: <Files size={22} />,
+    icon: <Files size={20} />,
     path: "/inventory/documents",
     roles: ["manager", "company_admin"],
     prefetch: true,
@@ -129,7 +130,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.logsAndAudits"),
-    icon: <History size={22} />,
+    icon: <History size={20} />,
     path: "/inventory/logs",
     roles: ["company_admin"],
     prefetch: true,
@@ -298,13 +299,19 @@ export default function SideBar({
     }
   };
 
-  /* Auto-open active parent */
+  /* Auto-open active parent with better dependency tracking */
   useEffect(() => {
+    if (!mounted) return;
     const activeParents = navItems
       .filter((item) => item.children?.some((child) => isActive(child.path)))
       .map((item) => item.title);
-    setOpenMenus(activeParents);
-  }, [pathname, isActive, navItems]);
+
+    setOpenMenus((prev) => {
+      // Keep existing open menus but ensure active ones are included
+      const next = [...new Set([...prev, ...activeParents])];
+      return next;
+    });
+  }, [pathname, optimisticPath, mounted]); // Removed isActive and navItems to avoid excessive triggering
 
   /* Clear optimistic path on actual navigation */
   useEffect(() => {
@@ -464,6 +471,7 @@ export default function SideBar({
             </div>
           </nav>
 
+          {/* Mobile slide-up modal with simple reveal */}
           {moreModalOpen && (
             <>
               <div onClick={() => setMoreModalOpen(false)} className="fixed inset-0 bg-black/50 z-40 animate-fadeIn"></div>
@@ -506,30 +514,39 @@ export default function SideBar({
                                 {item.icon}
                                 <span className="font-medium">{item.title}</span>
                               </div>
-                              <ChevronDown size={20} className={`transition-transform ${openMenus.includes(item.title) ? "rotate-180" : ""}`} />
+                              <ChevronDown size={20} className={`transition-transform duration-300 ${openMenus.includes(item.title) ? "rotate-180" : ""}`} />
                             </div>
-                            {openMenus.includes(item.title) && (
-                              <div className="ml-12 mt-2 space-y-1">
-                                {item.children.filter(visibleFor).map((child) => (
-                                  <Link
-                                    key={child.title}
-                                    href={child.path}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      setMoreModalOpen(false);
-                                      if (!isActive(child.path)) {
-                                        setOptimisticPath(child.path);
-                                        startNavigating();
-                                        router.push(child.path);
-                                      }
-                                    }}
-                                    className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
-                                  >
-                                    {child.title}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
+
+                            <AnimatePresence>
+                              {openMenus.includes(item.title) && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                                  className="ml-12 mt-2 space-y-1 overflow-hidden"
+                                >
+                                  {item.children.filter(visibleFor).map((child) => (
+                                    <Link
+                                      key={child.title}
+                                      href={child.path}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setMoreModalOpen(false);
+                                        if (!isActive(child.path)) {
+                                          setOptimisticPath(child.path);
+                                          startNavigating();
+                                          router.push(child.path);
+                                        }
+                                      }}
+                                      className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                                    >
+                                      {child.title}
+                                    </Link>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                         )}
                       </div>
@@ -577,7 +594,7 @@ export default function SideBar({
                       router.push(item.path);
                     }
                   }}
-                  className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-xl transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                 >
                   <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
                   <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
@@ -605,7 +622,7 @@ export default function SideBar({
                         router.push(item.path);
                       }
                     }}
-                    className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                   >
                     <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
                     <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
@@ -624,7 +641,7 @@ export default function SideBar({
                           setHoverPosition({ top: rect.top });
                         }
                       }}
-                      className={`flex items-center justify-between px-3 py-3 cursor-pointer transition ${item.children.some(c => isActive(c.path)) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
+                      className={`flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition ${item.children.some(c => isActive(c.path)) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                     >
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
@@ -634,27 +651,36 @@ export default function SideBar({
                       </div>
                       <ChevronDown size={18} className={`transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0"} ${openMenus.includes(item.title) ? "rotate-180" : ""}`} />
                     </div>
-                    {expanded && openMenus.includes(item.title) && (
-                      <div className="ml-10 mt-1 space-y-1">
-                        {item.children.filter(visibleFor).map((child) => (
-                          <Link
-                            key={child.title}
-                            href={child.path}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (!isActive(child.path)) {
-                                setOptimisticPath(child.path);
-                                startNavigating();
-                                router.push(child.path);
-                              }
-                            }}
-                            className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path) ? "font-bold text-orange-500" : "text-gray-600 hover:text-orange-500"}`}
-                          >
-                            {child.title}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
+
+                    <AnimatePresence>
+                      {expanded && openMenus.includes(item.title) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="ml-10 mt-1 space-y-1 overflow-hidden"
+                        >
+                          {item.children.filter(visibleFor).map((child) => (
+                            <Link
+                              key={child.title}
+                              href={child.path}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isActive(child.path)) {
+                                  setOptimisticPath(child.path);
+                                  startNavigating();
+                                  router.push(child.path);
+                                }
+                              }}
+                              className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${isActive(child.path) ? "font-bold text-orange-500 bg-orange-50/50" : "text-gray-600 hover:text-orange-500 hover:bg-gray-50"}`}
+                            >
+                              {child.title}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </>
                 )}
               </div>
@@ -674,9 +700,10 @@ export default function SideBar({
 
         <button
           onClick={() => setExpanded(!expanded)}
-          className="absolute bottom-[100px] right-0 translate-x-1/2 z-40 p-2 bg-white border border-gray-200 text-gray-500 rounded-full shadow-md hover:bg-gray-50 transition-all"
+          className="absolute bottom-[100px] right-0 translate-x-1/2 z-40 p-2 bg-white border border-gray-200 text-gray-500 rounded-full shadow-md hover:bg-gray-50 transition-all active:scale-95"
+          aria-label={expanded ? "Collapse Sidebar" : "Expand Sidebar"}
         >
-          <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? "rotate-90" : "-rotate-90"}`} />
+          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expanded ? "rotate-90" : "-rotate-90"}`} />
         </button>
       </aside>
 
