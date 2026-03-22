@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 // Component Components
 import NotificationSideBar from "./Notifications_Sidebar";
 import ProfileSidebar from "./ProfileSidebar";
+import GlobalSearchOverlay from "../shared/GlobalSearch/GlobalSearchOverlay";
 
 // Providers
 import { useNotification } from "@/providers/NotificationProvider";
@@ -52,6 +53,7 @@ export default function TopNavBar({ expanded = true }) {
   // Sidebar States
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef(null);
 
   // Shortcut logic: Ctrl+K or Cmd+K to focus search
@@ -59,7 +61,7 @@ export default function TopNavBar({ expanded = true }) {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        setIsSearchOpen(true);
       }
     };
 
@@ -113,36 +115,33 @@ export default function TopNavBar({ expanded = true }) {
         `}
       >
         {/* Left Section - Logo (Visible on mobile or if needed) */}
-        <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0 shrink-0">
           <span className="font-bold text-xl text-gray-950 whitespace-nowrap">
             INVEX<span className="text-orange-500 font-extrabold">IX</span>
           </span>
         </div>
 
-        {/* Middle Section - Modern Search Bar */}
+        {/* Middle Section - Magical Global Search Box */}
         <div className="flex-1 max-w-2xl mx-8 hidden md:block" data-tour="tour-search">
-          <div className="relative group">
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search anything..."
-              className="w-full pl-12 pr-4 py-2.5 rounded-2xl bg-gray-100/80 border border-transparent focus:bg-white focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 text-sm transition-all outline-none"
-              aria-label="Search"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
-              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
-                ⌘
-              </kbd>
-              <kbd className="px-1.5 py-0.5 rounded border border-gray-300 bg-white text-[10px] font-medium text-gray-500 shadow-sm">
-                K
-              </kbd>
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="w-full relative group text-left outline-none"
+          >
+            <div className="flex items-center w-full pl-12 pr-4 py-2.5 rounded-2xl bg-gray-100/80 border border-transparent hover:bg-gray-200/50 hover:border-orange-300/30 transition-all cursor-text shadow-xs">
+              <span className="text-sm text-gray-400 font-medium">Search anything (products, staff, pages)...</span>
             </div>
-          </div>
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xs">
+                <kbd className="text-[10px] font-bold text-gray-500">⌘</kbd>
+                <kbd className="text-[10px] font-bold text-gray-500">K</kbd>
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Right Section - Icons and Profile */}
-        <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
           {/* Notifications Trigger */}
           <button
             id="nav-notifications"
@@ -166,7 +165,7 @@ export default function TopNavBar({ expanded = true }) {
             )}
           </button>
 
-          <div className="h-8 w-[1px] bg-gray-200 hidden md:block" />
+          <div className="h-8 w-px bg-gray-200 hidden md:block" />
 
           {/* User Profile Trigger */}
           <button
@@ -189,7 +188,7 @@ export default function TopNavBar({ expanded = true }) {
               />
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
-            <div className="hidden lg:flex flex-col items-start translate-y-[1px]">
+            <div className="hidden lg:flex flex-col items-start translate-y-px">
               <p className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
                 {displayName}
               </p>
@@ -216,6 +215,11 @@ export default function TopNavBar({ expanded = true }) {
       <NotificationSideBar
         isOpen={notifOpen}
         onClose={() => setNotifOpen(false)}
+      />
+
+      <GlobalSearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
       />
     </>
   );
