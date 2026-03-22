@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Command, CornerDownLeft, Sparkles, Loader2, Clock, Trash2 } from "lucide-react";
+import { Search, X, CornerDownLeft, Loader2, Clock } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
@@ -32,7 +32,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
   const { data: session } = useSession();
   const router = useRouter();
   const locale = useLocale();
-  const { results, isLoading, saveRecentSearch, recentSearches } = useGlobalSearch(query, session);
+  const { results, isLoading, saveRecentSearch, clearRecentSearches, recentSearches } = useGlobalSearch(query, session);
 
   // Auto-focus input when opened
   useEffect(() => {
@@ -91,13 +91,13 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
 
   // Group results for better UI
   const hasResults = results.length > 0;
-  const isRecentView = query.length < 2 && hasResults;
+  const isRecentView = query.length === 0 && hasResults;
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-100 flex items-start justify-center pt-[10vh] px-4">
-          {/* Backdrop with Dynamic Blur */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -106,13 +106,13 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
             className="fixed inset-0 bg-gray-950/60 backdrop-blur-xl transition-opacity"
           />
 
-          {/* Magical Command Palette Modal */}
+          {/* Command Palette Modal */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: -40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: -40 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-2xl bg-white/95 dark:bg-gray-900/95 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-white/20 overflow-hidden flex flex-col backdrop-blur-3xl"
+            className="relative w-full max-w-2xl bg-white/95 dark:bg-gray-900/95 rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col backdrop-blur-3xl"
           >
             {/* Search Header */}
             <div className="relative flex items-center p-8 pb-6">
@@ -148,16 +148,16 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
               ref={scrollRef}
               className="max-h-[55vh] overflow-y-auto custom-scrollbar px-8 pb-8"
             >
-              {!hasResults && query.length < 2 && (
+              {!hasResults && query.length === 0 && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="py-16 text-center"
                 >
-                  <div className="inline-flex p-6 rounded-[2rem] bg-linear-to-br from-orange-400 to-orange-600 shadow-xl shadow-orange-500/20 mb-6">
-                    <Sparkles className="w-10 h-10 text-white" />
+                  <div className="inline-flex p-6 rounded-[2rem] bg-gray-100 dark:bg-gray-800 mb-6">
+                    <Search className="w-10 h-10 text-gray-400" />
                   </div>
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">The Magical Search</h3>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">Quick Search</h3>
                   <p className="text-gray-500 dark:text-gray-400 mt-2 px-12 leading-relaxed">
                     Search for products, staff members, shops, or jump to any page in the application.
                   </p>
@@ -183,9 +183,17 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                   className="space-y-6"
                 >
                   {isRecentView && (
-                    <div className="flex items-center gap-2 px-2 opacity-50 mb-[-1rem]">
-                      <Clock size={14} className="text-gray-400" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Recent Searches</span>
+                    <div className="flex items-center justify-between px-2 mb-[-1rem]">
+                      <div className="flex items-center gap-2 opacity-50">
+                        <Clock size={14} className="text-gray-400" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Recent Searches</span>
+                      </div>
+                      <button 
+                        onClick={clearRecentSearches}
+                        className="text-[10px] font-bold text-orange-500 hover:text-orange-600 uppercase tracking-wider"
+                      >
+                        Clear All
+                      </button>
                     </div>
                   )}
                   
@@ -199,12 +207,12 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                         onMouseEnter={() => setActiveIndex(index)}
                         className={`w-full flex items-center gap-5 p-4 rounded-[1.5rem] transition-all duration-300 group text-left ${
                           activeIndex === index 
-                            ? "bg-white dark:bg-gray-800 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.1)] ring-1 ring-orange-500/20" 
+                            ? "bg-white dark:bg-gray-800 shadow-sm ring-1 ring-orange-500/20" 
                             : "hover:bg-white/40 dark:hover:bg-gray-800/40"
                         }`}
                       >
                         <div className={`p-4 rounded-2xl transition-all duration-500 ${
-                          activeIndex === index ? "bg-orange-500 text-white scale-110 rotate-3" : "bg-gray-100 dark:bg-gray-800 text-gray-500 opacity-70"
+                          activeIndex === index ? "bg-orange-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 opacity-70"
                         }`}>
                           {item.icon}
                         </div>
@@ -240,14 +248,14 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                 </motion.div>
               )}
 
-              {!hasResults && query.length >= 2 && !isLoading && (
+              {!hasResults && query.length > 0 && !isLoading && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="py-16 text-center"
                 >
                   <div className="inline-flex p-6 rounded-[2rem] bg-gray-100 dark:bg-gray-800 mb-6 border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <Trash2 className="w-10 h-10 text-gray-300" />
+                    <Search className="w-10 h-10 text-gray-300" />
                   </div>
                   <h3 className="text-2xl font-black text-gray-400">No results for "{query}"</h3>
                   <p className="text-sm text-gray-400 mt-2 px-12 font-medium">
@@ -257,7 +265,7 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
               )}
             </div>
 
-            {/* Premium Footer */}
+            {/* Footer */}
             <div className="p-6 bg-gray-50/80 dark:bg-gray-900/40 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between text-[11px] text-gray-400 font-bold uppercase tracking-widest">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
@@ -273,8 +281,8 @@ export default function GlobalSearchOverlay({ isOpen, onClose }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Sparkles size={14} className="text-orange-500" />
-                <span className="bg-linear-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">Magical Intelligence</span>
+                <Search size={14} className="text-orange-500" />
+                <span className="bg-linear-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">Global Search</span>
               </div>
             </div>
           </motion.div>

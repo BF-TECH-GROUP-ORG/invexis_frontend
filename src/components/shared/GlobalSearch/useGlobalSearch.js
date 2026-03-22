@@ -81,8 +81,8 @@ export default function useGlobalSearch(query, session) {
 
   // 3. Live Search Logic (Purely Client-Side)
   useEffect(() => {
-    if (!query || query.trim().length < 2) {
-      // Show recent searches if query is empty or too short
+    if (!query || query.trim().length === 0) {
+      // Show recent searches if query is empty
       const normalizedRecent = recentSearches.map(s => ({
         ...s,
         id: `recent-${s.id}`,
@@ -164,10 +164,16 @@ export default function useGlobalSearch(query, session) {
     });
   };
 
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem("recent-searches");
+  };
+
   return { 
     results, 
     isLoading: isPreFetching, // We only show loader during initial pre-fetch
     saveRecentSearch, 
+    clearRecentSearches,
     recentSearches: results.filter(r => r.type === 'recent') 
   };
 }
