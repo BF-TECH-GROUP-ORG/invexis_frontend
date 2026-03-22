@@ -101,7 +101,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                 </Typography>
 
                 {/* Top KPIs */}
-                <div className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 py-4 ">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 py-4 ">
                     {[
                         { title: t('general.kpis.revenue'), value: formatCurrency(reportData?.grandTotal?.sales?.gross || 0), Icon: DollarSign, color: "#3b82f6", bgColor: "#eff6ff" },
                         { title: t('general.kpis.costs'), value: formatCurrency(reportData?.grandTotal?.financials?.cost || 0), Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
