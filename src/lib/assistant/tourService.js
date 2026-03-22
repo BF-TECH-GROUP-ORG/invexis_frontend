@@ -3,76 +3,208 @@ import "driver.js/dist/driver.css";
 
 const tourMapping = {
   "/inventory/dashboard": {
-    title: "Dashboard Overview",
+    title: "Dashboard Mastery",
+    path: "/inventory/dashboard",
     steps: [
-      { element: "#sidebar-toggle-btn", popover: { title: "1. Navigation Menu", description: "Use this button to expand or collapse your sidebar menu." } },
-      { element: "#sidebar-dashboard", popover: { title: "2. The Command Center", description: "This is your main dashboard. It provides a bird's-eye view of your total sales, profit, and stock health." } },
+      { element: "#sidebar-dashboard", popover: { title: "1. The Overview", description: "Monitor your total sales and profits in real-time." } },
     ]
   },
   "/inventory/notifications": {
-    title: "Notifications Guide",
+    title: "Alerts & Announcements",
+    path: "/inventory/notifications",
     steps: [
-      { element: "#nav-notifications", popover: { title: "1. Stay Updated", description: "This bell icon pulses when you have low stock alerts or new system announcements. Don't miss them!" } },
-    ]
-  },
-  "/inventory/products": {
-    title: "Product Management Tour",
-    steps: [
-      { element: "#sidebar-mgmt-inventory", popover: { title: "1. Inventory Menu", description: "First, we open the Inventory management section to find our tools." } },
-      { element: "#sidebar-products", popover: { title: "2. Products List", description: "This is where the magic happens. You can add new products, manage variants (like size and color), and track stock levels." } },
-    ]
-  },
-  "/inventory/categories": {
-    title: "Categories Guide",
-    steps: [
-      { element: "#sidebar-mgmt-inventory", popover: { title: "1. Inventory Section", description: "We start by accessing your inventory organization tools." } },
-      { element: "#sidebar-categories", popover: { title: "2. Master Categories", description: "Organize your products into a 3-level hierarchy for better reporting and filtering." } },
+      { element: "#nav-notifications", popover: { title: "1. Notification Center", description: "Check here for stock alerts and company-wide announcements." } },
     ]
   },
   "/inventory/workers/list": {
-    title: "Staff Management Tour",
+    title: "Complete Staff Guide",
+    path: "/inventory/workers/list",
     steps: [
-      { element: "#sidebar-mgmt-staff", popover: { title: "1. Business Structure", description: "This section is for managing your organizational structure." } },
-      { element: "#sidebar-staff-list", popover: { title: "2. Your Team", description: "Add new employees, assign them to specific shops, and manage their system permissions here." } },
+      { element: "#sidebar-mgmt-staff", popover: { title: "1. Management Menu", description: "Open this to manage your human resources." } },
+      { element: "#sidebar-staff-list", popover: { title: "2. Staff List", description: "Click here to see all registered employees." } },
+      { element: "#add-worker-btn", popover: { title: "3. Registration", description: "Click this button to open the registration form for a new staff member." } },
+    ]
+  },
+  "/inventory/categories": {
+    title: "Category Organization",
+    path: "/inventory/categories",
+    steps: [
+      { element: "#sidebar-mgmt-inventory", popover: { title: "1. Inventory Section", description: "Access your product classification tools." } },
+      { element: "#sidebar-categories", popover: { title: "2. Hierarchy Manager", description: "View your category structure." } },
+      { element: "#add-category-btn", popover: { title: "3. Create New", description: "Start creating a new category level (1, 2, or 3)." } },
+    ]
+  },
+  "/inventory/products": {
+    title: "Product Lifecycle (0-100%)",
+    path: "/inventory/products",
+    steps: [
+      { element: "#sidebar-mgmt-inventory", popover: { title: "1. Open Inventory", description: "Access your catalog management." } },
+      { element: "#sidebar-products", popover: { title: "2. Active Products", description: "Manage your existing stock items here." } },
+      { element: "#add-product-btn", popover: { title: "3. Add New Item", description: "Launch the 7-step product wizard to add a new item to your shop." } },
     ]
   },
   "/inventory/sales/sellProduct/sale": {
-    title: "POS Terminal Tour",
+    title: "Point of Sale Mastery",
+    path: "/inventory/sales/sellProduct/sale",
     steps: [
-      { element: "#sidebar-mgmt-sales", popover: { title: "1. Sales Operations", description: "All customer-facing activities are grouped here." } },
-      { element: "#sidebar-pos", popover: { title: "2. Stock-out (POS)", description: "This is the Point of Sale. Select products, scan barcodes, and process payments via Cash, MoMo, or Airtel." } },
+      { element: "#sidebar-mgmt-sales", popover: { title: "1. Sales Operations", description: "Open for customer transactions." } },
+      { element: "#sidebar-pos", popover: { title: "2. Stock-out Terminal", description: "Launch the POS terminal to record a customer purchase." } },
     ]
   },
-  "/profile": {
-    title: "Profile & Settings",
+  "/inventory/transfer": {
+    title: "Stock Transfers",
+    path: "/inventory/transfer",
     steps: [
-      { element: "#nav-profile", popover: { title: "1. Account Access", description: "Click your avatar to access your personal settings and language preferences." } },
-      { element: "#profile-info-section", popover: { title: "2. Identity", description: "Here you can see your current role and verified credentials." } },
-      { element: "#language-switcher-section", popover: { title: "3. Multilingual Support", description: "Invexix supports English, French, Kinyarwanda, and Swahili. Switch anytime!" } },
+      { element: "#sidebar-mgmt-inventory", popover: { title: "1. Inventory Tools", description: "Open the management menu." } },
+      { element: "#sidebar-transfers", popover: { title: "2. Transfer Log", description: "Move stock between branches or to partners." } },
+    ]
+  },
+  "/inventory/debts": {
+    title: "Financial Liabilities",
+    path: "/inventory/debts",
+    steps: [
+      { element: "#sidebar-debts", popover: { title: "1. Debt Tracker", description: "Monitor money owed to you and repayment schedules." } },
+    ]
+  },
+  "/inventory/billing/invoices": {
+    title: "Invoice Management",
+    path: "/inventory/billing/invoices",
+    steps: [
+      { element: "#sidebar-mgmt-billing", popover: { title: "1. Billing Hub", description: "Access financial documents." } },
+      { element: "#sidebar-invoices", popover: { title: "2. Master Invoices", description: "Generate and track professional customer invoices." } },
+    ]
+  },
+  "/inventory/logs": {
+    title: "System Transparency",
+    path: "/inventory/logs",
+    steps: [
+      { element: "#sidebar-logs", popover: { title: "1. Audit Trail", description: "For complete security, view every action performed by every user." } },
     ]
   }
 };
 
-export const startTour = (path, onComplete) => {
+/**
+ * Wait for DOM to settle (adjustable delay)
+ */
+function waitForDOM(ms = 400) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Wait until a specific element appears in the DOM (with timeout)
+ */
+function waitForElement(selector, timeout = 3000) {
+  return new Promise((resolve) => {
+    const el = document.querySelector(selector);
+    if (el) { resolve(el); return; }
+
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) {
+        observer.disconnect();
+        resolve(found);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Timeout fallback
+    setTimeout(() => {
+      observer.disconnect();
+      resolve(null);
+    }, timeout);
+  });
+}
+
+/**
+ * Filter steps based on current location (Smart Start)
+ */
+const getFilteredSteps = (path, currentPath) => {
+  const tour = tourMapping[path];
+  if (!tour) return [];
+
+  if (currentPath.includes(path)) {
+    const mainSteps = tour.steps.filter(step =>
+      !step.element.includes("sidebar") &&
+      !step.element.includes("nav-")
+    );
+    return mainSteps.length > 0 ? mainSteps : tour.steps;
+  }
+
+  return tour.steps;
+};
+
+export const startTour = async (path, onComplete, currentPath, navigate) => {
   const tour = tourMapping[path];
   if (!tour) {
     if (onComplete) onComplete();
     return;
   }
 
+  // If the tour requires navigation first
+  if (tour.path && !currentPath.includes(tour.path)) {
+    navigate(tour.path);
+    await waitForDOM(600); // Give page a moment to load
+    await waitForElement(tour.steps[0].element, 3000);
+  }
+
+  const steps = getFilteredSteps(path, currentPath);
+
+  if (!steps || steps.length === 0) {
+    if (onComplete) onComplete();
+    return;
+  }
+
   const driverObj = driver({
-    showProgress: true,
     animate: true,
-    overlayColor: "rgba(8, 20, 34, 0.85)",
+    smoothScroll: true,
     allowClose: true,
+    overlayOpacity: 0.65,
+    overlayColor: '#081422',
     stagePadding: 10,
+    stageRadius: 10,
+    popoverOffset: 12,
     popoverClass: 'inara-tour-popover',
+    showProgress: true,
+    progressText: 'Step {{current}} of {{total}}',
+    nextBtnText: 'Next →',
+    prevBtnText: '← Back',
+    doneBtnText: '✅ Done',
+
+    // ─── FIX: onNextClick for cross-page navigation ───
+    onNextClick: async (element, step, opts) => {
+      const nextIndex = opts.state.activeIndex + 1;
+
+      if (nextIndex >= steps.length) {
+        driverObj.destroy();
+        return;
+      }
+
+      const nextStep = steps[nextIndex];
+      let nextEl = document.querySelector(nextStep.element);
+
+      if (!nextEl) {
+        // If element is not in DOM, try clicking current element (maybe it opens a menu)
+        const currentEl = document.querySelector(step.element);
+        currentEl?.click();
+
+        nextEl = await waitForElement(nextStep.element, 3000);
+      }
+
+      if (nextEl) {
+        driverObj.moveNext();
+      } else {
+        // Fallback or give up if element never appears
+        driverObj.destroy();
+      }
+    },
+
     onDestroyed: () => {
-        if (onComplete) onComplete();
+      if (onComplete) onComplete();
     }
   });
 
-  driverObj.setSteps(tour.steps);
+  driverObj.setSteps(steps);
   driverObj.drive();
 };
 

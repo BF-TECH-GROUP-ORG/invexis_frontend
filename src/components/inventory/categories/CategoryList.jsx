@@ -305,6 +305,7 @@ export default function CategoryList({ initialParams = {} }) {
               </div>
 
               <button
+                id="add-category-btn"
                 onClick={handleAddNew}
                 className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
               >
