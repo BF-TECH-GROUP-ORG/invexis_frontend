@@ -157,86 +157,70 @@ const StaffTab = ({ dateRange }) => {
 
                 {/* Top KPIs */}
                 <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.staffMetrics')}</Typography>
-                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.totalStaff')}
-                            value={staffData.length}
-                            icon={GroupIcon}
-                            color="#FF6D00"
-                            index={0}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.activeStaff')}
-                            value={staffData.filter(s => s.status === 'Active').length}
-                            icon={StarIcon}
-                            color="#10B981"
-                            index={1}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.topStaff')}
-                            value={topPerformer?.staffName || t('common.na')}
-                            subValue={topPerformer ? formatCurrency(topPerformer.revenue) : ""}
-                            icon={TrendingUpIcon}
-                            color="#3B82F6"
-                            index={2}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.lowActivity')}
-                            value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : t('common.na')}
-                            icon={GroupIcon}
-                            color="#F59E0B"
-                            index={3}
-                        />
-                    </Grid>
-                </Grid>
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <ReportKPI
+                        title={t('staff.kpis.totalStaff')}
+                        value={staffData.length}
+                        icon={GroupIcon}
+                        color="#FF6D00"
+                        index={0}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.activeStaff')}
+                        value={staffData.filter(s => s.status === 'Active').length}
+                        icon={StarIcon}
+                        color="#10B981"
+                        index={1}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.topStaff')}
+                        value={topPerformer?.staffName || t('common.na')}
+                        subValue={topPerformer ? formatCurrency(topPerformer.revenue) : ""}
+                        icon={TrendingUpIcon}
+                        color="#3B82F6"
+                        index={2}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.lowActivity')}
+                        value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : t('common.na')}
+                        icon={GroupIcon}
+                        color="#F59E0B"
+                        index={3}
+                    />
+                </div>
 
                 <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.branchMetrics')}</Typography>
-                <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.totalBranches')}
-                            value={branchData.length}
-                            icon={StoreIcon}
-                            color="#FF6D00"
-                            index={4}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.mostActiveBranch')}
-                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : t('common.na')}
-                            icon={TrendingUpIcon}
-                            color="#10B981"
-                            index={5}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.highestRevenueBranch')}
-                            value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : t('common.na')}
-                            subValue={branchData.length > 0 ? formatCurrency(branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).revenue) : ""}
-                            icon={StarIcon}
-                            color="#8B5CF6"
-                            index={6}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ display: 'flex' }}>
-                        <ReportKPI
-                            title={t('staff.kpis.underperformingBranches')}
-                            value={branchData.filter(b => b.transactions < 300).length}
-                            icon={GroupIcon}
-                            color="#EF4444"
-                            index={7}
-                        />
-                    </Grid>
-                </Grid>
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <ReportKPI
+                        title={t('staff.kpis.totalBranches')}
+                        value={branchData.length}
+                        icon={StoreIcon}
+                        color="#FF6D00"
+                        index={4}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.mostActiveBranch')}
+                        value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : t('common.na')}
+                        icon={TrendingUpIcon}
+                        color="#10B981"
+                        index={5}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.highestRevenueBranch')}
+                        value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : t('common.na')}
+                        subValue={branchData.length > 0 ? formatCurrency(branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).revenue) : ""}
+                        icon={StarIcon}
+                        color="#8B5CF6"
+                        index={6}
+                    />
+                    <ReportKPI
+                        title={t('staff.kpis.underperformingBranches')}
+                        value={branchData.filter(b => b.transactions < 300).length}
+                        icon={GroupIcon}
+                        color="#EF4444"
+                        index={7}
+                    />
+                </div>
 
                 {/* Branch Performance Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", mb: 4 }}>
