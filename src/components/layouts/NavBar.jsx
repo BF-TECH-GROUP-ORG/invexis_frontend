@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useLocale } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Component Components
 import NotificationSideBar from "./Notifications_Sidebar";
@@ -26,6 +27,7 @@ export default function TopNavBar({ expanded = true }) {
   const { data: session } = useSession();
   const { showNotification } = useNotification();
   const { setLoading, setLoadingText } = useLoading();
+  const queryClient = useQueryClient();
 
   // Redux State
   const unreadCount = useSelector(selectUnreadCount) || 0;
@@ -81,18 +83,24 @@ export default function TopNavBar({ expanded = true }) {
       setLoading(true);
       setProfileOpen(false);
 
-      // Sign out from NextAuth
+      // 1. Clear session with redirect: false so we handle navigation manually
       await signOut({ redirect: false });
 
-      router.push(`/${locale}/auth/login`);
+      // 2. Clear all React Query caches if needed
+      queryClient.clear();
+
+      // 3. Force a full page redirect to Login to ensure all client state is purged
+      // This prevents the 'bounce' effect from SPA navigation
+      window.location.href = `/${locale}/auth/login`;
+
+      // We DON'T call setLoading(false) here because the page will refresh
     } catch (error) {
       console.error("Logout failed:", error);
+      setLoading(false); // Only clear loader on failure
       showNotification({
         severity: "error",
         message: "Logout failed. Please try again.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
