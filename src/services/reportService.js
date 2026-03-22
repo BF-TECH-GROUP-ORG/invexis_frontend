@@ -45,6 +45,28 @@ const reportService = {
         } catch (err) {
             throw err;
         }
+    },
+
+    /**
+     * Get sales report for a company
+     * GET /sales/reports/v1/:companyId
+     */
+    getSalesReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/sales/reports/v1/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
     }
 };
 

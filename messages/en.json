@@ -1966,6 +1966,7 @@
       "none": "None",
       "product": "Product",
       "category": "Category",
+      "invoice": "Invoice",
       "invoiceNo": "Invoice No",
       "customer": "Customer",
       "type": "Type",
