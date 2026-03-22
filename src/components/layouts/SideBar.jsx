@@ -402,13 +402,15 @@ export default function SideBar({
             <div className="flex items-center justify-around max-w-md mx-auto">
               <Link
                 href="/inventory/dashboard"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (!isActive("/inventory/dashboard")) {
                     setOptimisticPath("/inventory/dashboard");
                     startNavigating();
+                    router.push("/inventory/dashboard");
                   }
                 }}
-                className="flex flex-col items-center gap-1 group"
+                className={`flex flex-col items-center gap-1 group`}
               >
                 <div className={`p-3 rounded-xl transition ${isActive("/inventory/dashboard") ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
                   <LayoutDashboard size={24} />
@@ -418,10 +420,12 @@ export default function SideBar({
 
               <Link
                 href="/inventory/notifications"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   if (!isActive("/inventory/notifications")) {
                     setOptimisticPath("/inventory/notifications");
                     startNavigating();
+                    router.push("/inventory/notifications");
                   }
                 }}
                 className="flex flex-col items-center gap-1 group"
@@ -435,10 +439,12 @@ export default function SideBar({
               {visibleFor(navItems[2]) && (
                 <Link
                   href="/inventory/reports"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     if (!isActive("/inventory/reports")) {
                       setOptimisticPath("/inventory/reports");
                       startNavigating();
+                      router.push("/inventory/reports");
                     }
                   }}
                   className="flex flex-col items-center gap-1 group"
@@ -476,11 +482,13 @@ export default function SideBar({
                         {!item.children ? (
                           <Link
                             href={item.path}
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
                               setMoreModalOpen(false);
                               if (!isActive(item.path)) {
                                 setOptimisticPath(item.path);
                                 startNavigating();
+                                router.push(item.path);
                               }
                             }}
                             className={`flex items-center gap-4 px-4 py-4 rounded-xl transition ${isActive(item.path) ? "bg-orange-500 text-white shadow-lg" : "text-gray-700 hover:bg-orange-50"}`}
@@ -506,11 +514,13 @@ export default function SideBar({
                                   <Link
                                     key={child.title}
                                     href={child.path}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.preventDefault();
                                       setMoreModalOpen(false);
                                       if (!isActive(child.path)) {
                                         setOptimisticPath(child.path);
                                         startNavigating();
+                                        router.push(child.path);
                                       }
                                     }}
                                     className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
@@ -559,7 +569,14 @@ export default function SideBar({
                 <Link
                   href={item.path}
                   id={item.id}
-                  onClick={() => { if (!isActive(item.path)) { setOptimisticPath(item.path); startNavigating(); } }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!isActive(item.path)) {
+                      setOptimisticPath(item.path);
+                      startNavigating();
+                      router.push(item.path);
+                    }
+                  }}
                   className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                 >
                   <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
@@ -580,7 +597,14 @@ export default function SideBar({
                 {!item.children ? (
                   <Link
                     href={item.path}
-                    onClick={() => { if (!isActive(item.path)) { setOptimisticPath(item.path); startNavigating(); } }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!isActive(item.path)) {
+                        setOptimisticPath(item.path);
+                        startNavigating();
+                        router.push(item.path);
+                      }
+                    }}
                     className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path) ? "bg-orange-100 font-bold border-l-4 border-orange-500 text-orange-500" : "text-gray-700 hover:bg-orange-50"}`}
                   >
                     <div className="flex items-center justify-center shrink-0 w-6">{item.icon}</div>
@@ -616,7 +640,14 @@ export default function SideBar({
                           <Link
                             key={child.title}
                             href={child.path}
-                            onClick={() => { if (!isActive(child.path)) { setOptimisticPath(child.path); startNavigating(); } }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (!isActive(child.path)) {
+                                setOptimisticPath(child.path);
+                                startNavigating();
+                                router.push(child.path);
+                              }
+                            }}
                             className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path) ? "font-bold text-orange-500" : "text-gray-600 hover:text-orange-500"}`}
                           >
                             {child.title}
@@ -667,7 +698,15 @@ export default function SideBar({
                 <Link
                   key={child.title}
                   href={child.path}
-                  onClick={() => { setHoverItem(null); if (!isActive(child.path)) { setOptimisticPath(child.path); startNavigating(); } }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setHoverItem(null);
+                    if (!isActive(child.path)) {
+                      setOptimisticPath(child.path);
+                      startNavigating();
+                      router.push(child.path);
+                    }
+                  }}
                   className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
                 >
                   {child.title}
@@ -676,7 +715,15 @@ export default function SideBar({
             ) : (
               <Link
                 href={hoverItem.path}
-                onClick={() => { setHoverItem(null); if (!isActive(hoverItem.path)) { setOptimisticPath(hoverItem.path); startNavigating(); } }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setHoverItem(null);
+                  if (!isActive(hoverItem.path)) {
+                    setOptimisticPath(hoverItem.path);
+                    startNavigating();
+                    router.push(hoverItem.path);
+                  }
+                }}
                 className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(hoverItem.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
               >
                 {t("common.open")}
