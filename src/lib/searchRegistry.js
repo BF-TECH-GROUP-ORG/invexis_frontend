@@ -18,7 +18,7 @@ import {
 
 /**
  * Registry of all searchable static pages in the application.
- * Added 'keywords' for semantic/intelligent search.
+ * Multilingual keywords added for Kinyarwanda, Swahili, and French support.
  */
 export const getSearchablePages = (t) => [
   {
@@ -28,7 +28,7 @@ export const getSearchablePages = (t) => [
     icon: <LayoutDashboard size={20} />,
     link: "/inventory/dashboard",
     type: "page",
-    keywords: ["home", "main", "overview", "stats", "analytics", "summary"]
+    keywords: ["home", "main", "overview", "stats", "ikubitiro", "incamake", "tableau de bord"]
   },
   {
     id: "nav-notifications",
@@ -37,7 +37,7 @@ export const getSearchablePages = (t) => [
     icon: <Bell size={20} />,
     link: "/inventory/notifications",
     type: "page",
-    keywords: ["alerts", "messages", "inbox", "updates", "news"]
+    keywords: ["alerts", "messages", "inbox", "imenyesha", "ubutumwa", "notifications"]
   },
   {
     id: "nav-reports",
@@ -46,7 +46,7 @@ export const getSearchablePages = (t) => [
     icon: <BarChart3 size={20} />,
     link: "/inventory/reports",
     type: "page",
-    keywords: ["analytics", "charts", "data", "performance", "business", "stats"]
+    keywords: ["analytics", "charts", "data", "marapororo", "ingere", "rapports", "ripoti"]
   },
   {
     id: "nav-workers",
@@ -55,7 +55,7 @@ export const getSearchablePages = (t) => [
     icon: <Users size={20} />,
     link: "/inventory/workers/list",
     type: "page",
-    keywords: ["staff", "employees", "team", "people", "management", "workers"]
+    keywords: ["staff", "employees", "team", "abakozi", "abakozi bacu", "personnel", "wafanyakazi"]
   },
   {
     id: "nav-shops",
@@ -64,7 +64,7 @@ export const getSearchablePages = (t) => [
     icon: <Database size={20} />,
     link: "/inventory/companies",
     type: "page",
-    keywords: ["branches", "locations", "stores", "outlets", "business units"]
+    keywords: ["branches", "locations", "amaduka", "amashami", "duka", "magasins", "maduka"]
   },
   {
     id: "nav-categories",
@@ -73,7 +73,7 @@ export const getSearchablePages = (t) => [
     icon: <Tags size={20} />,
     link: "/inventory/categories",
     type: "page",
-    keywords: ["groups", "types", "sorting", "inventory classification"]
+    keywords: ["groups", "types", "ibyiciro", "amatsinda", "catégories"]
   },
   {
     id: "nav-products",
@@ -82,7 +82,7 @@ export const getSearchablePages = (t) => [
     icon: <Package size={20} />,
     link: "/inventory/products",
     type: "page",
-    keywords: ["inventory", "items", "stock", "goods", "catalog"]
+    keywords: ["inventory", "items", "stock", "ibicuruzwa", "ibikoresho", "isitoke", "produits", "bidhaa"]
   },
   {
     id: "nav-transfers",
@@ -91,7 +91,7 @@ export const getSearchablePages = (t) => [
     icon: <Truck size={20} />,
     link: "/inventory/transfer",
     type: "page",
-    keywords: ["moving", "shipping", "internal", "branch to branch", "stock move"]
+    keywords: ["moving", "shipping", "kwimura", "kohereza", "transferts"]
   },
   {
     id: "nav-stock",
@@ -100,7 +100,7 @@ export const getSearchablePages = (t) => [
     icon: <Database size={20} />,
     link: "/inventory/stock",
     type: "page",
-    keywords: ["inventory", "levels", "adjustment", "stocktake", "counting"]
+    keywords: ["inventory", "levels", "stock", "isitoke", "ububiko"]
   },
   {
     id: "nav-sales-history",
@@ -109,7 +109,7 @@ export const getSearchablePages = (t) => [
     icon: <History size={20} />,
     link: "/inventory/sales/history",
     type: "page",
-    keywords: ["receipts", "past orders", "sold items", "archive"]
+    keywords: ["receipts", "past orders", "igurisha", "amateka y'igurisha", "ventes", "mauzo"]
   },
   {
     id: "nav-pos",
@@ -118,7 +118,7 @@ export const getSearchablePages = (t) => [
     icon: <ShoppingBag size={20} />,
     link: "/inventory/sales/sellProduct/sale",
     type: "page",
-    keywords: ["pos", "selling", "checkout", "retail", "cashier"]
+    keywords: ["pos", "selling", "checkout", "kugurisha", "kwirukanira", "caisse"]
   },
   {
     id: "nav-debts",
@@ -127,7 +127,7 @@ export const getSearchablePages = (t) => [
     icon: <Wallet size={20} />,
     link: "/inventory/debts",
     type: "page",
-    keywords: ["money", "unpaid", "credit", "balances", "customers", "debtors"]
+    keywords: ["money", "unpaid", "imyenda", "ibirarane", "amadeni", "dettes", "madeni"]
   },
   {
     id: "nav-invoices",
@@ -136,7 +136,7 @@ export const getSearchablePages = (t) => [
     icon: <FileSearch size={20} />,
     link: "/inventory/billing/invoices",
     type: "page",
-    keywords: ["billing", "paperwork", "orders", "payment requests"]
+    keywords: ["billing", "paperwork", "fagitire", "inyandiko", "factures"]
   },
   {
     id: "nav-transactions",
@@ -145,7 +145,7 @@ export const getSearchablePages = (t) => [
     icon: <CreditCard size={20} />,
     link: "/inventory/billing/transactions",
     type: "page",
-    keywords: ["payments", "cash", "bank", "audit", "money move"]
+    keywords: ["payments", "cash", "amafaranga", "ihererekanya", "transactions"]
   },
   {
     id: "nav-documents",
@@ -154,7 +154,7 @@ export const getSearchablePages = (t) => [
     icon: <Files size={20} />,
     link: "/inventory/documents",
     type: "page",
-    keywords: ["files", "uploads", "contracts", "records", "pdf"]
+    keywords: ["files", "uploads", "inyandiko", "idokima", "documents"]
   },
   {
     id: "nav-logs",
@@ -163,6 +163,6 @@ export const getSearchablePages = (t) => [
     icon: <History size={20} />,
     link: "/inventory/logs",
     type: "page",
-    keywords: ["security", "audit", "tracking", "history", "actions"]
+    keywords: ["security", "audit", "ibikorwa", "isuzuma", "journaux"]
   },
 ];
