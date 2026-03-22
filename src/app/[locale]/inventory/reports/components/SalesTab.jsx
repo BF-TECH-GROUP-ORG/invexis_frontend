@@ -167,10 +167,10 @@ const SalesTab = ({ dateRange }) => {
                 {/* Top 5 KPIs */}
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 5 }} sx={{ mb: 4 }}>
                     {/* KPI 1: Total Sales Revenue */}
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <Box
                             onClick={() => handleKPIClick('revenue')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' }, width: '100%' }}
                         >
                             <ReportKPI
                                 title={t('sales.kpis.revenue')}
@@ -185,10 +185,10 @@ const SalesTab = ({ dateRange }) => {
                     </Grid>
 
                     {/* KPI 2: Total Sales Transactions */}
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <Box
                             onClick={() => handleKPIClick('transactions')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' }, width: '100%' }}
                         >
                             <ReportKPI
                                 title={t('sales.kpis.transactions')}
@@ -201,10 +201,10 @@ const SalesTab = ({ dateRange }) => {
                     </Grid>
 
                     {/* KPI 3: Average Sale Value */}
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <Box
                             onClick={() => handleKPIClick('avgValue')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' }, width: '100%' }}
                         >
                             <ReportKPI
                                 title={t('sales.kpis.avgValue')}
@@ -217,10 +217,10 @@ const SalesTab = ({ dateRange }) => {
                     </Grid>
 
                     {/* KPI 4: Top-Selling Product */}
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <Box
                             onClick={() => handleKPIClick('topProduct')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' }, width: '100%' }}
                         >
                             <ReportKPI
                                 title={t('sales.kpis.topProduct')}
@@ -233,10 +233,10 @@ const SalesTab = ({ dateRange }) => {
                     </Grid>
 
                     {/* KPI 5: Sales Growth / Decline */}
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <Box
                             onClick={() => handleKPIClick('growth')}
-                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            sx={{ cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' }, width: '100%' }}
                         >
                             <ReportKPI
                                 title={t('sales.kpis.growth')}

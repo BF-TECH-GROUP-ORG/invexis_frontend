@@ -158,7 +158,7 @@ const StaffTab = ({ dateRange }) => {
                 {/* Top KPIs */}
                 <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.staffMetrics')}</Typography>
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.totalStaff')}
                             value={staffData.length}
@@ -167,7 +167,7 @@ const StaffTab = ({ dateRange }) => {
                             index={0}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.activeStaff')}
                             value={staffData.filter(s => s.status === 'Active').length}
@@ -176,7 +176,7 @@ const StaffTab = ({ dateRange }) => {
                             index={1}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.topStaff')}
                             value={topPerformer?.staffName || t('common.na')}
@@ -186,7 +186,7 @@ const StaffTab = ({ dateRange }) => {
                             index={2}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.lowActivity')}
                             value={staffData.length > 0 ? staffData.reduce((prev, current) => current.transactions < prev.transactions ? current : prev).staffName : t('common.na')}
@@ -199,7 +199,7 @@ const StaffTab = ({ dateRange }) => {
 
                 <Typography variant="h6" fontWeight="700" sx={{ color: "#111827", mb: 2 }}>{t('staff.sections.branchMetrics')}</Typography>
                 <Grid container spacing={2} columns={{ xs: 1, sm: 2, md: 4 }} sx={{ mb: 4 }}>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.totalBranches')}
                             value={branchData.length}
@@ -208,7 +208,7 @@ const StaffTab = ({ dateRange }) => {
                             index={4}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.mostActiveBranch')}
                             value={branchData.length > 0 ? branchData.reduce((prev, current) => current.transactions > prev.transactions ? current : prev).branchName : t('common.na')}
@@ -217,7 +217,7 @@ const StaffTab = ({ dateRange }) => {
                             index={5}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.highestRevenueBranch')}
                             value={branchData.length > 0 ? branchData.reduce((prev, current) => current.revenue > prev.revenue ? current : prev).branchName : t('common.na')}
@@ -227,7 +227,7 @@ const StaffTab = ({ dateRange }) => {
                             index={6}
                         />
                     </Grid>
-                    <Grid item xs={1}>
+                    <Grid item xs={1} sx={{ display: 'flex' }}>
                         <ReportKPI
                             title={t('staff.kpis.underperformingBranches')}
                             value={branchData.filter(b => b.transactions < 300).length}
