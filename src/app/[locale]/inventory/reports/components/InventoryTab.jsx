@@ -149,7 +149,7 @@ const InventoryTab = ({ dateRange }) => {
 
 
                 <div className="w-full py-4">
-                    <div className="w-full grid grid-cols-4 gap-3">
+                    <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {kpiCards.map((card, index) => (
                             <div
                                 key={index}

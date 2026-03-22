@@ -404,8 +404,9 @@ const ReportsPage = () => {
                     alignItems: "center"
                 }}>
                     {/* Centralized Date Pickers and View Toggles */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <ToggleButtonGroup
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
+                        <Box sx={{ maxWidth: '100vw', overflowX: 'auto', pb: { xs: 1, md: 0 } }}>
+                            <ToggleButtonGroup
                             value={reportView}
                             exclusive
                             onChange={(event, newView) => {
@@ -440,6 +441,7 @@ const ReportsPage = () => {
                             <ToggleButton value="monthly">{t('controls.monthly')}</ToggleButton>
                             <ToggleButton value="yearly">{t('controls.yearly')}</ToggleButton>
                         </ToggleButtonGroup>
+                        </Box>
 
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
