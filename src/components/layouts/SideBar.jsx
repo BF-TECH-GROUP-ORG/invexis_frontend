@@ -594,15 +594,11 @@ export default function SideBar({
                       router.push(item.path);
                     }
                   }}
-                  className={`relative flex items-center gap-3 px-3 py-3 transition-colors ${isActive(item.path) ? "bg-orange-500/10 font-bold text-orange-600" : "text-gray-700 hover:bg-orange-50"}`}
+                  className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
+                    ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                    : "text-gray-700 hover:bg-orange-50"
+                    }`}
                 >
-                  {isActive(item.path) && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute left-0 w-1 h-8 bg-orange-500 rounded-r-full"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
                   <div className={`flex items-center justify-center shrink-0 w-6 ${isActive(item.path) ? "text-orange-500" : ""}`}>{item.icon}</div>
                   <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
                     {item.title}
@@ -629,15 +625,11 @@ export default function SideBar({
                         router.push(item.path);
                       }
                     }}
-                    className={`relative flex items-center gap-3 px-3 py-3 transition-colors ${isActive(item.path) ? "bg-orange-500/10 font-bold text-orange-600" : "text-gray-700 hover:bg-orange-50"}`}
+                    className={`flex items-center gap-3 px-3 py-3 transition ${isActive(item.path)
+                      ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                      : "text-gray-700 hover:bg-orange-50"
+                      }`}
                   >
-                    {isActive(item.path) && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute left-0 w-1 h-8 bg-orange-500 rounded-r-full"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      />
-                    )}
                     <div className={`flex items-center justify-center shrink-0 w-6 ${isActive(item.path) ? "text-orange-500" : ""}`}>{item.icon}</div>
                     <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
                       {item.title}
@@ -655,14 +647,11 @@ export default function SideBar({
                           setHoverPosition({ top: rect.top });
                         }
                       }}
-                      className={`relative flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-colors ${item.children.some(c => isActive(c.path)) ? "bg-orange-500/5 font-bold text-orange-600" : "text-gray-700 hover:bg-orange-50"}`}
+                      className={`flex items-center justify-between px-3 py-3 cursor-pointer transition ${item.children.some(c => isActive(c.path))
+                        ? "bg-orange-100 font-bold border-l-5 border-orange-500 text-orange-500"
+                        : "text-gray-700 hover:bg-orange-50"
+                        }`}
                     >
-                      {item.children.some(c => isActive(c.path)) && (
-                        <motion.div
-                          layoutId="activeTabParent"
-                          className="absolute left-0 w-1 h-8 bg-orange-500/30 rounded-r-full"
-                        />
-                      )}
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className={`flex items-center justify-center shrink-0 w-6 ${item.children.some(c => isActive(c.path)) ? "text-orange-500" : ""}`}>{item.icon}</div>
                         <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${expanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0 ml-0"}`}>
@@ -693,15 +682,11 @@ export default function SideBar({
                                   router.push(child.path);
                                 }
                               }}
-                              className={`relative block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path) ? "font-bold text-orange-600 bg-orange-50/50" : "text-gray-600 hover:text-orange-500 hover:bg-gray-50"}`}
+                              className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
+                                : "text-gray-600 hover:bg-gray-100"
+                                }`}
                             >
-                              {isActive(child.path) && (
-                                <motion.div
-                                  layoutId="activeSubTab"
-                                  className="absolute left-[-12px] w-1 h-5 bg-orange-500 rounded-r-full"
-                                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                />
-                              )}
                               {child.title}
                             </Link>
                           ))}
