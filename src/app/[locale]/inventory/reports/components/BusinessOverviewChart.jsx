@@ -194,12 +194,15 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
         }
     };
 
+    // Compute a sensible minimum chart width based on number of data points
+    const minChartWidth = Math.max(900, chartData.length * 60);
+
     return (
         <Paper
             elevation={0}
             sx={{
                 width: '100%',
-                p: 4,
+                p: { xs: 2, md: 4 },
                 borderRadius: 0,
                 border: '1px solid #e5e7eb',
                 bgcolor: 'white',
@@ -208,7 +211,7 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
             }}
         >
             {/* Header with Title and Controls */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
                 <Box>
                     <Typography variant="h5" fontWeight="800" sx={{ color: '#111827' }}>
                         {t("title")}
@@ -218,44 +221,46 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
                     </Typography>
                 </Box>
 
-                {/* View Type Toggle Buttons */}
-                <ToggleButtonGroup
-                    value={viewType}
-                    exclusive
-                    onChange={(event, newViewType) => {
-                        if (newViewType !== null) {
-                            setViewType(newViewType);
-                        }
-                    }}
-                    sx={{
-                        '& .MuiToggleButton-root': {
-                            textTransform: 'none',
-                            fontWeight: '600',
-                            fontSize: '0.85rem',
-                            px: 2,
-                            py: 0.75,
-                            borderRadius: '6px',
-                            border: '1px solid #e5e7eb',
-                            color: '#6B7280',
-                            '&.Mui-selected': {
-                                bgcolor: '#FF6D00',
-                                color: 'white',
-                                borderColor: '#FF6D00',
-                                '&:hover': {
-                                    bgcolor: '#E55D00'
-                                }
-                            },
-                            '&:hover': {
-                                bgcolor: '#f3f4f6'
+                {/* View Type Toggle Buttons - scrollable on mobile */}
+                <Box sx={{ maxWidth: '100%', overflowX: 'auto', pb: { xs: 0.5, sm: 0 } }}>
+                    <ToggleButtonGroup
+                        value={viewType}
+                        exclusive
+                        onChange={(event, newViewType) => {
+                            if (newViewType !== null) {
+                                setViewType(newViewType);
                             }
-                        }
-                    }}
-                >
-                    <ToggleButton value="daily">{tControls('daily')}</ToggleButton>
-                    <ToggleButton value="weekly">{tControls('weekly')}</ToggleButton>
-                    <ToggleButton value="monthly">{tControls('monthly')}</ToggleButton>
-                    <ToggleButton value="yearly">{tControls('yearly')}</ToggleButton>
-                </ToggleButtonGroup>
+                        }}
+                        sx={{
+                            '& .MuiToggleButton-root': {
+                                textTransform: 'none',
+                                fontWeight: '600',
+                                fontSize: '0.85rem',
+                                px: 2,
+                                py: 0.75,
+                                borderRadius: '6px',
+                                border: '1px solid #e5e7eb',
+                                color: '#6B7280',
+                                '&.Mui-selected': {
+                                    bgcolor: '#FF6D00',
+                                    color: 'white',
+                                    borderColor: '#FF6D00',
+                                    '&:hover': {
+                                        bgcolor: '#E55D00'
+                                    }
+                                },
+                                '&:hover': {
+                                    bgcolor: '#f3f4f6'
+                                }
+                            }
+                        }}
+                    >
+                        <ToggleButton value="daily">{tControls('daily')}</ToggleButton>
+                        <ToggleButton value="weekly">{tControls('weekly')}</ToggleButton>
+                        <ToggleButton value="monthly">{tControls('monthly')}</ToggleButton>
+                        <ToggleButton value="yearly">{tControls('yearly')}</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
             </Box>
 
             {/* Date/Year Selectors */}
@@ -336,76 +341,90 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
                 {getTitle()}
             </Typography>
 
-            {/* Chart */}
-            <Box sx={{ height: 450, width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                        data={chartData}
-                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                        barGap={viewType === 'weekly' ? 8 : 2}
-                        barCategoryGap={viewType === 'weekly' ? '12%' : '8%'}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis
-                            dataKey={getXAxisDataKey()}
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#6B7280', fontSize: 11, fontWeight: '600' }}
-                            dy={10}
-                        />
-                        <YAxis
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#6B7280', fontSize: 11, fontWeight: '600' }}
-                            tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${value / 1000}K` : value}
-                        />
-                        <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: '#f9fafb' }} />
-                        <Legend
-                            verticalAlign="bottom"
-                            align="center"
-                            iconType="rect"
-                            iconSize={12}
-                            wrapperStyle={{ paddingTop: '40px' }}
-                            formatter={(value) => (
-                                <span style={{ color: '#374151', fontWeight: '600', fontSize: '13px', marginLeft: '6px', marginRight: '20px' }}>
-                                    {t(value)}
-                                </span>
-                            )}
-                        />
-                        <Bar
-                            dataKey="netSales"
-                            name="netSales"
-                            fill={COLORS.netSales}
-                            radius={[4, 4, 0, 0]}
-                            isAnimationActive={true}
-                            animationDuration={800}
-                        />
-                        <Bar
-                            dataKey="paymentsReceived"
-                            name="paymentsReceived"
-                            fill={COLORS.paymentsReceived}
-                            radius={[4, 4, 0, 0]}
-                            isAnimationActive={true}
-                            animationDuration={800}
-                        />
-                        <Bar
-                            dataKey="outstandingDebts"
-                            name="outstandingDebts"
-                            fill={COLORS.outstandingDebts}
-                            radius={[4, 4, 0, 0]}
-                            isAnimationActive={true}
-                            animationDuration={800}
-                        />
-                        <Bar
-                            dataKey="inventoryValue"
-                            name="inventoryValue"
-                            fill={COLORS.inventoryValue}
-                            radius={[4, 4, 0, 0]}
-                            isAnimationActive={true}
-                            animationDuration={800}
-                        />
-                    </BarChart>
-                </ResponsiveContainer>
+            {/* Chart — horizontally scrollable on mobile like TradingView */}
+            <Box
+                sx={{
+                    width: '100%',
+                    overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    /* Custom TradingView-style scrollbar */
+                    '&::-webkit-scrollbar': { height: '4px' },
+                    '&::-webkit-scrollbar-track': { bgcolor: '#f1f5f9', borderRadius: '4px' },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: '#FF6D00', borderRadius: '4px' },
+                }}
+            >
+                {/* Inner fixed-width wrapper so bars never get squished */}
+                <Box sx={{ minWidth: `${minChartWidth}px`, height: { xs: 380, md: 450 } }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={chartData}
+                            margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                            barGap={viewType === 'weekly' ? 8 : 2}
+                            barCategoryGap={viewType === 'weekly' ? '12%' : '8%'}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                                dataKey={getXAxisDataKey()}
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6B7280', fontSize: 11, fontWeight: '600' }}
+                                dy={10}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6B7280', fontSize: 11, fontWeight: '600' }}
+                                tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${value / 1000}K` : value}
+                                width={55}
+                            />
+                            <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: '#f9fafb' }} />
+                            <Legend
+                                verticalAlign="bottom"
+                                align="center"
+                                iconType="rect"
+                                iconSize={12}
+                                wrapperStyle={{ paddingTop: '32px' }}
+                                formatter={(value) => (
+                                    <span style={{ color: '#374151', fontWeight: '600', fontSize: '13px', marginLeft: '6px', marginRight: '16px' }}>
+                                        {t(value)}
+                                    </span>
+                                )}
+                            />
+                            <Bar
+                                dataKey="netSales"
+                                name="netSales"
+                                fill={COLORS.netSales}
+                                radius={[4, 4, 0, 0]}
+                                isAnimationActive={true}
+                                animationDuration={800}
+                            />
+                            <Bar
+                                dataKey="paymentsReceived"
+                                name="paymentsReceived"
+                                fill={COLORS.paymentsReceived}
+                                radius={[4, 4, 0, 0]}
+                                isAnimationActive={true}
+                                animationDuration={800}
+                            />
+                            <Bar
+                                dataKey="outstandingDebts"
+                                name="outstandingDebts"
+                                fill={COLORS.outstandingDebts}
+                                radius={[4, 4, 0, 0]}
+                                isAnimationActive={true}
+                                animationDuration={800}
+                            />
+                            <Bar
+                                dataKey="inventoryValue"
+                                name="inventoryValue"
+                                fill={COLORS.inventoryValue}
+                                radius={[4, 4, 0, 0]}
+                                isAnimationActive={true}
+                                animationDuration={800}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </Box>
             </Box>
         </Paper>
     );
