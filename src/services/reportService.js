@@ -67,6 +67,28 @@ const reportService = {
         } catch (err) {
             throw err;
         }
+    },
+
+    /**
+     * Get debt report for a company
+     * GET /debt/reports/v1/:companyId
+     */
+    getDebtReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/debt/reports/v1/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
     }
 };
 
