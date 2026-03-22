@@ -79,16 +79,11 @@ export async function getABCAnalysis(companyId, options = {}) {
  * GET /v1/reports/stock-movement/:companyId
  */
 export async function getStockMovement({ companyId, startDate, endDate }, options = {}) {
+    // Temporarily disabled to avoid 404 errors as the endpoint is not yet needed/implemented
+    // return [];
     try {
-        const params = {};
-        if (startDate) params.startDate = startDate;
-        if (endDate) params.endDate = endDate;
-
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/stock-movement/${companyId}`, {
-            params,
-            ...options
-        });
-        return data;
+        console.log("getStockMovement called - temporarily returning empty array");
+        return [];
     } catch (err) {
         throw err;
     }

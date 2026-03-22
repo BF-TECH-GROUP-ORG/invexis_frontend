@@ -17,6 +17,7 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
 
 const GeneralTab = ({ dateRange, reportView }) => {
@@ -29,7 +30,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
 
     const {
         data: reportData,
-        isLoading: loading,
+        isLoading: loadingReport,
         error
     } = useQuery({
         queryKey: ['report-general', companyId, startDate, endDate],
@@ -40,6 +41,22 @@ const GeneralTab = ({ dateRange, reportView }) => {
         refetchOnMount: 'always',
         refetchOnWindowFocus: 'always',
     });
+
+    // Fetch shops for name mapping
+    const { data: shops = [], isLoading: loadingShops } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+    });
+
+    const getShopName = (shopId) => {
+        if (!shopId || shopId === 'Default') return 'Default';
+        const shop = shops.find(s => String(s._id || s.id) === String(shopId));
+        return shop ? shop.name : shopId;
+    };
+
+    const loading = loadingReport || loadingShops;
 
     // Header Selection State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
@@ -178,7 +195,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">{t('common.product')}</TableCell>
@@ -223,7 +240,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                                         {/* Shop Header Row */}
                                         <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
                                             <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
-                                            <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{shop.shopId || 'Default'}</TableCell>
+                                            <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{getShopName(shop.shopId)}</TableCell>
                                             <TableCell colSpan={13} />
                                         </TableRow>
 
@@ -255,7 +272,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
 
                                         {/* Shop Subtotal Row */}
                                         <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                            <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.shopId || 'Default' })}</TableCell>
+                                            <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: getShopName(shop.shopId) })}</TableCell>
                                             <TableCell align="center">{shop.totals.inventory.initial}</TableCell>
                                             <TableCell align="center">{shop.totals.inventory.remaining}</TableCell>
                                             <TableCell align="center">{formatCurrency(shop.totals.inventory.stockValue)}</TableCell>
@@ -305,13 +322,13 @@ const GeneralTab = ({ dateRange, reportView }) => {
                     anchorEl={branchAnchor}
                     open={Boolean(branchAnchor)}
                     onClose={handleClose}
-                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                    PaperProps={{ sx: { width: 250, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
                     {branches.map((branchId) => (
                         <MenuItem key={branchId} onClick={() => handleBranchSelect(branchId)}>
-                            {branchId}
+                            {getShopName(branchId)}
                         </MenuItem>
                     ))}
                 </Menu>
