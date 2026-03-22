@@ -323,7 +323,7 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
         <motion.button
           initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} whileHover={{ scale: 1.1 }} whileActive={{ scale: 0.9 }}
           onClick={() => window.dispatchEvent(new CustomEvent('open-inara'))}
-          className="fixed right-6 z-[1110] w-12 h-12 bg-gradient-to-br from-[#ff782d] to-[#ea580c] text-white rounded-2xl shadow-xl shadow-orange-500/20 flex items-center justify-center group border-2 border-white/20 bottom-24 md:bottom-6"
+          className={`fixed right-6 z-[1110] w-12 h-12 bg-gradient-to-br from-[#ff782d] to-[#ea580c] text-white rounded-2xl shadow-xl shadow-orange-500/20 flex items-center justify-center group border-2 border-white/20 bottom-24 ${isHomePage ? "md:bottom-28" : "md:bottom-6"}`}
         >
           <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
