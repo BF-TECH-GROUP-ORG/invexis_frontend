@@ -31,14 +31,15 @@ const DebtsTab = ({ dateRange }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const filter = dateRange.filter || 'daily';
 
     // Fetch hierarchical report data
     const {
         data: reportResponse,
         isLoading: reportLoading
     } = useQuery({
-        queryKey: ['report-debts-v1', companyId, startDate, endDate],
-        queryFn: () => reportService.getDebtReport(companyId, { startDate, endDate }),
+        queryKey: ['report-debts-v1', companyId, startDate, endDate, filter],
+        queryFn: () => reportService.getDebtReport(companyId, { startDate, endDate, filter }),
         enabled: !!companyId,
     });
 

@@ -81,7 +81,6 @@ class ErrorBoundary extends React.Component {
 const ReportsPage = () => {
     const t = useTranslations("reports");
     const [currentTab, setCurrentTab] = useState(0);
-    const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
     const [anchorEl, setAnchorEl] = useState(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [exportScope, setExportScope] = useState('current'); // 'current' or 'all'
@@ -89,23 +88,44 @@ const ReportsPage = () => {
     const [reportView, setReportView] = useState('daily');
     const [selectedDate, setSelectedDate] = useState(dayjs());
 
+    const [dateRange, setDateRange] = useState({
+        startDate: dayjs().startOf('day'),
+        endDate: dayjs().endOf('day'),
+        filter: 'daily'
+    });
+
     // Sync dateRange with reportView and selectedDate
-    React.useEffect(() => {
+    useEffect(() => {
         let start, end;
-        if (reportView === 'daily') {
-            start = selectedDate.startOf('day');
-            end = selectedDate.endOf('day');
-        } else if (reportView === 'weekly') {
-            start = selectedDate.startOf('week');
-            end = selectedDate.endOf('week');
-        } else if (reportView === 'monthly') {
-            start = selectedDate.startOf('month');
-            end = selectedDate.endOf('month');
-        } else if (reportView === 'yearly') {
-            start = selectedDate.startOf('year');
-            end = selectedDate.endOf('year');
+        const now = dayjs();
+
+        switch (reportView) {
+            case 'daily':
+                start = selectedDate.startOf('day');
+                end = selectedDate.endOf('day');
+                break;
+            case 'weekly':
+                start = selectedDate.startOf('week');
+                end = selectedDate.endOf('week');
+                break;
+            case 'monthly':
+                start = selectedDate.startOf('month');
+                end = selectedDate.endOf('month');
+                break;
+            case 'yearly':
+                start = selectedDate.startOf('year');
+                end = selectedDate.endOf('year');
+                break;
+            case 'custom':
+                start = dateRange.startDate;
+                end = dateRange.endDate;
+                break;
+            default:
+                start = now.startOf('day');
+                end = now.endOf('day');
         }
-        setDateRange({ startDate: start, endDate: end });
+
+        setDateRange({ startDate: start, endDate: end, filter: reportView });
     }, [reportView, selectedDate]);
 
     const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff', 'visualize'];

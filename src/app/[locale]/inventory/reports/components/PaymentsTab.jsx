@@ -37,13 +37,15 @@ const PaymentsTab = ({ dateRange }) => {
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
+    const filter = dateRange.filter || 'daily';
+
     const {
         data: rawPayments = [],
         isLoading: loading,
         error
     } = useQuery({
-        queryKey: ['report-payments', companyId, startDate, endDate, selectedBranch, selectedActor],
-        queryFn: () => paymentService.getCompanyPayments(companyId),
+        queryKey: ['report-payments', companyId, startDate, endDate, filter],
+        queryFn: () => paymentService.getCompanyPayments(companyId, { startDate, endDate }),
         enabled: !!companyId,
         staleTime: Infinity,
         gcTime: 10 * 60 * 1000,
@@ -53,16 +55,15 @@ const PaymentsTab = ({ dateRange }) => {
 
     // Process KPIs and report data structure
     const { kpis, reportData } = React.useMemo(() => {
-        let payments = Array.isArray(rawPayments) ? rawPayments : [];
+        // Handle paginated response structure from backend
+        let payments = rawPayments?.data || (Array.isArray(rawPayments) ? rawPayments : []);
 
-        // Apply filters (since service might not support all filters yet)
+        // Apply local filters for branch and actor (date is now handled by server)
         let filtered = payments.filter(p => {
-            const pDate = dayjs(p.createdAt);
-            const inRange = (!startDate || pDate.isAfter(dayjs(startDate).subtract(1, 'day'))) && 
-                          (!endDate || pDate.isBefore(dayjs(endDate).add(1, 'day')));
             const branchMatch = selectedBranch === t('common.all') || p.shopId === selectedBranch;
-            const actorMatch = selectedActor === t('common.all') || p.recordedBy === selectedActor;
-            return inRange && branchMatch && actorMatch;
+            // Map recordedBy/actor logic (backend uses recordedBy or seller_id, frontend expects p.recordedBy)
+            const actorMatch = selectedActor === t('common.all') || (p.recordedBy || p.seller_id) === selectedActor;
+            return branchMatch && actorMatch;
         });
 
         let totalReceived = 0, pendingAmount = 0, failedAmount = 0, paymentCount = 0;
@@ -70,25 +71,26 @@ const PaymentsTab = ({ dateRange }) => {
 
         filtered.forEach(p => {
             paymentCount++;
-            if (p.status === 'Completed' || p.status === 'SUCCESS' || p.status === 'success') totalReceived += p.amount;
-            else if (p.status === 'Pending' || p.status === 'PENDING') pendingAmount += p.amount;
-            else if (p.status === 'Failed' || p.status === 'FAILED') failedAmount += p.amount;
+            const status = (p.status || '').toLowerCase();
+            if (status === 'completed' || status === 'succeeded' || status === 'success') totalReceived += parseFloat(p.amount);
+            else if (status === 'pending') pendingAmount += parseFloat(p.amount);
+            else if (status === 'failed') failedAmount += parseFloat(p.amount);
 
-            const dateStr = dayjs(p.createdAt).format('MM/DD/YYYY');
+            const dateStr = dayjs(p.createdAt || p.created_at).format('MM/DD/YYYY');
             if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, branches: {} };
             
             const branchName = p.shopId || 'Default';
             if (!groupedByDate[dateStr].branches[branchName]) groupedByDate[dateStr].branches[branchName] = { name: branchName, payments: [] };
             
             groupedByDate[dateStr].branches[branchName].payments.push({
-                customer: { name: p.customerName || 'Walk-in', phone: p.customerPhone || '-' },
-                invoiceNo: p.invoiceNo || p.id?.slice(-8).toUpperCase(),
-                amount: p.amount || 0,
-                method: p.paymentMethod || 'Cash',
-                status: p.status === 'success' || p.status === 'SUCCESS' ? 'Completed' : p.status,
-                saleDebtRef: p.saleId || p.debtId || '-',
+                customer: { name: p.customerName || p.customer?.name || 'Walk-in', phone: p.customerPhone || p.customer?.phone || '-' },
+                invoiceNo: p.invoiceNo || p.payment_id?.slice(-8).toUpperCase() || p.id?.slice(-8).toUpperCase(),
+                amount: parseFloat(p.amount) || 0,
+                method: p.paymentMethod || p.method || p.gateway || 'Cash',
+                status: (status === 'success' || status === 'succeeded') ? 'Completed' : (p.status.charAt(0).toUpperCase() + p.status.slice(1)),
+                saleDebtRef: p.saleId || p.order_id || p.reference_id || '-',
                 receivedBy: p.recordedBy || 'System',
-                time: dayjs(p.createdAt).format('hh:mm A')
+                time: dayjs(p.createdAt || p.created_at).format('hh:mm A')
             });
         });
 
@@ -106,7 +108,7 @@ const PaymentsTab = ({ dateRange }) => {
             },
             reportData: reportDataFormatted
         };
-    }, [rawPayments, startDate, endDate, selectedBranch, selectedActor, t]);
+    }, [rawPayments, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (

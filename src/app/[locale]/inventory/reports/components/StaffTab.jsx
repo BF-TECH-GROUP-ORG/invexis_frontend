@@ -26,11 +26,12 @@ const StaffTab = ({ dateRange }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const interval = dateRange.filter || 'daily';
 
     // Fetch Performance Data
-    const { data: employeePerformance = [], isLoading: loadingPerf } = useQuery({
-        queryKey: ['report-staff-perf', companyId, startDate, endDate],
-        queryFn: () => analyticsService.getEmployeePerformance({ startDate, endDate, companyId }),
+    const { data: employeePerformance = [], isLoading: loadingStaff } = useQuery({
+        queryKey: ['report-staff-perf', companyId, startDate, endDate, interval],
+        queryFn: () => analyticsService.getEmployeePerformance({ startDate, endDate, companyId, interval }),
         enabled: !!companyId,
         staleTime: Infinity,
         gcTime: 10 * 60 * 1000,
@@ -38,9 +39,9 @@ const StaffTab = ({ dateRange }) => {
         refetchOnWindowFocus: 'always',
     });
 
-    const { data: shopPerformance = [], isLoading: loadingShop } = useQuery({
-        queryKey: ['report-shop-perf', companyId, startDate, endDate],
-        queryFn: () => analyticsService.getShopPerformance({ startDate, endDate, companyId }),
+    const { data: shopPerformance = [], isLoading: loadingShops } = useQuery({
+        queryKey: ['report-shop-perf', companyId, startDate, endDate, interval],
+        queryFn: () => analyticsService.getShopPerformance({ startDate, endDate, companyId, interval }),
         enabled: !!companyId,
         staleTime: Infinity,
         gcTime: 10 * 60 * 1000,

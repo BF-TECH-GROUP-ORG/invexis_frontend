@@ -6,13 +6,21 @@ import apiClient from "@/lib/apiClient";
  * @param {object} options - Request options
  * @returns {Promise<object>} Company payments data
  */
-export const getCompanyPayments = async (companyId, options = {}) => {
-  if (!companyId) {
+export const getCompanyPayments = async (company_id, options = {}) => {
+  if (!company_id) {
     throw new Error('Company ID is required');
   }
 
   try {
-    return await apiClient.get(`/payment/company/${companyId}`, options);
+    const { startDate, endDate, ...otherOptions } = options;
+    const params = { ...otherOptions.params };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    return await apiClient.get(`/payment/company/${company_id}`, {
+      ...otherOptions,
+      params
+    });
   } catch (error) {
     console.error('Error fetching company payments:', error);
     throw error;
