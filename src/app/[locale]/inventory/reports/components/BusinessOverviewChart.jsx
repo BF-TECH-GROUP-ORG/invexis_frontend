@@ -13,6 +13,7 @@ import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup } from '@mui/ma
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useTranslations } from 'next-intl';
 import dayjs from 'dayjs';
 
 // Helper to generate mock daily data (24 hours)
@@ -72,7 +73,7 @@ const COLORS = {
     inventoryValue: '#FDBA74',
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, t }) => {
     if (active && payload && payload.length) {
         return (
             <Paper
@@ -92,10 +93,7 @@ const CustomTooltip = ({ active, payload, label }) => {
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
                         <Box sx={{ width: 10, height: 10, bgcolor: entry.color, borderRadius: '2px' }} />
                         <Typography variant="caption" sx={{ color: '#4B5563', fontWeight: '600' }}>
-                            {entry.name === 'netSales' ? 'Net Sales' :
-                                entry.name === 'paymentsReceived' ? 'Payments Received' :
-                                    entry.name === 'outstandingDebts' ? 'Outstanding Debts' :
-                                        'Inventory Value'}:
+                            {t(entry.name)}:
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#111827', fontWeight: '700', ml: 'auto' }}>
                             {entry.value.toLocaleString()} FRW
@@ -109,6 +107,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
+    const t = useTranslations("reports.general.chart");
+    const tControls = useTranslations("reports.controls");
     const [viewType, setViewType] = useState(reportView || 'monthly'); // 'daily', 'weekly', 'monthly', 'yearly'
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [selectedYear, setSelectedYear] = useState(dayjs().year());
@@ -147,23 +147,23 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
     }, [data, viewType, selectedDate, selectedYear]);
 
     const getTitle = () => {
-        if (data && data.branches) return "Branch Performance Comparison";
+        if (data && data.branches) return t("title");
         
         switch (viewType) {
             case 'daily':
-                return `Daily Breakdown for ${selectedDate.format('MMMM DD, YYYY')}`;
+                return `${tControls('daily')} Breakdown for ${selectedDate.format('MMMM DD, YYYY')}`;
             case 'weekly':
-                return `Weekly Breakdown for ${selectedDate.format('MMMM YYYY')}`;
+                return `${tControls('weekly')} Breakdown for ${selectedDate.format('MMMM YYYY')}`;
             case 'yearly':
-                return `Yearly Breakdown for ${selectedYear}`;
+                return `${tControls('yearly')} Breakdown for ${selectedYear}`;
             case 'monthly':
             default:
-                return `Monthly Breakdown for ${selectedDate.format('YYYY')}`;
+                return `${tControls('monthly')} Breakdown for ${selectedDate.format('YYYY')}`;
         }
     };
 
     const getSubtitle = () => {
-        if (data && data.branches) return "Comparison of key metrics across all branches";
+        if (data && data.branches) return t("subtitle");
 
         switch (viewType) {
             case 'daily':
@@ -211,7 +211,7 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 3 }}>
                 <Box>
                     <Typography variant="h5" fontWeight="800" sx={{ color: '#111827' }}>
-                        Business Performance Overview
+                        {t("title")}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: '600' }}>
                         {getSubtitle()}
@@ -251,10 +251,10 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
                         }
                     }}
                 >
-                    <ToggleButton value="daily">Daily</ToggleButton>
-                    <ToggleButton value="weekly">Weekly</ToggleButton>
-                    <ToggleButton value="monthly">Monthly</ToggleButton>
-                    <ToggleButton value="yearly">Yearly</ToggleButton>
+                    <ToggleButton value="daily">{tControls('daily')}</ToggleButton>
+                    <ToggleButton value="weekly">{tControls('weekly')}</ToggleButton>
+                    <ToggleButton value="monthly">{tControls('monthly')}</ToggleButton>
+                    <ToggleButton value="yearly">{tControls('yearly')}</ToggleButton>
                 </ToggleButtonGroup>
             </Box>
 
@@ -359,7 +359,7 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
                             tick={{ fill: '#6B7280', fontSize: 11, fontWeight: '600' }}
                             tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${value / 1000}K` : value}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f9fafb' }} />
+                        <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: '#f9fafb' }} />
                         <Legend
                             verticalAlign="bottom"
                             align="center"
@@ -368,10 +368,7 @@ const BusinessOverviewChart = ({ data, reportView = 'monthly' }) => {
                             wrapperStyle={{ paddingTop: '40px' }}
                             formatter={(value) => (
                                 <span style={{ color: '#374151', fontWeight: '600', fontSize: '13px', marginLeft: '6px', marginRight: '20px' }}>
-                                    {value === 'netSales' ? 'Net Sales' :
-                                        value === 'paymentsReceived' ? 'Payments Received' :
-                                            value === 'outstandingDebts' ? 'Outstanding Debts' :
-                                                'Inventory Value'}
+                                    {t(value)}
                                 </span>
                             )}
                         />

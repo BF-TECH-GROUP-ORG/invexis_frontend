@@ -8,9 +8,11 @@ import StoreIcon from '@mui/icons-material/Store';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
+import { useQuery } from '@tanstack/react-query';
+import analyticsService from '@/services/analyticsService';
+import { getWorkersByCompanyId } from '@/services/workersService';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -19,53 +21,85 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 const StaffTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [staffData, setStaffData] = useState([]);
-    const [branchData, setBranchData] = useState([]);
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+
+    // Fetch Performance Data
+    const { data: employeePerformance = [], isLoading: loadingPerf } = useQuery({
+        queryKey: ['report-staff-perf', companyId, startDate, endDate],
+        queryFn: () => analyticsService.getEmployeePerformance({ startDate, endDate, companyId }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
+
+    const { data: shopPerformance = [], isLoading: loadingShop } = useQuery({
+        queryKey: ['report-shop-perf', companyId, startDate, endDate],
+        queryFn: () => analyticsService.getShopPerformance({ startDate, endDate, companyId }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
+
+    const { data: workers = [], isLoading: loadingWorkers } = useQuery({
+        queryKey: ['report-workers', companyId],
+        queryFn: () => getWorkersByCompanyId(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
+
+    const loading = loadingPerf || loadingShop || loadingWorkers;
+
+    // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [selectedActor, setSelectedActor] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+    // Merge Data
+    const { staffData, branchData } = React.useMemo(() => {
+        // Formatted Staff Data
+        const formattedStaff = employeePerformance.map(perf => {
+            const worker = workers.find(w => w.id === perf.employeeId || w.fullName === perf.employeeName);
+            return {
+                staffName: perf.employeeName || 'Unknown',
+                role: worker?.role || 'Staff',
+                branch: worker?.shopId || 'Default',
+                transactions: perf.orderCount || 0,
+                revenue: parseFloat(perf.totalSales || 0),
+                status: worker?.status || 'Active'
+            };
+        });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setTimeout(() => {
-                const mockStaffData = [
-                    { staffName: 'Jean Pierre', role: 'Sales Manager', branch: 'North Branch', transactions: 145, revenue: 12500000, status: 'Active' },
-                    { staffName: 'Sarah Smith', role: 'Sales Associate', branch: 'North Branch', transactions: 132, revenue: 11200000, status: 'Active' },
-                    { staffName: 'Emmanuel R.', role: 'Sales Associate', branch: 'South Branch', transactions: 98, revenue: 8400000, status: 'Active' },
-                    { staffName: 'Marie Claire', role: 'Cashier', branch: 'South Branch', transactions: 85, revenue: 7200000, status: 'Active' },
-                    { staffName: 'Alice', role: 'Sales Manager', branch: 'North Branch', transactions: 120, revenue: 10800000, status: 'Active' },
-                    { staffName: 'Bob', role: 'Sales Associate', branch: 'North Branch', transactions: 95, revenue: 8500000, status: 'Active' },
-                ];
+        // Filter Staff
+        const filteredStaff = formattedStaff.filter(s => {
+            const branchMatch = selectedBranch === t('common.all') || s.branch === selectedBranch;
+            const actorMatch = selectedActor === t('common.all') || s.staffName === selectedActor;
+            return branchMatch && actorMatch;
+        });
 
-                const mockBranchData = [
-                    { branchName: 'North Branch', location: 'Kigali Downtown', transactions: 492, revenue: 42800000, avgTransaction: 87000, staffCount: 4, status: 'Performing' },
-                    { branchName: 'South Branch', location: 'Kigali Heights', transactions: 283, revenue: 24600000, avgTransaction: 86900, staffCount: 3, status: 'Performing' },
-                ];
+        // Formatted Branch Data
+        const formattedBranch = shopPerformance.map(perf => ({
+            branchName: perf.shopName || perf.shopId || 'Default',
+            location: 'N/A', // Not available in analytics
+            transactions: perf.orderCount || 0,
+            revenue: parseFloat(perf.totalRevenue || 0),
+            avgTransaction: perf.orderCount > 0 ? Math.round(parseFloat(perf.totalRevenue || 0) / perf.orderCount) : 0,
+            staffCount: workers.filter(w => w.shopId === perf.shopId || w.shopName === perf.shopName).length,
+            status: 'Performing'
+        }));
 
-                // Filter by branch
-                let filteredStaff = mockStaffData;
-                if (selectedBranch !== t('common.all')) {
-                    filteredStaff = mockStaffData.filter(s => s.branch === selectedBranch);
-                }
-
-                // Filter by actor (staff member)
-                if (selectedActor !== t('common.all')) {
-                    filteredStaff = filteredStaff.filter(s => s.staffName === selectedActor);
-                }
-
-                setStaffData(filteredStaff);
-                setBranchData(mockBranchData);
-                setLoading(false);
-            }, 800);
-        };
-
-        fetchData();
-    }, [companyId, dateRange, selectedBranch, selectedActor, t]);
+        return { staffData: filteredStaff, branchData: formattedBranch };
+    }, [employeePerformance, shopPerformance, workers, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (

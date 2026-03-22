@@ -19,14 +19,31 @@ import { useTranslations } from "next-intl";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useQuery } from '@tanstack/react-query';
+import reportService from '@/services/reportService';
 import dayjs from 'dayjs';
 
 const InventoryTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [reportData, setReportData] = useState([]);
-    const [summary, setSummary] = useState(null);
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+
+    const {
+        data: rawReportData,
+        isLoading: loading,
+        error
+    } = useQuery({
+        queryKey: ['report-inventory', companyId, startDate, endDate],
+        queryFn: () => reportService.getStockMovement({ companyId, startDate, endDate }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
 
     // Header Selection State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
@@ -34,76 +51,37 @@ const InventoryTab = ({ dateRange }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+    // Transform and group data by date and shop if necessary
+    const reportData = React.useMemo(() => {
+        if (!rawReportData) return [];
+        
+        // If the backend already returns the nested structure, return it
+        if (Array.isArray(rawReportData) && rawReportData.length > 0 && rawReportData[0].date) {
+            let data = rawReportData;
+            if (selectedBranch === t('common.none')) return [];
+            if (selectedBranch !== t('common.all')) {
+                data = data.map(day => ({
+                    ...day,
+                    shops: day.shops.filter(shop => shop.name === selectedBranch || shop.shopId === selectedBranch)
+                }));
+            }
+            return data;
+        }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setTimeout(() => {
-                const mockSummary = {
-                    totalValue: 85400000,
-                    totalItems: 12450,
-                    lowStockCount: 18,
-                    outOfStockCount: 5
-                };
+        // Otherwise, return as is or handle flat list (assuming nested structure for now as it matches UI)
+        return rawReportData.data || rawReportData;
+    }, [rawReportData, selectedBranch, t]);
 
-                const allMockData = [
-                    {
-                        date: '02/15/2022',
-                        shops: [
-                            {
-                                name: 'North Branch',
-                                products: [
-                                    {
-                                        name: 'iPhone 15 Pro Max',
-                                        category: 'Electronics',
-                                        movement: { open: 50, in: 20, out: 15, close: 55 },
-                                        value: { unitCost: 1200000, totalValue: 66000000 },
-                                        status: { reorder: 10, status: 'In Stock', age: 12 },
-                                        tracking: { lastRestock: '02/01/2022', lastMove: '02/14/2022' }
-                                    },
-                                    {
-                                        name: 'Samsung 65" OLED TV',
-                                        category: 'Electronics',
-                                        movement: { open: 5, in: 0, out: 5, close: 0 },
-                                        value: { unitCost: 2500000, totalValue: 0 },
-                                        status: { reorder: 5, status: 'Out of Stock', age: 45 },
-                                        tracking: { lastRestock: '01/15/2022', lastMove: '02/15/2022' }
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                products: [
-                                    {
-                                        name: 'MacBook Air M2',
-                                        category: 'Electronics',
-                                        movement: { open: 10, in: 5, out: 12, close: 3 },
-                                        value: { unitCost: 1500000, totalValue: 4500000 },
-                                        status: { reorder: 8, status: 'Low Stock', age: 8 },
-                                        tracking: { lastRestock: '02/10/2022', lastMove: '02/15/2022' }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ];
-
-                // Filter by selected branch
-                let filteredData = allMockData.map(day => {
-                    if (selectedBranch === t('common.none')) return { ...day, shops: [] };
-                    if (selectedBranch === t('common.all')) return day;
-                    const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
-                    return { ...day, shops: filteredShops };
-                });
-
-                setSummary(mockSummary);
-                setReportData(filteredData);
-                setLoading(false);
-            }, 800);
+    // Summary KPIs from data
+    const summary = React.useMemo(() => {
+        if (!rawReportData) return null;
+        return rawReportData.summary || {
+            totalValue: 0,
+            totalItems: 0,
+            lowStockCount: 0,
+            outOfStockCount: 0
         };
-        fetchData();
-    }, [companyId, selectedBranch, dateRange, t]);
+    }, [rawReportData]);
 
     if (loading) {
         return (

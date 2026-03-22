@@ -2034,8 +2034,17 @@
         "pending": "Bitegerejwe",
         "debtAmount": "Umubare w'umwenda",
         "paidAmount": "Ayishyuwe",
+        "netSales": "Icururwa Nyaryo",
         "netProfit": "Inyungu isigaye",
         "margin": "Inyungu %"
+      },
+      "chart": {
+        "netSales": "Icururwa Nyaryo",
+        "paymentsReceived": "Amafaranga Yakiriwe",
+        "outstandingDebts": "Imyenda Itegerejwe",
+        "inventoryValue": "Agaciro k'Ibubiko",
+        "title": "Incamake y'Imikorere y'Ubucuruzi",
+        "subtitle": "Igereranya ry'ibipimo by'ingenzi mu mashami yose"
       },
       "recommendations": {
         "all": "Tekereza kongera ibicuruzwa bikunze kugurwa cyane mu ishami rya Ruguru.",

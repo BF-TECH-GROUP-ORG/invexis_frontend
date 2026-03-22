@@ -2035,8 +2035,17 @@
         "pending": "Inasubiri",
         "debtAmount": "Kiasi cha Deni",
         "paidAmount": "Kiasi Kilicholipwa",
+        "netSales": "Mauzo Halisi",
         "netProfit": "Faida Halisi",
         "margin": "Asilimia ya Faida"
+      },
+      "chart": {
+        "netSales": "Mauzo Halisi",
+        "paymentsReceived": "Malipo Yaliyopokelewa",
+        "outstandingDebts": "Deni Lililosalia",
+        "inventoryValue": "Thamani ya Bidhaa",
+        "title": "Muhtasari wa Utendaji wa Biashara",
+        "subtitle": "Ulinganifu wa vipimo muhimu katika matawi yote"
       },
       "recommendations": {
         "all": "Fikiria kuongeza akiba ya bidhaa zinazohitajika sana katika Tawi la Kaskazini.",

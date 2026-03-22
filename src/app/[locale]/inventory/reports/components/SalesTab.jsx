@@ -6,6 +6,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
+import { useQuery } from '@tanstack/react-query';
+import salesService from '@/services/salesService';
 import ReportKPI from './ReportKPI';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -20,142 +22,107 @@ import dayjs from 'dayjs';
 const SalesTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [reportData, setReportData] = useState([]);
-    const [stats, setStats] = useState(null);
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+
+    const {
+        data: rawSales = [],
+        isLoading: loading,
+        error
+    } = useQuery({
+        queryKey: ['report-sales', companyId, startDate, endDate, selectedBranch, selectedActor],
+        queryFn: () => salesService.getSalesHistory(companyId, { 
+            shopId: selectedBranch === t('common.all') ? undefined : selectedBranch,
+            soldBy: selectedActor === t('common.all') ? undefined : selectedActor,
+            startDate, 
+            endDate 
+        }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
+
+    // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [filterByKPI, setFilterByKPI] = useState(null);
     const [selectedActor, setSelectedActor] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+    // Process stats and report data structure
+    const { stats, reportData } = React.useMemo(() => {
+        let sales = Array.isArray(rawSales) ? rawSales : [];
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setTimeout(() => {
-                const allMockData = [
-                    {
-                        date: '02/15/2022',
-                        shops: [
-                            {
-                                name: 'North Branch',
-                                sales: [
-                                    {
-                                        invoiceNo: 'INV-2022-001',
-                                        productName: 'iPhone 15 Pro Max',
-                                        quantity: { sold: 8, returns: 0, net: 8 },
-                                        value: { unitPrice: 1200000, totalAmount: 9600000 },
-                                        customer: { name: 'John Doe', type: 'Retail' },
-                                        tracking: { saleTime: '10:30 AM', soldBy: 'Alice' }
-                                    },
-                                    {
-                                        invoiceNo: 'INV-2022-002',
-                                        productName: 'Sony WH-1000XM5',
-                                        quantity: { sold: 15, returns: 1, net: 14 },
-                                        value: { unitPrice: 350000, totalAmount: 4900000 },
-                                        customer: { name: 'Jane Smith', type: 'Wholesale' },
-                                        tracking: { saleTime: '11:45 AM', soldBy: 'Bob' }
-                                    },
-                                    {
-                                        invoiceNo: 'INV-2022-004',
-                                        productName: 'Samsung 65" OLED TV',
-                                        quantity: { sold: 3, returns: 0, net: 3 },
-                                        value: { unitPrice: 2500000, totalAmount: 7500000 },
-                                        customer: { name: 'ABC Corp', type: 'Corporate' },
-                                        tracking: { saleTime: '01:15 PM', soldBy: 'Alice' }
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                sales: [
-                                    {
-                                        invoiceNo: 'INV-2022-003',
-                                        productName: 'MacBook Air M2',
-                                        quantity: { sold: 5, returns: 0, net: 5 },
-                                        value: { unitPrice: 1500000, totalAmount: 7500000 },
-                                        customer: { name: 'Tech Solutions', type: 'Corporate' },
-                                        tracking: { saleTime: '02:15 PM', soldBy: 'Charlie' }
-                                    },
-                                    {
-                                        invoiceNo: 'INV-2022-005',
-                                        productName: 'Sony WH-1000XM5',
-                                        quantity: { sold: 12, returns: 0, net: 12 },
-                                        value: { unitPrice: 350000, totalAmount: 4200000 },
-                                        customer: { name: 'Retail Store X', type: 'Wholesale' },
-                                        tracking: { saleTime: '03:30 PM', soldBy: 'David' }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ];
+        // Group by date for the hierarchical table
+        const groupedByDate = {};
+        let totalRevenue = 0;
+        let totalTransactions = sales.length;
+        let productSales = {};
 
-                let totalRevenue = 0;
-                let totalTransactions = 0;
-                let productSales = {};
+        sales.forEach(sale => {
+            const dateStr = dayjs(sale.createdAt).format('MM/DD/YYYY');
+            if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, shops: {} };
+            
+            const shopName = sale.shopId || 'Default';
+            if (!groupedByDate[dateStr].shops[shopName]) groupedByDate[dateStr].shops[shopName] = { name: shopName, sales: [] };
+            
+            // Map backend sale structure to UI sale structure if needed
+            const uiSale = {
+                invoiceNo: sale.invoiceNo || sale.id?.slice(-8).toUpperCase(),
+                productName: sale.items?.[0]?.productName || 'Multiple Items',
+                quantity: { 
+                    sold: sale.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+                    returns: 0, 
+                    net: sale.items?.reduce((sum, item) => sum + item.quantity, 0) || 0 
+                },
+                value: { 
+                    unitPrice: sale.items?.[0]?.unitPrice || 0,
+                    totalAmount: sale.totalAmount || 0 
+                },
+                customer: { name: sale.customerName || 'Walk-in', type: 'Retail' },
+                tracking: { saleTime: dayjs(sale.createdAt).format('hh:mm A'), soldBy: sale.soldBy || 'System' }
+            };
 
-                allMockData.forEach(day => {
-                    day.shops.forEach(shop => {
-                        shop.sales.forEach(sale => {
-                            totalRevenue += sale.value.totalAmount;
-                            totalTransactions += 1;
-                            if (!productSales[sale.productName]) {
-                                productSales[sale.productName] = 0;
-                            }
-                            productSales[sale.productName] += sale.quantity.net;
-                        });
-                    });
-                });
+            groupedByDate[dateStr].shops[shopName].sales.push(uiSale);
+            totalRevenue += sale.totalAmount || 0;
+            
+            sale.items?.forEach(item => {
+                if (!productSales[item.productName]) productSales[item.productName] = 0;
+                productSales[item.productName] += item.quantity;
+            });
+        });
 
-                let topProduct = 'N/A';
-                let topProductQty = 0;
-                Object.entries(productSales).forEach(([product, qty]) => {
-                    if (qty > topProductQty) {
-                        topProductQty = qty;
-                        topProduct = product;
-                    }
-                });
+        const reportDataFormatted = Object.values(groupedByDate).map(day => ({
+            ...day,
+            shops: Object.values(day.shops)
+        }));
 
-                const previousPeriodRevenue = 40900000;
-                const growthPercent = ((totalRevenue - previousPeriodRevenue) / previousPeriodRevenue * 100).toFixed(1);
+        let topProduct = 'N/A';
+        let topProductQty = 0;
+        Object.entries(productSales).forEach(([product, qty]) => {
+            if (qty > topProductQty) {
+                topProductQty = qty;
+                topProduct = product;
+            }
+        });
 
-                const mockStats = {
-                    totalRevenue: totalRevenue,
-                    totalTransactions: totalTransactions,
-                    averageOrderValue: totalTransactions > 0 ? Math.round(totalRevenue / totalTransactions) : 0,
-                    topProduct: topProduct,
-                    topProductQuantity: topProductQty,
-                    growthPercent: growthPercent,
-                    previousPeriodRevenue: previousPeriodRevenue
-                };
-
-                let filteredData = allMockData.map(day => {
-                    if (selectedBranch === t('common.none')) return { ...day, shops: [] };
-                    if (selectedBranch === t('common.all')) return day;
-                    const filteredShops = day.shops.filter(shop => shop.name === selectedBranch);
-                    return { ...day, shops: filteredShops };
-                }).map(day => {
-                    // Filter by actor (soldBy)
-                    if (selectedActor === t('common.all')) return day;
-                    return {
-                        ...day,
-                        shops: day.shops.map(s => ({
-                            ...s,
-                            sales: s.sales.filter(sale => sale.tracking.soldBy === selectedActor)
-                        }))
-                    };
-                });
-
-                setStats(mockStats);
-                setReportData(filteredData);
-                setLoading(false);
-            }, 800);
+        // Simplified stats calculation
+        const mockStats = {
+            totalRevenue: totalRevenue,
+            totalTransactions: totalTransactions,
+            averageOrderValue: totalTransactions > 0 ? Math.round(totalRevenue / totalTransactions) : 0,
+            topProduct: topProduct,
+            topProductQuantity: topProductQty,
+            growthPercent: 0, // Would need historical comparison data
+            previousPeriodRevenue: 0
         };
-        fetchData();
-    }, [companyId, selectedBranch, dateRange, selectedActor, t]);
+
+        return { stats: mockStats, reportData: reportDataFormatted };
+    }, [rawSales]);
 
     if (loading) {
         return (

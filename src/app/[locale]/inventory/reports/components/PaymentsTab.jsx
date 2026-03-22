@@ -12,9 +12,10 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import analyticsService from '@/services/analyticsService';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
+import { useQuery } from '@tanstack/react-query';
+import paymentService from '@/services/paymentService';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -23,16 +24,26 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 const PaymentsTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [reportData, setReportData] = useState([]);
-    const [kpis, setKpis] = useState({
-        totalReceived: 0,
-        pendingAmount: 0,
-        failedAmount: 0,
-        avgPaymentSize: 0
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+
+    const {
+        data: rawPayments = [],
+        isLoading: loading,
+        error
+    } = useQuery({
+        queryKey: ['report-payments', companyId, startDate, endDate, selectedBranch, selectedActor],
+        queryFn: () => paymentService.getCompanyPayments(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
     });
 
-    // Header Selection State
+    // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [selectedActor, setSelectedActor] = useState(t('common.all'));
 
@@ -40,153 +51,62 @@ const PaymentsTab = ({ dateRange }) => {
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+    // Process KPIs and report data structure
+    const { kpis, reportData } = React.useMemo(() => {
+        let payments = Array.isArray(rawPayments) ? rawPayments : [];
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setTimeout(() => {
-                const mockPayments = [
-                    {
-                        date: '02/15/2022',
-                        branches: [
-                            {
-                                name: 'North Branch',
-                                payments: [
-                                    {
-                                        customer: { name: 'Jean Pierre', phone: '0788123456' },
-                                        invoiceNo: 'INV-2022-001',
-                                        amount: 250000,
-                                        method: 'Mobile Money',
-                                        status: 'Completed',
-                                        saleDebtRef: 'SALE-001',
-                                        receivedBy: 'Alice',
-                                        time: '10:30 AM'
-                                    },
-                                    {
-                                        customer: { name: 'Marie Dupont', phone: '0788654321' },
-                                        invoiceNo: 'INV-2022-002',
-                                        amount: 150000,
-                                        method: 'Cash',
-                                        status: 'Completed',
-                                        saleDebtRef: 'SALE-002',
-                                        receivedBy: 'Bob',
-                                        time: '11:15 AM'
-                                    },
-                                    {
-                                        customer: { name: 'Pierre Martin', phone: '0788999888' },
-                                        invoiceNo: 'INV-2022-003',
-                                        amount: 75000,
-                                        method: 'Bank Transfer',
-                                        status: 'Pending',
-                                        saleDebtRef: 'DEBT-001',
-                                        receivedBy: 'Charlie',
-                                        time: '09:45 AM'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                branches: [
-                                    {
-                                        customer: { name: 'Jacques Lemaire', phone: '0788777666' },
-                                        invoiceNo: 'INV-2022-004',
-                                        amount: 320000,
-                                        method: 'Mobile Money',
-                                        status: 'Completed',
-                                        saleDebtRef: 'SALE-003',
-                                        receivedBy: 'Diana',
-                                        time: '02:20 PM'
-                                    },
-                                    {
-                                        customer: { name: 'Sophie Laurent', phone: '0788555444' },
-                                        invoiceNo: 'INV-2022-005',
-                                        amount: 95000,
-                                        method: 'Credit Card',
-                                        status: 'Failed',
-                                        saleDebtRef: 'SALE-004',
-                                        receivedBy: 'Eve',
-                                        time: '03:10 PM'
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        date: '02/14/2022',
-                        branches: [
-                            {
-                                name: 'North Branch',
-                                payments: [
-                                    {
-                                        customer: { name: 'Robert Chen', phone: '0788333222' },
-                                        invoiceNo: 'INV-2022-006',
-                                        amount: 200000,
-                                        method: 'Mobile Money',
-                                        status: 'Completed',
-                                        saleDebtRef: 'SALE-005',
-                                        receivedBy: 'Frank',
-                                        time: '08:00 AM'
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ];
+        // Apply filters (since service might not support all filters yet)
+        let filtered = payments.filter(p => {
+            const pDate = dayjs(p.createdAt);
+            const inRange = (!startDate || pDate.isAfter(dayjs(startDate).subtract(1, 'day'))) && 
+                          (!endDate || pDate.isBefore(dayjs(endDate).add(1, 'day')));
+            const branchMatch = selectedBranch === t('common.all') || p.shopId === selectedBranch;
+            const actorMatch = selectedActor === t('common.all') || p.recordedBy === selectedActor;
+            return inRange && branchMatch && actorMatch;
+        });
 
-                // Calculate KPIs
-                let totalReceived = 0;
-                let pendingAmount = 0;
-                let failedAmount = 0;
-                let paymentCount = 0;
+        let totalReceived = 0, pendingAmount = 0, failedAmount = 0, paymentCount = 0;
+        const groupedByDate = {};
 
-                mockPayments.forEach(day => {
-                    day.branches.forEach(branch => {
-                        branch.payments?.forEach(payment => {
-                            paymentCount++;
-                            if (payment.status === 'Completed') {
-                                totalReceived += payment.amount;
-                            } else if (payment.status === 'Pending') {
-                                pendingAmount += payment.amount;
-                            } else if (payment.status === 'Failed') {
-                                failedAmount += payment.amount;
-                            }
-                        });
-                    });
-                });
+        filtered.forEach(p => {
+            paymentCount++;
+            if (p.status === 'Completed' || p.status === 'SUCCESS' || p.status === 'success') totalReceived += p.amount;
+            else if (p.status === 'Pending' || p.status === 'PENDING') pendingAmount += p.amount;
+            else if (p.status === 'Failed' || p.status === 'FAILED') failedAmount += p.amount;
 
-                setKpis({
-                    totalReceived,
-                    pendingAmount,
-                    failedAmount,
-                    avgPaymentSize: paymentCount > 0 ? Math.round(totalReceived / paymentCount) : 0
-                });
+            const dateStr = dayjs(p.createdAt).format('MM/DD/YYYY');
+            if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, branches: {} };
+            
+            const branchName = p.shopId || 'Default';
+            if (!groupedByDate[dateStr].branches[branchName]) groupedByDate[dateStr].branches[branchName] = { name: branchName, payments: [] };
+            
+            groupedByDate[dateStr].branches[branchName].payments.push({
+                customer: { name: p.customerName || 'Walk-in', phone: p.customerPhone || '-' },
+                invoiceNo: p.invoiceNo || p.id?.slice(-8).toUpperCase(),
+                amount: p.amount || 0,
+                method: p.paymentMethod || 'Cash',
+                status: p.status === 'success' || p.status === 'SUCCESS' ? 'Completed' : p.status,
+                saleDebtRef: p.saleId || p.debtId || '-',
+                receivedBy: p.recordedBy || 'System',
+                time: dayjs(p.createdAt).format('hh:mm A')
+            });
+        });
 
-                // Filter by selected branch
-                const filteredData = mockPayments.map(day => {
-                    if (selectedBranch === t('common.none')) return { ...day, branches: [] };
-                    if (selectedBranch === t('common.all')) return day;
-                    const filteredBranches = day.branches.filter(b => b.name === selectedBranch);
-                    return { ...day, branches: filteredBranches };
-                }).map(day => {
-                    // Filter by actor (receivedBy)
-                    if (selectedActor === t('common.all')) return day;
-                    return {
-                        ...day,
-                        branches: day.branches.map(b => ({
-                            ...b,
-                            payments: b.payments?.filter(p => p.receivedBy === selectedActor) || []
-                        }))
-                    };
-                });
+        const reportDataFormatted = Object.values(groupedByDate).map(day => ({
+            ...day,
+            branches: Object.values(day.branches)
+        }));
 
-                setReportData(filteredData);
-                setLoading(false);
-            }, 800);
+        return {
+            kpis: {
+                totalReceived,
+                pendingAmount,
+                failedAmount,
+                avgPaymentSize: paymentCount > 0 ? Math.round(totalReceived / paymentCount) : 0
+            },
+            reportData: reportDataFormatted
         };
-
-        fetchData();
-    }, [companyId, dateRange, selectedBranch, selectedActor, t]);
+    }, [rawPayments, startDate, endDate, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (

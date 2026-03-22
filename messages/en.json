@@ -2021,8 +2021,17 @@
         "pending": "Pending",
         "debtAmount": "Debt Amount",
         "paidAmount": "Paid Amount",
+        "netSales": "Net Sales",
         "netProfit": "Net Profit",
         "margin": "Margin %"
+      },
+      "chart": {
+        "netSales": "Net Sales",
+        "paymentsReceived": "Payments Received",
+        "outstandingDebts": "Outstanding Debts",
+        "inventoryValue": "Inventory Value",
+        "title": "Business Performance Overview",
+        "subtitle": "Comparison of key metrics across all branches"
       },
       "recommendations": {
         "all": "Consider increasing stock for high-demand items in the North Branch.",

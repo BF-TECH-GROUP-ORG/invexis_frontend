@@ -15,16 +15,31 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
-import BusinessOverviewChart from './BusinessOverviewChart';
+import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
 import dayjs from 'dayjs';
 
 const GeneralTab = ({ dateRange, reportView }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [reportData, setReportData] = useState(null);
-    const [branches, setBranches] = useState([]);
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+
+    const {
+        data: reportData,
+        isLoading: loading,
+        error
+    } = useQuery({
+        queryKey: ['report-general', companyId, startDate, endDate],
+        queryFn: () => reportService.getGeneralReport(companyId, { startDate, endDate }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
 
     // Header Selection State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
@@ -32,36 +47,13 @@ const GeneralTab = ({ dateRange, reportView }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!companyId) return;
-            setLoading(true);
-            try {
-                const params = {
-                    startDate: dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined,
-                    endDate: dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined
-                };
-
-                const data = await reportService.getGeneralReport(companyId, params);
-                setReportData(data);
-
-                // Extract branch names for filtering
-                if (data.branches) {
-                    const branchNames = data.branches
-                        .filter(b => b.shopId)
-                        .map(b => b.shopId); // Using shopId as name if name is not available
-                    setBranches(branchNames);
-                }
-            } catch (error) {
-                console.error("Failed to fetch general report:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [companyId, dateRange, t]);
+    // Extract branch names for filtering
+    const branches = React.useMemo(() => {
+        if (!reportData?.branches) return [];
+        return reportData.branches
+            .filter(b => b.shopId)
+            .map(b => b.shopId);
+    }, [reportData]);
 
     if (loading) {
         return (
@@ -171,7 +163,6 @@ const GeneralTab = ({ dateRange, reportView }) => {
                     ))}
                 </div>
 
-                <BusinessOverviewChart data={reportData} reportView={reportView} />
                 {/* Hierarchical Table */}
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
                     <Table size="small">
@@ -206,7 +197,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                                 <TableCell align="center">{t('general.table.stockValue')}</TableCell>
                                 <TableCell align="center">{t('general.table.grossSales')}</TableCell>
                                 <TableCell align="center">{t('general.table.discounts')}</TableCell>
-                                <TableCell align="center">{t('general.table.netSales') || 'Net Sales'}</TableCell>
+                                <TableCell align="center">{t('general.table.netSales')}</TableCell>
                                 <TableCell align="center">{t('general.table.received')}</TableCell>
                                 <TableCell align="center">{t('general.table.pending')}</TableCell>
                                 <TableCell align="center">{t('general.table.debtAmount')}</TableCell>

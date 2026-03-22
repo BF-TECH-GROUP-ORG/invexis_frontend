@@ -14,9 +14,10 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import TimerIcon from '@mui/icons-material/Timer';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import debtsService from '@/services/debts';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
+import { useQuery } from '@tanstack/react-query';
+import debtsService from '@/services/debts';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -25,170 +26,87 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 const DebtsTab = ({ dateRange }) => {
     const t = useTranslations("reports");
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
-    const [kpis, setKpis] = useState({
-        totalOutstanding: 0,
-        overdueAmount: 0,
-        debtorsCount: 0,
-        avgDebtAge: 0
-    });
-    const [reportData, setReportData] = useState([]);
+    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+
+    // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
     const [branchAnchor, setBranchAnchor] = useState(null);
 
-    const companyId = session?.user?.companies?.[0]?.id || session?.user?.companies?.[0];
+    const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
+    const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setTimeout(() => {
-                const mockDebts = [
-                    {
-                        date: '02/15/2022',
-                        branches: [
-                            {
-                                name: 'North Branch',
-                                debts: [
-                                    {
-                                        invoiceNo: 'INV-2022-001',
-                                        customer: { name: 'Jean Pierre', phone: '0788123456' },
-                                        original: 500000,
-                                        paid: 50000,
-                                        balance: 450000,
-                                        lastPaid: '02/10/2022',
-                                        dueDate: dayjs().subtract(5, 'day').format('MM/DD/YYYY'),
-                                        age: 45,
-                                        status: 'Overdue',
-                                        saleDate: '01/01/2022',
-                                        recordedBy: 'Alice'
-                                    },
-                                    {
-                                        invoiceNo: 'INV-2022-002',
-                                        customer: { name: 'Sarah M.', phone: '0788654321' },
-                                        original: 120000,
-                                        paid: 0,
-                                        balance: 120000,
-                                        lastPaid: '-',
-                                        dueDate: dayjs().add(10, 'day').format('MM/DD/YYYY'),
-                                        age: 20,
-                                        status: 'Pending',
-                                        saleDate: '01/26/2022',
-                                        recordedBy: 'Bob'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                debts: [
-                                    {
-                                        invoiceNo: 'INV-2022-003',
-                                        customer: { name: 'Kigali Heights Corp', phone: '0788000111' },
-                                        original: 2500000,
-                                        paid: 0,
-                                        balance: 2500000,
-                                        lastPaid: '-',
-                                        dueDate: dayjs().subtract(35, 'day').format('MM/DD/YYYY'),
-                                        age: 60,
-                                        status: 'Overdue',
-                                        saleDate: '12/16/2021',
-                                        recordedBy: 'Charlie'
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        date: '02/14/2022',
-                        branches: [
-                            {
-                                name: 'North Branch',
-                                debts: [
-                                    {
-                                        invoiceNo: 'INV-2022-004',
-                                        customer: { name: 'Emmanuel R.', phone: '0788222333' },
-                                        original: 85000,
-                                        paid: 0,
-                                        balance: 85000,
-                                        lastPaid: '-',
-                                        dueDate: dayjs().add(2, 'day').format('MM/DD/YYYY'),
-                                        age: 15,
-                                        status: 'Pending',
-                                        saleDate: '01/30/2022',
-                                        recordedBy: 'Alice'
-                                    },
-                                    {
-                                        invoiceNo: 'INV-2022-005',
-                                        customer: { name: 'Marie Claire', phone: '0788444555' },
-                                        original: 350000,
-                                        paid: 30000,
-                                        balance: 320000,
-                                        lastPaid: '02/05/2022',
-                                        dueDate: dayjs().subtract(12, 'day').format('MM/DD/YYYY'),
-                                        age: 40,
-                                        status: 'Overdue',
-                                        saleDate: '01/05/2022',
-                                        recordedBy: 'Bob'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'South Branch',
-                                debts: [
-                                    {
-                                        invoiceNo: 'INV-2022-006',
-                                        customer: { name: 'Tech Solutions Ltd', phone: '0788777888' },
-                                        original: 1500000,
-                                        paid: 0,
-                                        balance: 1500000,
-                                        lastPaid: '-',
-                                        dueDate: dayjs().add(15, 'day').format('MM/DD/YYYY'),
-                                        age: 10,
-                                        status: 'Pending',
-                                        saleDate: '02/05/2022',
-                                        recordedBy: 'Charlie'
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ];
+    const {
+        data: rawDebts = [],
+        isLoading: loading,
+        error
+    } = useQuery({
+        queryKey: ['report-debts', companyId, startDate, endDate, selectedBranch],
+        queryFn: () => debtsService.getDebts(companyId, { 
+            shopId: selectedBranch === t('common.all') ? undefined : selectedBranch 
+        }),
+        enabled: !!companyId,
+        staleTime: Infinity,
+        gcTime: 10 * 60 * 1000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
+    });
 
-                // Calculate KPIs
-                let total = 0, overdue = 0, uniqueDebtors = new Set(), totalAge = 0, debtCount = 0;
+    // Process KPIs and report data structure
+    const { kpis, reportData } = React.useMemo(() => {
+        let debts = Array.isArray(rawDebts) ? rawDebts : [];
+        
+        let total = 0, overdue = 0, uniqueDebtors = new Set(), totalAge = 0, debtCount = 0;
+        const groupedByDate = {};
 
-                mockDebts.forEach(day => {
-                    day.branches.forEach(branch => {
-                        branch.debts.forEach(debt => {
-                            total += debt.balance;
-                            debtCount++;
-                            uniqueDebtors.add(debt.customer.phone);
-                            totalAge += debt.age;
-                            if (debt.status === 'Overdue') overdue += debt.balance;
-                        });
-                    });
-                });
+        debts.forEach(debt => {
+            const balance = debt.balance || (debt.totalAmount - (debt.amountPaid || 0));
+            total += balance;
+            debtCount++;
+            if (debt.customerPhone) uniqueDebtors.add(debt.customerPhone);
+            
+            const createdAt = dayjs(debt.createdAt);
+            const age = dayjs().diff(createdAt, 'day');
+            totalAge += age;
+            
+            const isOverdue = debt.dueDate && dayjs().isAfter(dayjs(debt.dueDate));
+            if (isOverdue) overdue += balance;
 
-                // Filter by selected branch
-                let filteredData = mockDebts.map(day => {
-                    if (selectedBranch === t('common.none')) return { ...day, branches: [] };
-                    if (selectedBranch === t('common.all')) return day;
-                    const filteredBranches = day.branches.filter(branch => branch.name === selectedBranch);
-                    return { ...day, branches: filteredBranches };
-                });
+            const dateStr = createdAt.format('MM/DD/YYYY');
+            if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, branches: {} };
+            
+            const branchName = debt.shopId || 'Default';
+            if (!groupedByDate[dateStr].branches[branchName]) groupedByDate[dateStr].branches[branchName] = { name: branchName, debts: [] };
+            
+            groupedByDate[dateStr].branches[branchName].debts.push({
+                invoiceNo: debt.invoiceNo || debt.id?.slice(-8).toUpperCase(),
+                customer: { name: debt.customerName || 'Customer', phone: debt.customerPhone || '-' },
+                original: debt.totalAmount || 0,
+                paid: debt.amountPaid || 0,
+                balance: balance,
+                lastPaid: debt.lastPaymentDate ? dayjs(debt.lastPaymentDate).format('MM/DD/YYYY') : '-',
+                dueDate: debt.dueDate ? dayjs(debt.dueDate).format('MM/DD/YYYY') : '-',
+                age: age,
+                status: isOverdue ? 'Overdue' : 'Pending',
+                saleDate: createdAt.format('MM/DD/YYYY'),
+                recordedBy: debt.createdBy || 'System'
+            });
+        });
 
-                setKpis({
-                    totalOutstanding: total,
-                    overdueAmount: overdue,
-                    debtorsCount: uniqueDebtors.size,
-                    avgDebtAge: debtCount > 0 ? Math.round(totalAge / debtCount) : 0
-                });
+        const reportDataFormatted = Object.values(groupedByDate).map(day => ({
+            ...day,
+            branches: Object.values(day.branches)
+        }));
 
-                setReportData(filteredData);
-                setLoading(false);
-            }, 800);
+        return {
+            kpis: {
+                totalOutstanding: total,
+                overdueAmount: overdue,
+                debtorsCount: uniqueDebtors.size,
+                avgDebtAge: debtCount > 0 ? Math.round(totalAge / debtCount) : 0
+            },
+            reportData: reportDataFormatted
         };
-        fetchData();
-    }, [companyId, selectedBranch, dateRange, t]);
+    }, [rawDebts, t]);
 
     if (loading) {
         return (

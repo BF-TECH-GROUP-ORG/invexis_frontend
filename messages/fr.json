@@ -2034,8 +2034,17 @@
         "pending": "En attente",
         "debtAmount": "Montant de la Dette",
         "paidAmount": "Montant Payé",
+        "netSales": "Ventes Nettes",
         "netProfit": "Bénéfice Net",
         "margin": "Marge %"
+      },
+      "chart": {
+        "netSales": "Ventes Nettes",
+        "paymentsReceived": "Paiements Reçus",
+        "outstandingDebts": "Dettes Restantes",
+        "inventoryValue": "Valeur du Stock",
+        "title": "Aperçu de la Performance Commerciale",
+        "subtitle": "Comparaison des mesures clés dans toutes les succursales"
       },
       "recommendations": {
         "all": "Envisagez d'augmenter le stock pour les articles à forte demande dans la succursale Nord.",
