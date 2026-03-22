@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { GROQ_MODELS } from '@/lib/assistant/modelRouter';
 
 export async function POST(req) {
+  const groqKey = process.env.GROQ_API_KEY;
+
   try {
     const formData = await req.formData();
     const audioFile = formData.get('file');
@@ -9,6 +11,10 @@ export async function POST(req) {
 
     if (!audioFile) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+    }
+
+    if (!groqKey) {
+      return NextResponse.json({ error: 'GROQ_API_KEY is not set on the server.' }, { status: 500 });
     }
 
     const model = isAccurate ? GROQ_MODELS.whisper_accurate : GROQ_MODELS.whisper_fast;
@@ -21,7 +27,7 @@ export async function POST(req) {
     const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.VITE_GROQ_API_KEY}`,
+        'Authorization': `Bearer ${groqKey}`,
       },
       body: groqFormData,
     });
