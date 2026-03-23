@@ -54,7 +54,7 @@ const PaymentsTab = ({ dateRange }) => {
     const { kpis, reportData } = React.useMemo(() => {
         if (!rawReportData?.data) return { kpis: null, reportData: [] };
         
-        const { grandTotal, branches, period } = rawReportData.data;
+        const { branches, period } = rawReportData.data;
         
         const periodText = period 
             ? `${dayjs(period.startDate).format('MM/DD/YYYY')} - ${dayjs(period.endDate).format('MM/DD/YYYY')}`
@@ -64,34 +64,74 @@ const PaymentsTab = ({ dateRange }) => {
             ? branches 
             : branches.filter(b => b.shopId === selectedBranch);
 
+        let grandReceived = 0;
+        let grandPending = 0;
+        let grandFailed = 0;
+        let grandSucceededCount = 0;
+
         // Map backend actors if needed (currently handling receivedBy via description field in reference)
         let processedBranches = filteredBranches.map(branch => {
             let payments = branch.payments;
             if (selectedActor !== t('common.all')) {
                 payments = payments.filter(p => p.reference?.description === selectedActor);
             }
-            return {
-                name: branch.shopName || branch.shopId,
-                id: branch.shopId,
-                totals: branch.totals,
-                payments: payments.map(p => ({
+
+            // Frontend-side subtotal calculation for accuracy
+            let branchReceived = 0;
+            let branchPending = 0;
+            let branchFailed = 0;
+
+            const mappedPayments = payments.map(p => {
+                const amount = Number(p.paymentInfo?.amount) || 0;
+                const status = (p.status || '').toLowerCase();
+
+                if (status === 'succeeded' || status === 'paid') {
+                    branchReceived += amount;
+                    grandReceived += amount;
+                    grandSucceededCount++;
+                } else if (status === 'pending') {
+                    branchPending += amount;
+                    grandPending += amount;
+                } else if (status === 'failed') {
+                    branchFailed += amount;
+                    grandFailed += amount;
+                }
+
+                return {
                     customer: { 
                         name: p.customerInfo?.name || 'Walk-in', 
                         phone: p.customerInfo?.phone || '-' 
                     },
                     invoiceNo: p.invoiceNo,
-                    amount: p.paymentInfo?.amount || 0,
+                    amount: amount,
                     method: p.paymentInfo?.method || 'Unknown',
                     status: p.status,
                     saleDebtRef: p.reference?.id || '-',
                     receivedBy: p.reference?.description || 'System',
                     time: p.reference?.time || '-'
-                }))
+                };
+            });
+
+            return {
+                name: branch.shopName || branch.shopId,
+                id: branch.shopId,
+                totals: {
+                    received: branchReceived,
+                    pending: branchPending,
+                    failed: branchFailed,
+                    count: mappedPayments.length
+                },
+                payments: mappedPayments
             };
         });
 
         return {
-            kpis: grandTotal,
+            kpis: {
+                totalReceived: grandReceived,
+                pendingPayments: grandPending,
+                failedPayments: grandFailed,
+                avgPaymentSize: grandSucceededCount > 0 ? (grandReceived / grandSucceededCount) : 0
+            },
             reportData: [{
                 date: periodText,
                 branches: processedBranches
@@ -107,7 +147,7 @@ const PaymentsTab = ({ dateRange }) => {
         );
     }
 
-    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
+    const formatCurrency = (val) => `${(val || 0).toLocaleString()} FRW`;
 
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
     const handleActorClick = (event) => setActorAnchor(event.currentTarget);
@@ -125,15 +165,19 @@ const PaymentsTab = ({ dateRange }) => {
 
 
     const getStatusColor = (status) => {
-        if (status === 'Completed') return { color: '#10B981', bg: '#F0FDF4', border: '#DCFCE7' };
-        if (status === 'Pending') return { color: '#F59E0B', bg: '#FFFBEB', border: '#FEF3C7' };
+        const s = (status || '').toLowerCase();
+        if (s === 'completed' || s === 'succeeded' || s === 'paid') return { color: '#10B981', bg: '#F0FDF4', border: '#DCFCE7' };
+        if (s === 'pending') return { color: '#F59E0B', bg: '#FFFBEB', border: '#FEF3C7' };
+        if (s === 'debt') return { color: '#3B82F6', bg: '#EFF6FF', border: '#DBEAFE' };
         return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' };
     };
 
     const getTranslatedStatus = (status) => {
-        if (status === 'Completed') return t('payments.status.completed');
-        if (status === 'Pending') return t('payments.status.pending');
-        if (status === 'Failed') return t('payments.status.failed');
+        const s = (status || '').toLowerCase();
+        if (s === 'completed' || s === 'succeeded' || s === 'paid') return t('payments.status.completed');
+        if (s === 'pending') return t('payments.status.pending');
+        if (s === 'failed') return t('payments.status.failed');
+        if (s === 'debt') return t('debts.status.unpaid'); // Reuse debt translation if available
         return status;
     };
 

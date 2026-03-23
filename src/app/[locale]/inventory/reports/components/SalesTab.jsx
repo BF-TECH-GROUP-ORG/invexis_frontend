@@ -57,24 +57,9 @@ const SalesTab = ({ dateRange }) => {
         staleTime: 5 * 60 * 1000,
     });
 
-    // Summary KPIs from data (grandTotal)
-    const summary = React.useMemo(() => {
-        if (!rawReportData?.data?.grandTotal) return null;
-        const gt = rawReportData.data.grandTotal;
-        return {
-            totalRevenue: gt.revenue?.totalValue || 0,
-            totalTransactions: gt.transactions?.count || 0,
-            totalUnits: gt.units?.count || 0,
-            averageValue: gt.kpis?.averageValue || 0,
-            topProduct: gt.kpis?.topProduct?.name || 'N/A',
-            topProductQty: gt.kpis?.topProduct?.units || 0,
-            growth: gt.kpis?.growth || 0
-        };
-    }, [rawReportData]);
-
-    // Transform and filter data
-    const reportData = React.useMemo(() => {
-        if (!rawReportData?.data) return [];
+    // Transform and map data
+    const { summary, reportData } = React.useMemo(() => {
+        if (!rawReportData?.data) return { summary: null, reportData: [] };
         const { branches, period } = rawReportData.data;
         
         const periodText = period 
@@ -85,30 +70,97 @@ const SalesTab = ({ dateRange }) => {
             ? branches 
             : branches.filter(b => b.shopId === selectedBranch);
 
-        return [{
-            date: periodText,
-            shops: filteredBranches.map(branch => ({
-                id: branch.shopId,
-                name: getShopName(branch.shopId),
-                totals: branch.totals,
-                sales: branch.sales.map(sale => ({
-                    id: sale.saleId,
-                    invoiceNo: sale.invoiceNo,
-                    invoiceUrl: sale.invoiceUrl,
-                    time: dayjs(sale.createdAt).format('hh:mm A'),
-                    soldBy: sale.soldBy,
-                    totalValue: sale.totalValue,
-                    status: sale.status,
-                    items: sale.items.map(item => ({
+        let grandRevenue = 0;
+        let grandTransactions = 0;
+        let grandUnits = 0;
+        let topProductMap = {};
+
+        const processedShops = filteredBranches.map(branch => {
+            let branchRevenue = 0;
+            let branchUnits = 0;
+            let branchTransactions = branch.sales.length;
+
+            const mappedSales = branch.sales.map(sale => {
+                let saleValue = 0;
+                const mappedItems = sale.items.map(item => {
+                    const qty = item.quantity?.net || 0;
+                    const val = item.value?.totalAmount || 0;
+                    
+                    branchUnits += qty;
+                    saleValue += val;
+
+                    // Track top product
+                    if (item.productName) {
+                        topProductMap[item.productName] = (topProductMap[item.productName] || 0) + qty;
+                    }
+
+                    return {
                         productId: item.productId,
                         productName: item.productName,
                         category: item.category || 'Uncategorized',
                         quantity: item.quantity,
                         value: item.value
-                    }))
-                }))
-            }))
-        }];
+                    };
+                });
+
+                branchRevenue += saleValue;
+
+                return {
+                    id: sale.saleId,
+                    invoiceNo: sale.invoiceNo,
+                    invoiceUrl: sale.invoiceUrl,
+                    time: dayjs(sale.createdAt).format('hh:mm A'),
+                    soldBy: sale.soldBy,
+                    totalValue: saleValue,
+                    status: sale.status,
+                    items: mappedItems
+                };
+            });
+
+            grandRevenue += branchRevenue;
+            grandTransactions += branchTransactions;
+            grandUnits += branchUnits;
+
+            return {
+                id: branch.shopId,
+                name: getShopName(branch.shopId),
+                totals: {
+                    revenue: branchRevenue,
+                    transactions: branchTransactions,
+                    units: branchUnits
+                },
+                sales: mappedSales
+            };
+        });
+
+        // Find top product
+        let topProduct = 'N/A';
+        let topProductQty = 0;
+        Object.entries(topProductMap).forEach(([name, qty]) => {
+            if (qty > topProductQty) {
+                topProductQty = qty;
+                topProduct = name;
+            }
+        });
+
+        const gt = rawReportData.data.grandTotal || {};
+        const growth = gt.kpis?.growth || 0;
+
+        return {
+            summary: {
+                totalRevenue: grandRevenue,
+                totalTransactions: grandTransactions,
+                totalUnits: grandUnits,
+                averageValue: grandTransactions > 0 ? (grandRevenue / grandTransactions) : 0,
+                topProduct,
+                topProductQty,
+                growth
+            },
+            reportData: [{
+                date: periodText,
+                shops: processedShops
+            }]
+        };
     }, [rawReportData, selectedBranch, shops, t]);
 
     if (loading) {
