@@ -36,7 +36,7 @@ const InventoryTab = lazy(() => import('./components/InventoryTab'));
 const SalesTab = lazy(() => import('./components/SalesTab'));
 const DebtsTab = lazy(() => import('./components/DebtsTab'));
 const PaymentsTab = lazy(() => import('./components/PaymentsTab'));
-const StaffTab = lazy(() => import('./components/StaffTab'));
+// const StaffTab = lazy(() => import('./components/StaffTab'));
 const GeneralTab = lazy(() => import('./components/GeneralTab'));
 const VisualizeTab = lazy(() => import('./components/VisualizeTab'));
 
@@ -128,7 +128,7 @@ const ReportsPage = () => {
         setDateRange({ startDate: start, endDate: end, filter: reportView });
     }, [reportView, selectedDate]);
 
-    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff', 'visualize'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', */ 'visualize'];
     const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
@@ -620,12 +620,12 @@ const ReportsPage = () => {
                             <PaymentsTab dateRange={dateRange} />
                         </Suspense>
                     </Box>
-                    <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
+                    {/* <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>
                             <StaffTab dateRange={dateRange} />
                         </Suspense>
-                    </Box>
-                    <Box ref={(el) => (tabRefs.current[6] = el)} sx={{ display: currentTab === 6 ? 'block' : 'none' }}>
+                    </Box> */}
+                    <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>
                             <VisualizeTab dateRange={dateRange} reportView={reportView} />
                         </Suspense>

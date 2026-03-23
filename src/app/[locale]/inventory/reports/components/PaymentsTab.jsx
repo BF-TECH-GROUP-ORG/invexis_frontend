@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
 import dayjs from 'dayjs';
+import Link from 'next/link';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -277,7 +278,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                                     href={payment.invoiceNo} 
                                                                     target="_blank" 
                                                                     rel="noopener noreferrer"
-                                                                    sx={{ color: '#FF6D00', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                                                                    style={{ color: '#FF6D00', textDecoration: 'none', fontWeight: '600' }}
                                                                 >
                                                                     {t('common.invoice')}
                                                                 </Link>
