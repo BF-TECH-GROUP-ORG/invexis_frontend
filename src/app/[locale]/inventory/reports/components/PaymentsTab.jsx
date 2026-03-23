@@ -128,6 +128,7 @@ const PaymentsTab = ({ dateRange }) => {
                     status: p.status,
                     saleDebtRef: p.reference?.id || '-',
                     receivedBy: p.reference?.description || 'System',
+                    date: p.reference?.date || '-',
                     time: p.reference?.time || '-'
                 };
             });
@@ -309,7 +310,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.method')}</TableCell>
                                 <TableCell align="center">-</TableCell>
                                 <TableCell align="center">{t('payments.table.saleDebtRef')}</TableCell>
-                                <TableCell align="center">{t('common.status')}</TableCell>
+                                <TableCell align="center">{t('common.date')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.time')}</TableCell>
                             </TableRow>
                         </TableHead>
@@ -364,7 +365,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.saleDebtRef}</TableCell>
-                                                        <TableCell align="center">-</TableCell>
+                                                        <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.date}</TableCell>
                                                         <TableCell align="center" sx={{ borderRight: "none" }}>{payment.time}</TableCell>
                                                     </TableRow>
                                                 );
@@ -376,7 +377,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                 <TableCell align="right">{formatCurrency(branch.totals?.received || 0)}</TableCell>
                                                 <TableCell align="center">-</TableCell>
                                                 <TableCell align="center" sx={{ fontSize: '0.7rem' }}>
-                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)}{branch.totals?.debt > 0 ? ` / D: ${formatCurrency(branch.totals.debt)}` : ''}
+                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)} / D: {formatCurrency(branch.totals?.debt || 0)}
                                                 </TableCell>
                                                 <TableCell colSpan={3} />
                                             </TableRow>
@@ -397,7 +398,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 <TableCell align="right">{formatCurrency(kpis?.totalReceived || 0)}</TableCell>
                                 <TableCell align="center">-</TableCell>
                                 <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)}{kpis?.totalDebt > 0 ? ` / D: ${formatCurrency(kpis.totalDebt)}` : ''}
+                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)} / D: {formatCurrency(kpis?.totalDebt || 0)}
                                 </TableCell>
                                 <TableCell colSpan={3} />
                             </TableRow>
