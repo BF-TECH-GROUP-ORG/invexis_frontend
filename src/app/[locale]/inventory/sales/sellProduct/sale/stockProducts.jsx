@@ -219,7 +219,15 @@ const SuccessModal = ({ open, onClose }) => {
 };
 
 // Main Component with Multi-Product Sales
-const CurrentInventory = ({ products: externalProducts, isLoading: externalLoading }) => {
+const CurrentInventory = ({ 
+  products: externalProducts, 
+  filteredProducts, 
+  isLoading: externalLoading,
+  search,
+  setSearch,
+  activeFilter,
+  setActiveFilter
+}) => {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('sellProduct');
@@ -242,13 +250,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
   const isManagement = assignedDepartments.includes("management") || isAdmin;
   const isSalesOnly = assignedDepartments.includes("sales") && !isManagement;
 
-  const [search, setSearch] = useState("");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-  const [activeFilter, setActiveFilter] = useState({
-    column: "Category",
-    operator: "contains",
-    value: "",
-  });
 
   // Multi-product sales state
   const [selectedItems, setSelectedItems] = useState({});
@@ -358,50 +360,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
     }
   });
 
-  // Filter + Search Logic
-  const filteredProducts = useMemo(() => {
-    let result = products;
-
-    // Always exclude out-of-stock products from the sales view
-    result = result.filter(p => (p.Quantity ?? 0) >= 1);
-
-    // Sort by quantity ascending — lowest stock first so managers can act quickly
-    result = [...result].sort((a, b) => (a.Quantity ?? 0) - (b.Quantity ?? 0));
-
-    // Role-based filtering: Sales department workers only see products from their shop
-    const isSalesWorker = assignedDepartments.includes("sales") && !isAdmin;
-    const userShopId = session?.user?.shops?.[0];
-
-    if (isSalesWorker && userShopId) {
-      result = result.filter(p => p.shopId === userShopId);
-    }
-
-    if (search) {
-      const term = search.toLowerCase();
-      result = result.filter(p =>
-        p.ProductName.toLowerCase().includes(term) ||
-        p.ProductId.toLowerCase().includes(term)
-      );
-    }
-
-    if (activeFilter.value) {
-      if (activeFilter.column === "Price") {
-        const val = Number(activeFilter.value);
-        result = result.filter(p => {
-          if (activeFilter.operator === ">") return p.Price > val;
-          if (activeFilter.operator === "<") return p.Price < val;
-          if (activeFilter.operator === "==") return p.Price === val;
-          return true;
-        });
-      } else if (activeFilter.column === "Category") {
-        result = result.filter(p =>
-          p.Category.toLowerCase().includes(activeFilter.value.toLowerCase())
-        );
-      }
-    }
-
-    return result;
-  }, [products, search, activeFilter, session?.user]);
+  // Filter + Search Logic are now handled by the parent and passed as filteredProducts prop
 
   // Handle checkbox toggle
   const handleCheckboxChange = (product) => {
@@ -896,10 +855,10 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedProducts.map((product) => {
+                  paginatedProducts.map((product, index) => {
                     const isSelected = !!selectedItems[product.id];
                     const item = selectedItems[product.id];
-                    const index = paginatedProducts.indexOf(product);
+                    const absoluteIndex = (page * rowsPerPage) + index + 1;
 
                     return (
                       <TableRow
@@ -917,7 +876,7 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
                       >
                         {/* No */}
                         <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                          <span className="font-bold text-orange-500">#{index + 1}</span>
+                          <span className="font-bold text-orange-500">#{absoluteIndex}</span>
                         </TableCell>
                         {/* Checkbox */}
                         <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
@@ -1109,6 +1068,13 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
           onRowsPerPageChange={handleChangeRowsPerPage}
           sx={{
             borderTop: "1px solid #e5e7eb",
+            "& .MuiTablePagination-toolbar": {
+              justifyContent: "flex-start",
+              paddingLeft: "10px",
+            },
+            "& .MuiTablePagination-spacer": {
+              display: "none",
+            },
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
               fontWeight: 500,
               color: "#374151"
