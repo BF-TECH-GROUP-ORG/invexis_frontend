@@ -258,18 +258,17 @@ const SalesTab = ({ dateRange }) => {
                                                                             target="_blank" 
                                                                             rel="noopener noreferrer"
                                                                             download
-                                                                            sx={{ 
+                                                                            style={{ 
                                                                                 display: 'flex', 
                                                                                 alignItems: 'center', 
                                                                                 justifyContent: 'center',
-                                                                                gap: 0.5,
+                                                                                gap: '4px',
                                                                                 textDecoration: 'none',
                                                                                 color: '#FF6D00',
-                                                                                fontWeight: '700',
-                                                                                '&:hover': { textDecoration: 'underline' }
+                                                                                fontWeight: '700'
                                                                             }}
                                                                         >
-                                                                            <DownloadIcon sx={{ fontSize: 16 }} />
+                                                                            <DownloadIcon style={{ fontSize: '16px', marginRight: '4px' }} />
                                                                             {t('common.invoice')}
                                                                         </Link>
                                                                     ) : sale.invoiceNo
