@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -38,6 +39,20 @@ const PaymentsTab = ({ dateRange }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
+
+    // Fetch shops for name mapping
+    const { data: shops = [] } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+    });
+
+    const getShopName = (shopId) => {
+        if (!shopId || shopId === 'Default') return 'Default';
+        const shop = shops.find(s => String(s._id || s.id) === String(shopId));
+        return shop ? shop.name : shopId;
+    };
 
     const {
         data: rawReportData,
@@ -118,7 +133,7 @@ const PaymentsTab = ({ dateRange }) => {
             });
 
             return {
-                name: branch.shopName || branch.shopId,
+                name: getShopName(branch.shopId),
                 id: branch.shopId,
                 totals: {
                     received: branchReceived,
@@ -144,7 +159,7 @@ const PaymentsTab = ({ dateRange }) => {
                 branches: processedBranches
             }]
         };
-    }, [rawReportData, selectedBranch, selectedActor, t]);
+    }, [rawReportData, selectedBranch, selectedActor, shops, t]);
 
     if (loading) {
         return (
@@ -270,7 +285,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">
@@ -402,7 +417,7 @@ const PaymentsTab = ({ dateRange }) => {
                     <Divider />
                     {rawReportData?.data?.branches?.map((branch) => (
                         <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.shopId)}>
-                            {branch.shopName || branch.shopId}
+                            {getShopName(branch.shopId)}
                         </MenuItem>
                     ))}
                 </Menu>

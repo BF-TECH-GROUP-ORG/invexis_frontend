@@ -172,7 +172,7 @@ const InventoryTab = ({ dateRange }) => {
                 shops: processedShops
             }]
         };
-    }, [rawReportData, selectedBranch, t]);
+    }, [rawReportData, selectedBranch, shops, t]);
 
     if (loading) {
         return (
