@@ -349,12 +349,12 @@ const CurrentInventory = ({ products: externalProducts, isLoading: externalLoadi
       alert(tAlerts('saleFailed', { error: errMsg }));
     },
     onSettled: async () => {
-      // Small delay (800ms) to allow the backend and local cache to fully settle
-      // This prevents the "flash" of old data that can occur if a refetch happens 
-      // before the server-side side effects are fully committed or indexed.
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Immediately invalidate so the UI starts refreshing right away
       queryClient.invalidateQueries({ queryKey: ["allProducts"] });
       queryClient.invalidateQueries({ queryKey: ["salesHistory"] });
+      // Short delay then re-invalidate to catch any backend indexing lag
+      await new Promise(resolve => setTimeout(resolve, 300));
+      queryClient.invalidateQueries({ queryKey: ["allProducts"] });
     }
   });
 

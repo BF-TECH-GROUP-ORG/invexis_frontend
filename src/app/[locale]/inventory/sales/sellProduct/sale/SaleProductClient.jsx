@@ -25,10 +25,11 @@ const SaleProductClient = () => {
         queryKey: ["allProducts", companyId],
         queryFn: () => getAllProducts(companyId),
         enabled: !!companyId,
-        staleTime: Infinity,
-        gcTime: 5 * 60 * 1000,
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: 'always',
+        staleTime: 0,               // Always stale → React Query can background-refetch at any time
+        gcTime: 5 * 60 * 1000,     // Keep cache 5 min so navigating back is instant
+        refetchOnMount: 'always',   // Always refetch when the page mounts
+        refetchOnWindowFocus: 'always', // Refetch when switching back to this tab
+        refetchInterval: 30_000,    // Poll every 30s to pick up external stock changes
     })
 
     return (
