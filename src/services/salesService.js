@@ -39,9 +39,9 @@ export const getAllProducts = async (companyId = null, options = {}) => {
         product.category?.name || product.subcategory?.name || "Uncategorized",
       Quantity: product.stock?.available || product.inventory?.quantity || 0,
       Price:
+        product.pricing?.basePrice ||
         product.effectivePrice ||
         product.pricing?.salePrice ||
-        product.pricing?.basePrice ||
         0,
       Cost: product.pricing?.cost || 0,
       brand: product.brand || "No Brand",
