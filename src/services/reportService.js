@@ -90,6 +90,28 @@ const reportService = {
         } catch (err) {
             throw err;
         }
+    },
+
+    /**
+     * Get payments report for a company
+     * GET /payment/reports/v1/:companyId
+     */
+    getPaymentsReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/payment/reports/v1/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
     }
 };
 

@@ -63,6 +63,7 @@ const SalesTab = ({ dateRange }) => {
         return {
             totalRevenue: gt.revenue?.totalValue || 0,
             totalTransactions: gt.transactions?.count || 0,
+            totalUnits: gt.units?.count || 0,
             averageValue: gt.kpis?.averageValue || 0,
             topProduct: gt.kpis?.topProduct?.name || 'N/A',
             topProductQty: gt.kpis?.topProduct?.units || 0,
@@ -88,6 +89,7 @@ const SalesTab = ({ dateRange }) => {
             shops: filteredBranches.map(branch => ({
                 id: branch.shopId,
                 name: getShopName(branch.shopId),
+                totals: branch.totals,
                 sales: branch.sales.map(sale => ({
                     id: sale.saleId,
                     invoiceNo: sale.invoiceNo,
@@ -289,10 +291,33 @@ const SalesTab = ({ dateRange }) => {
                                                     ))}
                                                 </React.Fragment>
                                             ))}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
+                                                <TableCell align="center">-</TableCell>
+                                                <TableCell align="center">{shop.totals?.transactions || 0} {t('sales.kpis.transactions')}</TableCell>
+                                                <TableCell align="center" colSpan={3}>{shop.totals?.units || 0} {t('common.units')}</TableCell>
+                                                <TableCell align="center" colSpan={2}>{formatCurrency(shop.totals?.revenue || 0)}</TableCell>
+                                                <TableCell colSpan={2} />
+                                            </TableRow>
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+                            
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell align="center">-</TableCell>
+                                <TableCell align="center">{summary?.totalTransactions || 0} {t('sales.kpis.transactions')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{summary?.totalUnits || 0} {t('common.units')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{formatCurrency(summary?.totalRevenue || 0)}</TableCell>
+                                <TableCell colSpan={2} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>

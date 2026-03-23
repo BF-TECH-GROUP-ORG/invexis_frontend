@@ -15,7 +15,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
-import * as paymentService from '@/services/paymentService';
+import reportService from '@/services/reportService';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -28,6 +28,7 @@ const PaymentsTab = ({ dateRange }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const filter = dateRange.filter || 'daily';
 
     // Filtering State
     const [selectedBranch, setSelectedBranch] = useState(t('common.all'));
@@ -37,78 +38,65 @@ const PaymentsTab = ({ dateRange }) => {
     const [branchAnchor, setBranchAnchor] = useState(null);
     const [actorAnchor, setActorAnchor] = useState(null);
 
-    const filter = dateRange.filter || 'daily';
-
     const {
-        data: rawPayments = [],
+        data: rawReportData,
         isLoading: loading,
         error
     } = useQuery({
-        queryKey: ['report-payments', companyId, startDate, endDate, filter],
-        queryFn: () => paymentService.getCompanyPayments(companyId, { startDate, endDate }),
+        queryKey: ['report-payments-v1', companyId, startDate, endDate, filter],
+        queryFn: () => reportService.getPaymentsReport(companyId, { startDate, endDate, filter }),
         enabled: !!companyId,
-        staleTime: Infinity,
-        gcTime: 10 * 60 * 1000,
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: 'always',
+        staleTime: 5 * 60 * 1000,
     });
 
-    // Process KPIs and report data structure
+    // Transform and map data
     const { kpis, reportData } = React.useMemo(() => {
-        // Handle paginated response structure from backend
-        let payments = rawPayments?.data || (Array.isArray(rawPayments) ? rawPayments : []);
+        if (!rawReportData?.data) return { kpis: null, reportData: [] };
+        
+        const { grandTotal, branches, period } = rawReportData.data;
+        
+        const periodText = period 
+            ? `${dayjs(period.startDate).format('MM/DD/YYYY')} - ${dayjs(period.endDate).format('MM/DD/YYYY')}`
+            : t('common.currentPeriod');
 
-        // Apply local filters for branch and actor (date is now handled by server)
-        let filtered = payments.filter(p => {
-            const branchMatch = selectedBranch === t('common.all') || p.shopId === selectedBranch;
-            // Map recordedBy/actor logic (backend uses recordedBy or seller_id, frontend expects p.recordedBy)
-            const actorMatch = selectedActor === t('common.all') || (p.recordedBy || p.seller_id) === selectedActor;
-            return branchMatch && actorMatch;
+        const filteredBranches = selectedBranch === t('common.all') 
+            ? branches 
+            : branches.filter(b => b.shopId === selectedBranch);
+
+        // Map backend actors if needed (currently handling receivedBy via description field in reference)
+        let processedBranches = filteredBranches.map(branch => {
+            let payments = branch.payments;
+            if (selectedActor !== t('common.all')) {
+                payments = payments.filter(p => p.reference?.description === selectedActor);
+            }
+            return {
+                name: branch.shopName || branch.shopId,
+                id: branch.shopId,
+                totals: branch.totals,
+                payments: payments.map(p => ({
+                    customer: { 
+                        name: p.customerInfo?.name || 'Walk-in', 
+                        phone: p.customerInfo?.phone || '-' 
+                    },
+                    invoiceNo: p.invoiceNo,
+                    amount: p.paymentInfo?.amount || 0,
+                    method: p.paymentInfo?.method || 'Unknown',
+                    status: p.status,
+                    saleDebtRef: p.reference?.id || '-',
+                    receivedBy: p.reference?.description || 'System',
+                    time: p.reference?.time || '-'
+                }))
+            };
         });
-
-        let totalReceived = 0, pendingAmount = 0, failedAmount = 0, paymentCount = 0;
-        const groupedByDate = {};
-
-        filtered.forEach(p => {
-            paymentCount++;
-            const status = (p.status || '').toLowerCase();
-            if (status === 'completed' || status === 'succeeded' || status === 'success') totalReceived += parseFloat(p.amount);
-            else if (status === 'pending') pendingAmount += parseFloat(p.amount);
-            else if (status === 'failed') failedAmount += parseFloat(p.amount);
-
-            const dateStr = dayjs(p.createdAt || p.created_at).format('MM/DD/YYYY');
-            if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, branches: {} };
-            
-            const branchName = p.shopId || 'Default';
-            if (!groupedByDate[dateStr].branches[branchName]) groupedByDate[dateStr].branches[branchName] = { name: branchName, payments: [] };
-            
-            groupedByDate[dateStr].branches[branchName].payments.push({
-                customer: { name: p.customerName || p.customer?.name || 'Walk-in', phone: p.customerPhone || p.customer?.phone || '-' },
-                invoiceNo: p.invoiceNo || p.payment_id?.slice(-8).toUpperCase() || p.id?.slice(-8).toUpperCase(),
-                amount: parseFloat(p.amount) || 0,
-                method: p.paymentMethod || p.method || p.gateway || 'Cash',
-                status: (status === 'success' || status === 'succeeded') ? 'Completed' : (p.status.charAt(0).toUpperCase() + p.status.slice(1)),
-                saleDebtRef: p.saleId || p.order_id || p.reference_id || '-',
-                receivedBy: p.recordedBy || 'System',
-                time: dayjs(p.createdAt || p.created_at).format('hh:mm A')
-            });
-        });
-
-        const reportDataFormatted = Object.values(groupedByDate).map(day => ({
-            ...day,
-            branches: Object.values(day.branches)
-        }));
 
         return {
-            kpis: {
-                totalReceived,
-                pendingAmount,
-                failedAmount,
-                avgPaymentSize: paymentCount > 0 ? Math.round(totalReceived / paymentCount) : 0
-            },
-            reportData: reportDataFormatted
+            kpis: grandTotal,
+            reportData: [{
+                date: periodText,
+                branches: processedBranches
+            }]
         };
-    }, [rawPayments, selectedBranch, selectedActor, t]);
+    }, [rawReportData, selectedBranch, selectedActor, t]);
 
     if (loading) {
         return (
@@ -177,12 +165,12 @@ const PaymentsTab = ({ dateRange }) => {
                     <ReportKPI
                         title={t('payments.kpis.pending')}
                         value={(() => {
-                            const val = kpis?.pendingAmount || 0;
+                            const val = kpis?.pendingPayments || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
                             if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
                             return formatCurrency(val);
                         })()}
-                        fullValue={formatCurrency(kpis?.pendingAmount || 0)}
+                        fullValue={formatCurrency(kpis?.pendingPayments || 0)}
                         icon={AccessTimeIcon}
                         color="#F59E0B"
                         index={1}
@@ -190,12 +178,12 @@ const PaymentsTab = ({ dateRange }) => {
                     <ReportKPI
                         title={t('payments.kpis.failed')}
                         value={(() => {
-                            const val = kpis?.failedAmount || 0;
+                            const val = kpis?.failedPayments || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
                             if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
                             return formatCurrency(val);
                         })()}
-                        fullValue={formatCurrency(kpis?.failedAmount || 0)}
+                        fullValue={formatCurrency(kpis?.failedPayments || 0)}
                         icon={CancelIcon}
                         color="#EF4444"
                         index={2}
@@ -283,7 +271,18 @@ const PaymentsTab = ({ dateRange }) => {
                                                         <TableCell sx={{ pl: 2, fontWeight: "600" }}>{payment.receivedBy}</TableCell>
                                                         <TableCell sx={{ pl: 2, fontWeight: "600" }}>{payment.customer.name}</TableCell>
                                                         <TableCell align="center">{payment.customer.phone}</TableCell>
-                                                        <TableCell align="center" sx={{ fontWeight: "600" }}>{payment.invoiceNo}</TableCell>
+                                                        <TableCell align="center" sx={{ fontWeight: "600" }}>
+                                                            {payment.invoiceNo && payment.invoiceNo.startsWith('http') ? (
+                                                                <Link 
+                                                                    href={payment.invoiceNo} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                    sx={{ color: '#FF6D00', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                                                                >
+                                                                    {t('common.invoice')}
+                                                                </Link>
+                                                            ) : (payment.invoiceNo || '-')}
+                                                        </TableCell>
                                                         <TableCell align="right" sx={{ color: "#10B981", fontWeight: "600" }}>{formatCurrency(payment.amount)}</TableCell>
                                                         <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.method}</TableCell>
                                                         <TableCell align="center" sx={{ borderRight: "1px solid #e5e7eb" }}>
@@ -303,12 +302,38 @@ const PaymentsTab = ({ dateRange }) => {
                                                     </TableRow>
                                                 );
                                             })}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: branch.name })}</TableCell>
+                                                <TableCell colSpan={3} />
+                                                <TableCell align="right">{formatCurrency(branch.totals?.received || 0)}</TableCell>
+                                                <TableCell align="center">-</TableCell>
+                                                <TableCell align="center" sx={{ fontSize: '0.7rem' }}>
+                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)}
+                                                </TableCell>
+                                                <TableCell colSpan={3} />
+                                            </TableRow>
                                             {/* Spacer Row */}
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+                            
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={3} />
+                                <TableCell align="right">{formatCurrency(kpis?.totalReceived || 0)}</TableCell>
+                                <TableCell align="center">-</TableCell>
+                                <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
+                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)}
+                                </TableCell>
+                                <TableCell colSpan={3} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -322,10 +347,12 @@ const PaymentsTab = ({ dateRange }) => {
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
                     <Divider />
-                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                    {rawReportData?.data?.branches?.map((branch) => (
+                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.shopId)}>
+                            {branch.shopName || branch.shopId}
+                        </MenuItem>
+                    ))}
                 </Menu>
 
                 {/* Actor Selection Menu */}
@@ -337,11 +364,11 @@ const PaymentsTab = ({ dateRange }) => {
                 >
                     <MenuItem onClick={() => handleActorSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
-                    <MenuItem onClick={() => handleActorSelect('Alice')}>Alice</MenuItem>
-                    <MenuItem onClick={() => handleActorSelect('Bob')}>Bob</MenuItem>
-                    <MenuItem onClick={() => handleActorSelect('Charlie')}>Charlie</MenuItem>
-                    <MenuItem onClick={() => handleActorSelect('Diana')}>Diana</MenuItem>
-                    <MenuItem onClick={() => handleActorSelect('Eve')}>Eve</MenuItem>
+                    {Array.from(new Set(rawReportData?.data?.branches?.flatMap(b => b.payments.map(p => p.reference?.description)) || [])).filter(Boolean).map((actor) => (
+                        <MenuItem key={actor} onClick={() => handleActorSelect(actor)}>
+                            {actor}
+                        </MenuItem>
+                    ))}
                 </Menu>
             </Box>
         </Fade>

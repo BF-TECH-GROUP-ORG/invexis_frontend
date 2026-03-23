@@ -77,6 +77,7 @@ const DebtsTab = ({ dateRange }) => {
             branches: filteredBranches.map(b => ({
                 id: b.shopId,
                 name: getShopName(b.shopId),
+                totals: b.totals,
                 debts: b.debts || []
             }))
         }];
@@ -282,10 +283,33 @@ const DebtsTab = ({ dateRange }) => {
                                                     </TableRow>
                                                 );
                                             })}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: branch.name })}</TableCell>
+                                                <TableCell colSpan={2} />
+                                                <TableCell align="center">{formatCurrency(branch.totals?.original || 0)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(branch.totals?.paid || 0)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(branch.totals?.outstanding || 0)}</TableCell>
+                                                <TableCell colSpan={7} />
+                                            </TableRow>
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+                            
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} />
+                                <TableCell align="center">{formatCurrency(summary?.original || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(summary?.paid || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(summary?.outstanding || 0)}</TableCell>
+                                <TableCell colSpan={7} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>

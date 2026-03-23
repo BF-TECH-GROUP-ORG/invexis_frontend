@@ -98,6 +98,7 @@ const InventoryTab = ({ dateRange }) => {
             shops: filteredBranches.map(branch => ({
                 id: branch.shopId,
                 name: getShopName(branch.shopId),
+                totals: branch.totals,
                 products: branch.products.map(p => ({
                     id: p.productId,
                     name: p.productName,
@@ -340,12 +341,39 @@ const InventoryTab = ({ dateRange }) => {
                                                     </TableRow>
                                                 );
                                             })}
-                                            {/* Spacer Row */}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
+                                                <TableCell colSpan={2} />
+                                                <TableCell align="center">{shop.totals?.movement?.open || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.in || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.out || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.close || 0}</TableCell>
+                                                <TableCell align="center">-</TableCell>
+                                                <TableCell align="center">{formatCurrency(shop.totals?.value?.totalValue || 0)}</TableCell>
+                                                <TableCell colSpan={5} />
+                                            </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} />
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.open || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.in || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.out || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.close || 0}</TableCell>
+                                <TableCell align="center">-</TableCell>
+                                <TableCell align="center">{formatCurrency(rawReportData?.data?.grandTotal?.value?.totalValue || 0)}</TableCell>
+                                <TableCell colSpan={5} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>
