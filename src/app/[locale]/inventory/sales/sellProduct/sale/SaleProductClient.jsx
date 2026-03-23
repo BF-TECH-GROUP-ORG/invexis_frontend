@@ -17,20 +17,25 @@ const SaleProductClient = () => {
     const t = useTranslations('sellProduct')
     const tSales = useTranslations('sales')
     const locale = useLocale()
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const companyObj = session?.user?.companies?.[0]
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id)
 
-    const { data: products = [], isLoading } = useQuery({
+    const isSessionLoading = status === "loading";
+
+    const { data: products = [], isLoading, isFetching } = useQuery({
         queryKey: ["allProducts", companyId],
         queryFn: () => getAllProducts(companyId),
-        enabled: !!companyId,
-        staleTime: 0,               // Always stale → React Query can background-refetch at any time
-        gcTime: 5 * 60 * 1000,     // Keep cache 5 min so navigating back is instant
-        refetchOnMount: 'always',   // Always refetch when the page mounts
-        refetchOnWindowFocus: 'always', // Refetch when switching back to this tab
-        refetchInterval: 30_000,    // Poll every 30s to pick up external stock changes
+        enabled: !!companyId && status === "authenticated",
+        staleTime: 30_000,               // Consider data fresh for 30s to prevent rapid refetches
+        gcTime: 5 * 10 * 1000,         // Keep cache so navigating back is instant
+        refetchOnMount: 'always',       // Explicitly re-validate when user enters the page
+        refetchOnWindowFocus: 'always', // Re-validate when switching back from another app/tab
+        placeholderData: (previousData) => previousData, // Maintain UI stability during background fetches
     })
+
+    // Use a combined loading state for the initial load
+    const isInitialLoading = isSessionLoading || (isLoading && products.length === 0);
 
     return (
         <div className="">
@@ -43,7 +48,7 @@ const SaleProductClient = () => {
             </button>
             <br />
 
-            <StockCards products={products} isLoading={isLoading} />
+            <StockCards products={products} isLoading={isInitialLoading} />
             <br />
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -55,7 +60,7 @@ const SaleProductClient = () => {
             <br />
 
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <CurrentInventory products={products} isLoading={isLoading} />
+                <CurrentInventory products={products} isLoading={isInitialLoading} />
             </section>
         </div>
     )
