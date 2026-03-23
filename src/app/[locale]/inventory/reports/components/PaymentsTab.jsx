@@ -67,6 +67,7 @@ const PaymentsTab = ({ dateRange }) => {
         let grandReceived = 0;
         let grandPending = 0;
         let grandFailed = 0;
+        let grandDebt = 0;
         let grandSucceededCount = 0;
 
         // Map backend actors if needed (currently handling receivedBy via description field in reference)
@@ -80,6 +81,7 @@ const PaymentsTab = ({ dateRange }) => {
             let branchReceived = 0;
             let branchPending = 0;
             let branchFailed = 0;
+            let branchDebt = 0;
 
             const mappedPayments = payments.map(p => {
                 const amount = Number(p.paymentInfo?.amount) || 0;
@@ -95,6 +97,9 @@ const PaymentsTab = ({ dateRange }) => {
                 } else if (status === 'failed') {
                     branchFailed += amount;
                     grandFailed += amount;
+                } else if (status === 'debt') {
+                    branchDebt += amount;
+                    grandDebt += amount;
                 }
 
                 return {
@@ -119,6 +124,7 @@ const PaymentsTab = ({ dateRange }) => {
                     received: branchReceived,
                     pending: branchPending,
                     failed: branchFailed,
+                    debt: branchDebt,
                     count: mappedPayments.length
                 },
                 payments: mappedPayments
@@ -130,6 +136,7 @@ const PaymentsTab = ({ dateRange }) => {
                 totalReceived: grandReceived,
                 pendingPayments: grandPending,
                 failedPayments: grandFailed,
+                totalDebt: grandDebt,
                 avgPaymentSize: grandSucceededCount > 0 ? (grandReceived / grandSucceededCount) : 0
             },
             reportData: [{
@@ -177,8 +184,8 @@ const PaymentsTab = ({ dateRange }) => {
         if (s === 'completed' || s === 'succeeded' || s === 'paid') return t('payments.status.completed');
         if (s === 'pending') return t('payments.status.pending');
         if (s === 'failed') return t('payments.status.failed');
-        if (s === 'debt') return t('debts.status.unpaid'); // Reuse debt translation if available
-        return status;
+        if (s === 'debt') return 'Debt';
+        return status || '-';
     };
 
     return (
@@ -342,8 +349,8 @@ const PaymentsTab = ({ dateRange }) => {
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontSize: "0.75rem" }}>{payment.saleDebtRef}</TableCell>
-                                                        <TableCell align="center">{payment.time}</TableCell>
-                                                        <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
+                                                        <TableCell align="center">-</TableCell>
+                                                        <TableCell align="center" sx={{ borderRight: "none" }}>{payment.time}</TableCell>
                                                     </TableRow>
                                                 );
                                             })}
@@ -354,7 +361,7 @@ const PaymentsTab = ({ dateRange }) => {
                                                 <TableCell align="right">{formatCurrency(branch.totals?.received || 0)}</TableCell>
                                                 <TableCell align="center">-</TableCell>
                                                 <TableCell align="center" sx={{ fontSize: '0.7rem' }}>
-                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)}
+                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)}{branch.totals?.debt > 0 ? ` / D: ${formatCurrency(branch.totals.debt)}` : ''}
                                                 </TableCell>
                                                 <TableCell colSpan={3} />
                                             </TableRow>
@@ -375,7 +382,7 @@ const PaymentsTab = ({ dateRange }) => {
                                 <TableCell align="right">{formatCurrency(kpis?.totalReceived || 0)}</TableCell>
                                 <TableCell align="center">-</TableCell>
                                 <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)}
+                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)}{kpis?.totalDebt > 0 ? ` / D: ${formatCurrency(kpis.totalDebt)}` : ''}
                                 </TableCell>
                                 <TableCell colSpan={3} />
                             </TableRow>
