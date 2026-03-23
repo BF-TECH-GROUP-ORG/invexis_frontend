@@ -1,27 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     Grid, Box, CircularProgress, Typography, Fade, Paper, TableContainer, Table,
-    TableHead, TableBody, TableCell, TableRow, Menu, MenuItem, Divider, Button, ToggleButton, ToggleButtonGroup
+    TableHead, TableBody, TableCell, TableRow, Menu, MenuItem, Divider
 } from '@mui/material';
 import ReportKPI from './ReportKPI';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PeopleIcon from '@mui/icons-material/People';
 import WarningIcon from '@mui/icons-material/Warning';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import TimerIcon from '@mui/icons-material/Timer';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from "next-intl";
 import { useQuery } from '@tanstack/react-query';
-import debtsService from '@/services/debts';
+import reportService from '@/services/reportService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import Link from 'next/link';
 
 const DebtsTab = ({ dateRange }) => {
     const t = useTranslations("reports");
@@ -34,79 +31,64 @@ const DebtsTab = ({ dateRange }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const filter = dateRange.filter || 'daily';
 
+    // Fetch hierarchical report data
     const {
-        data: rawDebts = [],
-        isLoading: loading,
-        error
+        data: reportResponse,
+        isLoading: reportLoading
     } = useQuery({
-        queryKey: ['report-debts', companyId, startDate, endDate, selectedBranch],
-        queryFn: () => debtsService.getDebts(companyId, { 
-            shopId: selectedBranch === t('common.all') ? undefined : selectedBranch 
-        }),
+        queryKey: ['report-debts-v1', companyId, startDate, endDate, filter],
+        queryFn: () => reportService.getDebtReport(companyId, { startDate, endDate, filter }),
         enabled: !!companyId,
-        staleTime: Infinity,
-        gcTime: 10 * 60 * 1000,
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: 'always',
     });
 
+    // Fetch branches for name mapping
+    const { data: shops = [] } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+    });
+
+    const getShopName = (shopId) => {
+        const shop = shops.find(s => s.id === shopId || s._id === shopId);
+        return shop ? shop.name : `Branch ${shopId.slice(-8)}`;
+    };
+
     // Process KPIs and report data structure
-    const { kpis, reportData } = React.useMemo(() => {
-        let debts = Array.isArray(rawDebts) ? rawDebts : [];
+    const { summary, reportData } = useMemo(() => {
+        if (!reportResponse?.data) {
+            return { summary: {}, reportData: [] };
+        }
+
+        const { grandTotal, branches } = reportResponse.data;
         
-        let total = 0, overdue = 0, uniqueDebtors = new Set(), totalAge = 0, debtCount = 0;
-        const groupedByDate = {};
+        // Group by Date -> Branch -> Debts for the UI hierarchy
+        // The API returns grouping by Branch, so we pivot for the UI if multiple days are involved
+        // But since the parent pass a dateRange, we can show that as a top level date row
+        const dateStr = dateRange.startDate ? dateRange.startDate.format('MM/DD/YYYY') : dayjs().format('MM/DD/YYYY');
+        
+        const filteredBranches = selectedBranch === t('common.all') 
+            ? branches 
+            : branches.filter(b => b.shopId === selectedBranch);
 
-        debts.forEach(debt => {
-            const balance = debt.balance || (debt.totalAmount - (debt.amountPaid || 0));
-            total += balance;
-            debtCount++;
-            if (debt.customerPhone) uniqueDebtors.add(debt.customerPhone);
-            
-            const createdAt = dayjs(debt.createdAt);
-            const age = dayjs().diff(createdAt, 'day');
-            totalAge += age;
-            
-            const isOverdue = debt.dueDate && dayjs().isAfter(dayjs(debt.dueDate));
-            if (isOverdue) overdue += balance;
-
-            const dateStr = createdAt.format('MM/DD/YYYY');
-            if (!groupedByDate[dateStr]) groupedByDate[dateStr] = { date: dateStr, branches: {} };
-            
-            const branchName = debt.shopId || 'Default';
-            if (!groupedByDate[dateStr].branches[branchName]) groupedByDate[dateStr].branches[branchName] = { name: branchName, debts: [] };
-            
-            groupedByDate[dateStr].branches[branchName].debts.push({
-                invoiceNo: debt.invoiceNo || debt.id?.slice(-8).toUpperCase(),
-                customer: { name: debt.customerName || 'Customer', phone: debt.customerPhone || '-' },
-                original: debt.totalAmount || 0,
-                paid: debt.amountPaid || 0,
-                balance: balance,
-                lastPaid: debt.lastPaymentDate ? dayjs(debt.lastPaymentDate).format('MM/DD/YYYY') : '-',
-                dueDate: debt.dueDate ? dayjs(debt.dueDate).format('MM/DD/YYYY') : '-',
-                age: age,
-                status: isOverdue ? 'Overdue' : 'Pending',
-                saleDate: createdAt.format('MM/DD/YYYY'),
-                recordedBy: debt.createdBy || 'System'
-            });
-        });
-
-        const reportDataFormatted = Object.values(groupedByDate).map(day => ({
-            ...day,
-            branches: Object.values(day.branches)
-        }));
+        const hierarchicalData = [{
+            date: dateStr,
+            branches: filteredBranches.map(b => ({
+                id: b.shopId,
+                name: getShopName(b.shopId),
+                totals: b.totals,
+                debts: b.debts || []
+            }))
+        }];
 
         return {
-            kpis: {
-                totalOutstanding: total,
-                overdueAmount: overdue,
-                debtorsCount: uniqueDebtors.size,
-                avgDebtAge: debtCount > 0 ? Math.round(totalAge / debtCount) : 0
-            },
-            reportData: reportDataFormatted
+            summary: grandTotal,
+            reportData: hierarchicalData
         };
-    }, [rawDebts, t]);
+    }, [reportResponse, selectedBranch, shops, t]);
+
+    const loading = reportLoading;
 
     if (loading) {
         return (
@@ -116,7 +98,10 @@ const DebtsTab = ({ dateRange }) => {
         );
     }
 
-    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null) return "0 FRW";
+        return `${val.toLocaleString()} FRW`;
+    };
 
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
     const handleClose = () => { setBranchAnchor(null); };
@@ -126,42 +111,38 @@ const DebtsTab = ({ dateRange }) => {
         handleClose();
     };
 
-
-    const getStatusColor = (status) => {
-        if (status === 'Overdue') return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' };
-        return { color: '#10B981', bg: '#F0FDF4', border: '#DCFCE7' };
-    };
-
-    const getTranslatedStatus = (status) => {
-        if (status === 'Overdue') return t('debts.status.overdue');
-        if (status === 'Pending') return t('debts.status.pending');
-        return status;
+    const getStatusStyles = (status) => {
+        switch (status) {
+            case 'PARTIALLY_PAID':
+                return { color: '#D97706', bg: '#FFFBEB', border: '#FEF3C7', label: t('debts.status.pending') };
+            case 'PAID':
+                return { color: '#059669', bg: '#ECFDF5', border: '#D1FAE5', label: t('common.paid') };
+            case 'UNPAID':
+            default:
+                return { color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2', label: t('debts.status.pending') };
+        }
     };
 
     return (
         <Fade in={true} timeout={800}>
             <Box sx={{ width: '100%', bgcolor: "#f9fafb" }}>
-                {/* Header with Title, Toggle, Date Picker, and Export Buttons */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
-                    <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827", whiteSpace: 'nowrap', display: { xs: 'none', md: 'block' } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                    <Typography variant="h5" align="left" fontWeight="700" sx={{ color: "#111827" }}>
                         {t('debts.title')}
                     </Typography>
-
-
-
                 </Box>
 
                 {/* Top KPIs */}
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr 1fr' }, gap: 3, mb: 4 }}>
                     <ReportKPI
                         title={t('debts.kpis.totalOutstanding')}
                         value={(() => {
-                            const val = kpis?.totalOutstanding || 0;
+                            const val = summary?.outstanding || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
                             if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
                             return formatCurrency(val);
                         })()}
-                        fullValue={formatCurrency(kpis?.totalOutstanding || 0)}
+                        fullValue={formatCurrency(summary?.outstanding || 0)}
                         icon={AccountBalanceIcon}
                         color="#FF6D00"
                         index={0}
@@ -169,68 +150,63 @@ const DebtsTab = ({ dateRange }) => {
                     <ReportKPI
                         title={t('debts.kpis.overdueAmount')}
                         value={(() => {
-                            const val = kpis?.overdueAmount || 0;
+                            const val = summary?.overdue || 0;
                             if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M FRW`;
                             if (val >= 1000) return `${(val / 1000).toFixed(1)}K FRW`;
                             return formatCurrency(val);
                         })()}
-                        fullValue={formatCurrency(kpis?.overdueAmount || 0)}
+                        fullValue={formatCurrency(summary?.overdue || 0)}
                         icon={WarningIcon}
                         color="#EF4444"
                         index={1}
                     />
                     <ReportKPI
                         title={t('debts.kpis.activeDebtors')}
-                        value={kpis?.debtorsCount || 0}
+                        value={summary?.activeDebtors || 0}
                         icon={PeopleIcon}
                         color="#3B82F6"
                         index={2}
                     />
                     <ReportKPI
                         title={t('debts.kpis.avgDebtAge')}
-                        value={`${kpis?.avgDebtAge || 0} ${t('common.days')}`}
+                        value={`${summary?.avgAge || 0} ${t('common.days')}`}
                         icon={TimerIcon}
                         color="#8B5CF6"
                         index={3}
                     />
-                </div>
+                </Box>
 
                 {/* Hierarchical Table */}
-                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none" }}>
+                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px", overflowX: 'auto' }}>
                     <Table size="small">
                         <TableHead>
-                            {/* Main Headers */}
-                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
-                                <TableCell align="center">
-                                    {dateRange.startDate ? (
-                                        `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
-                                    ) : (
-                                        t('common.date')
-                                    )}
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", py: 1.5, fontSize: "0.85rem" } }}>
+                                <TableCell align="center" sx={{ minWidth: 150 }}>
+                                    {dateRange.startDate ? `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}` : t('common.date')}
                                 </TableCell>
-                                <TableCell align="center">
+                                <TableCell align="center" sx={{ minWidth: 150 }}>
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">{t('debts.table.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('debts.table.debtAmount')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
-                                <TableCell align="center">{t('debts.table.status')}</TableCell>
-                                <TableCell align="center" colSpan={3}>{t('debts.table.tracking')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('debts.table.paymentInfo')}</TableCell>
+                                <TableCell align="center">{t('common.status')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('common.tracking')}</TableCell>
                             </TableRow>
-                            {/* Sub Headers */}
-                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
-                                <TableCell colSpan={3} sx={{ borderRight: "1px solid #444" }} />
-                                <TableCell align="center">{t('debts.table.name')}</TableCell>
-                                <TableCell align="center">{t('debts.table.phone')}</TableCell>
+                            <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", py: 0.5, fontSize: "0.7rem" } }}>
+                                <TableCell colSpan={3} />
+                                <TableCell align="center">{t('common.name')}</TableCell>
+                                <TableCell align="center">{t('common.phone')}</TableCell>
                                 <TableCell align="center">{t('debts.table.original')}</TableCell>
                                 <TableCell align="center">{t('debts.table.paid')}</TableCell>
                                 <TableCell align="center">{t('debts.table.balance')}</TableCell>
                                 <TableCell align="center">{t('debts.table.lastPaid')}</TableCell>
                                 <TableCell align="center">{t('debts.table.dueDate')}</TableCell>
                                 <TableCell align="center">{t('debts.table.age')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "none" }} />
                                 <TableCell align="center">{t('debts.table.saleDate')}</TableCell>
                                 <TableCell align="center">{t('common.recordedBy')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
@@ -239,73 +215,118 @@ const DebtsTab = ({ dateRange }) => {
                         <TableBody>
                             {reportData.map((day, dIdx) => (
                                 <React.Fragment key={dIdx}>
-                                    {/* Date Row */}
-                                    <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.85rem", fontWeight: "700", py: 1 } }}>
-                                        <TableCell sx={{ borderRight: "1px solid #e5e7eb" }}>{day.date}</TableCell>
-                                        <TableCell colSpan={12} />
+                                    <TableRow sx={{ bgcolor: "#F9FAFB", '& td': { fontWeight: "700", py: 1, borderRight: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" } }}>
+                                        <TableCell align="center">{day.date}</TableCell>
+                                        <TableCell colSpan={13} />
                                     </TableRow>
                                     {day.branches.map((branch, bIdx) => (
                                         <React.Fragment key={bIdx}>
-                                            {/* Branch Header Row */}
-                                            <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.8rem", fontWeight: "700", py: 0.5 } }}>
-                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb" }} />
-                                                <TableCell sx={{ borderRight: "1px solid #e5e7eb", pl: 4 }}>{branch.name}</TableCell>
-                                                <TableCell colSpan={11} />
+                                            <TableRow sx={{ bgcolor: "white", '& td': { fontWeight: "700", py: 0.5, borderRight: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" } }}>
+                                                <TableCell sx={{ borderRight: "1px solid #E5E7EB" }} />
+                                                <TableCell align="center" sx={{ color: "#FF6D00" }}>{branch.name}</TableCell>
+                                                <TableCell colSpan={12} />
                                             </TableRow>
                                             {branch.debts.map((debt, pIdx) => {
-                                                const statusColor = getStatusColor(debt.status);
+                                                const status = getStatusStyles(debt.status);
+                                                const isOverdue = debt.paymentInfo.dueDate && dayjs().isAfter(dayjs(debt.paymentInfo.dueDate)) && debt.amount.balance > 0;
+                                                const displayStatus = isOverdue ? { ...status, label: t('debts.status.overdue'), color: '#EF4444', bg: '#FEF2F2', border: '#FEE2E2' } : status;
+
                                                 return (
-                                                    <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", borderRight: "1px solid #e5e7eb", fontSize: "0.8rem", py: 0.5 } }}>
+                                                    <TableRow key={pIdx} sx={{ bgcolor: "white", '& td': { borderRight: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB", fontSize: "0.8rem", py: 0.5 } }}>
                                                         <TableCell />
                                                         <TableCell />
-                                                        <TableCell align="center" sx={{ fontWeight: "600" }}>{debt.invoiceNo}</TableCell>
+                                                        <TableCell align="center">
+                                                            {debt.invoiceUrl ? (
+                                                                <Link 
+                                                                    href={debt.invoiceUrl} 
+                                                                    target="_blank" 
+                                                                    download 
+                                                                    style={{ 
+                                                                        color: '#3B82F6', 
+                                                                        textDecoration: 'none', 
+                                                                        display: 'flex', 
+                                                                        alignItems: 'center', 
+                                                                        justifyContent: 'center',
+                                                                        gap: '4px',
+                                                                        fontWeight: '600'
+                                                                    }}
+                                                                >
+                                                                    <DownloadIcon sx={{ fontSize: 16 }} />
+                                                                    {t('common.invoice')}
+                                                                </Link>
+                                                            ) : debt.invoiceNo}
+                                                        </TableCell>
                                                         <TableCell sx={{ pl: 2, fontWeight: "600" }}>{debt.customer.name}</TableCell>
                                                         <TableCell align="center">{debt.customer.phone}</TableCell>
-                                                        <TableCell align="center">{formatCurrency(debt.original)}</TableCell>
-                                                        <TableCell align="center" sx={{ color: "#10B981", fontWeight: "600" }}>{formatCurrency(debt.paid)}</TableCell>
-                                                        <TableCell align="center" sx={{ color: "#EF4444", fontWeight: "700" }}>{formatCurrency(debt.balance)}</TableCell>
-                                                        <TableCell align="center">{debt.lastPaid}</TableCell>
-                                                        <TableCell align="center" sx={{ color: "#D97706", fontWeight: "600" }}>{debt.dueDate}</TableCell>
-                                                        <TableCell align="center">{debt.age}</TableCell>
-                                                        <TableCell align="center">{debt.saleDate}</TableCell>
-                                                        <TableCell align="center">{debt.recordedBy}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(debt.amount.total)}</TableCell>
+                                                        <TableCell align="center" sx={{ color: "#10B981", fontWeight: "600" }}>{formatCurrency(debt.amount.paid)}</TableCell>
+                                                        <TableCell align="center" sx={{ color: "#EF4444", fontWeight: "700" }}>{formatCurrency(debt.amount.balance)}</TableCell>
+                                                        <TableCell align="center">{debt.paymentInfo.lastPaid ? dayjs(debt.paymentInfo.lastPaid).format('MM/DD/YYYY') : '-'}</TableCell>
+                                                        <TableCell align="center" sx={{ color: isOverdue ? "#EF4444" : "#D97706", fontWeight: "600" }}>
+                                                            {debt.paymentInfo.dueDate ? dayjs(debt.paymentInfo.dueDate).format('MM/DD/YYYY') : '-'}
+                                                        </TableCell>
+                                                        <TableCell align="center">{debt.paymentInfo.age}</TableCell>
                                                         <TableCell align="center" sx={{ borderRight: "none" }}>
                                                             <Box sx={{
-                                                                px: 1, py: 0.3, borderRadius: "12px",
-                                                                bgcolor: statusColor.bg,
-                                                                color: statusColor.color,
+                                                                px: 1, py: 0.2, borderRadius: "12px",
+                                                                bgcolor: displayStatus.bg, color: displayStatus.color,
                                                                 fontWeight: '700', fontSize: '0.65rem',
-                                                                border: `1px solid ${statusColor.border}`
+                                                                border: `1px solid ${displayStatus.border}`,
+                                                                textAlign: 'center', whiteSpace: 'nowrap'
                                                             }}>
-                                                                {getTranslatedStatus(debt.status)}
+                                                                {displayStatus.label}
                                                             </Box>
                                                         </TableCell>
+                                                        <TableCell align="center">{dayjs(debt.tracking.saleDate).format('MM/DD/YYYY')}</TableCell>
+                                                        <TableCell align="center">{debt.tracking.recordedBy}</TableCell>
+                                                        <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
                                                     </TableRow>
                                                 );
                                             })}
-                                            {/* Spacer Row */}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: branch.name })}</TableCell>
+                                                <TableCell colSpan={2} />
+                                                <TableCell align="center">{formatCurrency(branch.totals?.original || 0)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(branch.totals?.paid || 0)}</TableCell>
+                                                <TableCell align="center">{formatCurrency(branch.totals?.outstanding || 0)}</TableCell>
+                                                <TableCell colSpan={7} />
+                                            </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+                            
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} />
+                                <TableCell align="center">{formatCurrency(summary?.original || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(summary?.paid || 0)}</TableCell>
+                                <TableCell align="center">{formatCurrency(summary?.outstanding || 0)}</TableCell>
+                                <TableCell colSpan={7} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>
 
-
-                {/* Branch Selection Menu */}
                 <Menu
                     anchorEl={branchAnchor}
                     open={Boolean(branchAnchor)}
                     onClose={handleClose}
-                    PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
+                    PaperProps={{ sx: { width: 220, borderRadius: 0 } }}
                 >
-                    <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect(t('common.none'))}>{t('common.none')}</MenuItem>
+                    <MenuItem sx={{ fontSize: '0.85rem' }} onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
                     <Divider />
-                    <MenuItem onClick={() => handleBranchSelect('North Branch')}>North Branch</MenuItem>
-                    <MenuItem onClick={() => handleBranchSelect('South Branch')}>South Branch</MenuItem>
+                    {shops.map(shop => (
+                        <MenuItem key={shop.id} sx={{ fontSize: '0.85rem' }} onClick={() => handleBranchSelect(shop.id)}>
+                            {shop.name}
+                        </MenuItem>
+                    ))}
                 </Menu>
             </Box>
         </Fade>
@@ -313,3 +334,4 @@ const DebtsTab = ({ dateRange }) => {
 };
 
 export default DebtsTab;
+

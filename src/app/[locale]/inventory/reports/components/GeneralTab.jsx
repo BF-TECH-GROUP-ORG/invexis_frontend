@@ -27,14 +27,15 @@ const GeneralTab = ({ dateRange, reportView }) => {
 
     const startDate = dateRange.startDate ? dateRange.startDate.format('YYYY-MM-DD') : undefined;
     const endDate = dateRange.endDate ? dateRange.endDate.format('YYYY-MM-DD') : undefined;
+    const filter = dateRange.filter || 'daily';
 
     const {
         data: reportData,
         isLoading: loadingReport,
         error
     } = useQuery({
-        queryKey: ['report-general', companyId, startDate, endDate],
-        queryFn: () => reportService.getGeneralReport(companyId, { startDate, endDate }),
+        queryKey: ['report-general', companyId, startDate, endDate, filter],
+        queryFn: () => reportService.getGeneralReport(companyId, { startDate, endDate, filter }),
         enabled: !!companyId,
         staleTime: Infinity,
         gcTime: 10 * 60 * 1000,

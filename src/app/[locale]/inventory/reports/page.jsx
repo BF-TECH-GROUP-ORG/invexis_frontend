@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, Suspense, lazy } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import {
     Box,
     Typography,
@@ -36,7 +36,7 @@ const InventoryTab = lazy(() => import('./components/InventoryTab'));
 const SalesTab = lazy(() => import('./components/SalesTab'));
 const DebtsTab = lazy(() => import('./components/DebtsTab'));
 const PaymentsTab = lazy(() => import('./components/PaymentsTab'));
-const StaffTab = lazy(() => import('./components/StaffTab'));
+// const StaffTab = lazy(() => import('./components/StaffTab'));
 const GeneralTab = lazy(() => import('./components/GeneralTab'));
 const VisualizeTab = lazy(() => import('./components/VisualizeTab'));
 
@@ -81,7 +81,6 @@ class ErrorBoundary extends React.Component {
 const ReportsPage = () => {
     const t = useTranslations("reports");
     const [currentTab, setCurrentTab] = useState(0);
-    const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
     const [anchorEl, setAnchorEl] = useState(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [exportScope, setExportScope] = useState('current'); // 'current' or 'all'
@@ -89,26 +88,47 @@ const ReportsPage = () => {
     const [reportView, setReportView] = useState('daily');
     const [selectedDate, setSelectedDate] = useState(dayjs());
 
+    const [dateRange, setDateRange] = useState({
+        startDate: dayjs().startOf('day'),
+        endDate: dayjs().endOf('day'),
+        filter: 'daily'
+    });
+
     // Sync dateRange with reportView and selectedDate
-    React.useEffect(() => {
+    useEffect(() => {
         let start, end;
-        if (reportView === 'daily') {
-            start = selectedDate.startOf('day');
-            end = selectedDate.endOf('day');
-        } else if (reportView === 'weekly') {
-            start = selectedDate.startOf('week');
-            end = selectedDate.endOf('week');
-        } else if (reportView === 'monthly') {
-            start = selectedDate.startOf('month');
-            end = selectedDate.endOf('month');
-        } else if (reportView === 'yearly') {
-            start = selectedDate.startOf('year');
-            end = selectedDate.endOf('year');
+        const now = dayjs();
+
+        switch (reportView) {
+            case 'daily':
+                start = selectedDate.startOf('day');
+                end = selectedDate.endOf('day');
+                break;
+            case 'weekly':
+                start = selectedDate.startOf('week');
+                end = selectedDate.endOf('week');
+                break;
+            case 'monthly':
+                start = selectedDate.startOf('month');
+                end = selectedDate.endOf('month');
+                break;
+            case 'yearly':
+                start = selectedDate.startOf('year');
+                end = selectedDate.endOf('year');
+                break;
+            case 'custom':
+                start = dateRange.startDate;
+                end = dateRange.endDate;
+                break;
+            default:
+                start = now.startOf('day');
+                end = now.endOf('day');
         }
-        setDateRange({ startDate: start, endDate: end });
+
+        setDateRange({ startDate: start, endDate: end, filter: reportView });
     }, [reportView, selectedDate]);
 
-    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', 'staff', 'visualize'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', */ 'visualize'];
     const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
@@ -600,12 +620,12 @@ const ReportsPage = () => {
                             <PaymentsTab dateRange={dateRange} />
                         </Suspense>
                     </Box>
-                    <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
+                    {/* <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>
                             <StaffTab dateRange={dateRange} />
                         </Suspense>
-                    </Box>
-                    <Box ref={(el) => (tabRefs.current[6] = el)} sx={{ display: currentTab === 6 ? 'block' : 'none' }}>
+                    </Box> */}
+                    <Box ref={(el) => (tabRefs.current[5] = el)} sx={{ display: currentTab === 5 ? 'block' : 'none' }}>
                         <Suspense fallback={<TabSkeleton />}>
                             <VisualizeTab dateRange={dateRange} reportView={reportView} />
                         </Suspense>

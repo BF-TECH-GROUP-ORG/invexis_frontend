@@ -21,6 +21,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useQuery } from '@tanstack/react-query';
 import reportService from '@/services/reportService';
+import { getBranches } from '@/services/branches';
 import dayjs from 'dayjs';
 
 const InventoryTab = ({ dateRange }) => {
@@ -49,68 +50,129 @@ const InventoryTab = ({ dateRange }) => {
     // Menu Anchors
     const [branchAnchor, setBranchAnchor] = useState(null);
 
-    // Summary KPIs from data (grandTotal)
-    const summary = React.useMemo(() => {
-        if (!rawReportData?.data?.grandTotal) return null;
-        const gt = rawReportData.data.grandTotal;
-        return {
-            totalValue: gt.value?.totalValue || 0,
-            totalItems: gt.kpis?.totalItems || 0,
-            lowStockCount: gt.kpis?.lowStockItems || 0,
-            outOfStockCount: gt.kpis?.outOfStock || 0,
-            abcCounts: gt.kpis?.abcCounts || { a: 0, b: 0, c: 0 }
-        };
-    }, [rawReportData]);
+    // Fetch shops for name mapping
+    const { data: shops = [] } = useQuery({
+        queryKey: ['shops', companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+        staleTime: Infinity,
+    });
+
+    const getShopName = (shopId) => {
+        if (!shopId || shopId === 'Default') return 'Default';
+        const shop = shops.find(s => String(s._id || s.id) === String(shopId));
+        return shop ? shop.name : shopId;
+    };
 
     // Transform and group data by date and shop if necessary
-    const reportData = React.useMemo(() => {
-        if (!rawReportData?.data) return [];
+    const { summary, reportData } = React.useMemo(() => {
+        if (!rawReportData?.data) return { summary: null, reportData: [] };
         const { branches, period } = rawReportData.data;
         
-        // The backend returns a single snapshot for the period.
-        // We'll wrap it in a pseudo-"day" structure to maintain the current table rendering logic
-        // but using the period string as the date.
         const periodText = period 
             ? `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`
             : t('common.currentPeriod');
 
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 
-            : branches.filter(b => b.name === selectedBranch || b.shopId === selectedBranch);
+            : branches.filter(b => b.shopId === selectedBranch);
 
-        return [{
-            date: periodText,
-            shops: filteredBranches.map(branch => ({
-                id: branch.shopId,
-                name: branch.name || `Branch (${branch.shopId.substring(0,8)})`,
-                products: branch.products.map(p => ({
+        let grandValue = 0;
+        let grandOpen = 0;
+        let grandIn = 0;
+        let grandOut = 0;
+        let grandClose = 0;
+        let uniqueProductIds = new Set();
+        let lowStockCount = 0;
+        let outOfStockCount = 0;
+        let aCount = 0, bCount = 0, cCount = 0;
+
+        const processedShops = filteredBranches.map(branch => {
+            let shopValue = 0;
+            let shopOpen = 0;
+            let shopIn = 0;
+            let shopOut = 0;
+            let shopClose = 0;
+
+            const mappedProducts = branch.products.map(p => {
+                const move = p.stats?.movement || {};
+                const val = p.stats?.value || {};
+                const status = p.stats?.status || {};
+                
+                shopOpen += (move.open || 0);
+                shopIn += (move.in || 0);
+                shopOut += (move.out || 0);
+                shopClose += (move.close || 0);
+                shopValue += (val.totalValue || 0);
+                
+                uniqueProductIds.add(p.productId);
+
+                if (status.stockStatus === 'Out of Stock') outOfStockCount++;
+                else if (status.stockStatus === 'Low Stock') lowStockCount++;
+
+                if (status.abcClass === 'A') aCount++;
+                else if (status.abcClass === 'B') bCount++;
+                else if (status.abcClass === 'C') cCount++;
+
+                return {
                     id: p.productId,
                     name: p.productName,
                     category: p.categoryName || 'Uncategorized',
                     movement: {
-                        open: p.stats.movement.open,
-                        in: p.stats.movement.in,
-                        out: p.stats.movement.out,
-                        close: p.stats.movement.close
+                        open: move.open,
+                        in: move.in,
+                        out: move.out,
+                        close: move.close
                     },
                     value: {
-                        unitCost: p.stats.value.unitCost,
-                        totalValue: p.stats.value.totalValue
+                        unitPrice: val.unitPrice,
+                        totalValue: val.totalValue
                     },
                     status: {
-                        reorder: p.stats.status.reorderThreshold,
-                        status: p.stats.status.stockStatus,
-                        age: p.stats.status.ageDays,
-                        abcClass: p.stats.status.abcClass
+                        reorder: status.reorderThreshold,
+                        status: status.stockStatus,
+                        age: status.ageDays,
+                        abcClass: status.abcClass
                     },
                     tracking: {
-                        lastRestock: p.stats.tracking.lastRestockDate ? dayjs(p.stats.tracking.lastRestockDate).format('YYYY-MM-DD') : '-',
-                        lastMove: p.stats.tracking.lastMoveDate ? dayjs(p.stats.tracking.lastMoveDate).format('YYYY-MM-DD HH:mm') : '-'
+                        lastRestock: p.stats?.tracking?.lastRestockDate ? dayjs(p.stats.tracking.lastRestockDate).format('YYYY-MM-DD') : '-',
+                        lastMove: p.stats?.tracking?.lastMoveDate ? dayjs(p.stats.tracking.lastMoveDate).format('YYYY-MM-DD HH:mm') : '-'
                     }
-                }))
-            }))
-        }];
-    }, [rawReportData, selectedBranch, t]);
+                };
+            });
+
+            grandValue += shopValue;
+            grandOpen += shopOpen;
+            grandIn += shopIn;
+            grandOut += shopOut;
+            grandClose += shopClose;
+
+            return {
+                id: branch.shopId,
+                name: getShopName(branch.shopId),
+                totals: {
+                    movement: { open: shopOpen, in: shopIn, out: shopOut, close: shopClose },
+                    value: { totalValue: shopValue }
+                },
+                products: mappedProducts
+            };
+        });
+
+        return {
+            summary: {
+                totalValue: grandValue,
+                totalItems: uniqueProductIds.size,
+                lowStockCount,
+                outOfStockCount,
+                abcCounts: { a: aCount, b: bCount, c: cCount },
+                movement: { open: grandOpen, in: grandIn, out: grandOut, close: grandClose }
+            },
+            reportData: [{
+                date: periodText,
+                shops: processedShops
+            }]
+        };
+    }, [rawReportData, selectedBranch, shops, t]);
 
     if (loading) {
         return (
@@ -120,7 +182,10 @@ const InventoryTab = ({ dateRange }) => {
         );
     }
 
-    const formatCurrency = (val) => `${val.toLocaleString()} FRW`;
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null) return "0 FRW";
+        return `${val.toLocaleString()} FRW`;
+    };
 
     const handleBranchClick = (event) => setBranchAnchor(event.currentTarget);
     const handleClose = () => { setBranchAnchor(null); };
@@ -233,7 +298,7 @@ const InventoryTab = ({ dateRange }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
-                                        {selectedBranch === t('common.all') ? t('common.branch') : selectedBranch} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
+                                        {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center">{t('common.product')}</TableCell>
@@ -295,7 +360,7 @@ const InventoryTab = ({ dateRange }) => {
                                                         <TableCell align="center">{product.movement.in}</TableCell>
                                                         <TableCell align="center">{product.movement.out}</TableCell>
                                                         <TableCell align="center">{product.movement.close}</TableCell>
-                                                        <TableCell align="center">{formatCurrency(product.value.unitCost)}</TableCell>
+                                                        <TableCell align="center">{formatCurrency(product.value.unitPrice)}</TableCell>
                                                         <TableCell align="center">{formatCurrency(product.value.totalValue)}</TableCell>
                                                         <TableCell align="center">{product.status.reorder}</TableCell>
                                                         <TableCell align="center">
@@ -322,12 +387,39 @@ const InventoryTab = ({ dateRange }) => {
                                                     </TableRow>
                                                 );
                                             })}
-                                            {/* Spacer Row */}
+                                            {/* Shop Subtotal Row */}
+                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
+                                                <TableCell colSpan={2} />
+                                                <TableCell align="center">{shop.totals?.movement?.open || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.in || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.out || 0}</TableCell>
+                                                <TableCell align="center">{shop.totals?.movement?.close || 0}</TableCell>
+                                                <TableCell align="center">-</TableCell>
+                                                <TableCell align="center">{formatCurrency(shop.totals?.value?.totalValue || 0)}</TableCell>
+                                                <TableCell colSpan={5} />
+                                            </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
                             ))}
+
+                            {/* Spacer Row before Grand Total */}
+                            <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
+
+                            {/* Grand Total Row */}
+                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
+                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} />
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.open || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.in || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.out || 0}</TableCell>
+                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.close || 0}</TableCell>
+                                <TableCell align="center">-</TableCell>
+                                <TableCell align="center">{formatCurrency(rawReportData?.data?.grandTotal?.value?.totalValue || 0)}</TableCell>
+                                <TableCell colSpan={5} />
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -341,9 +433,10 @@ const InventoryTab = ({ dateRange }) => {
                     PaperProps={{ sx: { width: 200, borderRadius: 0 } }}
                 >
                     <MenuItem onClick={() => handleBranchSelect(t('common.all'))}>{t('common.all')}</MenuItem>
+                    <Divider />
                     {rawReportData?.data?.branches?.map((branch) => (
-                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.name || branch.shopId)}>
-                            {branch.name || `Branch ${branch.shopId.substring(0, 8)}`}
+                        <MenuItem key={branch.shopId} onClick={() => handleBranchSelect(branch.shopId)}>
+                            {getShopName(branch.shopId)}
                         </MenuItem>
                     ))}
                 </Menu>

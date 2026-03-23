@@ -8,12 +8,13 @@ const reportService = {
      * Get general business report for a company
      * GET /report/general/company/:companyId
      */
-    getGeneralReport: async (companyId, { startDate, endDate } = {}, options = {}) => {
+    getGeneralReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
         try {
             if (!companyId) throw new Error("Company ID is required");
             const params = {};
             if (startDate) params.startDate = startDate;
             if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
 
             const data = await apiClient.get(`${API_BASE}/report/general/company/${companyId}`, {
                 params,
@@ -38,6 +39,72 @@ const reportService = {
             if (filter) params.filter = filter;
 
             const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    /**
+     * Get sales report for a company
+     * GET /sales/reports/v1/:companyId
+     */
+    getSalesReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/sales/reports/v1/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    /**
+     * Get debt report for a company
+     * GET /debt/reports/v1/:companyId
+     */
+    getDebtReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/debt/reports/v1/${companyId}`, {
+                params,
+                ...options
+            });
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    /**
+     * Get payments report for a company
+     * GET /payment/reports/v1/:companyId
+     */
+    getPaymentsReport: async (companyId, { startDate, endDate, filter } = {}, options = {}) => {
+        try {
+            if (!companyId) throw new Error("Company ID is required");
+            const params = {};
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+            if (filter) params.filter = filter;
+
+            const data = await apiClient.get(`${API_BASE}/payment/reports/v1/${companyId}`, {
                 params,
                 ...options
             });
