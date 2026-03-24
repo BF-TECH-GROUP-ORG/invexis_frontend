@@ -313,6 +313,12 @@ export default function AddProductWizard({
 
   const requiredStepIds = ["shop", "basic", "pricing", "inventory", "category"];
 
+  const getStepType = (stepNumber) => {
+    const stepObj = steps.find((s) => s.number === stepNumber);
+    if (!stepObj) return "required";
+    return requiredStepIds.includes(stepObj.id) ? "required" : "optional";
+  };
+
   const areAllRequiredStepsValid = useMemo(() => {
     return steps
       .filter((s) => requiredStepIds.includes(s.id))
@@ -544,6 +550,7 @@ export default function AddProductWizard({
                 orientation="vertical"
                 onStepClick={(step) => setCurrentStep(step)}
                 getStepStatus={getStepStatus}
+                getStepType={getStepType}
               />
             </div>
           )}

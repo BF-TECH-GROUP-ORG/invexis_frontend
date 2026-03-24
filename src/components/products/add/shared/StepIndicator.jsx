@@ -4,6 +4,7 @@ export default function StepIndicator({
   orientation = "horizontal",
   onStepClick,
   getStepStatus, // Function: (number) => 'complete' | 'unfilled'
+  getStepType,   // Function: (number) => 'required' | 'optional'
 }) {
   const isVertical = orientation === "vertical";
 
@@ -17,10 +18,14 @@ export default function StepIndicator({
     >
       {steps.map((step, idx) => {
         const status = getStepStatus ? getStepStatus(step.number) : "unfilled";
+        const type = getStepType ? getStepType(step.number) : "required";
         const isPassed = step.number < currentStep;
         const isCurrent = step.number === currentStep;
+
         const isComplete = status === "complete";
-        const isUnfilled = isPassed && !isComplete;
+        const isRequired = type === "required";
+        const isError = isPassed && !isComplete && isRequired;
+        const isOptionalUnfilled = isPassed && !isComplete && !isRequired;
 
         return (
           <div
@@ -44,18 +49,36 @@ export default function StepIndicator({
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all shrink-0 ${
                   isCurrent
                     ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30 ring-4 ring-orange-100"
+                    : isError
+                    ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
                     : isComplete && isPassed
                     ? "bg-green-500 text-white"
                     : "bg-gray-100 text-gray-400 border border-gray-200"
                 } ${
                   onStepClick && !isCurrent
-                    ? isComplete && isPassed
+                    ? isError
+                      ? "hover:bg-red-600"
+                      : isComplete && isPassed
                       ? "hover:bg-green-600"
                       : "hover:bg-gray-200"
                     : ""
                 }`}
               >
-                {isComplete && isPassed ? (
+                {isError ? (
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                ) : isComplete && isPassed ? (
                   <svg
                     className="w-6 h-6"
                     fill="none"
@@ -69,7 +92,7 @@ export default function StepIndicator({
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                ) : isUnfilled ? (
+                ) : isOptionalUnfilled ? (
                   <span className="text-gray-400 text-xs font-bold">○</span>
                 ) : (
                   step.number
@@ -81,14 +104,16 @@ export default function StepIndicator({
                 } ${
                   isCurrent
                     ? "text-orange-600 font-bold"
-                    : isUnfilled
-                    ? "text-gray-400 font-normal"
+                    : isError
+                    ? "text-red-500 font-bold"
+                    : isOptionalUnfilled
+                    ? "text-gray-400 font-normal italic"
                     : "text-gray-500 group-hover:text-gray-700"
                 }`}
               >
                 {step.label}
-                {isUnfilled && (
-                  <span className="text-[10px] ml-1 opacity-60">(unfilled)</span>
+                {isOptionalUnfilled && (
+                  <span className="text-[10px] ml-1 opacity-60">(optional)</span>
                 )}
               </div>
             </button>
