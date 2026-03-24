@@ -18,7 +18,7 @@ import StepVariations from "@/components/inventory/products/ProductFormSteps/Ste
 import Step7SEO from "./steps/Step7SEO";
 import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 // Key for localStorage persistence
 const PERSISTENCE_KEY = "invexis_add_product_wizard_state";
@@ -478,15 +478,26 @@ export default function AddProductWizard({
         <div className="col-span-12 lg:col-span-9">
           <div className="bg-white rounded-4xl border border-gray-200">
             {/* Header */}
-            <div className="border-b border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {isEdit ? "Edit Product" : "Add New Product"}
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {isEdit
-                  ? "Update the product details below"
-                  : "Fill in the product details step by step"}
-              </p>
+            <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push(`/${locale}/inventory/products`)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+                  title="Back to Products"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {isEdit ? "Edit Product" : "Add New Product"}
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    {isEdit
+                      ? "Update the product details below"
+                      : "Fill in the product details step by step"}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Step Content */}
