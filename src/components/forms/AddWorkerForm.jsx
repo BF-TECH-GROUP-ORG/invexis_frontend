@@ -681,39 +681,63 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               {t("buttons.back")}
             </Button>
 
-            <Button
-              variant="contained"
-              onClick={
-                activeStep === stepLabels.length - 1 ? handleSubmit : handleNext
-              }
-              endIcon={
-                createWorkerMutation.isLoading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <HiArrowRight />
-                )
-              }
-              disabled={createWorkerMutation.isLoading}
-              sx={{
-                bgcolor: "#fe6600",
-                "&:hover": { bgcolor: "#cc5200" },
-                borderRadius: "12px",
-                textTransform: "none",
-                px: 5,
-                py: 1.5,
-                fontWeight: 600,
-              }}
-            >
-              {createWorkerMutation.isLoading
-                ? isEditMode
-                  ? t("buttons.updating")
-                  : t("buttons.creating")
-                : activeStep === stepLabels.length - 1
+            <div className="flex items-center space-x-3">
+              {isEditMode && activeStep !== stepLabels.length - 1 && (
+                <Button
+                  variant="outlined"
+                  onClick={handleSubmit}
+                  disabled={createWorkerMutation.isLoading || !isStepValid(activeStep)}
+                  sx={{
+                    borderRadius: "12px",
+                    textTransform: "none",
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 600,
+                    color: "#fe6600",
+                    borderColor: "#fe6600",
+                    "&:hover": { bgcolor: "#fff5f0", borderColor: "#cc5200" },
+                  }}
+                >
+                  {createWorkerMutation.isLoading
+                    ? t("buttons.updating")
+                    : t("buttons.update")}
+                </Button>
+              )}
+
+              <Button
+                variant="contained"
+                onClick={
+                  activeStep === stepLabels.length - 1 ? handleSubmit : handleNext
+                }
+                endIcon={
+                  createWorkerMutation.isLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <HiArrowRight />
+                  )
+                }
+                disabled={createWorkerMutation.isLoading || (!isEditMode && !isStepValid(activeStep))}
+                sx={{
+                  bgcolor: "#fe6600",
+                  "&:hover": { bgcolor: "#cc5200" },
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  px: 5,
+                  py: 1.5,
+                  fontWeight: 600,
+                }}
+              >
+                {createWorkerMutation.isLoading
                   ? isEditMode
-                    ? t("buttons.update")
-                    : t("buttons.create")
-                  : t("buttons.next")}
-            </Button>
+                    ? t("buttons.updating")
+                    : t("buttons.creating")
+                  : activeStep === stepLabels.length - 1
+                    ? isEditMode
+                      ? t("buttons.update")
+                      : t("buttons.create")
+                    : t("buttons.next")}
+              </Button>
+            </div>
           </Box>
         </Box>
 
@@ -750,6 +774,12 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               return (
                 <Step key={label} completed={isPassed && isValid}>
                   <StepLabel
+                    onClick={() => {
+                      if (isEditMode || index < activeStep || isStepValid(activeStep)) {
+                        setActiveStep(index);
+                      }
+                    }}
+                    sx={{ cursor: "pointer" }}
                     StepIconComponent={() => (
                       <Box
                         sx={{
