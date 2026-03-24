@@ -336,49 +336,59 @@ export default function AddProductWizard({
     setShowSuccessModal(false);
     setCurrentStep(1);
     setFormData({
-      // Reset to initial state (simplified for brevity, ideally use initial state constant)
       companyId: companyId || "",
       shopId: propShopId || "",
+      shopName: "",
       name: "",
       description: "",
       brand: "",
       manufacturer: "",
       tags: [],
-      condition: "new",
-      availability: "in_stock",
-      visibility: "public",
-      isFeatured: false,
-      status: "active",
+      supplierName: "",
+      sortOrder: 1,
       images: [],
+      videoUrls: [],
       pricing: {
         basePrice: 0,
         salePrice: null,
         listPrice: 0,
-        costPrice: 0,
+        cost: 0,
         currency: "RWF",
         priceTiers: [],
       },
       inventory: {
-        quantity: 0,
-        minStockLevel: 0,
-        maxStockLevel: 0,
         trackQuantity: true,
-        allowBackorder: false,
+        stockQty: 0,
+        lowStockThreshold: 10,
+        minReorderQty: 5,
+        allowBackorder: true,
+        safetyStock: 0,
+      },
+      identifiers: {
         sku: "",
         barcode: "",
+        scanId: "",
+        asin: "",
+        upc: "",
       },
-      supplierName: "",
+      category: {
+        id: "",
+        name: "",
+      },
       categoryId: "",
-      categoryName: "",
-      parentCategoryName: "",
-      specs: {},
-      variants: [],
-      variations: [],
-      seo: {
-        metaTitle: "",
-        metaDescription: "",
-        keywords: [],
-        slug: "",
+      specifications: {},
+      specsCategory: null,
+      condition: "new",
+      availability: "in_stock",
+      status: "active",
+      visibility: "public",
+      isFeatured: false,
+      _oldStatus: {
+        active: true,
+        visible: true,
+        availability: "in_stock",
+        condition: "new",
+        featured: false,
       },
     });
   };
@@ -443,7 +453,6 @@ export default function AddProductWizard({
               <StepNavigation
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
-                showReview={currentStep === TOTAL_STEPS}
                 isValid={validateStep(currentStep)}
                 isSubmitting={isSubmitting}
                 onNext={handleNext}
@@ -456,7 +465,7 @@ export default function AddProductWizard({
 
         {/* Vertical Step Indicator - Right Side */}
         <div className="col-span-12 lg:col-span-3 sticky top-6">
-          {!showReview && status !== "loading" && (
+          {status !== "loading" && (
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-6">Progress</h3>
               <StepIndicator
