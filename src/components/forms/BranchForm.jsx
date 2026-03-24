@@ -35,7 +35,13 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
 
     // Form Steps
     const stepLabels = ["Basic Info", "Location Details", "Review & Submit"];
-    const [activeStep, setActiveStep] = useState(0);
+    const [activeStep, setActiveStep] = useState(() => {
+        if (typeof window !== "undefined" && !isEditMode) {
+            const saved = localStorage.getItem("branch_form_step");
+            return saved ? parseInt(saved, 10) : 0;
+        }
+        return 0;
+    });
 
     // Initial State
     const getDefaultBranch = () => ({
@@ -63,6 +69,20 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                 longitude: initialData.longitude?.toString() || "",
             };
         }
+        
+        // Load from localStorage for Add Mode
+        if (typeof window !== "undefined" && !isEditMode) {
+            const saved = localStorage.getItem("branch_form_data");
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    return { ...getDefaultBranch(), ...parsed };
+                } catch (e) {
+                    console.error("Error parsing saved branch data", e);
+                }
+            }
+        }
+        
         return getDefaultBranch();
     });
 
@@ -76,6 +96,14 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
             setFormData(prev => ({ ...prev, companyId }));
         }
     }, [companyId]);
+
+    // Persist to localStorage
+    useEffect(() => {
+        if (!isEditMode && typeof window !== "undefined") {
+            localStorage.setItem("branch_form_data", JSON.stringify(formData));
+            localStorage.setItem("branch_form_step", activeStep.toString());
+        }
+    }, [formData, activeStep, isEditMode]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -168,6 +196,10 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
             ? updateBranch(initialData.id || initialData._id, payload, companyId)
             : createBranch(payload),
         onSuccess: () => {
+            if (!isEditMode) {
+                localStorage.removeItem("branch_form_data");
+                localStorage.removeItem("branch_form_step");
+            }
             queryClient.invalidateQueries({ queryKey: ["branches", companyId] });
             queryClient.invalidateQueries({ queryKey: ["branches"] });
             if (isEditMode) queryClient.invalidateQueries({ queryKey: ["branch", initialData.id || initialData._id] });
