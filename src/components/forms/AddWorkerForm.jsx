@@ -78,7 +78,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
   const stepLabels = useMemo(
-    () => [t("personalInfo"), t("jobInfo")],
+    () => [t("personalInfo"), t("jobInfo"), "Review & Submit"],
     [t]
   );
 
@@ -247,6 +247,11 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       }
     }
 
+    if (step === 2) {
+      // Review step technically has no "errors" unless something changed back on previous steps
+      return errors;
+    }
+
     return errors;
   };
 
@@ -409,11 +414,16 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               }
               onChange={(e) => {
                 const code = worker.countryCode || "+250";
-                handleChange("phone", code + e.target.value);
+                let val = e.target.value.replace(/[^0-9]/g, "");
+                if (val.length > 0 && val[0] !== "7") {
+                  val = "7" + val;
+                }
+                if (val.length > 9) val = val.slice(0, 9);
+                handleChange("phone", code + val);
               }}
               required
               error={!!fieldErrors.phone}
-              helperText={fieldErrors.phone}
+              helperText={fieldErrors.phone || "Local number starting with 7"}
               fullWidth
               variant="outlined"
               InputProps={{
@@ -575,6 +585,90 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           </Box>
         );
 
+      case 2:
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="h6" fontWeight={700} color="#081422">
+              Review & Submit
+            </Typography>
+            <Card
+              variant="outlined"
+              sx={{ borderRadius: "16px", p: 3, bgcolor: "#f9fafb" }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    FULL NAME
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {worker.firstName} {worker.lastName}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    EMAIL ADDRESS
+                  </Typography>
+                  <Typography variant="body1">
+                    {worker.email}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    PHONE NUMBER
+                  </Typography>
+                  <Typography variant="body1">
+                    {worker.phone}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    NATIONAL ID
+                  </Typography>
+                  <Typography variant="body1">
+                    {worker.nationalId}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    DEPARTMENT
+                  </Typography>
+                  <Typography variant="body1">
+                    {availableDepartments.find(
+                      (d) => (d.id || d._id || d.department_id) === worker.department
+                    )?.name || worker.department}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                    OFFICE / SHOP
+                  </Typography>
+                  <Typography variant="body1">
+                    {availableShops.find(
+                      (s) => (s.id || s._id) === worker.shops[0]
+                    )?.name || "Not Assigned"}
+                  </Typography>
+                </Box>
+              </div>
+
+              <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e0e0e0" }}>
+                <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                  Automatic Assignments:
+                </Typography>
+                <div className="flex flex-wrap gap-x-8 gap-y-2">
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Address:</Typography>
+                    <Typography variant="body2">{worker.address.city}, {worker.address.country}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">Emergency Contact:</Typography>
+                    <Typography variant="body2">{worker.firstName} (Self)</Typography>
+                  </Box>
+                </div>
+              </Box>
+            </Card>
+          </Box>
+        );
+
       default:
         return null;
     }
@@ -681,12 +775,12 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               {t("buttons.back")}
             </Button>
 
-            <div className="flex items-center space-x-3">
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               {isEditMode && activeStep !== stepLabels.length - 1 && (
                 <Button
                   variant="outlined"
                   onClick={handleSubmit}
-                  disabled={createWorkerMutation.isLoading || !isStepValid(activeStep)}
+                  disabled={createWorkerMutation.isLoading}
                   sx={{
                     borderRadius: "12px",
                     textTransform: "none",
@@ -716,7 +810,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                     <HiArrowRight />
                   )
                 }
-                disabled={createWorkerMutation.isLoading || (!isEditMode && !isStepValid(activeStep))}
+                disabled={createWorkerMutation.isLoading}
                 sx={{
                   bgcolor: "#fe6600",
                   "&:hover": { bgcolor: "#cc5200" },
@@ -737,7 +831,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                       : t("buttons.create")
                     : t("buttons.next")}
               </Button>
-            </div>
+            </Box>
           </Box>
         </Box>
 
@@ -774,11 +868,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               return (
                 <Step key={label} completed={isPassed && isValid}>
                   <StepLabel
-                    onClick={() => {
-                      if (isEditMode || index < activeStep || isStepValid(activeStep)) {
-                        setActiveStep(index);
-                      }
-                    }}
+                    onClick={() => setActiveStep(index)}
                     sx={{ cursor: "pointer" }}
                     StepIconComponent={() => (
                       <Box
