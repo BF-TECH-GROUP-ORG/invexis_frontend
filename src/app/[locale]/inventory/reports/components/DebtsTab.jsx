@@ -55,6 +55,9 @@ const DebtsTab = ({ dateRange }) => {
         return shop ? shop.name : `Branch ${shopId.slice(-8)}`;
     };
 
+    const period = reportResponse?.data?.period;
+    const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+
     // Process KPIs and report data structure
     const { summary, reportData } = useMemo(() => {
         if (!reportResponse?.data) {
@@ -177,19 +180,31 @@ const DebtsTab = ({ dateRange }) => {
                 </Box>
 
                 {/* Hierarchical Table */}
-                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px", overflowX: 'auto' }}>
+                <TableContainer component={Paper} elevation={0} sx={{ 
+                    border: "1px solid #e5e7eb", 
+                    borderRadius: "0px !important", 
+                    overflowX: 'auto', 
+                    boxShadow: "none",
+                    "& .MuiPaper-root": { borderRadius: "0px !important" }
+                }}>
                     <Table size="small">
                         <TableHead>
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", py: 1.5, fontSize: "0.85rem" } }}>
                                 <TableCell align="center" sx={{ minWidth: 150 }}>
-                                    {dateRange.startDate ? `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}` : t('common.date')}
+                                    {isAllTime ? (
+                                        t('controls.allTime') || 'All Time'
+                                    ) : dateRange.startDate ? (
+                                        `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
+                                    ) : (
+                                        t('common.date')
+                                    )}
                                 </TableCell>
                                 <TableCell align="center" sx={{ minWidth: 150 }}>
                                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={handleBranchClick}>
                                         {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.invoice')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('debts.table.debtAmount')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('debts.table.paymentInfo')}</TableCell>

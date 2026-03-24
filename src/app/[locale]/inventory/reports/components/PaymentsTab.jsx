@@ -300,7 +300,7 @@ const PaymentsTab = ({ dateRange }) => {
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
-                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.invoice')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
                                 <TableCell align="center">{t('common.status')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('payments.table.reference')}</TableCell>

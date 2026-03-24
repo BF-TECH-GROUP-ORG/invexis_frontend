@@ -287,7 +287,13 @@ const InventoryTab = ({ dateRange }) => {
 
 
                 {/* Hierarchical Table */}
-                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: "0px !important", overflowX: 'auto', boxShadow: "none", "& .MuiPaper-root": { borderRadius: "0px !important" } }}>
+                <TableContainer component={Paper} elevation={0} sx={{ 
+                    border: "1px solid #e5e7eb", 
+                    borderRadius: "0px !important", 
+                    overflowX: 'auto', 
+                    boxShadow: "none",
+                    "& .MuiPaper-root": { borderRadius: "0px !important" }
+                }}>
                     <Table size="small">
                         <TableHead>
                             {/* Main Headers */}

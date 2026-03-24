@@ -288,7 +288,13 @@ const SalesTab = ({ dateRange }) => {
                 </div>
 
                 {/* Hierarchical Table */}
-                <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e5e7eb", borderRadius: 0, overflowX: 'auto', boxShadow: "none" }}>
+                <TableContainer component={Paper} elevation={0} sx={{ 
+                    border: "1px solid #e5e7eb", 
+                    borderRadius: "0px !important", 
+                    overflowX: 'auto', 
+                    boxShadow: "none",
+                    "& .MuiPaper-root": { borderRadius: "0px !important" }
+                }}>
                     <Table size="small">
                         <TableHead>
                             {/* Main Headers */}
@@ -307,7 +313,7 @@ const SalesTab = ({ dateRange }) => {
                                         {selectedBranch === t('common.all') ? t('common.branch') : getShopName(selectedBranch)} <ArrowDropDownIcon sx={{ ml: 0.5 }} />
                                     </Box>
                                 </TableCell>
-                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.invoice')}</TableCell>
                                 <TableCell align="center">{t('common.product')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('sales.table.quantity')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('sales.table.value')}</TableCell>
