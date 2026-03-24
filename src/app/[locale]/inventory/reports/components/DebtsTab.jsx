@@ -66,7 +66,7 @@ const DebtsTab = ({ dateRange }) => {
         // Group by Date -> Branch -> Debts for the UI hierarchy
         // The API returns grouping by Branch, so we pivot for the UI if multiple days are involved
         // But since the parent pass a dateRange, we can show that as a top level date row
-        const dateStr = dateRange.startDate ? dateRange.startDate.format('MM/DD/YYYY') : dayjs().format('MM/DD/YYYY');
+        const dateStr = dateRange.startDate ? dateRange.startDate.format('MM/DD/YYYY') : t('controls.allTime') || 'All Time';
         
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 

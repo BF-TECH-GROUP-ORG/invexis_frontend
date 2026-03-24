@@ -116,9 +116,9 @@ const ReportsPage = () => {
                 start = selectedDate.startOf('year');
                 end = selectedDate.endOf('year');
                 break;
-            case 'custom':
-                start = dateRange.startDate;
-                end = dateRange.endDate;
+            case 'all':
+                start = null;
+                end = null;
                 break;
             default:
                 start = now.startOf('day');
@@ -460,6 +460,7 @@ const ReportsPage = () => {
                             <ToggleButton value="weekly">{t('controls.weekly')}</ToggleButton>
                             <ToggleButton value="monthly">{t('controls.monthly')}</ToggleButton>
                             <ToggleButton value="yearly">{t('controls.yearly')}</ToggleButton>
+                            <ToggleButton value="all">{t('controls.allTime') || 'All Time'}</ToggleButton>
                         </ToggleButtonGroup>
                         </Box>
 

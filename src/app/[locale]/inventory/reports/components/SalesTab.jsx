@@ -62,9 +62,10 @@ const SalesTab = ({ dateRange }) => {
         if (!rawReportData?.data) return { summary: null, reportData: [] };
         const { branches, period } = rawReportData.data;
         
-        const periodText = period 
-            ? `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`
-            : t('common.currentPeriod');
+        const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+        const periodText = isAllTime
+            ? t('controls.allTime') || 'All Time'
+            : `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`;
 
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 
@@ -188,11 +189,16 @@ const SalesTab = ({ dateRange }) => {
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
             case 'paid': return { bg: '#E8F5E9', text: '#2E7D32', border: '#C8E6C9' };
-            case 'debt': return { bg: '#FFEBEE', text: '#C62828', border: '#FFCDD2' };
+            case 'debt': return { bg: '#FFF7ED', text: '#C2410C', border: '#FFEDD5' };
             case 'unpaid': return { bg: '#FFF3E0', text: '#EF6C00', border: '#FFE0B2' };
             case 'pending': return { bg: '#E3F2FD', text: '#1565C0', border: '#BBDEFB' };
             case 'failed': return { bg: '#ECEFF1', text: '#455A64', border: '#CFD8DC' };
             case 'refunded': return { bg: '#F3E5F5', text: '#7B1FA2', border: '#E1BEE7' };
+            // Sale Statuses
+            case 'completed': return { bg: '#E0F2F1', text: '#00695C', border: '#B2DFDB' };
+            case 'validated': return { bg: '#F3E5F5', text: '#6A1B9A', border: '#E1BEE7' };
+            case 'processing': return { bg: '#FFFDE7', text: '#F9A825', border: '#FFF9C4' };
+            case 'canceled': return { bg: '#FFEBEE', text: '#C62828', border: '#FFCDD2' };
             default: return { bg: '#F5F5F5', text: '#616161', border: '#E0E0E0' };
         }
     };
@@ -373,7 +379,12 @@ const SalesTab = ({ dateRange }) => {
                                                             <TableCell align="center">{formatCurrency(item.value.totalAmount)}</TableCell>
                                                             <TableCell align="center">{sale.time}</TableCell>
                                                             <TableCell align="center">
-                                                                <StatusBadge status={sale.paymentStatus} />
+                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
+                                                                    <StatusBadge status={sale.status} />
+                                                                    {sale.paymentStatus && sale.paymentStatus.toLowerCase() !== 'paid' && (
+                                                                        <StatusBadge status={sale.paymentStatus} />
+                                                                    )}
+                                                                </Box>
                                                             </TableCell>
                                                             <TableCell align="center" sx={{ borderRight: "none" }}>{sale.soldBy}</TableCell>
                                                         </TableRow>
