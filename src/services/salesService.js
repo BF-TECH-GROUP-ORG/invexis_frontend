@@ -39,9 +39,9 @@ export const getAllProducts = async (companyId = null, options = {}) => {
         product.category?.name || product.subcategory?.name || "Uncategorized",
       Quantity: product.stock?.available || product.inventory?.quantity || 0,
       Price:
+        product.pricing?.basePrice ||
         product.effectivePrice ||
         product.pricing?.salePrice ||
-        product.pricing?.basePrice ||
         0,
       Cost: product.pricing?.cost || 0,
       brand: product.brand || "No Brand",
@@ -49,8 +49,8 @@ export const getAllProducts = async (companyId = null, options = {}) => {
       shopId: product.shopId,
     }));
   } catch (error) {
-    console.log("Failed to fetch products:", error.message);
-    return [];
+    console.error("Failed to fetch products:", error.message);
+    throw error;
   }
 };
 
@@ -169,8 +169,8 @@ export const getSalesHistory = async (companyId, filters = {}, options = {}) => 
 
     return data || [];
   } catch (error) {
-    console.log("Failed to fetch sales history:", error.message);
-    return [];
+    console.error("Failed to fetch sales history:", error.message);
+    throw error;
   }
 };
 
@@ -197,8 +197,8 @@ export const getSalesByWorker = async (soldBy, companyId, options = {}) => {
 
     return data || [];
   } catch (error) {
-    console.log(`Failed to fetch sales history for worker ${soldBy}:`, error.message);
-    return [];
+    console.error(`Failed to fetch sales history for worker ${soldBy}:`, error.message);
+    throw error;
   }
 };
 
@@ -294,7 +294,7 @@ export const getCustomers = async () => {
     return [];
   } catch (error) {
     console.error("Failed to fetch customers:", error.message);
-    return [];
+    throw error; // Throw so React Query preserves previous data on refetch error
   }
 };
 
