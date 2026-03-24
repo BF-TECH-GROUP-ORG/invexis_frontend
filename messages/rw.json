@@ -730,7 +730,13 @@
     "searchPlaceholder": "Shakisha izina ry'umwenda cyangwa telefone...",
     "confirmCancelTitle": "Hagarika Imyenda",
     "confirmCancelMessage": "Urashaka koko guhagarika iyi myenda? Iyi ntambwe ntishobora gusubirwaho.",
-    "markPayed": "Shyira mu byishyuwe"
+    "markPayed": "Shyira mu byishyuwe",
+    "filters": {
+      "daily": "Buri munsi",
+      "weekly": "Buri cyumweru",
+      "monthly": "Buri kwezi",
+      "yearly": "Buri mwaka"
+    }
   },
   "Debtstable": {
     "no": "Oya",
@@ -747,9 +753,15 @@
   },
   "salesHistory": {
     "title": "Amateka y'Ubucuruzi",
+    "filters": {
+      "daily": "Buri munsi",
+      "weekly": "Buri cyumweru",
+      "monthly": "Buri kwezi",
+      "yearly": "Buri mwaka"
+    },
     "cards": {
-      "totalDailySales": "Ingano y'ibygurishijwe ku munsi",
-      "totalDailyProfit": "Inyungu y'umunsi",
+      "totalSales": "Ingano y'ibyagurishijwe byose",
+      "totalProfit": "Inyungu yose",
       "returnedProducts": "Ibyagaruwe",
       "discountsApplied": "Kugabanyirizwa byakozwe"
     },

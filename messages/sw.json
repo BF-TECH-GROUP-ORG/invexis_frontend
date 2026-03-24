@@ -731,7 +731,13 @@
     "searchPlaceholder": "Tafuta kwa jina la mkopaji au namba ya simu...",
     "confirmCancelTitle": "Futa Deni",
     "confirmCancelMessage": "Una uhakika unataka kufuta deni hili? Kitendo hiki hakiwezi kurudiwa.",
-    "markPayed": "Weka ImeLipwa"
+    "markPayed": "Weka ImeLipwa",
+    "filters": {
+      "daily": "Kila siku",
+      "weekly": "Kila wiki",
+      "monthly": "Kila mwezi",
+      "yearly": "Kila mwaka"
+    }
   },
   "Debtstable": {
     "no": "Namba",
@@ -748,9 +754,15 @@
   },
   "salesHistory": {
     "title": "Historia ya Mauzo",
+    "filters": {
+      "daily": "Kila siku",
+      "weekly": "Kila wiki",
+      "monthly": "Kila mwezi",
+      "yearly": "Kila mwaka"
+    },
     "cards": {
-      "totalDailySales": "Jumla ya Mauzo ya Siku",
-      "totalDailyProfit": "Jumla ya Faida ya Siku",
+      "totalSales": "Mauzo yote",
+      "totalProfit": "Faida yote",
       "returnedProducts": "Bidhaa Zilizorudishwa",
       "discountsApplied": "Punguzo Zilizotumika"
     },
