@@ -57,12 +57,14 @@ const SalesTab = ({ dateRange }) => {
         staleTime: 5 * 60 * 1000,
     });
 
+    const period = rawReportData?.data?.period;
+    const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+
     // Transform and map data
     const { summary, reportData } = React.useMemo(() => {
         if (!rawReportData?.data) return { summary: null, reportData: [] };
-        const { branches, period } = rawReportData.data;
+        const { branches } = rawReportData.data;
         
-        const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
         const periodText = isAllTime
             ? t('controls.allTime') || 'All Time'
             : `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`;
@@ -292,7 +294,9 @@ const SalesTab = ({ dateRange }) => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    {dateRange.startDate ? (
+                                    {isAllTime ? (
+                                        t('controls.allTime') || 'All Time'
+                                    ) : dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
                                         t('common.date')

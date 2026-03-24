@@ -64,12 +64,14 @@ const InventoryTab = ({ dateRange }) => {
         return shop ? shop.name : shopId;
     };
 
+    const period = rawReportData?.data?.period;
+    const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+
     // Transform and group data by date and shop if necessary
     const { summary, reportData } = React.useMemo(() => {
         if (!rawReportData?.data) return { summary: null, reportData: [] };
-        const { branches, period } = rawReportData.data;
+        const { branches } = rawReportData.data;
         
-        const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
         const periodText = isAllTime
             ? t('controls.allTime') || 'All Time'
             : `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`;

@@ -1959,6 +1959,7 @@
       "weekly": "Weekly",
       "monthly": "Monthly",
       "yearly": "Yearly",
+      "allTime": "All Time",
       "selectDate": "Select Date",
       "exportOptions": "Export Options",
       "exportPDF": "Export as PDF",
