@@ -1,5 +1,7 @@
 export default function StepNavigation({
   currentStep,
+  totalSteps,
+  isValid,
   isSubmitting,
   isEdit = false,
   allStepsValid = true,
