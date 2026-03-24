@@ -4,12 +4,18 @@ import { Info } from "lucide-react";
 
 export default function Step4Inventory({ formData, updateFormData }) {
   const handleInventoryChange = (field, value) => {
-    updateFormData({
-      inventory: {
-        ...formData.inventory,
-        [field]: value,
-      },
-    });
+    const numericValue = parseInt(value) || 0;
+    const newInventory = {
+      ...formData.inventory,
+      [field]: numericValue,
+    };
+
+    // Automatically sync Min Reorder Qty with Low Stock Threshold
+    if (field === "lowStockThreshold") {
+      newInventory.minReorderQty = numericValue;
+    }
+
+    updateFormData({ inventory: newInventory });
   };
 
   const isLowStock =
@@ -24,40 +30,40 @@ export default function Step4Inventory({ formData, updateFormData }) {
           Inventory Details
         </h2>
         <p className="text-gray-600">
-          Set your stock levels and management thresholds
+          Set your stock levels and low stock alerts
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-6 max-w-2xl mx-auto">
         {/* Current Stock Level */}
-        <div className="p-4 border border-gray-200 rounded-xl bg-white shadow-sm">
+        <div className="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Current Stock Level <span className="text-red-500">*</span>
           </label>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <input
               type="number"
               min="0"
               value={formData.inventory.stockQty}
               onChange={(e) =>
-                handleInventoryChange("stockQty", parseInt(e.target.value) || 0)
+                handleInventoryChange("stockQty", e.target.value)
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg font-bold focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl text-2xl font-bold focus:ring-2 focus:ring-orange-500 transition-all"
               placeholder="0"
               required
             />
-            <span className="text-gray-500 font-medium">Units</span>
+            <span className="text-gray-500 font-bold text-lg">Units</span>
           </div>
           {isLowStock && (
-            <div className="mt-2 flex items-center p-2 bg-amber-50 text-amber-700 rounded-lg text-xs">
-              <Info className="w-3 h-3 mr-2" />
+            <div className="mt-3 flex items-center p-3 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium">
+              <Info className="w-4 h-4 mr-2" />
               Low stock threshold reached
             </div>
           )}
         </div>
 
         {/* Low Stock Threshold */}
-        <div className="p-4 border border-gray-200 rounded-xl bg-white">
+        <div className="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Low Stock Threshold
           </label>
@@ -66,48 +72,12 @@ export default function Step4Inventory({ formData, updateFormData }) {
             min="0"
             value={formData.inventory.lowStockThreshold}
             onChange={(e) =>
-              handleInventoryChange("lowStockThreshold", parseInt(e.target.value) || 0)
+              handleInventoryChange("lowStockThreshold", e.target.value)
             }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            className="w-full px-4 py-4 border border-gray-300 rounded-xl text-xl font-semibold focus:ring-2 focus:ring-orange-500 transition-all"
             placeholder="0"
           />
-          <p className="text-xs text-gray-500 mt-2">Alert me when stock is below this</p>
-        </div>
-
-        {/* Minimum Reorder Qty */}
-        <div className="p-4 border border-gray-200 rounded-xl bg-white">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Min Reorder Qty
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={formData.inventory.minReorderQty}
-            onChange={(e) =>
-              handleInventoryChange("minReorderQty", parseInt(e.target.value) || 0)
-            }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-            placeholder="0"
-          />
-          <p className="text-xs text-gray-500 mt-2">Recommended restock amount</p>
-        </div>
-
-        {/* Safety Stock */}
-        <div className="p-4 border border-gray-200 rounded-xl bg-white">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Safety Stock
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={formData.inventory.safetyStock}
-            onChange={(e) =>
-              handleInventoryChange("safetyStock", parseInt(e.target.value) || 0)
-            }
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-            placeholder="0"
-          />
-          <p className="text-xs text-gray-500 mt-2">Buffer stock for emergencies</p>
+          <p className="text-sm text-gray-500 mt-2 italic">We will alert you when stock drops below this level.</p>
         </div>
       </div>
 
@@ -115,6 +85,8 @@ export default function Step4Inventory({ formData, updateFormData }) {
       <div className="hidden">
         <input type="checkbox" checked={true} readOnly name="trackQuantity" />
         <input type="checkbox" checked={true} readOnly name="allowBackorder" />
+        <input type="hidden" value={formData.inventory.minReorderQty} />
+        <input type="hidden" value={formData.inventory.safetyStock} />
       </div>
     </div>
   );

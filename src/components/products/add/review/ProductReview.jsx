@@ -53,27 +53,15 @@ export default function ProductReview({ formData, onEdit, steps }) {
             <dd className="font-medium text-gray-900">{formData.name}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">Brand</dt>
+            <dt className="text-sm text-gray-600">Supplier Name</dt>
             <dd className="font-medium text-gray-900">
-              {formData.brand || "N/A"}
+              {formData.supplierName || "N/A"}
             </dd>
           </div>
           <div className="col-span-2">
             <dt className="text-sm text-gray-600">Description</dt>
             <dd className="font-medium text-gray-900">
               {formData.description || "No description"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Condition</dt>
-            <dd className="font-medium text-gray-900 capitalize">
-              {formData.condition}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Visibility</dt>
-            <dd className="font-medium text-gray-900 capitalize">
-              {formData.visibility}
             </dd>
           </div>
           {formData.tags.length > 0 && (
@@ -144,23 +132,15 @@ export default function ProductReview({ formData, onEdit, steps }) {
         </div>
         <dl className="grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm text-gray-600">Base Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Sale Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.salePrice
-                ? `${formData.pricing.salePrice.toLocaleString()} RWF`
-                : "N/A"}
-            </dd>
-          </div>
-          <div>
             <dt className="text-sm text-gray-600">Cost Price</dt>
             <dd className="font-medium text-gray-900">
               {formData.pricing.cost?.toLocaleString() || "0"} RWF
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-gray-600">Selling Price</dt>
+            <dd className="font-medium text-gray-900">
+              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
             </dd>
           </div>
         </dl>
@@ -186,21 +166,9 @@ export default function ProductReview({ formData, onEdit, steps }) {
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">SKU</dt>
+            <dt className="text-sm text-gray-600">Low Stock Threshold</dt>
             <dd className="font-medium text-gray-900">
-              {formData.identifiers.sku || "N/A"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Min Reorder Level</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.inventory.minReorderQty}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Safety Stock</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.inventory.safetyStock}
+              {formData.inventory.lowStockThreshold}
             </dd>
           </div>
         </dl>
