@@ -510,8 +510,10 @@ export default function AddProductWizard({
                 totalSteps={TOTAL_STEPS}
                 isValid={validateStep(currentStep)}
                 isSubmitting={isSubmitting}
+                isEdit={isEdit}
                 onNext={handleNext}
                 onPrevious={handlePrevious}
+                onBackToList={() => router.push(`/${locale}/inventory/products`)}
                 onSubmit={handleSubmit}
               />
             </div>
@@ -527,6 +529,7 @@ export default function AddProductWizard({
                 currentStep={currentStep}
                 steps={steps}
                 orientation="vertical"
+                onStepClick={(step) => setCurrentStep(step)}
               />
             </div>
           )}

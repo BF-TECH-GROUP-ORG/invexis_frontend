@@ -2,6 +2,7 @@ export default function StepIndicator({
   currentStep,
   steps,
   orientation = "horizontal",
+  onStepClick,
 }) {
   const isVertical = orientation === "vertical";
 
@@ -21,19 +22,24 @@ export default function StepIndicator({
           } relative`}
         >
           {/* Step Item */}
-          <div
-            className={`flex items-center ${
+          <button
+            type="button"
+            onClick={() => onStepClick?.(step.number)}
+            disabled={!onStepClick}
+            className={`flex items-center text-left transition-all ${
+              onStepClick ? "hover:translate-x-1 cursor-pointer" : "cursor-default"
+            } ${
               isVertical ? "w-full mb-8 z-10" : "flex-col flex-1 z-10"
             }`}
           >
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors shrink-0 ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all shrink-0 ${
                 currentStep === step.number
-                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30 ring-4 ring-orange-100"
                   : currentStep > step.number
                   ? "bg-green-500 text-white"
                   : "bg-gray-100 text-gray-400 border border-gray-200"
-              }`}
+              } ${onStepClick && currentStep !== step.number ? "hover:bg-gray-200" : ""}`}
             >
               {currentStep > step.number ? (
                 <svg
@@ -54,17 +60,17 @@ export default function StepIndicator({
               )}
             </div>
             <div
-              className={`ml-3 text-sm font-medium ${
-                isVertical ? "text-left" : "mt-2 text-center hidden" // Hide label in horizontal to save space or keep if needed, specific requests didn't specify, but vertical usually has label next to bubble
+              className={`ml-3 text-sm font-medium transition-colors ${
+                isVertical ? "text-left" : "mt-2 text-center hidden"
               } ${
                 currentStep === step.number
                   ? "text-orange-600 font-bold"
-                  : "text-gray-500"
+                  : "text-gray-500 group-hover:text-gray-700"
               }`}
             >
               {step.label}
             </div>
-          </div>
+          </button>
 
           {/* Connector Line */}
           {idx < steps.length - 1 && (
