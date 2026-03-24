@@ -260,6 +260,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       } else {
         errors.nationalId = t("validation.required", { field: t("nationalId") });
       }
+      if (!worker.shops || !worker.shops[0]) {
+        errors.shops = t("validation.required", { field: t("shop") });
+      }
     }
 
     if (step === 2) {
@@ -597,6 +600,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               label={t("shop")}
               value={worker.shops[0] || ""}
               onChange={(e) => handleChange("shops", [e.target.value])}
+              required
+              error={!!fieldErrors.shops}
+              helperText={fieldErrors.shops}
               fullWidth
             >
               {availableShops.map((shop) => (
@@ -617,7 +623,14 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             <Card
               elevation={0}
               variant="outlined"
-              sx={{ borderRadius: "16px", p: 3, bgcolor: "#fff", border: "1px solid #e5e7eb" }}
+              sx={{
+                borderRadius: "16px",
+                p: 3,
+                bgcolor: "#fff",
+                border: "1px solid #e5e7eb",
+                boxShadow: "none",
+                "& *": { boxShadow: "none !important" },
+              }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Box>
