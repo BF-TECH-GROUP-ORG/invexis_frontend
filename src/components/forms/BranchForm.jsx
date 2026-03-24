@@ -132,6 +132,7 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
+                // Update coordinates immediately for faster UX
                 setFormData(prev => ({ ...prev, latitude: latitude.toString(), longitude: longitude.toString() }));
 
                 try {
@@ -149,16 +150,16 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                     }));
                 } catch (error) {
                     console.error("Error getting address:", error);
-                    setLocationError("Could not fetch address details");
+                    setLocationError("Could not fetch address details, but coordinates were saved");
                 } finally {
                     setLocationLoading(false);
                 }
             },
             (error) => {
-                setLocationError("Unable to retrieve your location");
+                setLocationError("Unable to retrieve your location. Please check browser permissions.");
                 setLocationLoading(false);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 10000 }
         );
     };
 
@@ -246,7 +247,13 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
             case 1:
                 return (
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Box sx={{ 
+                            display: "flex", 
+                            flexDirection: { xs: "column", sm: "row" }, 
+                            alignItems: { xs: "stretch", sm: "center" }, 
+                            justifyContent: "space-between",
+                            gap: 2
+                        }}>
                             <Typography variant="h6" fontWeight={700} color="#081422">Location Details</Typography>
                             <Button
                                 startIcon={<MapPin size={20} />}
@@ -258,10 +265,11 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                                     textTransform: "none",
                                     color: "#fe6600",
                                     borderColor: "#fe6600",
-                                    px: 4,
+                                    px: { xs: 2.5, sm: 4 },
                                     py: 1.8,
-                                    fontSize: "105%",
+                                    fontSize: { xs: "95%", sm: "105%" },
                                     fontWeight: 700,
+                                    width: { xs: "100%", sm: "auto" },
                                     "&:hover": { bgcolor: "rgba(254, 102, 0, 0.04)", borderColor: "#cc5200" }
                                 }}
                             >
@@ -367,9 +375,16 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
     return (
         <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
             {/* Header */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+            <Box sx={{ 
+                display: "flex", 
+                flexDirection: { xs: "column", md: "row" }, 
+                justifyContent: "space-between", 
+                alignItems: { xs: "flex-start", md: "center" }, 
+                mb: 4,
+                gap: 2
+            }}>
                 <Box>
-                    <Typography variant="h4" fontWeight={800} color="#081422">
+                    <Typography variant="h4" fontWeight={800} color="#081422" sx={{ fontSize: { xs: "1.75rem", md: "2.125rem" } }}>
                         {isEditMode ? "Update Shop" : "Add New Shop"}
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
@@ -379,9 +394,17 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                 <Button
                     startIcon={<ArrowLeft size={18} />}
                     onClick={() => router.push(`/${locale}/inventory/companies`)}
-                    sx={{ color: "#666", textTransform: "none", fontWeight: 600 }}
+                    sx={{ 
+                        color: "#666", 
+                        textTransform: "none", 
+                        fontWeight: 600,
+                        bgcolor: { xs: "#f3f4f6", md: "transparent" },
+                        px: { xs: 2, md: 1 },
+                        borderRadius: "8px",
+                        "&:hover": { bgcolor: "#e5e7eb" }
+                    }}
                 >
-                    Back to Companies
+                    {locale === 'en' ? 'Back' : t('buttons.back')}
                 </Button>
             </Box>
 
@@ -391,24 +414,62 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                     {renderStepContent(activeStep)}
 
                     {/* Footer Buttons */}
-                    <Box sx={{ mt: 6, pt: 4, borderTop: "1px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ 
+                        mt: 6, 
+                        pt: 4, 
+                        borderTop: "1px solid #e0e0e0", 
+                        display: "flex", 
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        justifyContent: "space-between", 
+                        alignItems: { xs: "stretch", sm: "center" },
+                        gap: 2
+                    }}>
                         <Button
                             onClick={handleBack}
                             disabled={activeStep === 0 || mutation.isLoading}
                             startIcon={<ArrowLeft size={18} />}
                             variant="outlined"
-                            sx={{ borderRadius: "12px", textTransform: "none", px: 4, py: 1.5, fontWeight: 600, color: "#081422", borderColor: "#081422" }}
+                            sx={{ 
+                                borderRadius: "12px", 
+                                textTransform: "none", 
+                                px: { xs: 2, sm: 4 }, 
+                                py: 1.5, 
+                                fontWeight: 600, 
+                                color: "#081422", 
+                                borderColor: "#081422",
+                                minWidth: { xs: "auto", sm: "120px" },
+                                width: { xs: "100%", sm: "auto" }
+                            }}
                         >
-                            {t("buttons.back")}
+                            <Box sx={{ display: { xs: "none", sm: "inline" } }}>
+                                {t("buttons.back")}
+                            </Box>
+                            <Box sx={{ display: { xs: "inline", sm: "none" } }}>
+                                Back
+                            </Box>
                         </Button>
 
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <Box sx={{ 
+                            display: "flex", 
+                            flexDirection: { xs: "column", sm: "row" },
+                            alignItems: { xs: "stretch", sm: "center" }, 
+                            gap: 2 
+                        }}>
                             {isEditMode && activeStep !== stepLabels.length - 1 && (
                                 <Button
                                     variant="outlined"
                                     onClick={handleSubmit}
                                     disabled={mutation.isLoading || !areAllStepsValid()}
-                                    sx={{ borderRadius: "12px", textTransform: "none", px: 4, py: 1.5, fontWeight: 600, color: "#fe6600", borderColor: "#fe6600" }}
+                                    sx={{ 
+                                        borderRadius: "12px", 
+                                        textTransform: "none", 
+                                        px: 4, 
+                                        py: 1.5, 
+                                        fontWeight: 600, 
+                                        color: "#fe6600", 
+                                        borderColor: "#fe6600",
+                                        width: { xs: "100%", sm: "auto" }
+                                    }}
                                 >
                                     {mutation.isLoading ? "Updating..." : "Update Shop"}
                                 </Button>
@@ -418,7 +479,16 @@ const BranchForm = ({ initialData = null, isEditMode = false, companyId: propCom
                                 onClick={activeStep === stepLabels.length - 1 ? handleSubmit : handleNext}
                                 endIcon={mutation.isLoading ? <CircularProgress size={20} color="inherit" /> : <ArrowRight size={18} />}
                                 disabled={mutation.isLoading || (activeStep === stepLabels.length - 1 && !areAllStepsValid())}
-                                sx={{ bgcolor: "#fe6600", "&:hover": { bgcolor: "#cc5200" }, borderRadius: "12px", textTransform: "none", px: 5, py: 1.5, fontWeight: 600 }}
+                                sx={{ 
+                                    bgcolor: "#fe6600", 
+                                    "&:hover": { bgcolor: "#cc5200" }, 
+                                    borderRadius: "12px", 
+                                    textTransform: "none", 
+                                    px: 5, 
+                                    py: 1.5, 
+                                    fontWeight: 600,
+                                    width: { xs: "100%", sm: "auto" }
+                                }}
                             >
                                 {activeStep === stepLabels.length - 1 
                                     ? (isEditMode ? "Update Shop" : "Create Shop") 

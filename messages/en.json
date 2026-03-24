@@ -267,6 +267,9 @@
     "cancel": "Cancel"
   },
   "common": {
+    "buttons": {
+      "back": "Back"
+    },
     "noData": "No data available",
     "loading": "Loading...",
     "ok": "OK",
