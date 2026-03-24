@@ -732,7 +732,13 @@
     "searchPlaceholder": "Search debtor name or phone...",
     "confirmCancelTitle": "Cancel Debt",
     "confirmCancelMessage": "Are you sure you want to cancel this debt? This action cannot be undone.",
-    "markPayed": "Mark as Paid"
+    "markPayed": "Mark as Paid",
+    "filters": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    }
   },
   "Debtstable": {
     "no": "No.",
