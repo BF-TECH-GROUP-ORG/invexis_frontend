@@ -10,7 +10,6 @@ import io from 'socket.io-client';
  * @returns {object} Socket.IO client instance
  */
 export const createSocketConnection = (gatewayUrl, token, options = {}) => {
-    // console.log(token); 
     const defaultOptions = {
         path: '/socket.io',
         auth: {
@@ -31,11 +30,11 @@ export const createSocketConnection = (gatewayUrl, token, options = {}) => {
 
     // Connection event handlers
     socket.on('connect', () => {
-        console.log('✅ Connected to WebSocket service');
+
     });
 
     socket.on('disconnect', (reason) => {
-        console.log('❌ Disconnected from WebSocket service:', reason);
+
     });
 
     socket.on('error', (error) => {

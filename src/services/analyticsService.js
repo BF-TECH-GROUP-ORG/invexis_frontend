@@ -57,7 +57,7 @@ const AnalyticsService = {
         const fullPath = url.toString();
 
         if (process.env.NODE_ENV === "development") {
-            console.log(`[AnalyticsService] Requesting: ${fullPath}`, params);
+
         }
 
         const response = await apiClient.get(fullPath, {

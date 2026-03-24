@@ -459,8 +459,8 @@ export const PAYMENT_URLS = {
  */
 export const logPaymentUrls = () => {
   console.group('🔗 Payment API Routes Mapping');
-  console.log('Base URL:', BASE_URL);
-  console.log('Routes:', PAYMENT_URLS);
+
+
   console.groupEnd();
 };
 
@@ -472,14 +472,14 @@ export const logPaymentRoute = (routeName) => {
   const route = PAYMENT_URLS[routeName];
   if (route) {
     console.group(`📋 Route: ${routeName}`);
-    console.log('Description:', route.description);
-    console.log('Method:', route.method);
-    console.log('URL:', typeof route.url === 'function' ? route.url('PLACEHOLDER') : route.url);
+
+
+
     if (route.sampleData) {
-      console.log('Sample Request Data:', route.sampleData);
+
     }
     if (route.expectedResponse) {
-      console.log('Expected Response:', route.expectedResponse);
+
     }
     console.groupEnd();
   } else {
@@ -493,7 +493,7 @@ export const logPaymentRoute = (routeName) => {
 export const logReportsRoutes = () => {
   console.group('📊 Reports Routes');
   Object.entries(PAYMENT_URLS.reports).forEach(([key, value]) => {
-    console.log(`  ${key}:`, value.url);
+
   });
   console.groupEnd();
 };

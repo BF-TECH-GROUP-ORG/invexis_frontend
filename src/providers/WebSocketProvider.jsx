@@ -37,14 +37,14 @@ export default function WebSocketProvider({ children }) {
         if (companyId) rooms.push(`company:${companyId}`);
         if (shopId) rooms.push(`shop:${shopId}`);
 
-        console.log('[WebSocketProvider] Initializing connection for user:', userId, 'with rooms:', rooms);
+
 
         // Connect to WebSocket
         webSocketService.connect(token, userId, rooms);
 
         // Subscribe to notification events
         const handleNotification = (data) => {
-            console.log('[WebSocketProvider] Real-time notification received:', data);
+
 
             // Dispatch to Redux store
             dispatch(addNotification({
@@ -71,12 +71,12 @@ export default function WebSocketProvider({ children }) {
         };
 
         const handleNotificationRead = (data) => {
-            console.log('[WebSocket] 📖 Notification read event:', data);
+
             dispatch(markReadLocally({ notificationId: data.notificationId }));
         };
 
         const handleNotificationDeleted = (data) => {
-            console.log('[WebSocket] 🗑️ Notification deleted event:', data);
+
             dispatch(removeNotificationLocally({ notificationId: data.notificationId }));
         };
 
@@ -89,7 +89,7 @@ export default function WebSocketProvider({ children }) {
 
         // Cleanup on unmount or session change
         return () => {
-            console.log('[WebSocketProvider] Cleaning up connection');
+
             webSocketService.unsubscribe('notification', handleNotification);
             webSocketService.disconnect();
         };

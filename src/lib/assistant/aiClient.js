@@ -12,7 +12,7 @@ export async function sendMessage(messages, context, image = null) {
 
     /* 
        FUTURE: Send this technical log to Admin Dashboard 
-       console.log('Assistant API response:', JSON.stringify(data, null, 2));
+
     */
 
     if (data.error) {
@@ -45,7 +45,7 @@ export async function transcribeAudio(audioBlob, accurate = false) {
 
     /* 
        FUTURE: Send this technical log to Admin Dashboard
-       console.log('Transcription API response:', JSON.stringify(data, null, 2));
+
     */
 
     if (data.error) {

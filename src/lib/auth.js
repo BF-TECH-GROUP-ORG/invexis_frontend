@@ -41,7 +41,7 @@ async function refreshAccessToken(token) {
 
     try {
         const refreshUrl = `${API_BASE}/auth/refresh`;
-        console.log(`[Auth] Attempting token refresh at: ${refreshUrl}`);
+
 
         const res = await fetch(refreshUrl, {
             method: "POST",
@@ -69,7 +69,7 @@ async function refreshAccessToken(token) {
         const data = await res.json();
         const setCookie = res.headers.get("set-cookie");
 
-        console.log(`[Auth] Token refreshed successfully. Expires in: ${data.expiresIn || '15 min'}`);
+
 
         return {
             ...token,

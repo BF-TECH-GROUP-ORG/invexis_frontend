@@ -312,7 +312,7 @@ export async function getCompanyDetails(id, options = {}) {
 export async function getAllCompanies(options = {}) {
   try {
     const response = await apiClient.get(buildUrl(`/company/companies`), options);
-    console.log("getAllCompanies raw response:", response);
+
 
     // Axios wraps response in response.data
     // Backend may return: {data: Array(...), ...} or just Array
@@ -321,12 +321,12 @@ export async function getAllCompanies(options = {}) {
     // Return the structured response so components can access via .data
     // This maintains consistency with React Query
     if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
-      console.log("✓ Companies extracted:", apiResponse.data.length, "companies");
+
       return { data: apiResponse.data };
     }
 
     if (Array.isArray(apiResponse)) {
-      console.log("✓ Companies (direct array):", apiResponse.length, "companies");
+
       return { data: apiResponse };
     }
 

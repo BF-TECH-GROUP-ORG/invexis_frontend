@@ -52,7 +52,7 @@ export async function createProductApiClient(formData, options = {}) {
     // 4. Call the service
     try {
         if (process.env.NODE_ENV === "development") {
-            console.log("[createProductApiClient] Submitting payload:", {
+
                 isEdit,
                 productId,
                 hasFiles,

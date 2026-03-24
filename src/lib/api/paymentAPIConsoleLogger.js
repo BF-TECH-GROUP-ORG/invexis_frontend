@@ -27,7 +27,7 @@ class PaymentAPIConsoleLogger {
     this.requestCount++;
     const requestNum = this.requestCount;
 
-    console.log(
+
       `%c[REQUEST #${requestNum}] %c${method} %c${path}`,
       `color: ${COLORS.info}; font-weight: bold;`,
       `color: ${COLORS.warning}; font-weight: bold; font-family: monospace;`,
@@ -35,7 +35,7 @@ class PaymentAPIConsoleLogger {
     );
 
     if (data) {
-      console.log('%cPayload:', `color: ${COLORS.dark}; font-weight: bold;`);
+
       console.table(data);
     }
 
@@ -51,15 +51,15 @@ class PaymentAPIConsoleLogger {
     const statusColor = statusCode >= 200 && statusCode < 300 ? COLORS.success : COLORS.danger;
     const statusText = statusCode >= 200 && statusCode < 300 ? 'SUCCESS' : 'ERROR';
 
-    console.log(
+
       `%c[RESPONSE #${requestNum}] %c${statusCode} ${statusText}`,
       `color: ${statusColor}; font-weight: bold;`,
       `color: ${statusColor}; font-weight: bold;`
     );
 
-    console.log('%cResponse Data:', `color: ${COLORS.dark}; font-weight: bold;`);
-    console.log(responseData);
-    console.log('');
+
+
+
   }
 
   /**
@@ -68,15 +68,15 @@ class PaymentAPIConsoleLogger {
   logPaymentSummary(paymentData) {
     if (!paymentData) return;
 
-    console.log(
+
       '%c╔════════════════════════════════════════════════════════╗',
       `color: ${COLORS.primary}; font-size: 12px;`
     );
-    console.log(
+
       `%c║          PAYMENT DATA SUMMARY                         ║`,
       `color: ${COLORS.primary}; font-size: 13px; font-weight: bold;`
     );
-    console.log(
+
       '%c╚════════════════════════════════════════════════════════╝',
       `color: ${COLORS.primary}; font-size: 12px;`
     );
@@ -92,7 +92,7 @@ class PaymentAPIConsoleLogger {
     console.table(summary);
 
     if (paymentData.payments && paymentData.payments.length > 0) {
-      console.log('%cPayment Details:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
       console.table(paymentData.payments);
 
       // Status breakdown
@@ -104,14 +104,14 @@ class PaymentAPIConsoleLogger {
         methodBreakdown[payment.paymentMethod] = (methodBreakdown[payment.paymentMethod] || 0) + 1;
       });
 
-      console.log('%cStatus Breakdown:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
       console.table(statusBreakdown);
 
-      console.log('%cPayment Methods Breakdown:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
       console.table(methodBreakdown);
     }
 
-    console.log('');
+
   }
 
   /**
@@ -120,15 +120,15 @@ class PaymentAPIConsoleLogger {
   logTransactionSummary(transactionData) {
     if (!transactionData) return;
 
-    console.log(
+
       '%c╔════════════════════════════════════════════════════════╗',
       `color: ${COLORS.secondary}; font-size: 12px;`
     );
-    console.log(
+
       `%c║        TRANSACTION DATA SUMMARY                       ║`,
       `color: ${COLORS.secondary}; font-size: 13px; font-weight: bold;`
     );
-    console.log(
+
       '%c╚════════════════════════════════════════════════════════╝',
       `color: ${COLORS.secondary}; font-size: 12px;`
     );
@@ -143,11 +143,11 @@ class PaymentAPIConsoleLogger {
     console.table(summary);
 
     if (transactionData.transactions && transactionData.transactions.length > 0) {
-      console.log('%cTransaction Details:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
       console.table(transactionData.transactions);
     }
 
-    console.log('');
+
   }
 
   /**
@@ -156,23 +156,23 @@ class PaymentAPIConsoleLogger {
   logInvoiceSummary(invoiceData) {
     if (!invoiceData) return;
 
-    console.log(
+
       '%c╔════════════════════════════════════════════════════════╗',
       `color: ${COLORS.warning}; font-size: 12px;`
     );
-    console.log(
+
       `%c║           INVOICE DATA SUMMARY                        ║`,
       `color: ${COLORS.warning}; font-size: 13px; font-weight: bold;`
     );
-    console.log(
+
       '%c╚════════════════════════════════════════════════════════╝',
       `color: ${COLORS.warning}; font-size: 12px;`
     );
 
     if (invoiceData.invoiceId) {
       // Single invoice
-      console.log('%cInvoice Details:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
-      console.log({
+
+
         'Invoice ID': invoiceData.invoiceId,
         'Amount': invoiceData.amount,
         'Currency': invoiceData.currency,
@@ -181,7 +181,7 @@ class PaymentAPIConsoleLogger {
       });
 
       if (invoiceData.items && invoiceData.items.length > 0) {
-        console.log('%cInvoice Items:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
         console.table(invoiceData.items);
       }
     } else {
@@ -195,12 +195,12 @@ class PaymentAPIConsoleLogger {
       console.table(summary);
 
       if (invoiceData.invoices && invoiceData.invoices.length > 0) {
-        console.log('%cInvoice Details:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
+
         console.table(invoiceData.invoices);
       }
     }
 
-    console.log('');
+
   }
 
   /**
@@ -209,23 +209,23 @@ class PaymentAPIConsoleLogger {
   logReportingData(reportName, reportData) {
     if (!reportData) return;
 
-    console.log(
+
       '%c╔════════════════════════════════════════════════════════╗',
       `color: ${COLORS.info}; font-size: 12px;`
     );
-    console.log(
+
       `%c║           ${reportName.toUpperCase().padEnd(50)} ║`,
       `color: ${COLORS.info}; font-size: 13px; font-weight: bold;`
     );
-    console.log(
+
       '%c╚════════════════════════════════════════════════════════╝',
       `color: ${COLORS.info}; font-size: 12px;`
     );
 
-    console.log('%cReport Data:', `color: ${COLORS.dark}; font-weight: bold; font-size: 12px;`);
-    console.log(reportData);
 
-    console.log('');
+
+
+
   }
 
   /**
@@ -240,22 +240,22 @@ class PaymentAPIConsoleLogger {
       `color: ${COLORS.danger}; font-family: monospace;`
     );
     console.error(error);
-    console.log('');
+
   }
 
   /**
    * Log API statistics
    */
   logStatistics() {
-    console.log(
+
       '%c╔════════════════════════════════════════════════════════╗',
       `color: ${COLORS.dark}; font-size: 12px;`
     );
-    console.log(
+
       `%c║           API STATISTICS                              ║`,
       `color: ${COLORS.dark}; font-size: 13px; font-weight: bold;`
     );
-    console.log(
+
       '%c╚════════════════════════════════════════════════════════╝',
       `color: ${COLORS.dark}; font-size: 12px;`
     );
@@ -268,11 +268,11 @@ class PaymentAPIConsoleLogger {
     });
 
     if (this.errors.length > 0) {
-      console.log('%cErrors:', `color: ${COLORS.danger}; font-weight: bold; font-size: 12px;`);
+
       console.table(this.errors);
     }
 
-    console.log('');
+
   }
 
   /**
@@ -282,7 +282,7 @@ class PaymentAPIConsoleLogger {
     this.requestCount = 0;
     this.responseCount = 0;
     this.errors = [];
-    console.log('%cConsole logger reset', `color: ${COLORS.success}; font-weight: bold;`);
+
   }
 }
 

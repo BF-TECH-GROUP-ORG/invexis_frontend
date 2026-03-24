@@ -215,13 +215,13 @@ const AnalyticsPage = () => {
 
     // Summary Data
     const summary = summaryRes?.data || summaryRes || {};
-    console.log('📊 Summary Response:', summaryRes);
-    console.log('📊 Summary Data:', summary);
+
+
 
     // Sales Performance
     const rawSales = salesRes?.data || salesRes || [];
-    console.log('💰 Sales Response:', salesRes);
-    console.log('💰 Raw Sales:', rawSales);
+
+
 
     const salesPerformance = rawSales.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
@@ -229,13 +229,13 @@ const AnalyticsPage = () => {
         current: parseFloat(item.revenue) || 0,
         previous: 0
     }));
-    console.log('💰 Sales Performance (transformed):', salesPerformance);
+
 
     // Profitability
     // API: [{"date":"...","revenue":"98.00","cost":"9.00","profit":"89.00","grossMarginPercent":"..."}]
     const rawProfitability = profitabilityRes?.data || profitabilityRes || [];
-    console.log('📈 Profitability Response:', profitabilityRes);
-    console.log('📈 Raw Profitability:', rawProfitability);
+
+
 
     const profitabilityData = rawProfitability.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
@@ -245,29 +245,29 @@ const AnalyticsPage = () => {
         profit: parseFloat(item.profit) || 0,
         margin: parseFloat(item.grossMarginPercent) || 0
     }));
-    console.log('📈 Profitability Data (transformed):', profitabilityData);
+
 
     // Top Products
     const rawProducts = productsRes?.data || productsRes || [];
-    console.log('🏆 Products Response:', productsRes);
-    console.log('🏆 Raw Products:', rawProducts);
+
+
 
     const topProducts = rawProducts.map(item => ({
         name: item.productName || 'Unknown',
         quantity: parseInt(item.totalQuantity) || 0
     }));
-    console.log('🏆 Top Products (transformed):', topProducts);
+
 
     // Payment Methods
     const rawCategories = categoriesRes?.data || categoriesRes || [];
-    console.log('💳 Categories Response:', categoriesRes);
-    console.log('💳 Raw Categories:', rawCategories);
+
+
 
     const categories = rawCategories.map(item => ({
         name: item.method || 'Unknown',
         value: parseInt(item.count) || 0
     }));
-    console.log('💳 Categories (transformed):', categories);
+
 
     // Shop Performance
     const rawShops = shopRes?.data || shopRes || [];

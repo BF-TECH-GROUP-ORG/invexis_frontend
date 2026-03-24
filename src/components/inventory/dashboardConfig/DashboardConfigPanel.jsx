@@ -125,7 +125,7 @@ export default function DashboardConfigPanel({ companyId }) {
             }
         } catch (err) {
             // Use defaults if no config exists
-            console.log("Using default dashboard config");
+
         } finally {
             setLoading(false);
         }

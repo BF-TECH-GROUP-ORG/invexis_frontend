@@ -167,7 +167,7 @@ export default function DocumentsPageClient() {
     };
 
     const handleBulkAction = async (actionType) => {
-        console.log(`[DocumentsPage] Bulk Action: ${actionType} on IDs:`, selectedIds);
+
         // Real implementation would call a delete/archive service
         setSelectedIds([]); // Clear after action
     };

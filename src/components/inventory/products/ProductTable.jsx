@@ -204,7 +204,7 @@ export default function ProductTable({
               rows.map((product) => {
                 // Debug: Log product data to see actual structure
                 if (product.name === "Officia dolorem quo") {
-                  console.log("Product Data Debug:", {
+
                     name: product.name,
                     pricing: product.pricing,
                     pricingId: product.pricingId,

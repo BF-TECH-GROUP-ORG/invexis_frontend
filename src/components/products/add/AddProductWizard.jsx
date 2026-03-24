@@ -126,7 +126,7 @@ export default function AddProductWizard({
           const { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
           if (savedFormData) setFormData(savedFormData);
           if (savedStep) setCurrentStep(savedStep);
-          console.log("Welcome back! Restored your progress.");
+
         } catch (e) {
           console.error("Failed to restore wizard state:", e);
         }
@@ -274,7 +274,7 @@ export default function AddProductWizard({
   }, [isWorker]);
 
   const TOTAL_STEPS = steps.length;
-  console.log(formData);
+
 
   const updateFormData = (updates) => {
     setFormData((prev) => ({
@@ -368,7 +368,7 @@ export default function AddProductWizard({
         productId: initialData?._id
       });
 
-      console.log("🚀 Product Operation Success:", response);
+
 
       // Clear persistence on success
       if (typeof window !== "undefined") {

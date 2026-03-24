@@ -97,7 +97,7 @@ export function getCacheStrategy(module, dataType = "DEFAULT") {
   const strategy = CACHE_STRATEGIES[key] || CACHE_STRATEGIES.DEFAULT;
 
   if (process.env.NODE_ENV === "development") {
-    console.log(`[Cache Strategy] ${key}:`, strategy);
+
   }
 
   return strategy;

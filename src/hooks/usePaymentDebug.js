@@ -38,8 +38,8 @@ export const usePaymentDebug = () => {
       return;
     }
 
-    console.log('📌 Configuration:');
-    console.log({
+
+
       description: route.description,
       method: route.method,
       url: typeof route.url === 'function' ? route.url(id || 'PLACEHOLDER') : route.url,
@@ -47,15 +47,15 @@ export const usePaymentDebug = () => {
     });
 
     if (route.sampleData) {
-      console.log('📨 Sample Request Payload:', route.sampleData);
+
     }
 
     if (route.sampleUrl) {
-      console.log('🔗 Sample URL:', route.sampleUrl);
+
     }
 
     if (route.expectedResponse) {
-      console.log('📤 Expected Response Structure:', route.expectedResponse);
+
     }
 
     console.groupEnd();
@@ -79,8 +79,8 @@ export const usePaymentDebug = () => {
     if (typeof categoryData === 'object' && !categoryData.url) {
       // It's a nested category
       Object.entries(categoryData).forEach(([key, route]) => {
-        console.log(`\n  🔹 ${key}:`);
-        console.log({
+
+
           description: route.description,
           method: route.method,
           url: typeof route.url === 'function' ? route.url('ID') : route.url
@@ -88,7 +88,7 @@ export const usePaymentDebug = () => {
       });
     } else {
       // It's a single route
-      console.log(categoryData);
+
     }
 
     console.groupEnd();
@@ -108,14 +108,14 @@ export const usePaymentDebug = () => {
     const route = PAYMENT_URLS[endpoint];
     const url = typeof route.url === 'function' ? route.url(id) : route.url;
 
-    console.log({
+
       timestamp: new Date().toISOString(),
       method: route.method,
       url: url,
       payload: payload || route.sampleData || null
     });
 
-    console.log('Expected Response Structure:', route.expectedResponse || 'TBD');
+
     console.groupEnd();
 
     // Return mock data structure
@@ -161,7 +161,7 @@ export const usePaymentDebug = () => {
       endpoints.forEach(endpoint => {
         const route = PAYMENT_URLS[endpoint];
         if (route && route.url && typeof route.url !== 'function') {
-          console.log(`  ${endpoint}: ${route.url}`);
+
         }
       });
       console.groupEnd();

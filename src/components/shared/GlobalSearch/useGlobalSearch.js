@@ -44,7 +44,7 @@ export default function useGlobalSearch(query, session) {
     const preFetchData = async () => {
       setIsPreFetching(true);
       try {
-        console.log("Pre-fetching global search data...");
+
         const [productsRes, workersRes, branchesRes] = await Promise.allSettled([
           getProducts({ companyId: companyIdStr, limit: 200 }, {
             headers: { Authorization: `Bearer ${session?.accessToken}` }

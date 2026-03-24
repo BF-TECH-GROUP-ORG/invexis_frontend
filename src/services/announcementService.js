@@ -145,7 +145,7 @@ class AnnouncementService {
         this.token = token || null;
 
         if (USE_MOCK_SOCKET) {
-            console.log('🔶 [AnnouncementService] Mock Socket Connected');
+
             this.isConnected = true;
             this._startMockEventLoop();
         } else {
@@ -155,7 +155,7 @@ class AnnouncementService {
             });
 
             socket.on('connect', () => {
-                console.log('✅ [AnnouncementService] Socket Connected:', socket.id);
+
                 this.isConnected = true;
             });
 
@@ -172,7 +172,7 @@ class AnnouncementService {
             });
 
             socket.on('disconnect', () => {
-                console.log('❌ [AnnouncementService] Socket Disconnected');
+
                 this.isConnected = false;
             });
         }
@@ -356,7 +356,7 @@ class AnnouncementService {
             await delay(100);
             const item = mockAnnouncements.find(a => a.id === id);
             if (item) {
-                console.log(`💤 Snoozing item ${id} for ${durationMs}ms`);
+
                 this._notifyListeners('delete', id);
             }
             return true;
@@ -462,7 +462,7 @@ class AnnouncementService {
 
             // Normalize category before storing/emitting
             const normalized = this._mapCategory(newEvent);
-            console.log('⚡ [AnnouncementService] Emitting mock event:', normalized.title);
+
             mockAnnouncements.unshift(normalized); // Add to local store
             this._notifyListeners('new', normalized);
 

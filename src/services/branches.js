@@ -6,14 +6,14 @@ export const getBranches = async (companyId, options = {}) => {
   try {
     if (!companyId) return [];
     const url = `${BASE_URL}/shop/`;
-    console.log(`Fetching branches from: ${url} with companyId:`, companyId);
+
     const response = await apiClient.get(url, {
       params: { companyId },
       cache: { ttl: 5 * 60 * 1000 },
       ...options,
     });
-    console.log("Branches API Raw Response:", response);
-    console.log("Response.data structure:", response.data);
+
+
 
     // Axios wraps the response in response.data
     // Backend returns: {success: true, data: Array(...), pagination: {...}}
@@ -48,7 +48,7 @@ export const getBranchById = async (branchId, companyId) => {
     const response = await apiClient.get(`${BASE_URL}/shop/${branchId}`, {
       params: { companyId },
     });
-    console.log("Branch fetched:", response);
+
     return response;
   } catch (error) {
     console.error("Error fetching branch:", error);
@@ -67,7 +67,7 @@ export const createBranch = async (branchData) => {
     const response = await apiClient.post(`${BASE_URL}/shop`, branchData);
     apiClient.clearCache("shop");
     apiClient.clearCache("branches");
-    console.log("Branch created:", response);
+
     return response;
   } catch (error) {
     console.error("Error creating branch:", error);
@@ -86,7 +86,7 @@ export const updateBranch = async (branchId, branchData, companyId) => {
     );
     apiClient.clearCache("shop");
     apiClient.clearCache("branches");
-    console.log("Branch updated:", response);
+
     return response;
   } catch (error) {
     console.error("Error updating branch:", error);
@@ -101,7 +101,7 @@ export const deleteBranch = async (branchId, companyId) => {
     });
     apiClient.clearCache("shop");
     apiClient.clearCache("branches");
-    console.log("Branch deleted:", response);
+
     return response;
   } catch (error) {
     console.error("Error deleting branch:", error);

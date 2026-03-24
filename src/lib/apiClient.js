@@ -40,7 +40,7 @@ function getCachedResponse(key) {
 
   if (age < ttl) {
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Cache HIT] ${key} (age: ${Math.floor(age / 1000)}s)`);
+
     }
     return data;
   }
@@ -48,7 +48,7 @@ function getCachedResponse(key) {
   // Expired, remove from cache
   cache.delete(key);
   if (process.env.NODE_ENV === "development") {
-    console.log(`[Cache EXPIRED] ${key}`);
+
   }
   return null;
 }
@@ -65,7 +65,7 @@ function setCachedResponse(key, data, ttl) {
     });
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Cache SET] ${key} (ttl: ${ttl / 1000}s)`);
+
     }
   }
 }
@@ -121,7 +121,7 @@ async function retryRequest(fn, retries = 1, delay = 100) {
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Retry] Attempt ${4 - retries}/3 after ${delay}ms`);
+
     }
 
     await new Promise((resolve) => setTimeout(resolve, delay));
@@ -161,7 +161,7 @@ apiInstance.interceptors.request.use(
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(
+
         `[API Request] ${config.method?.toUpperCase()} ${config.url}`
       );
     }
@@ -177,7 +177,7 @@ apiInstance.interceptors.request.use(
 apiInstance.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === "development") {
-      console.log(`[API Response] ${response.config.url} - ${response.status}`);
+
     }
     return response;
   },
@@ -225,7 +225,7 @@ async function get(url, options = {}) {
     // Check if identical request is already pending (deduplication)
     if (pendingRequests.has(cacheKey)) {
       if (process.env.NODE_ENV === "development") {
-        console.log(`[Request DEDUP] ${cacheKey}`);
+
       }
       return pendingRequests.get(cacheKey);
     }
@@ -308,7 +308,7 @@ function clearCache(pattern) {
   if (!pattern) {
     cache.clear();
     if (process.env.NODE_ENV === "development") {
-      console.log("[Cache CLEARED] All entries");
+
     }
     return;
   }
@@ -322,7 +322,7 @@ function clearCache(pattern) {
   }
 
   if (process.env.NODE_ENV === "development") {
-    console.log(`[Cache CLEARED] ${cleared} entries matching "${pattern}"`);
+
   }
 }
 

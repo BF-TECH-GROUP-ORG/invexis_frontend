@@ -68,7 +68,6 @@ export const compressImage = async (file, options = {}) => {
             );
 
             // Log compression stats
-            // console.log(
             //   `Compressed: ${(file.size / 1024).toFixed(2)}KB -> ${(
             //     newFile.size / 1024
             //   ).toFixed(2)}KB`

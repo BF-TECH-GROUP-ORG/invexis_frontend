@@ -18,7 +18,7 @@ export const getAllShops = async (companyId, options = {}) => {
       ...options,
     });
 
-    console.log("Shops fetched:", data);
+
 
     // Handle different response structures
     if (Array.isArray(data)) {
@@ -56,7 +56,7 @@ export const deleteShop = async (shopId, companyId, options = {}) => {
     apiClient.clearCache("/shops");
     apiClient.clearCache("/branches"); // In case URL contains branches
 
-    console.log("Shop deleted successfully:", data);
+
     return data;
   } catch (error) {
     console.error("Failed to delete shop:", error.message);
@@ -79,7 +79,7 @@ export const getShopById = async (shopId, companyId, options = {}) => {
       ...options,
     });
 
-    console.log("Shop fetched:", data);
+
 
     // Handle nested response structures
     if (data?.data?.name) return data.data;
@@ -111,7 +111,7 @@ export const createShop = async (shopData, companyId, options = {}) => {
     apiClient.clearCache("/shops");
     apiClient.clearCache("/branches");
 
-    console.log("Shop created successfully:", data);
+
     return data;
   } catch (error) {
     console.error("Failed to create shop:", error.message);

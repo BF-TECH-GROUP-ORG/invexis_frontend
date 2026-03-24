@@ -71,7 +71,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
           }
         }
 
-        console.log(
+
           "Fetching parents for company:",
           currentCompanyId,
           "User object:",
@@ -84,7 +84,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
           const parents = Array.isArray(data) ? data : data.data || [];
           setParentOptions(parents.filter((cat) => cat._id !== editData?._id));
         } else {
-          console.log("No company ID found in user object or editData");
+
         }
       } catch (error) {
         console.error("Error fetching parent categories:", error);

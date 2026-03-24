@@ -17,7 +17,7 @@ export const getAllProducts = async (companyId = null, options = {}) => {
 
     const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy, ...options });
 
-    console.log('Products API data:', apiData);
+
 
     // Handle both cases: API returns { success: true, data: [...] } OR API returns array directly
     let rawProducts = [];
@@ -29,7 +29,7 @@ export const getAllProducts = async (companyId = null, options = {}) => {
       rawProducts = apiData.products;
     }
 
-    console.log("Raw products for mapping:", rawProducts.length);
+
 
     return rawProducts.map((product) => ({
       id: product._id || product.id,
@@ -61,10 +61,10 @@ export const singleProductFetch = async (productId) => {
     const data = await apiClient.get(`${URL}/${productId}`, {
       cache: cacheStrategy,
     });
-    console.log("Single product fetched:", data);
+
     return data;
   } catch (error) {
-    console.log("Failed to fetch single product:", error.message);
+
     return null;
   }
 };
@@ -79,14 +79,14 @@ export const singleProductFetch = async (productId) => {
  */
 export const SellProduct = async (saleData, isDebt = false) => {
   try {
-    console.log("--- SellProduct Service Called ---");
-    console.log("Transaction Type:", isDebt ? "DEBT + SALE" : "REGULAR SALE");
+
+
 
     // 1. Always record the sale first
     // We use the relative URL to ensure it uses the baseURL from axios instance
-    console.log("Recording sale...");
+
     const saleResponse = await apiClient.post("/sales", saleData);
-    console.log("Sale recorded:", saleResponse);
+
 
     // 2. If it's a debt, also record the debt
     if (isDebt) {
@@ -111,8 +111,8 @@ export const SellProduct = async (saleData, isDebt = false) => {
         isDebt: true,
       };
 
-      console.log("Recording debt...");
-      console.log("Debt Payload:", JSON.stringify(debtPayload, null, 2));
+
+
       try {
         await apiClient.post("/debt/create", debtPayload);
       } catch (debtError) {
@@ -128,7 +128,7 @@ export const SellProduct = async (saleData, isDebt = false) => {
       apiClient.clearCache("debt");
     }
 
-    console.log("Transaction processed successfully.");
+
     return saleResponse;
   } catch (error) {
     console.error("--- SellProduct Service Error ---");
@@ -160,7 +160,7 @@ export const getSalesHistory = async (companyId, filters = {}, options = {}) => 
       cache: cacheStrategy,
       ...options
     });
-    console.log("Sales history fetched:", data);
+
 
     // Handle cases where the API wraps the array in an object
     if (data && !Array.isArray(data)) {
@@ -188,7 +188,7 @@ export const getSalesByWorker = async (soldBy, companyId, options = {}) => {
       cache: cacheStrategy,
       ...options
     });
-    console.log(`Sales history for worker ${soldBy} fetched:`, data);
+
 
     // Handle cases where the API wraps the array in an object
     if (data && !Array.isArray(data)) {
@@ -215,10 +215,10 @@ export const getSingleSale = async (saleId, options = {}) => {
       cache: cacheStrategy,
       ...options
     });
-    console.log("Single sale fetched:", data);
+
     return data;
   } catch (error) {
-    console.log("Failed to fetch sale details:", error.message);
+
     return null;
   }
 };
@@ -238,7 +238,7 @@ export const updateSale = async (saleId, updateData) => {
     // Clear sales cache
     apiClient.clearCache("/sales");
 
-    console.log("Sale updated successfully:", data);
+
     return data;
   } catch (error) {
     console.error("Failed to update sale:", error.message);
@@ -258,7 +258,7 @@ export const deleteSale = async (saleId) => {
     // Clear sales cache
     apiClient.clearCache("/sales");
 
-    console.log("Sale deleted successfully:", data);
+
     return data;
   } catch (error) {
     console.error("Failed to delete sale:", error.message);
@@ -285,7 +285,7 @@ export const getCustomers = async () => {
     const data = await apiClient.get(`${SALES_URL}/k/all`, {
       cache: cacheStrategy
     });
-    console.log("Customers fetched:", data);
+
 
     // Structure: { success: true, data: [...], pagination: {...} }
     if (data.success && Array.isArray(data.data)) {
@@ -305,7 +305,7 @@ export const createReturn = async (returnData) => {
     // Clear sales cache
     apiClient.clearCache("/sales");
 
-    console.log("Return created successfully:", data);
+
     return data;
   } catch (error) {
     console.error("Failed to create return:", error.message);

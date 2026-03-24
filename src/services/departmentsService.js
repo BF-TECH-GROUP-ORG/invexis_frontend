@@ -20,11 +20,11 @@ export const getDepartmentsByCompany = async (companyId, options = {}) => {
     }
 
     const url = `${DEPARTMENTS_URL}/company/companies/${companyId}/departments`;
-    console.log("Fetching departments from:", url);
+
 
     const response = await apiClient.get(url, { ...options });
 
-    console.log("Departments fetched successfully:", response);
+
 
     // Handle different response structures
     return response.departments || response.data || response || [];

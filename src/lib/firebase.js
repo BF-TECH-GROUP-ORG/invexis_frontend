@@ -20,7 +20,7 @@ if (typeof window !== "undefined") {
     isSupported().then(supported => {
         if (supported) {
             messaging = getMessaging(app);
-            console.log("Firebase Messaging initialized.");
+
         }
     }).catch(err => {
         console.warn("Firebase Messaging skip initialization:", err.message);

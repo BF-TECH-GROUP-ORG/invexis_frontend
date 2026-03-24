@@ -17,7 +17,7 @@ async function handleProxy(req, { params }) {
     const targetUrl = `${API_URL}/${pathString}${searchParams ? `?${searchParams}` : ''}`;
 
     if (process.env.NODE_ENV === 'development') {
-        console.log(`[Proxy] ${req.method} ${req.url} -> ${targetUrl}`);
+
     }
 
     // Clone headers and remove ones that might conflict
