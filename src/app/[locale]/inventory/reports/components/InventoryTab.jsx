@@ -69,9 +69,10 @@ const InventoryTab = ({ dateRange }) => {
         if (!rawReportData?.data) return { summary: null, reportData: [] };
         const { branches, period } = rawReportData.data;
         
-        const periodText = period 
-            ? `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`
-            : t('common.currentPeriod');
+        const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+        const periodText = isAllTime
+            ? t('controls.allTime') || 'All Time'
+            : `${dayjs(period.startDate).format('MMM DD')} - ${dayjs(period.endDate).format('MMM DD, YYYY')}`;
 
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 
@@ -290,7 +291,9 @@ const InventoryTab = ({ dateRange }) => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    {dateRange.startDate ? (
+                                    {isAllTime ? (
+                                        t('controls.allTime') || 'All Time'
+                                    ) : dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
                                         t('common.date')
@@ -388,15 +391,15 @@ const InventoryTab = ({ dateRange }) => {
                                                 );
                                             })}
                                             {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
-                                                <TableCell colSpan={2} />
-                                                <TableCell align="center">{shop.totals?.movement?.open || 0}</TableCell>
-                                                <TableCell align="center">{shop.totals?.movement?.in || 0}</TableCell>
-                                                <TableCell align="center">{shop.totals?.movement?.out || 0}</TableCell>
-                                                <TableCell align="center">{shop.totals?.movement?.close || 0}</TableCell>
-                                                <TableCell align="center">-</TableCell>
-                                                <TableCell align="center">{formatCurrency(shop.totals?.value?.totalValue || 0)}</TableCell>
+                                            <TableRow sx={{ bgcolor: "#FFF7ED", "& td": { color: "#9A3412", fontWeight: "700", fontSize: "0.80rem", py: 1, borderBottom: "2px solid #FED7AA" } }}>
+                                                <TableCell colSpan={2} sx={{ pl: 2, borderRight: "none" }}>{t('common.subtotal', { name: shop.name })}</TableCell>
+                                                <TableCell colSpan={2} sx={{ borderRight: "none" }} />
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.movement?.open || 0}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.movement?.in || 0}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.movement?.out || 0}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.movement?.close || 0}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12" }}>{formatCurrency(shop.totals?.value?.totalValue || 0)}</TableCell>
                                                 <TableCell colSpan={5} />
                                             </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
@@ -409,15 +412,15 @@ const InventoryTab = ({ dateRange }) => {
                             <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
 
                             {/* Grand Total Row */}
-                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                <TableCell colSpan={2} />
-                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.open || 0}</TableCell>
-                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.in || 0}</TableCell>
-                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.out || 0}</TableCell>
-                                <TableCell align="center">{rawReportData?.data?.grandTotal?.movement?.close || 0}</TableCell>
-                                <TableCell align="center">-</TableCell>
-                                <TableCell align="center">{formatCurrency(rawReportData?.data?.grandTotal?.value?.totalValue || 0)}</TableCell>
+                            <TableRow sx={{ bgcolor: "#111827", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.1)" } }}>
+                                <TableCell colSpan={2} sx={{ pl: 2, borderRight: "1px solid rgba(255,255,255,0.2)" }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }} />
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{rawReportData?.data?.grandTotal?.movement?.open || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{rawReportData?.data?.grandTotal?.movement?.in || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{rawReportData?.data?.grandTotal?.movement?.out || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{rawReportData?.data?.grandTotal?.movement?.close || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>-</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#10B981" }}>{formatCurrency(rawReportData?.data?.grandTotal?.value?.totalValue || 0)}</TableCell>
                                 <TableCell colSpan={5} />
                             </TableRow>
                         </TableBody>
