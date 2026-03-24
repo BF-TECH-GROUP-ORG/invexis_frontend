@@ -276,6 +276,13 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     return Object.keys(errors).length === 0;
   };
 
+  const areAllStepsValid = () => {
+    for (let i = 0; i < stepLabels.length; i++) {
+      if (Object.keys(getStepErrors(i)).length > 0) return false;
+    }
+    return true;
+  };
+
   const validateAllSteps = () => {
     let allErrors = {};
     let firstErrorStep = -1;
@@ -545,6 +552,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             <TextField
               label={t("nationalId")}
               value={worker.nationalId}
+              required
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
                 if (val.length > 0 && val[0] !== "1") return;
@@ -607,8 +615,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               Review & Submit
             </Typography>
             <Card
+              elevation={0}
               variant="outlined"
-              sx={{ borderRadius: "16px", p: 3, bgcolor: "#f9fafb" }}
+              sx={{ borderRadius: "16px", p: 3, bgcolor: "#fff", border: "1px solid #e5e7eb" }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Box>
@@ -795,7 +804,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                 <Button
                   variant="outlined"
                   onClick={handleSubmit}
-                  disabled={createWorkerMutation.isLoading}
+                  disabled={createWorkerMutation.isLoading || !areAllStepsValid()}
                   sx={{
                     borderRadius: "12px",
                     textTransform: "none",
@@ -825,7 +834,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                     <HiArrowRight />
                   )
                 }
-                disabled={createWorkerMutation.isLoading}
+                disabled={createWorkerMutation.isLoading || (activeStep === stepLabels.length - 1 && !areAllStepsValid())}
                 sx={{
                   bgcolor: "#fe6600",
                   "&:hover": { bgcolor: "#cc5200" },

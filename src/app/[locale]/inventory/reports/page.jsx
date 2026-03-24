@@ -128,7 +128,7 @@ const ReportsPage = () => {
         setDateRange({ startDate: start, endDate: end, filter: reportView });
     }, [reportView, selectedDate]);
 
-    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', */ 'visualize'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', 'visualize'*/ ];
     const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
