@@ -284,12 +284,12 @@ const DebtsTab = ({ dateRange }) => {
                                                 );
                                             })}
                                             {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: branch.name })}</TableCell>
-                                                <TableCell colSpan={2} />
-                                                <TableCell align="center">{formatCurrency(branch.totals?.original || 0)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(branch.totals?.paid || 0)}</TableCell>
-                                                <TableCell align="center">{formatCurrency(branch.totals?.outstanding || 0)}</TableCell>
+                                            <TableRow sx={{ bgcolor: "#FFF7ED", "& td": { color: "#9A3412", fontWeight: "700", fontSize: "0.80rem", py: 1, borderBottom: "2px solid #FED7AA" } }}>
+                                                <TableCell colSpan={3} sx={{ pl: 2, borderRight: "none" }}>{t('common.subtotal', { name: branch.name })}</TableCell>
+                                                <TableCell colSpan={2} sx={{ borderRight: "none" }} />
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(branch.totals?.original || 0)}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(branch.totals?.paid || 0)}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12" }}>{formatCurrency(branch.totals?.outstanding || 0)}</TableCell>
                                                 <TableCell colSpan={7} />
                                             </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
@@ -302,12 +302,12 @@ const DebtsTab = ({ dateRange }) => {
                             <TableRow sx={{ height: 16 }}><TableCell colSpan={14} sx={{ border: "none" }} /></TableRow>
 
                             {/* Grand Total Row */}
-                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                <TableCell colSpan={2} />
-                                <TableCell align="center">{formatCurrency(summary?.original || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(summary?.paid || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(summary?.outstanding || 0)}</TableCell>
+                            <TableRow sx={{ bgcolor: "#111827", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.1)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2, borderRight: "1px solid rgba(255,255,255,0.2)" }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={2} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }} />
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(summary?.original || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(summary?.paid || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#FF6D00" }}>{formatCurrency(summary?.outstanding || 0)}</TableCell>
                                 <TableCell colSpan={7} />
                             </TableRow>
                         </TableBody>
