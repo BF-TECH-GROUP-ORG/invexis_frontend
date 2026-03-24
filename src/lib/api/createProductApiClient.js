@@ -137,9 +137,11 @@ function prepareMetadata(formData) {
         specs: specsArray,
 
         seo: {
-            metaTitle: formData.seo?.metaTitle || "",
-            metaDescription: formData.seo?.metaDescription || "",
-            keywords: formData.seo?.keywords || [],
+            metaTitle: formData.seo?.metaTitle || formData.name || "",
+            metaDescription: formData.seo?.metaDescription || 
+                `${formData.description || ""} ${specsArray.map(s => `${s.name}: ${s.value}`).join(", ")}`.trim() || 
+                formData.name || "",
+            keywords: formData.seo?.keywords || formData.tags || [],
         },
     };
 
@@ -152,13 +154,21 @@ function prepareMetadata(formData) {
     }
 
     // Handle variations/variants mapping
-    // If the wizard has 'variations', use that. The backend 'createProduct' controller
-    // just spreads req.body into the Product model, so either might work depending on schema.
-    // However, the wizard initializes 'variations' as an array.
+    // If the wizard has 'variations', use that.
     if (formData.variations && formData.variations.length > 0) {
         payload.variations = formData.variations;
     } else if (formData.variants && formData.variants.length > 0) {
         payload.variations = formData.variants;
+    } else {
+        // Auto-populate variations if empty using specs and product name
+        // Create a single default variation
+        payload.variations = [{
+            name: "Default",
+            options: formData.specifications || {},
+            initialStock: formData.inventory?.stockQty || 0,
+            price: formData.pricing?.basePrice || 0,
+            sku: formData.identifiers?.sku || "",
+        }];
     }
 
     return payload;

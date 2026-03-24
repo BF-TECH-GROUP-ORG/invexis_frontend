@@ -20,7 +20,7 @@ export default function StepNavigation({
       </button>
 
       <div className="text-sm text-gray-600">
-        {showReview ? (
+        {currentStep === totalSteps ? (
           <span className="font-semibold">Review & Submit</span>
         ) : (
           <span>
@@ -29,7 +29,7 @@ export default function StepNavigation({
         )}
       </div>
 
-      {showReview ? (
+      {currentStep === totalSteps ? (
         <button
           type="button"
           onClick={onSubmit}
@@ -38,15 +38,6 @@ export default function StepNavigation({
         >
           {isSubmitting ? "Submitting..." : "Submit Product"}
         </button>
-      ) : currentStep < totalSteps ? (
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!isValid}
-          className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
-        >
-          Next Step
-        </button>
       ) : (
         <button
           type="button"
@@ -54,7 +45,7 @@ export default function StepNavigation({
           disabled={!isValid}
           className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
         >
-          Review & Submit
+          Next Step
         </button>
       )}
     </div>

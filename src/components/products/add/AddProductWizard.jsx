@@ -31,7 +31,6 @@ export default function AddProductWizard({
   const locale = params?.locale || "en";
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
-  const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -72,9 +71,9 @@ export default function AddProductWizard({
     inventory: {
       trackQuantity: true,
       stockQty: 0,
-      lowStockThreshold: 0,
-      minReorderQty: 0,
-      allowBackorder: false,
+      lowStockThreshold: 10,
+      minReorderQty: 5,
+      allowBackorder: true,
       safetyStock: 0,
     },
     identifiers: {
@@ -95,18 +94,6 @@ export default function AddProductWizard({
     // Step 6: Specs
     specifications: {},
     specsCategory: null,
-
-    // Step 7: Variations
-    variants: [],
-    variations: [],
-
-    // Step 8: SEO
-    seo: {
-      metaTitle: "",
-      metaDescription: "",
-      keywords: [],
-      slug: "",
-    },
 
     // Status & Flags
     condition: "new",
@@ -234,19 +221,22 @@ export default function AddProductWizard({
       { id: "inventory", label: "Inventory", component: Step4Inventory },
       { id: "category", label: "Category", component: Step5Category },
       { id: "specs", label: "Specifications", component: Step6Specs },
-      { id: "variations", label: "Variations", component: StepVariations },
-      { id: "seo", label: "SEO", component: Step7SEO },
+      { id: "review", label: "Review & Submit", component: ProductReview },
     ];
+
+    // Filter out hidden steps (variations and seo as requested)
+    const hiddenStepIds = ["variations", "seo"];
+    const visibleBaseSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
 
     if (!isWorker) {
       // Admin needs to select shop first
       return [
         { id: "shop", label: "Select Shop", component: StepShop },
-        ...baseSteps,
+        ...visibleBaseSteps,
       ].map((s, idx) => ({ ...s, number: idx + 1 }));
     }
 
-    return baseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
+    return visibleBaseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
   }, [isWorker]);
 
   const TOTAL_STEPS = steps.length;
@@ -302,15 +292,11 @@ export default function AddProductWizard({
 
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
-    } else {
-      setShowReview(true);
     }
   };
 
   const handlePrevious = () => {
-    if (showReview) {
-      setShowReview(false);
-    } else if (currentStep > 1) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -349,7 +335,6 @@ export default function AddProductWizard({
   const handleReset = () => {
     setShowSuccessModal(false);
     setCurrentStep(1);
-    setShowReview(false);
     setFormData({
       // Reset to initial state (simplified for brevity, ideally use initial state constant)
       companyId: companyId || "",
@@ -407,19 +392,6 @@ export default function AddProductWizard({
       );
     }
 
-    if (showReview) {
-      return (
-        <ProductReview
-          formData={formData}
-          steps={steps}
-          onEdit={(stepNumber) => {
-            setShowReview(false);
-            setCurrentStep(stepNumber);
-          }}
-        />
-      );
-    }
-
     // Find current step component
     const stepObj = steps.find((s) => s.number === currentStep);
 
@@ -430,6 +402,8 @@ export default function AddProductWizard({
         <StepComponent
           formData={formData}
           updateFormData={updateFormData}
+          steps={steps} // For ProductReview
+          onEdit={(stepNumber) => setCurrentStep(stepNumber)} // For ProductReview
           errors={{}} // Pass errors if needed
         />
       );
@@ -469,7 +443,7 @@ export default function AddProductWizard({
               <StepNavigation
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
-                showReview={showReview}
+                showReview={currentStep === TOTAL_STEPS}
                 isValid={validateStep(currentStep)}
                 isSubmitting={isSubmitting}
                 onNext={handleNext}

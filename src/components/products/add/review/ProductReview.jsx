@@ -17,6 +17,10 @@ export default function ProductReview({ formData, onEdit, steps }) {
     return value?.toString() || "N/A";
   };
 
+  const getStepNumber = (id) => {
+    return steps.find((s) => s.id === id)?.number || 1;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,7 +40,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
             Basic Information
           </h3>
           <button
-            onClick={() => onEdit(1)}
+            onClick={() => onEdit(getStepNumber("basic"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -97,7 +101,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
             Images & Media
           </h3>
           <button
-            onClick={() => onEdit(2)}
+            onClick={() => onEdit(getStepNumber("media"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -131,7 +135,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
           <button
-            onClick={() => onEdit(3)}
+            onClick={() => onEdit(getStepNumber("pricing"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -167,7 +171,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Inventory</h3>
           <button
-            onClick={() => onEdit(4)}
+            onClick={() => onEdit(getStepNumber("inventory"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -207,7 +211,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Category</h3>
           <button
-            onClick={() => onEdit(5)}
+            onClick={() => onEdit(getStepNumber("category"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -240,7 +244,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
               Specifications
             </h3>
             <button
-              onClick={() => onEdit(6)}
+              onClick={() => onEdit(getStepNumber("specs"))}
               className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
             >
               <Edit2 className="w-4 h-4 mr-1" />
@@ -262,7 +266,8 @@ export default function ProductReview({ formData, onEdit, steps }) {
         </div>
       )}
 
-      {/* Variations */}
+      {/* Variations (Hidden as requested) */}
+      {/* 
       {(formData.variants?.length > 0 || formData.variations?.length > 0) && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
@@ -320,8 +325,10 @@ export default function ProductReview({ formData, onEdit, steps }) {
           </div>
         </div>
       )}
+      */}
 
-      {/* SEO */}
+      {/* SEO (Hidden as requested) */}
+      {/* 
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">SEO</h3>
@@ -356,6 +363,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
           )}
         </dl>
       </div>
+      */}
     </div>
   );
 }
