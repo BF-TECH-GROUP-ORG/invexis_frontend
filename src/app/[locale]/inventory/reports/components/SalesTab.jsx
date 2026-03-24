@@ -113,6 +113,7 @@ const SalesTab = ({ dateRange }) => {
                     soldBy: sale.soldBy,
                     totalValue: saleValue,
                     status: sale.status,
+                    paymentStatus: sale.paymentStatus,
                     items: mappedItems
                 };
             });
@@ -182,6 +183,38 @@ const SalesTab = ({ dateRange }) => {
     const handleBranchSelect = (branch) => {
         setSelectedBranch(branch);
         handleClose();
+    };
+    
+    const getStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'paid': return { bg: '#E8F5E9', text: '#2E7D32', border: '#C8E6C9' };
+            case 'debt': return { bg: '#FFEBEE', text: '#C62828', border: '#FFCDD2' };
+            case 'unpaid': return { bg: '#FFF3E0', text: '#EF6C00', border: '#FFE0B2' };
+            case 'pending': return { bg: '#E3F2FD', text: '#1565C0', border: '#BBDEFB' };
+            case 'failed': return { bg: '#ECEFF1', text: '#455A64', border: '#CFD8DC' };
+            case 'refunded': return { bg: '#F3E5F5', text: '#7B1FA2', border: '#E1BEE7' };
+            default: return { bg: '#F5F5F5', text: '#616161', border: '#E0E0E0' };
+        }
+    };
+
+    const StatusBadge = ({ status }) => {
+        const colors = getStatusColor(status);
+        return (
+            <Box sx={{ 
+                display: 'inline-block', 
+                px: 1, 
+                py: 0.25, 
+                borderRadius: '4px', 
+                fontSize: '0.65rem', 
+                fontWeight: '700', 
+                backgroundColor: colors.bg, 
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+                textTransform: 'uppercase'
+            }}>
+                {status || 'Unknown'}
+            </Box>
+        );
     };
 
     const kpiCards = [
@@ -268,7 +301,7 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.product')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('sales.table.quantity')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('sales.table.value')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{t('common.tracking')}</TableCell>
+                                <TableCell align="center" colSpan={3}>{t('common.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
@@ -279,6 +312,7 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.unitPrice')}</TableCell>
                                 <TableCell align="center">{t('common.totalAmount')}</TableCell>
                                 <TableCell align="center">{t('sales.table.saleTime')}</TableCell>
+                                <TableCell align="center">{t('common.status')}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.soldBy')}</TableCell>
                             </TableRow>
                         </TableHead>
@@ -338,19 +372,22 @@ const SalesTab = ({ dateRange }) => {
                                                             <TableCell align="center">{formatCurrency(item.value.unitPrice)}</TableCell>
                                                             <TableCell align="center">{formatCurrency(item.value.totalAmount)}</TableCell>
                                                             <TableCell align="center">{sale.time}</TableCell>
+                                                            <TableCell align="center">
+                                                                <StatusBadge status={sale.paymentStatus} />
+                                                            </TableCell>
                                                             <TableCell align="center" sx={{ borderRight: "none" }}>{sale.soldBy}</TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </React.Fragment>
                                             ))}
                                             {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.subtotal', { name: shop.name })}</TableCell>
-                                                <TableCell align="center">-</TableCell>
-                                                <TableCell align="center">{shop.totals?.transactions || 0} {t('sales.kpis.transactions')}</TableCell>
-                                                <TableCell align="center" colSpan={3}>{shop.totals?.units || 0} {t('common.units')}</TableCell>
-                                                <TableCell align="center" colSpan={2}>{formatCurrency(shop.totals?.revenue || 0)}</TableCell>
-                                                <TableCell colSpan={2} />
+                                            <TableRow sx={{ bgcolor: "#FFF7ED", "& td": { color: "#9A3412", fontWeight: "700", fontSize: "0.80rem", py: 1, borderBottom: "2px solid #FED7AA" } }}>
+                                                <TableCell colSpan={2} sx={{ pl: 2, borderRight: "none" }}>{t('common.subtotal', { name: shop.name })}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.transactions || 0} {t('sales.kpis.transactions')}</TableCell>
+                                                <TableCell align="center" colSpan={3} sx={{ borderRight: "none", bgcolor: "#FFEDD5" }}>{shop.totals?.units || 0} {t('common.units')}</TableCell>
+                                                <TableCell align="center" colSpan={2} sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12" }}>{formatCurrency(shop.totals?.revenue || 0)}</TableCell>
+                                                <TableCell colSpan={3} />
                                             </TableRow>
                                             <TableRow sx={{ height: 8 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
@@ -362,13 +399,13 @@ const SalesTab = ({ dateRange }) => {
                             <TableRow sx={{ height: 16 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
 
                             {/* Grand Total Row */}
-                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                <TableCell colSpan={2} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                <TableCell align="center">-</TableCell>
-                                <TableCell align="center">{summary?.totalTransactions || 0} {t('sales.kpis.transactions')}</TableCell>
-                                <TableCell align="center" colSpan={3}>{summary?.totalUnits || 0} {t('common.units')}</TableCell>
-                                <TableCell align="center" colSpan={2}>{formatCurrency(summary?.totalRevenue || 0)}</TableCell>
-                                <TableCell colSpan={2} />
+                            <TableRow sx={{ bgcolor: "#111827", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.1)" } }}>
+                                <TableCell colSpan={2} sx={{ pl: 2, borderRight: "1px solid rgba(255,255,255,0.2)" }}>{t('common.total')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>-</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{summary?.totalTransactions || 0} {t('sales.kpis.transactions')}</TableCell>
+                                <TableCell align="center" colSpan={3} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#1F2937" }}>{summary?.totalUnits || 0} {t('common.units')}</TableCell>
+                                <TableCell align="center" colSpan={2} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#FF6D00" }}>{formatCurrency(summary?.totalRevenue || 0)}</TableCell>
+                                <TableCell colSpan={3} />
                             </TableRow>
                         </TableBody>
                     </Table>
