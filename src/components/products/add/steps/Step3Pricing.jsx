@@ -89,17 +89,29 @@ export default function Step3Pricing({ formData, updateFormData }) {
 
       {/* Profit Margin Card */}
       {formData.pricing.basePrice > 0 && formData.pricing.cost >= 0 && (
-        <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6">
+        <div 
+          className={`rounded-2xl p-6 border transition-colors ${
+            formData.pricing.basePrice - formData.pricing.cost >= 0 
+              ? "bg-green-50 border-green-100" 
+              : "bg-red-50 border-red-100"
+          }`}
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-gray-700 font-medium">Estimated Profit Margin</span>
-            <span className="text-3xl font-bold text-orange-600">
+            <span 
+              className={`text-3xl font-bold ${
+                formData.pricing.basePrice - formData.pricing.cost >= 0 
+                  ? "text-green-600" 
+                  : "text-red-600"
+              }`}
+            >
               {profitMargin}%
             </span>
           </div>
           <p className="text-lg text-gray-700">
-            Profit per unit:{" "}
+            {formData.pricing.basePrice - formData.pricing.cost >= 0 ? "Profit per unit:" : "Loss per unit:"}{" "}
             <span className="font-bold">
-              FRw {(formData.pricing.basePrice - formData.pricing.cost).toLocaleString()}
+              FRw {Math.abs(formData.pricing.basePrice - formData.pricing.cost).toLocaleString()}
             </span>
           </p>
         </div>

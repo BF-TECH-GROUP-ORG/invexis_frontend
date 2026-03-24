@@ -289,35 +289,41 @@ export default function AddProductWizard({
 
     switch (stepObj.id) {
       case "shop":
-        return formData.shopId ? "complete" : "error";
+        return formData.shopId ? "complete" : "unfilled";
       case "basic":
         return formData.name && formData.name.length >= 3 && formData.supplierName
           ? "complete"
-          : "error";
+          : "unfilled";
       case "media":
-        return formData.images?.length > 0 ? "complete" : "optional";
+        return formData.images?.length > 0 ? "complete" : "unfilled";
       case "pricing":
-        return formData.pricing.basePrice > 0 ? "complete" : "error";
+        return formData.pricing.basePrice > 0 ? "complete" : "unfilled";
       case "inventory":
-        return formData.inventory.stockQty >= 0 ? "complete" : "error";
+        return formData.inventory.stockQty >= 0 ? "complete" : "unfilled";
       case "category":
-        return formData.category?.id ? "complete" : "error";
+        return formData.category?.id ? "complete" : "unfilled"
       case "specs":
         return Object.keys(formData.specifications || {}).length > 0
           ? "complete"
-          : "optional";
+          : "unfilled";
       default:
         return "complete";
     }
   };
 
+  const requiredStepIds = ["shop", "basic", "pricing", "inventory", "category"];
+
   const areAllRequiredStepsValid = useMemo(() => {
-    return steps.every((s) => getStepStatus(s.number) !== "error");
+    return steps
+      .filter((s) => requiredStepIds.includes(s.id))
+      .every((s) => getStepStatus(s.number) === "complete");
   }, [formData, steps]);
 
   const handleNext = () => {
-    if (getStepStatus(currentStep) === "error") {
-      notificationBus.error("Please fill in all required fields in this section.");
+    // We only block handleNext if the step is required and not complete
+    const stepObj = steps.find(s => s.number === currentStep);
+    if (requiredStepIds.includes(stepObj?.id) && getStepStatus(currentStep) !== "complete") {
+      notificationBus.error(`Please complete the ${stepObj.label} section.`);
       return;
     }
 
@@ -338,7 +344,9 @@ export default function AddProductWizard({
 
     // Check all required steps for "Add" mode
     if (!isEdit && !areAllRequiredStepsValid) {
-      const firstInvalidStep = steps.find((s) => getStepStatus(s.number) === "error");
+      const firstInvalidStep = steps.find(
+        (s) => requiredStepIds.includes(s.id) && getStepStatus(s.number) !== "complete"
+      );
       notificationBus.error(`Please complete the ${firstInvalidStep.label} section before submitting.`);
       setCurrentStep(firstInvalidStep.number);
       return;
@@ -512,7 +520,7 @@ export default function AddProductWizard({
               <StepNavigation
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
-                isValid={getStepStatus(currentStep) !== "error"}
+                isValid={!requiredStepIds.includes(steps.find(s => s.number === currentStep)?.id) || getStepStatus(currentStep) === "complete"}
                 allStepsValid={areAllRequiredStepsValid}
                 isSubmitting={isSubmitting}
                 isEdit={isEdit}
