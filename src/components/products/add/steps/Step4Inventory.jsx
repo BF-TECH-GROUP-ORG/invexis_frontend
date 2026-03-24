@@ -34,7 +34,7 @@ export default function Step4Inventory({ formData, updateFormData }) {
         </p>
       </div>
 
-      <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="space-y-6">
         {/* Current Stock Level */}
         <div className="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm">
           <label className="block text-sm font-semibold text-gray-700 mb-2">

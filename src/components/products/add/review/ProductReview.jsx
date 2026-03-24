@@ -64,21 +64,6 @@ export default function ProductReview({ formData, onEdit, steps }) {
               {formData.description || "No description"}
             </dd>
           </div>
-          {formData.tags.length > 0 && (
-            <div className="col-span-2">
-              <dt className="text-sm text-gray-600 mb-2">Tags</dt>
-              <dd className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </dd>
-            </div>
-          )}
         </dl>
       </div>
 

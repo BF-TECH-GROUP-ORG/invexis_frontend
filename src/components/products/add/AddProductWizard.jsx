@@ -20,6 +20,9 @@ import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
 import { Loader2 } from "lucide-react";
 
+// Key for localStorage persistence
+const PERSISTENCE_KEY = "invexis_add_product_wizard_state";
+
 export default function AddProductWizard({
   companyId,
   shopId: propShopId,
@@ -33,6 +36,7 @@ export default function AddProductWizard({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Determine if user is worker or admin
   const isWorker = session?.user?.role === "worker";
@@ -112,6 +116,36 @@ export default function AddProductWizard({
       featured: false,
     },
   });
+
+  // Load persisted state on mount (only for new product)
+  useEffect(() => {
+    if (!isEdit && typeof window !== "undefined") {
+      const savedState = localStorage.getItem(PERSISTENCE_KEY);
+      if (savedState) {
+        try {
+          const { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          if (savedFormData) setFormData(savedFormData);
+          if (savedStep) setCurrentStep(savedStep);
+          console.log("Welcome back! Restored your progress.");
+        } catch (e) {
+          console.error("Failed to restore wizard state:", e);
+        }
+      }
+    }
+    setIsInitialized(true);
+  }, [isEdit]);
+
+  // Persist state on change (only for new product)
+  useEffect(() => {
+    if (isInitialized && !isEdit && typeof window !== "undefined") {
+      const stateToSave = {
+        formData,
+        currentStep,
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(stateToSave));
+    }
+  }, [formData, currentStep, isEdit, isInitialized]);
 
   // Effect to handle worker shop assignment or initialData
   useEffect(() => {
@@ -318,6 +352,11 @@ export default function AddProductWizard({
 
       console.log("🚀 Product Operation Success:", response);
 
+      // Clear persistence on success
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(PERSISTENCE_KEY);
+      }
+
       setShowSuccessModal(true);
       notificationBus.success(
         isEdit
@@ -333,6 +372,11 @@ export default function AddProductWizard({
   };
 
   const handleReset = () => {
+    // Clear persistence on reset
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(PERSISTENCE_KEY);
+    }
+
     setShowSuccessModal(false);
     setCurrentStep(1);
     setFormData({
@@ -394,7 +438,7 @@ export default function AddProductWizard({
   };
 
   const renderStep = () => {
-    if (status === "loading") {
+    if (status === "loading" || !isInitialized) {
       return (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
