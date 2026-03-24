@@ -2010,6 +2010,18 @@
       "noContent": "Contenu de l'onglet non trouvé",
       "subtotal": "Sous-total {name}",
       "total": "Total",
+      "statusLabels": {
+        "completed": "Complété",
+        "validated": "Validé",
+        "processing": "En cours",
+        "canceled": "Annulé",
+        "initiated": "Initié",
+        "paid": "Payé",
+        "debt": "Dette",
+        "pending": "En attente",
+        "failed": "Échoué",
+        "refunded": "Remboursé"
+      },
       "recommendation": "Recommandation",
       "cancel": "Annuler",
       "na": "N/A",

@@ -2010,6 +2010,18 @@
       "noContent": "Ibirimo ntibyasanzwe",
       "subtotal": "Iterateranyo rya {name}",
       "total": "Iterateranyo",
+      "statusLabels": {
+        "completed": "Byarangiye",
+        "validated": "Byemejwe",
+        "processing": "Birimo gukorwa",
+        "canceled": "Byahagaritswe",
+        "initiated": "Byatangiye",
+        "paid": "Byarishyuwe",
+        "debt": "Ideni",
+        "pending": "Birategereje",
+        "failed": "Byanze",
+        "refunded": "Byasubijwe"
+      },
       "recommendation": "Inama",
       "cancel": "Kureka",
       "na": "N/A",

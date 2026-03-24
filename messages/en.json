@@ -2000,6 +2000,18 @@
       "noContent": "Tab content not found",
       "subtotal": "{name} Subtotal",
       "total": "Total",
+      "statusLabels": {
+        "completed": "Completed",
+        "validated": "Validated",
+        "processing": "Processing",
+        "canceled": "Canceled",
+        "initiated": "Initiated",
+        "paid": "Paid",
+        "debt": "Debt",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      },
       "recommendation": "Recommendation",
       "cancel": "Cancel",
       "na": "N/A",

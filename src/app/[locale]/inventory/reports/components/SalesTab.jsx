@@ -207,6 +207,8 @@ const SalesTab = ({ dateRange }) => {
 
     const StatusBadge = ({ status }) => {
         const colors = getStatusColor(status);
+        const translatedStatus = t(`common.statusLabels.${status?.toLowerCase()}`) || status || 'Unknown';
+        
         return (
             <Box sx={{ 
                 display: 'inline-block', 
@@ -220,7 +222,7 @@ const SalesTab = ({ dateRange }) => {
                 border: `1px solid ${colors.border}`,
                 textTransform: 'uppercase'
             }}>
-                {status || 'Unknown'}
+                {translatedStatus}
             </Box>
         );
     };
@@ -391,9 +393,6 @@ const SalesTab = ({ dateRange }) => {
                                                             <TableCell align="center">
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
                                                                     <StatusBadge status={sale.status} />
-                                                                    {sale.paymentStatus && sale.paymentStatus.toLowerCase() !== 'paid' && (
-                                                                        <StatusBadge status={sale.paymentStatus} />
-                                                                    )}
                                                                 </Box>
                                                             </TableCell>
                                                             <TableCell align="center" sx={{ borderRight: "none" }}>{sale.soldBy}</TableCell>

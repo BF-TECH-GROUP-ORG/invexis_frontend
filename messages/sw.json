@@ -2011,6 +2011,18 @@
       "noContent": "Maudhui ya tab hiyo hayajapatikana",
       "subtotal": "Jumla Ndogo ya {name}",
       "total": "Jumla",
+      "statusLabels": {
+        "completed": "Imekamilika",
+        "validated": "Imethibitishwa",
+        "processing": "Inashughulikiwa",
+        "canceled": "Imeghairiwa",
+        "initiated": "Imeanzishwa",
+        "paid": "Iliyoitishwa",
+        "debt": "Deni",
+        "pending": "Inasubiri",
+        "failed": "Imefeli",
+        "refunded": "Imerejeshwa"
+      },
       "recommendation": "Pendekezo",
       "cancel": "Ghairi",
       "na": "N/A",
