@@ -186,17 +186,9 @@ const DebtsPageContent = ({ initialParams = {} }) => {
         <>
             <Box sx={{ 
                 display: "flex", 
-                flexDirection: { xs: "column", sm: "row" }, 
-                justifyContent: "space-between", 
-                alignItems: { xs: "flex-start", sm: "center" },
-                mb: 3,
-                gap: 2
+                justifyContent: "flex-end", 
+                mb: 1
             }}>
-                <Box>
-                    <h1 className="text-2xl font-bold">{t('title')}</h1>
-                    <p className="text-gray-700">{t('subtitle')}</p>
-                </Box>
-                
                 <ToggleButtonGroup
                     value={timeRange}
                     exclusive
@@ -210,7 +202,7 @@ const DebtsPageContent = ({ initialParams = {} }) => {
                             fontWeight: 600,
                             borderRadius: "8px !important",
                             border: "1px solid #e5e7eb",
-                            mr: 1,
+                            ml: 1,
                             "&.Mui-selected": {
                                 bgcolor: "#FF6D00",
                                 color: "white",
@@ -228,7 +220,9 @@ const DebtsPageContent = ({ initialParams = {} }) => {
 
             <DebtCards debts={filteredDebtsByTime} />
             <div className="pt-10 pl-3 pb-5">
-                <Typography variant="h6" fontWeight="bold">Debt Details</Typography>
+                <h1 className="text-2xl font-bold">{t('title')}</h1>
+                <p className="text-gray-700">{t('subtitle')}</p>
+                <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>Debt Details</Typography>
             </div>
             <DataTable
                 debts={filteredDebtsByTime}

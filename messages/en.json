@@ -755,6 +755,12 @@
   },
   "salesHistory": {
     "title": "Sales History",
+    "filters": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
     "cards": {
       "totalSales": "Total Sales",
       "totalProfit": "Total Profit",
