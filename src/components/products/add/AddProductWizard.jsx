@@ -283,44 +283,41 @@ export default function AddProductWizard({
     }));
   };
 
-  const validateStep = (stepNumber) => {
+  const getStepStatus = (stepNumber) => {
     const stepObj = steps.find((s) => s.number === stepNumber);
-    if (!stepObj) return true;
+    if (!stepObj) return "complete";
 
     switch (stepObj.id) {
       case "shop":
-        return !!formData.shopId;
+        return formData.shopId ? "complete" : "error";
       case "basic":
-        return formData.name && formData.name.length >= 3;
+        return formData.name && formData.name.length >= 3 && formData.supplierName
+          ? "complete"
+          : "error";
       case "media":
-        return true;
+        return formData.images?.length > 0 ? "complete" : "optional";
       case "pricing":
-        return formData.pricing.basePrice > 0;
+        return formData.pricing.basePrice > 0 ? "complete" : "error";
       case "inventory":
-        return formData.inventory.stockQty >= 0;
+        return formData.inventory.stockQty >= 0 ? "complete" : "error";
       case "category":
-        return formData.category.id !== "";
+        return formData.category?.id ? "complete" : "error";
       case "specs":
-        return true;
-      case "variations":
-        if (
-          formData.variants?.length < 0 &&
-          formData.variations?.length === 0
-        ) {
-          return false;
-        }
-        return true;
-      case "seo":
-        // Optional
-        return true;
+        return Object.keys(formData.specifications || {}).length > 0
+          ? "complete"
+          : "optional";
       default:
-        return true;
+        return "complete";
     }
   };
 
+  const areAllRequiredStepsValid = useMemo(() => {
+    return steps.every((s) => getStepStatus(s.number) !== "error");
+  }, [formData, steps]);
+
   const handleNext = () => {
-    if (!validateStep(currentStep)) {
-      notificationBus.error("Please fill in all required fields");
+    if (getStepStatus(currentStep) === "error") {
+      notificationBus.error("Please fill in all required fields in this section.");
       return;
     }
 
@@ -335,10 +332,17 @@ export default function AddProductWizard({
     }
   };
 
-
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
+
+    // Check all required steps for "Add" mode
+    if (!isEdit && !areAllRequiredStepsValid) {
+      const firstInvalidStep = steps.find((s) => getStepStatus(s.number) === "error");
+      notificationBus.error(`Please complete the ${firstInvalidStep.label} section before submitting.`);
+      setCurrentStep(firstInvalidStep.number);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -508,7 +512,8 @@ export default function AddProductWizard({
               <StepNavigation
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
-                isValid={validateStep(currentStep)}
+                isValid={getStepStatus(currentStep) !== "error"}
+                allStepsValid={areAllRequiredStepsValid}
                 isSubmitting={isSubmitting}
                 isEdit={isEdit}
                 onNext={handleNext}
@@ -530,6 +535,7 @@ export default function AddProductWizard({
                 steps={steps}
                 orientation="vertical"
                 onStepClick={(step) => setCurrentStep(step)}
+                getStepStatus={getStepStatus}
               />
             </div>
           )}
