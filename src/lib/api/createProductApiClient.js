@@ -52,14 +52,7 @@ export async function createProductApiClient(formData, options = {}) {
     // 4. Call the service
     try {
         if (process.env.NODE_ENV === "development") {
-            console.log("[createProductApiClient] Submitting payload:", {
-                isEdit,
-                productId,
-                hasFiles,
-                payloadType: finalPayload instanceof FormData ? "FormData" : typeof finalPayload,
-                imageCount: formData.images?.length,
-                fileCount: formData.images?.filter(i => i.file)?.length
-            });
+            // development logging removed for production
         }
         if (isEdit && productId) {
             return await productsService.updateProduct(productId, finalPayload);

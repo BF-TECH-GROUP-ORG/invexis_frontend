@@ -71,7 +71,7 @@ api.interceptors.request.use(
     // SSR-safe check
     if (config.headers.Authorization) {
       if (process.env.NODE_ENV === "development") {
-        console.log(`[Axios] Using existing Auth header for ${config.url}`);
+
       }
       return config;
     }
@@ -82,7 +82,7 @@ api.interceptors.request.use(
       // The proxy route handles token injection server-side for better security.
       if (config.baseURL === "/api/proxy") {
         if (process.env.NODE_ENV === "development") {
-          console.log(`[Axios] Skipping client-side token for proxied request: ${config.url}`);
+
         }
         return config;
       }
@@ -101,12 +101,7 @@ api.interceptors.request.use(
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           if (process.env.NODE_ENV === "development") {
-            console.log(
-              `[Axios] Attached Token for ${config.url}: ${token.substring(
-                0,
-                10
-              )}...`
-            );
+            // token logging removed for production
           }
         } else {
           if (process.env.NODE_ENV === "development") {
@@ -120,13 +115,8 @@ api.interceptors.request.use(
 
     if (process.env.NODE_ENV === "development") {
       const authHeader = config.headers.Authorization || "";
-      console.log(
-        "[API →]",
-        config.method?.toUpperCase(),
-        config.url,
-        "Headers:",
-        config.headers
-      );
+
+        // logging removed for production
     }
 
     return config;
@@ -145,7 +135,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === "development") {
-      console.log("[API ←]", response.config?.url, response.status);
+
     }
     return response;
   },

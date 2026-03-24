@@ -5,9 +5,7 @@ import { getCacheStrategy } from "@/lib/cacheConfig";
 // This mirrors productsService so local dev can set `NEXT_PUBLIC_API_URL=/api` and avoid CORS.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-if (typeof window !== "undefined") {
-  console.info("CategoriesService: using API base");
-}
+
 
 /**
  * Get company details by ID
@@ -30,7 +28,7 @@ export async function getCompanyId(companyId, options = {}) {
     }
   );
 
-  console.log("received data", data);
+
   return data;
 }
 
@@ -42,7 +40,7 @@ export async function getCompanyId(companyId, options = {}) {
  * CACHING: Categories cached for 30 minutes (semi-static, updated infrequently)
  */
 export async function ParentCategories(companyId, options = {}) {
-  console.log("ParentCategories service called with:", companyId);
+
 
   const companyData = await getCompanyId(companyId, options);
   const categoryIds = companyData?.data?.category_ids || [];
@@ -59,7 +57,7 @@ export async function ParentCategories(companyId, options = {}) {
     { cache: cacheStrategy, ...options }
   );
 
-  console.log("received data", data);
+
   return data;
 }
 

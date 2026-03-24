@@ -9,13 +9,8 @@ export default function manifest() {
         theme_color: '#ea580c', // Orange-600 from sidebar
         icons: [
             {
-                src: '/images/Invexix Logo-Light Mode.png', // Fallback icon
-                sizes: '192x192',
-                type: 'image/png',
-            },
-            {
-                src: '/images/Invexix Logo-Light Mode.png', // Fallback icon
-                sizes: '512x512',
+                src: '/images/Invexix Logo-Light Mode.png',
+                sizes: '64x64',
                 type: 'image/png',
             },
         ],
