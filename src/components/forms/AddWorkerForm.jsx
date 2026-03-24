@@ -28,7 +28,13 @@ const getDefaultWorker = () => ({
   companies: [],
   shops: [],
   emergencyContact: { name: "", phone: "" },
-  address: { street: "", city: "", state: "", postalCode: "", country: "" },
+  address: {
+    street: "KG ST 001 P",
+    city: "Kigali",
+    state: "Kigali",
+    postalCode: "0000",
+    country: "Rwanda",
+  },
   preferences: {
     language: "en",
     notifications: { email: true, sms: true, inApp: true },
@@ -71,11 +77,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const queryClient = useQueryClient();
   const [worker, setWorker] = useState(() => initializeWorkerData(initialData));
 
-  const stepLabels = useMemo(() => [
-    t("personalInfo"),
-    t("jobInfo"),
-    t("contactAddress"),
-  ], [t]);
+  const stepLabels = useMemo(
+    () => [t("personalInfo"), t("jobInfo")],
+    [t]
+  );
 
   const companyObj = session?.user?.companies?.[0];
   const companyId =
@@ -83,10 +88,11 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       ? companyObj
       : companyObj?.id || companyObj?._id;
 
-  const options = useMemo(() =>
-    session?.accessToken
-      ? { headers: { Authorization: `Bearer ${session.accessToken}` } }
-      : null,
+  const options = useMemo(
+    () =>
+      session?.accessToken
+        ? { headers: { Authorization: `Bearer ${session.accessToken}` } }
+        : null,
     [session?.accessToken]
   );
 
@@ -133,6 +139,55 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     }
   }, [companyId]);
 
+  // Automation: Sync Emergency Contact with Personal Info
+  React.useEffect(() => {
+    setWorker((prev) => {
+      const newName = `${prev.firstName} ${prev.lastName}`.trim();
+      const newPhone = prev.phone;
+      if (
+        prev.emergencyContact.name === newName &&
+        prev.emergencyContact.phone === newPhone
+      )
+        return prev;
+      return {
+        ...prev,
+        emergencyContact: {
+          ...prev.emergencyContact,
+          name: newName,
+          phone: newPhone,
+        },
+      };
+    });
+  }, [worker.firstName, worker.lastName, worker.phone]);
+
+  // Persistence: Save to local storage
+  React.useEffect(() => {
+    if (!isEditMode) {
+      const savedData = localStorage.getItem("worker_wizard_data");
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setWorker(initializeWorkerData(parsed.worker));
+          setActiveStep(parsed.activeStep || 0);
+        } catch (e) {
+          console.error("Failed to parse saved worker data", e);
+        }
+      }
+    }
+  }, [isEditMode]);
+
+  React.useEffect(() => {
+    if (!isEditMode) {
+      const timeout = setTimeout(() => {
+        localStorage.setItem(
+          "worker_wizard_data",
+          JSON.stringify({ worker, activeStep })
+        );
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [worker, activeStep, isEditMode]);
+
   const [fieldErrors, setFieldErrors] = useState({});
   const [errorDialog, setErrorDialog] = useState({
     open: false,
@@ -163,45 +218,33 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
   const getStepErrors = (step) => {
     const errors = {};
     if (step === 0) {
-      if (!worker.firstName.trim()) errors.firstName = t("validation.required", { field: t("firstName") });
-      if (!worker.lastName.trim()) errors.lastName = t("validation.required", { field: t("lastName") });
-      if (!worker.email.trim()) errors.email = t("validation.required", { field: t("email") });
+      if (!worker.firstName.trim())
+        errors.firstName = t("validation.required", { field: t("firstName") });
+      if (!worker.lastName.trim())
+        errors.lastName = t("validation.required", { field: t("lastName") });
+      if (!worker.email.trim())
+        errors.email = t("validation.required", { field: t("email") });
       else if (!/\S+@\S+\.\S+/.test(worker.email))
         errors.email = t("validation.invalidEmail");
-      if (!worker.phone.trim()) errors.phone = t("validation.required", { field: t("phone") });
+      if (!worker.phone.trim())
+        errors.phone = t("validation.required", { field: t("phone") });
       else if (!/^\+?[1-9]\d{1,14}$/.test(worker.phone.replace(/[\s-=]/g, "")))
         errors.phone = t("validation.invalidPhone");
 
-      if (!worker.gender) errors.gender = t("validation.required", { field: t("gender") });
+      if (!worker.gender)
+        errors.gender = t("validation.required", { field: t("gender") });
     }
 
     if (step === 1) {
-      if (!worker.department) errors.department = t("validation.required", { field: t("department") });
-      if (worker.nationalId && !/^[A-Z0-9]{5,20}$/.test(worker.nationalId))
-        errors.nationalId = t("validation.invalidId");
-    }
-
-    if (step === 2) {
-      if (!worker.emergencyContact.name.trim())
-        errors["emergencyContact.name"] = t("validation.required", { field: t("emerName") });
-      if (!worker.emergencyContact.phone.trim())
-        errors["emergencyContact.phone"] = t("validation.required", { field: t("emerPhone") });
-      else if (
-        !/^\+?[1-9]\d{1,14}$/.test(
-          worker.emergencyContact.phone.replace(/[\s-]/g, "")
-        )
-      )
-        errors["emergencyContact.phone"] = t("validation.invalidPhone");
-      if (!worker.address.street.trim())
-        errors["address.street"] = t("validation.required", { field: t("street") });
-      if (!worker.address.city.trim())
-        errors["address.city"] = t("validation.required", { field: t("city") });
-      if (!worker.address.state.trim())
-        errors["address.state"] = t("validation.required", { field: t("state") });
-      if (!worker.address.postalCode.trim())
-        errors["address.postalCode"] = t("validation.required", { field: t("postalCode") });
-      if (!worker.address.country.trim())
-        errors["address.country"] = t("validation.required", { field: t("country") });
+      if (!worker.department)
+        errors.department = t("validation.required", { field: t("department") });
+      if (worker.nationalId) {
+        if (!/^[1][0-9]{15}$/.test(worker.nationalId)) {
+          errors.nationalId = "National ID must be 16 digits and start with 1";
+        }
+      } else {
+        errors.nationalId = t("validation.required", { field: t("nationalId") });
+      }
     }
 
     return errors;
@@ -242,6 +285,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
       queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
       // Invalidate broader patterns just in case
       queryClient.invalidateQueries({ queryKey: ["workers"] });
+
+      if (!isEditMode) {
+        localStorage.removeItem("worker_wizard_data");
+      }
 
       setSnackbar({
         open: true,
@@ -473,11 +520,17 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             <TextField
               label={t("nationalId")}
               value={worker.nationalId}
-              onChange={(e) =>
-                handleChange("nationalId", e.target.value.toUpperCase())
-              }
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                if (val.length > 0 && val[0] !== "1") return;
+                if (val.length <= 16) {
+                  handleChange("nationalId", val);
+                }
+              }}
               error={!!fieldErrors.nationalId}
-              helperText={fieldErrors.nationalId}
+              helperText={
+                fieldErrors.nationalId || "Must be 16 digits starting with 1"
+              }
               fullWidth
             />
             <TextField
@@ -522,109 +575,13 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           </Box>
         );
 
-      case 2:
-        return (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              color="#081422"
-              gutterBottom
-            >
-              {t("emerContact")}
-            </Typography>
-            <TextField
-              label={t("emerName")}
-              value={worker.emergencyContact.name}
-              onChange={(e) =>
-                handleNestedChange("emergencyContact", "name", e.target.value)
-              }
-              required
-              error={!!fieldErrors["emergencyContact.name"]}
-              helperText={fieldErrors["emergencyContact.name"]}
-              fullWidth
-            />
-            <TextField
-              label={t("emerPhone")}
-              value={worker.emergencyContact.phone}
-              onChange={(e) =>
-                handleNestedChange("emergencyContact", "phone", e.target.value)
-              }
-              required
-              error={!!fieldErrors["emergencyContact.phone"]}
-              helperText={fieldErrors["emergencyContact.phone"]}
-              fullWidth
-            />
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              color="#081422"
-              gutterBottom
-              sx={{ mt: 2 }}
-            >
-              {t("address")}
-            </Typography>
-            <TextField
-              label={t("street")}
-              value={worker.address.street}
-              onChange={(e) =>
-                handleNestedChange("address", "street", e.target.value)
-              }
-              required
-              error={!!fieldErrors["address.street"]}
-              helperText={fieldErrors["address.street"]}
-              fullWidth
-            />
-            <TextField
-              label={t("city")}
-              value={worker.address.city}
-              onChange={(e) =>
-                handleNestedChange("address", "city", e.target.value)
-              }
-              required
-              error={!!fieldErrors["address.city"]}
-              helperText={fieldErrors["address.city"]}
-              fullWidth
-            />
-            <TextField
-              label={t("state")}
-              value={worker.address.state}
-              onChange={(e) =>
-                handleNestedChange("address", "state", e.target.value)
-              }
-              required
-              error={!!fieldErrors["address.state"]}
-              helperText={fieldErrors["address.state"]}
-              fullWidth
-            />
-            <TextField
-              label={t("postalCode")}
-              value={worker.address.postalCode}
-              onChange={(e) =>
-                handleNestedChange("address", "postalCode", e.target.value)
-              }
-              required
-              error={!!fieldErrors["address.postalCode"]}
-              helperText={fieldErrors["address.postalCode"]}
-              fullWidth
-            />
-            <TextField
-              label={t("country")}
-              value={worker.address.country}
-              onChange={(e) =>
-                handleNestedChange("address", "country", e.target.value)
-              }
-              required
-              error={!!fieldErrors["address.country"]}
-              helperText={fieldErrors["address.country"]}
-              fullWidth
-            />
-          </Box>
-        );
-
       default:
         return null;
     }
+  };
+
+  const isStepValid = (step) => {
+    return Object.keys(getStepErrors(step)).length === 0;
   };
 
   return (
@@ -647,33 +604,49 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
             flexDirection: "column",
           }}
         >
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="h4"
-              fontWeight={700}
-              color="#081422"
-              sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+          <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <Box>
+              <Typography
+                variant="h4"
+                fontWeight={700}
+                color="#081422"
+                sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+              >
+                {isEditMode ? t("editTitle") : t("addTitle")}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                {isEditMode ? t("editDesc") : t("addDesc")}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                inventory /
+                <span className="hover:text-orange-500 cursor-pointer font-bold  ">
+                  <Link
+                    href={`/${locale}/inventory/workers/list`}
+                    prefetch={true}
+                  >
+                    workers
+                  </Link>{" "}
+                </span>{" "}
+                /{" "}
+                <span className="text-orange-500 cursor-pointer font-bold  ">
+                  {isEditMode ? "Edit-Worker" : "Add-Worker"}
+                </span>{" "}
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              onClick={() => router.push(`/${locale}/inventory/workers/list`)}
+              sx={{
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 600,
+                borderColor: "#081422",
+                color: "#081422",
+                "&:hover": { borderColor: "#fe6600", color: "#fe6600" },
+              }}
             >
-              {isEditMode ? t("editTitle") : t("addTitle")}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              {isEditMode ? t("editDesc") : t("addDesc")}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              inventory /
-              <span className="hover:text-orange-500 cursor-pointer font-bold  ">
-                <Link
-                  href={`/${locale}/inventory/workers/list`}
-                  prefetch={true}
-                >
-                  workers
-                </Link>{" "}
-              </span>{" "}
-              /{" "}
-              <span className="text-orange-500 cursor-pointer font-bold  ">
-                {isEditMode ? "Edit-Worker" : "Add-Worker"}
-              </span>{" "}
-            </Typography>
+              Back to Workers
+            </Button>
           </Box>
 
           <Box sx={{ flexGrow: 1, minHeight: 420 }}>
@@ -747,7 +720,7 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         <Box
           sx={{
             width: { xs: "0", lg: 500 },
-            display: { xs: 'none', lg: 'block' },
+            display: { xs: "none", lg: "block" },
             borderLeft: "1px solid #e0e0e0",
             py: 6,
             px: 4,
@@ -769,37 +742,51 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
               />
             }
           >
-            {stepLabels.map((label, index) => (
-              <Step key={label} completed={activeStep > index}>
-                <StepLabel
-                  StepIconComponent={() => (
-                    <Box
-                      sx={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: "50%",
-                        border: "3px solid",
-                        borderColor:
-                          index === activeStep
-                            ? "#fe6600"
-                            : index < activeStep
+            {stepLabels.map((label, index) => {
+              const isPassed = index < activeStep;
+              const isValid = isStepValid(index);
+              const isError = isPassed && !isValid;
+
+              return (
+                <Step key={label} completed={isPassed && isValid}>
+                  <StepLabel
+                    StepIconComponent={() => (
+                      <Box
+                        sx={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: "50%",
+                          border: "3px solid",
+                          borderColor:
+                            index === activeStep
                               ? "#fe6600"
-                              : "#d0d0d0",
-                        backgroundColor:
-                          index === activeStep ? "#fe6600" : "transparent",
-                        color: index === activeStep ? "white" : "#666",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "1rem",
-                        fontWeight: 700,
-                        transition: "all 0.3s ease",
-                      }}
-                    >
-                      {index < activeStep ? "✓" : index + 1}
-                    </Box>
-                  )}
-                >
+                              : isError
+                                ? "#ef4444"
+                                : index < activeStep
+                                  ? "#10b981"
+                                  : "#d0d0d0",
+                          backgroundColor:
+                            index === activeStep
+                              ? "#fe6600"
+                              : isError
+                                ? "#ef4444"
+                                : index < activeStep
+                                  ? "#10b981"
+                                  : "transparent",
+                          color:
+                            index === activeStep || isPassed ? "white" : "#666",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1.2rem",
+                          fontWeight: 700,
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        {isError ? "✕" : index < activeStep ? "✓" : index + 1}
+                      </Box>
+                    )}
+                  >
                   <Box>
                     <Typography
                       variant="h6"
@@ -821,7 +808,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                   </Box>
                 </StepLabel>
               </Step>
-            ))}
+            );
+          })}
           </Stepper>
         </Box>
       </div>
