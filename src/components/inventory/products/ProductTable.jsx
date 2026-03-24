@@ -205,6 +205,7 @@ export default function ProductTable({
                 // Debug: Log product data to see actual structure
                 if (product.name === "Officia dolorem quo") {
                 // Debug block removed for production
+                }
 
                 const id = product._id || product.id;
                 const name = product.name || product.ProductName || t("unnamed");
