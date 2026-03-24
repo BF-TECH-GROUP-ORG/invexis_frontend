@@ -6,9 +6,13 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import SalesCards from "./cards";
-import { useSession } from "next-auth/react";
-import { useQuery } from "@tanstack/react-query";
 import { getSalesHistory } from "@/services/salesService";
+import { useState, useMemo } from "react";
+import { ToggleButton, ToggleButtonGroup, Box } from "@mui/material";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isBetween);
 
 const SalesPageClient = ({ initialData }) => {
     const { data: session } = useSession();
@@ -32,6 +36,8 @@ const SalesPageClient = ({ initialData }) => {
     const currentShopId = searchParams.get('shopId') || initialShopId || "";
     const currentDate = searchParams.get('date') || initialMonth || "";
 
+    const [timeRange, setTimeRange] = useState("daily");
+
     // Stale-while-revalidate: show cached data instantly, background refetch on every visit.
     // staleTime: Infinity → data never auto-stales, prevents races with delete/return optimistic updates
     // refetchOnMount: 'always' → always background-refetch on every page visit regardless of staleTime
@@ -48,6 +54,30 @@ const SalesPageClient = ({ initialData }) => {
         refetchOnMount: 'always',       // Always background-refetch on every page visit
         refetchOnWindowFocus: 'always', // Refetch when user switches back to this tab
     });
+
+    // Client-side filtering by time range
+    const filteredSalesByTime = useMemo(() => {
+        if (!sales || !Array.isArray(sales)) return [];
+        
+        const now = dayjs();
+        
+        return sales.filter(sale => {
+            const createdAt = dayjs(sale.createdAt);
+            
+            switch (timeRange) {
+                case "daily":
+                    return createdAt.isSame(now, "day");
+                case "weekly":
+                    return createdAt.isAfter(now.subtract(7, "day"));
+                case "monthly":
+                    return createdAt.isSame(now, "month");
+                case "yearly":
+                    return createdAt.isSame(now, "year");
+                default:
+                    return true;
+            }
+        });
+    }, [sales, timeRange]);
 
     // Sync filter updates with the URL
     const updateFilters = (newSoldBy, newShopId, newDate) => {
@@ -86,7 +116,47 @@ const SalesPageClient = ({ initialData }) => {
     return (
         <section className="w-full">
             <div className="space-y-6 w-full">
-                <SalesCards sales={sales} isLoading={isSalesLoading} />
+                <Box sx={{ 
+                    display: "flex", 
+                    flexDirection: { xs: "column", sm: "row" }, 
+                    justifyContent: "space-between", 
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    mb: 1,
+                    gap: 2
+                }}>
+                    <SalesCards sales={filteredSalesByTime} isLoading={isSalesLoading} />
+                    
+                    <Box sx={{ alignSelf: { xs: "flex-end", sm: "flex-start" }, mt: { xs: 0, sm: -1 } }}>
+                        <ToggleButtonGroup
+                            value={timeRange}
+                            exclusive
+                            onChange={(e, next) => next && setTimeRange(next)}
+                            size="small"
+                            sx={{
+                                "& .MuiToggleButton-root": {
+                                    px: 2,
+                                    py: 0.75,
+                                    textTransform: "none",
+                                    fontWeight: 600,
+                                    borderRadius: "8px !important",
+                                    border: "1px solid #e5e7eb",
+                                    mr: 1,
+                                    "&.Mui-selected": {
+                                        bgcolor: "#FF6D00",
+                                        color: "white",
+                                        "&:hover": { bgcolor: "#E65100" }
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="daily">{tHistory('filters.daily') || "Daily"}</ToggleButton>
+                            <ToggleButton value="weekly">{tHistory('filters.weekly') || "Weekly"}</ToggleButton>
+                            <ToggleButton value="monthly">{tHistory('filters.monthly') || "Monthly"}</ToggleButton>
+                            <ToggleButton value="yearly">{tHistory('filters.yearly') || "Yearly"}</ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+                </Box>
+
                 <div className="space-y-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-medium ">{tHistory("title")}</h1>
@@ -107,7 +177,7 @@ const SalesPageClient = ({ initialData }) => {
                     </div>
                 </div>
                 <DataTable
-                    salesData={sales}
+                    salesData={filteredSalesByTime}
                     workers={filteredWorkers}
                     selectedWorkerId={currentSoldBy}
                     setSelectedWorkerId={(id) => updateFilters(id, null, null)}

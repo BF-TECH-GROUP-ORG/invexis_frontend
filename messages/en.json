@@ -756,8 +756,8 @@
   "salesHistory": {
     "title": "Sales History",
     "cards": {
-      "totalDailySales": "Total Daily Sales",
-      "totalDailyProfit": "Total Daily Profit",
+      "totalSales": "Total Sales",
+      "totalProfit": "Total Profit",
       "returnedProducts": "Returned Products",
       "discountsApplied": "Discounts Applied"
     },

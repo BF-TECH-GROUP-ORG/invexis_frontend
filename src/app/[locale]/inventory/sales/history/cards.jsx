@@ -73,7 +73,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
 
   const cards = [
     {
-      title: t("totalDailySales"),
+      title: t("totalSales"),
       value: stats.today.totalSales,
       trend: stats.trends.sales,
       history: stats.history.map(h => ({ value: h.totalSales, name: h.date })),
@@ -84,7 +84,7 @@ const SalesCards = ({ sales = [], isLoading = false }) => {
       isCurrency: true,
     },
     {
-      title: t("totalDailyProfit"),
+      title: t("totalProfit"),
       value: stats.today.totalProfit,
       trend: stats.trends.profit,
       history: stats.history.map(h => ({ value: h.totalProfit, name: h.date })),
