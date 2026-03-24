@@ -1,6 +1,8 @@
 import apiClient from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+// All report endpoints use relative paths so they route through the Next.js
+// /api/proxy catch-all, which injects the Bearer token server-side.
+// Using absolute URLs (${API_BASE}/...) bypasses the proxy and causes 401s.
 
 const reportService = {
 
@@ -16,7 +18,7 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
-            const data = await apiClient.get(`${API_BASE}/report/general/company/${companyId}`, {
+            const data = await apiClient.get(`/report/general/company/${companyId}`, {
                 params,
                 ...options
             });
@@ -38,7 +40,7 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
-            const data = await apiClient.get(`${API_BASE}/inventory/v1/reports/${companyId}`, {
+            const data = await apiClient.get(`/inventory/v1/reports/${companyId}`, {
                 params,
                 ...options
             });
@@ -60,7 +62,7 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
-            const data = await apiClient.get(`${API_BASE}/sales/reports/v1/${companyId}`, {
+            const data = await apiClient.get(`/sales/reports/v1/${companyId}`, {
                 params,
                 ...options
             });
@@ -82,7 +84,7 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
-            const data = await apiClient.get(`${API_BASE}/debt/reports/v1/${companyId}`, {
+            const data = await apiClient.get(`/debt/reports/v1/${companyId}`, {
                 params,
                 ...options
             });
@@ -104,7 +106,7 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
-            const data = await apiClient.get(`${API_BASE}/payment/reports/v1/${companyId}`, {
+            const data = await apiClient.get(`/payment/reports/v1/${companyId}`, {
                 params,
                 ...options
             });
