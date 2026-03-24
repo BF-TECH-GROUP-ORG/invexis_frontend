@@ -101,12 +101,7 @@ api.interceptors.request.use(
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           if (process.env.NODE_ENV === "development") {
-
-              `[Axios] Attached Token for ${config.url}: ${token.substring(
-                0,
-                10
-              )}...`
-            );
+            // token logging removed for production
           }
         } else {
           if (process.env.NODE_ENV === "development") {
@@ -121,12 +116,7 @@ api.interceptors.request.use(
     if (process.env.NODE_ENV === "development") {
       const authHeader = config.headers.Authorization || "";
 
-        "[API →]",
-        config.method?.toUpperCase(),
-        config.url,
-        "Headers:",
-        config.headers
-      );
+        // logging removed for production
     }
 
     return config;

@@ -72,11 +72,6 @@ export default function AddCategoryModal({ onClose, editData = null }) {
         }
 
 
-          "Fetching parents for company:",
-          currentCompanyId,
-          "User object:",
-          user
-        );
 
         if (currentCompanyId) {
           const data = await ParentCategories(currentCompanyId);

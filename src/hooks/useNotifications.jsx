@@ -17,11 +17,6 @@ export const useNotifications = () => {
 
     useEffect(() => {
 
-            hasSession: !!session?.accessToken,
-            initialized: initialized.current,
-            permission: typeof window !== 'undefined' && typeof Notification !== 'undefined' ? Notification.permission : 'n/a'
-        });
-
         // Only run when session is available and we haven't initialized yet
         if (!session?.accessToken || initialized.current) return;
 

@@ -161,9 +161,7 @@ apiInstance.interceptors.request.use(
     }
 
     if (process.env.NODE_ENV === "development") {
-
-        `[API Request] ${config.method?.toUpperCase()} ${config.url}`
-      );
+      // development logging removed for production
     }
 
     return config;
