@@ -251,7 +251,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
               <button
                 type="button"
                 onClick={() => setShowAttributes(!showAttributes)}
-                className="w-full px-5 py-4 bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition flex items-center justify-between"
+                className="w-full px-5 py-4 bg-linear-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition flex items-center justify-between"
               >
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                   <span className="w-1.5 h-5 bg-orange-500 rounded-full"></span>
@@ -276,7 +276,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="p-5 bg-gradient-to-br from-orange-50 to-white border-t-2">
+                    <div className="p-5 bg-linear-to-br from-orange-50 to-white border-t-2">
                       <div className="space-y-3 mb-4">
                         <input
                           type="text"
@@ -429,7 +429,7 @@ export default function AddCategoryModal({ onClose, editData = null }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 transition font-medium shadow-lg"
+                className="px-6 py-2.5 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 transition font-medium shadow-lg"
               >
                 {loading
                   ? t("modal.saving")
