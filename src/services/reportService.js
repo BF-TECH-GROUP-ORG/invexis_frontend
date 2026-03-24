@@ -1,8 +1,17 @@
 import apiClient from "@/lib/apiClient";
+import { getSession } from "next-auth/react";
 
-// All report endpoints use relative paths so they route through the Next.js
-// /api/proxy catch-all, which injects the Bearer token server-side.
-// Using absolute URLs (${API_BASE}/...) bypasses the proxy and causes 401s.
+/**
+ * Helper: get Authorization header from current session.
+ * This ensures the Bearer token is always attached regardless of proxy config.
+ */
+async function getAuthHeaders() {
+    const session = await getSession();
+    if (session?.accessToken) {
+        return { Authorization: `Bearer ${session.accessToken}` };
+    }
+    return {};
+}
 
 const reportService = {
 
@@ -18,8 +27,10 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
+            const authHeaders = await getAuthHeaders();
             const data = await apiClient.get(`/report/general/company/${companyId}`, {
                 params,
+                headers: { ...authHeaders, ...(options.headers || {}) },
                 ...options
             });
             return data;
@@ -40,8 +51,10 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
+            const authHeaders = await getAuthHeaders();
             const data = await apiClient.get(`/inventory/v1/reports/${companyId}`, {
                 params,
+                headers: { ...authHeaders, ...(options.headers || {}) },
                 ...options
             });
             return data;
@@ -62,8 +75,10 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
+            const authHeaders = await getAuthHeaders();
             const data = await apiClient.get(`/sales/reports/v1/${companyId}`, {
                 params,
+                headers: { ...authHeaders, ...(options.headers || {}) },
                 ...options
             });
             return data;
@@ -84,8 +99,10 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
+            const authHeaders = await getAuthHeaders();
             const data = await apiClient.get(`/debt/reports/v1/${companyId}`, {
                 params,
+                headers: { ...authHeaders, ...(options.headers || {}) },
                 ...options
             });
             return data;
@@ -106,8 +123,10 @@ const reportService = {
             if (endDate) params.endDate = endDate;
             if (filter) params.filter = filter;
 
+            const authHeaders = await getAuthHeaders();
             const data = await apiClient.get(`/payment/reports/v1/${companyId}`, {
                 params,
+                headers: { ...authHeaders, ...(options.headers || {}) },
                 ...options
             });
             return data;
