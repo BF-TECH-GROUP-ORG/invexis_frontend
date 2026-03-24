@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import SalesCards from "./cards";
+import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import { getSalesHistory } from "@/services/salesService";
 import { useState, useMemo } from "react";
 import { ToggleButton, ToggleButtonGroup, Box } from "@mui/material";
