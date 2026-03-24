@@ -160,6 +160,21 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     });
   }, [worker.firstName, worker.lastName, worker.phone]);
 
+  // Automation: Ensure phone prefix is '7' (Rwanda standard)
+  React.useEffect(() => {
+    const code = worker.countryCode || "+250";
+    if (worker.phone && worker.phone.startsWith(code)) {
+      const local = worker.phone.slice(code.length);
+      if (local.length > 0 && local[0] !== "7") {
+        setWorker((prev) => {
+          const newLocal = "7" + local.slice(0, 8);
+          if (prev.phone === code + newLocal) return prev;
+          return { ...prev, phone: code + newLocal };
+        });
+      }
+    }
+  }, [worker.phone, worker.countryCode]);
+
   // Persistence: Save to local storage
   React.useEffect(() => {
     if (!isEditMode) {
@@ -862,8 +877,9 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
           >
             {stepLabels.map((label, index) => {
               const isPassed = index < activeStep;
+              const isCurrent = index === activeStep;
               const isValid = isStepValid(index);
-              const isError = isPassed && !isValid;
+              const isError = (isPassed || isCurrent) && !isValid;
 
               return (
                 <Step key={label} completed={isPassed && isValid}>
@@ -878,23 +894,23 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                           borderRadius: "50%",
                           border: "3px solid",
                           borderColor:
-                            index === activeStep
-                              ? "#fe6600"
-                              : isError
-                                ? "#ef4444"
+                            isError
+                              ? "#ef4444"
+                              : index === activeStep
+                                ? "#fe6600"
                                 : index < activeStep
                                   ? "#10b981"
                                   : "#d0d0d0",
                           backgroundColor:
-                            index === activeStep
-                              ? "#fe6600"
-                              : isError
-                                ? "#ef4444"
+                            isError
+                              ? "#ef4444"
+                              : index === activeStep
+                                ? "#fe6600"
                                 : index < activeStep
                                   ? "#10b981"
                                   : "transparent",
                           color:
-                            index === activeStep || isPassed ? "white" : "#666",
+                            index === activeStep || (isPassed && isValid) ? "white" : isError ? "white" : "#666",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
