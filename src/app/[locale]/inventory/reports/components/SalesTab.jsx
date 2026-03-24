@@ -113,7 +113,6 @@ const SalesTab = ({ dateRange }) => {
                     invoiceNo: sale.invoiceNo,
                     invoiceUrl: sale.invoiceUrl,
                     time: dayjs(sale.createdAt).format('hh:mm A'),
-                    soldBy: sale.soldBy,
                     totalValue: saleValue,
                     status: sale.status,
                     paymentStatus: sale.paymentStatus,
@@ -319,7 +318,7 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.product')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('sales.table.quantity')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('sales.table.value')}</TableCell>
-                                <TableCell align="center" colSpan={3}>{t('common.tracking')}</TableCell>
+                                <TableCell align="center" colSpan={2}>{t('common.tracking')}</TableCell>
                             </TableRow>
                             {/* Sub Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.7rem", py: 0.5 } }}>
@@ -331,7 +330,6 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center">{t('common.totalAmount')}</TableCell>
                                 <TableCell align="center">{t('sales.table.saleTime')}</TableCell>
                                 <TableCell align="center">{t('common.status')}</TableCell>
-                                <TableCell align="center" sx={{ borderRight: "none" }}>{t('common.soldBy')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -390,12 +388,11 @@ const SalesTab = ({ dateRange }) => {
                                                             <TableCell align="center">{formatCurrency(item.value.unitPrice)}</TableCell>
                                                             <TableCell align="center">{formatCurrency(item.value.totalAmount)}</TableCell>
                                                             <TableCell align="center">{sale.time}</TableCell>
-                                                            <TableCell align="center">
+                                                            <TableCell align="center" sx={{ borderRight: "none" }}>
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
                                                                     <StatusBadge status={sale.status} />
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell align="center" sx={{ borderRight: "none" }}>{sale.soldBy}</TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </React.Fragment>
@@ -407,9 +404,9 @@ const SalesTab = ({ dateRange }) => {
                                                 <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals?.transactions || 0} {t('sales.kpis.transactions')}</TableCell>
                                                 <TableCell align="center" colSpan={3} sx={{ borderRight: "none", bgcolor: "#FFEDD5" }}>{shop.totals?.units || 0} {t('common.units')}</TableCell>
                                                 <TableCell align="center" colSpan={2} sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12" }}>{formatCurrency(shop.totals?.revenue || 0)}</TableCell>
-                                                <TableCell colSpan={3} />
+                                                <TableCell colSpan={2} />
                                             </TableRow>
-                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
+                                            <TableRow sx={{ height: 8 }}><TableCell colSpan={10} sx={{ border: "none" }} /></TableRow>
                                         </React.Fragment>
                                     ))}
                                 </React.Fragment>
@@ -425,7 +422,7 @@ const SalesTab = ({ dateRange }) => {
                                 <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{summary?.totalTransactions || 0} {t('sales.kpis.transactions')}</TableCell>
                                 <TableCell align="center" colSpan={3} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#1F2937" }}>{summary?.totalUnits || 0} {t('common.units')}</TableCell>
                                 <TableCell align="center" colSpan={2} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#FF6D00" }}>{formatCurrency(summary?.totalRevenue || 0)}</TableCell>
-                                <TableCell colSpan={3} />
+                                <TableCell colSpan={2} />
                             </TableRow>
                         </TableBody>
                     </Table>
