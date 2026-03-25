@@ -14,8 +14,6 @@ const isDev = process.env.NODE_ENV === 'development';
 export const logPerformanceMetric = (name, duration) => {
   if (isDev && duration > 100) {
     console.warn(`⚠️ Performance: ${name} took ${duration.toFixed(2)}ms`);
-  } else if (isDev) {
-    console.log(`✅ Performance: ${name} - ${duration.toFixed(2)}ms`);
   }
 };
 

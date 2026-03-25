@@ -458,10 +458,6 @@ export const PAYMENT_URLS = {
  * This helps visualize the data structure before making actual API calls
  */
 export const logPaymentUrls = () => {
-  console.group('🔗 Payment API Routes Mapping');
-  console.log('Base URL:', BASE_URL);
-  console.log('Routes:', PAYMENT_URLS);
-  console.groupEnd();
 };
 
 /**
@@ -469,33 +465,12 @@ export const logPaymentUrls = () => {
  * @param {string} routeName - Name of the route (e.g., 'initiatePayment')
  */
 export const logPaymentRoute = (routeName) => {
-  const route = PAYMENT_URLS[routeName];
-  if (route) {
-    console.group(`📋 Route: ${routeName}`);
-    console.log('Description:', route.description);
-    console.log('Method:', route.method);
-    console.log('URL:', typeof route.url === 'function' ? route.url('PLACEHOLDER') : route.url);
-    if (route.sampleData) {
-      console.log('Sample Request Data:', route.sampleData);
-    }
-    if (route.expectedResponse) {
-      console.log('Expected Response:', route.expectedResponse);
-    }
-    console.groupEnd();
-  } else {
-    console.warn(`Route "${routeName}" not found in PAYMENT_URLS`);
-  }
 };
 
 /**
  * Log all reports routes
  */
 export const logReportsRoutes = () => {
-  console.group('📊 Reports Routes');
-  Object.entries(PAYMENT_URLS.reports).forEach(([key, value]) => {
-    console.log(`  ${key}:`, value.url);
-  });
-  console.groupEnd();
 };
 
 export default PAYMENT_URLS;

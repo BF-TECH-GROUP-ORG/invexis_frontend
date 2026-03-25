@@ -116,7 +116,7 @@ const SellProductsInputs = ({ id }) => {
   const handleSubmit = async () => {
     setLoading(true);
     const fields = { soldPrice, quantitySold, customerName, customerPhone };
-    console.log(fields)
+
     let valid = true;
     const newErrors = {};
 
@@ -196,7 +196,7 @@ const SellProductsInputs = ({ id }) => {
       discountAmount: itemDiscount,
     };
 
-    console.log("Sending sale payload:", payload);
+
 
     try {
       await SellProduct(payload, isDebt); // Pass isDebt flag to service

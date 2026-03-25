@@ -6,7 +6,7 @@ const SellProduct = ({ params }) => {
   const p = React.use(params);  // unwrap the promise
   const id = p.id;
 
-  console.log("Product name:", id.ProductName);
+
 
   return (
     <div className="flex items-center justify-center">

@@ -520,72 +520,16 @@ export default PAYMENT_API_ENDPOINTS;
  * Helper function to log endpoint details
  */
 export const logEndpointDetails = (category, endpointName) => {
-  const categoryData = PAYMENT_API_ENDPOINTS[category];
-  if (!categoryData) {
-    console.error(`%cCategory not found: ${category}`, 'color: #ff0000;');
-    return;
-  }
-
-  const endpoint = categoryData[endpointName];
-  if (!endpoint) {
-    console.error(`%cEndpoint not found: ${endpointName}`, 'color: #ff0000;');
-    return;
-  }
-
-  console.log('%c📋 ENDPOINT DETAILS', 'color: #00ffff; font-weight: bold; font-size: 12px;');
-  console.log(`%cName: %c${endpointName}`, 'color: #666; font-weight: bold;', 'color: #0080ff; font-family: monospace;');
-  console.log(`%cMethod: %c${endpoint.method}`, 'color: #666; font-weight: bold;', 'color: #ff6600; font-family: monospace;');
-  console.log(`%cPath: %c${endpoint.path}`, 'color: #666; font-weight: bold;', 'color: #00aa00; font-family: monospace;');
-  console.log(`%cDescription: %c${endpoint.description}`, 'color: #666; font-weight: bold;', 'color: #333;');
-
-  if (endpoint.params) {
-    console.log('%cParameters:', 'color: #666; font-weight: bold;');
-    console.log(endpoint.params);
-  }
-
-  if (endpoint.requestBody) {
-    console.log('%cRequest Body:', 'color: #666; font-weight: bold;');
-    console.log(endpoint.requestBody);
-  }
-
-  if (endpoint.responseStructure) {
-    console.log('%cResponse Structure:', 'color: #666; font-weight: bold;');
-    console.log(endpoint.responseStructure);
-  }
-
-  if (endpoint.eventTypes) {
-    console.log('%cEvent Types:', 'color: #666; font-weight: bold;');
-    console.log(endpoint.eventTypes);
-  }
 };
 
 /**
  * Helper function to log all endpoints in a category
  */
 export const logCategoryEndpoints = (category) => {
-  const categoryData = PAYMENT_API_ENDPOINTS[category];
-  if (!categoryData) {
-    console.error(`%cCategory not found: ${category}`, 'color: #ff0000;');
-    return;
-  }
-
-  console.log(`%c📚 ${category} ENDPOINTS`, 'color: #ffff00; font-weight: bold; font-size: 13px;');
-  Object.keys(categoryData).forEach((key, index) => {
-    const endpoint = categoryData[key];
-    console.log(`  ${index + 1}. ${key.padEnd(30)} [${endpoint.method.padEnd(6)}] ${endpoint.path}`);
-  });
 };
 
 /**
  * Log all available endpoints
  */
 export const logAllEndpoints = () => {
-  console.log('%c╔════════════════════════════════════════════════════════════╗', 'color: #00ff00; font-size: 12px;');
-  console.log('%c║           COMPLETE PAYMENT API ENDPOINTS MAP              ║', 'color: #00ff00; font-size: 13px; font-weight: bold;');
-  console.log('%c╚════════════════════════════════════════════════════════════╝', 'color: #00ff00; font-size: 12px;');
-
-  Object.keys(PAYMENT_API_ENDPOINTS).forEach((category) => {
-    logCategoryEndpoints(category);
-    console.log('');
-  });
 };

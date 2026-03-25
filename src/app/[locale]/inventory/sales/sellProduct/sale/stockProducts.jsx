@@ -488,7 +488,7 @@ const CurrentInventory = ({
 
   // Handle sell button - opens customer modal
   const handleSellSelected = () => {
-    console.log("Opening customer modal. Customers available:", customers.length, customers);
+
     setCustomerModal(true);
   };
 
@@ -594,7 +594,7 @@ const CurrentInventory = ({
       const matches = customers.filter(c =>
         c.customerPhone && c.customerPhone.toString().includes(phone.trim())
       );
-      console.log("Phone input:", phone, "Customers available:", customers.length, "Matches found:", matches.length);
+
       setFilteredCustomers(matches);
     } else {
       setFilteredCustomers([]);

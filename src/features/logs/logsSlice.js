@@ -21,14 +21,13 @@ export const fetchLogs = createAsyncThunk(
             // Remove undefined params
             Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
             const response = await getAuditLogs(companyId, params);
-            console.log('Audit logs raw response:', response);
+
 
             // Handle both wrapped response and direct array
             const logs = response.data || (Array.isArray(response) ? response : []);
             const total = response.pagination?.total || (response.total) || logs.length;
 
-            console.log('Extracted logs array:', logs);
-            console.log('Total count:', total);
+
 
             // Transform data to match UI expectations
             const items = logs.map(log => {

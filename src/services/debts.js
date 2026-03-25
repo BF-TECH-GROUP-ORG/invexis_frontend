@@ -30,7 +30,7 @@ export const getDebts = async (companyId, filters = {}, options = {}) => {
         ...options
       }
     );
-    console.log("Debts fetched:", data);
+
 
     // Handle potential object wrapping
     if (data && !Array.isArray(data)) {
@@ -58,7 +58,7 @@ export const getDebtById = async (debtId, companyId) => {
         cache: cacheStrategy,
       }
     );
-    console.log("Debt fetched:", data);
+
     return data;
   } catch (error) {
     console.error("Error fetching debt:", error);
@@ -80,7 +80,7 @@ export const getDebtHistory = async (companyId, debtId) => {
         cache: cacheStrategy,
       }
     );
-    console.log("Debt history fetched:", data);
+
     return data;
   } catch (error) {
     console.error("Error fetching debt history:", error);
@@ -103,7 +103,7 @@ export const createDebt = async (debtData) => {
     // Clear debts cache since we added new data
     apiClient.clearCache("/debts");
 
-    console.log("Debt created:", data);
+
     return data;
   } catch (error) {
     console.error("Error creating debt:", error);
@@ -126,7 +126,7 @@ export const updateDebt = async (debtId, debtData, companyId) => {
     // Clear debts cache
     apiClient.clearCache("/debts");
 
-    console.log("Debt updated:", data);
+
     return data;
   } catch (error) {
     console.error("Error updating debt:", error);
@@ -148,7 +148,7 @@ export const deleteDebt = async (debtId, companyId) => {
     // Clear debts cache
     apiClient.clearCache("/debts");
 
-    console.log("Debt deleted:", data);
+
     return data;
   } catch (error) {
     console.error("Error deleting debt:", error);
@@ -171,7 +171,7 @@ export const recordRepayment = async (repaymentData) => {
     // Clear debts cache since balance changed
     apiClient.clearCache("/debts");
 
-    console.log("Repayment recorded:", data);
+
     return data;
   } catch (error) {
     console.error("Error recording repayment:", error);
@@ -195,7 +195,7 @@ export const markDebtAsPaid = async (debtId, payload) => {
     // Clear debts cache
     apiClient.clearCache("/debts");
 
-    console.log("Debt marked as paid:", data);
+
     return data;
   } catch (error) {
     console.error("Error marking debt as paid:", error);
@@ -215,7 +215,7 @@ export const cancelDebt = async (debtId, payload) => {
     // Clear debts cache
     apiClient.clearCache("/debts");
 
-    console.log("Debt cancelled:", data);
+
     return data;
   } catch (error) {
     console.error("Error cancelling debt:", error);
