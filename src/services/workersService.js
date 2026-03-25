@@ -17,8 +17,6 @@ export const createWorker = async (workerData, options = {}) => {
         const response = await apiClient.post(`/auth/register`, workerData, options);
         apiClient.clearCache("workers");
 
-
-
         return response;
     } catch (error) {
         console.error('Failed to create worker:', error.message);
@@ -71,14 +69,10 @@ export const getShopsByCompanyId = async (companyId, options = {}) => {
     if (!companyId) return [];
 
     // Check cache first
-    // if (shopsCache[companyId]) {
-    //     return shopsCache[companyId];
-    // }
+
 
     try {
         const url = `/auth/company/${companyId}/shops`;
-
-        const response = await apiClient.get(url, options);
 
 
         // Axios response.data contains the actual response body
@@ -134,9 +128,6 @@ export const getWorkerById = async (workerId, options = {}) => {
         }
 
         const url = `/auth/users/${workerId}`;
-
-
-        const response = await apiClient.get(url, options);
 
 
         // Axios response.data contains the actual response body

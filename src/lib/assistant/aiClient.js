@@ -10,10 +10,7 @@ export async function sendMessage(messages, context, image = null) {
 
     const data = await res.json();
 
-    /* 
-       FUTURE: Send this technical log to Admin Dashboard 
 
-    */
 
     if (data.error) {
       // Extract technical message but throw a standardized error
@@ -25,7 +22,7 @@ export async function sendMessage(messages, context, image = null) {
 
     return data.content;
   } catch (error) {
-    /* console.error('aiClient Error:', error); */
+    /*  */
     throw error;
   }
 }
@@ -43,10 +40,7 @@ export async function transcribeAudio(audioBlob, accurate = false) {
 
     const data = await res.json();
 
-    /* 
-       FUTURE: Send this technical log to Admin Dashboard
 
-    */
 
     if (data.error) {
       const technicalMsg = data.error?.message || data.error?.error?.message || JSON.stringify(data.error);
@@ -57,7 +51,7 @@ export async function transcribeAudio(audioBlob, accurate = false) {
 
     return data.text;
   } catch (error) {
-    /* console.error('Transcription Error:', error); */
+    /*  */
     throw error;
   }
 }

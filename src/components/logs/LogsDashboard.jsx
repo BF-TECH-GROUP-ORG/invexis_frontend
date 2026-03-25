@@ -33,7 +33,10 @@ const LogsDashboard = () => {
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 027a82c72ef0a64de3b2dd65c744d9d9b6668872
 
     const options = session?.accessToken ? {
         headers: {

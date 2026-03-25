@@ -126,6 +126,7 @@
 @font-face {
   font-family: "Metropolis";
   src: url("/fonts/Metropolis.otf") format("opentype");
+  font-display: swap;
 }
 
 @font-face {

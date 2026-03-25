@@ -5,9 +5,7 @@ import { getCacheStrategy } from "@/lib/cacheConfig";
 // This mirrors productsService so local dev can set `NEXT_PUBLIC_API_URL=/api` and avoid CORS.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-if (typeof window !== "undefined") {
-  console.info("CategoriesService: using API base");
-}
+
 
 /**
  * Get company details by ID

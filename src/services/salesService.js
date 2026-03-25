@@ -81,7 +81,6 @@ export const SellProduct = async (saleData, isDebt = false) => {
   try {
 
 
-
     // 1. Always record the sale first
     // We use the relative URL to ensure it uses the baseURL from axios instance
 
@@ -110,7 +109,6 @@ export const SellProduct = async (saleData, isDebt = false) => {
         createdBy: saleData.soldBy,
         isDebt: true,
       };
-
 
 
       try {

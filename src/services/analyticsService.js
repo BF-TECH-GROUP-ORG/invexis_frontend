@@ -56,9 +56,7 @@ const AnalyticsService = {
         const url = new URL(`analytics/reports/${reportPath}`, baseUrl);
         const fullPath = url.toString();
 
-        if (process.env.NODE_ENV === "development") {
 
-        }
 
         const response = await apiClient.get(fullPath, {
             params,

@@ -14,7 +14,6 @@ export const getBranches = async (companyId, options = {}) => {
     });
 
 
-
     // Axios wraps the response in response.data
     // Backend returns: {success: true, data: Array(...), pagination: {...}}
     const apiResponse = response.data || response;

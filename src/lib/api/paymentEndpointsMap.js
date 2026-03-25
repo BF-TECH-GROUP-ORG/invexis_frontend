@@ -520,72 +520,16 @@ export default PAYMENT_API_ENDPOINTS;
  * Helper function to log endpoint details
  */
 export const logEndpointDetails = (category, endpointName) => {
-  const categoryData = PAYMENT_API_ENDPOINTS[category];
-  if (!categoryData) {
-    console.error(`%cCategory not found: ${category}`, 'color: #ff0000;');
-    return;
-  }
-
-  const endpoint = categoryData[endpointName];
-  if (!endpoint) {
-    console.error(`%cEndpoint not found: ${endpointName}`, 'color: #ff0000;');
-    return;
-  }
-
-
-
-
-
-
-
-  if (endpoint.params) {
-
-
-  }
-
-  if (endpoint.requestBody) {
-
-
-  }
-
-  if (endpoint.responseStructure) {
-
-
-  }
-
-  if (endpoint.eventTypes) {
-
-
-  }
 };
 
 /**
  * Helper function to log all endpoints in a category
  */
 export const logCategoryEndpoints = (category) => {
-  const categoryData = PAYMENT_API_ENDPOINTS[category];
-  if (!categoryData) {
-    console.error(`%cCategory not found: ${category}`, 'color: #ff0000;');
-    return;
-  }
-
-
-  Object.keys(categoryData).forEach((key, index) => {
-    const endpoint = categoryData[key];
-
-  });
 };
 
 /**
  * Log all available endpoints
  */
 export const logAllEndpoints = () => {
-
-
-
-
-  Object.keys(PAYMENT_API_ENDPOINTS).forEach((category) => {
-    logCategoryEndpoints(category);
-
-  });
 };

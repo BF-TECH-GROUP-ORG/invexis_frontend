@@ -23,7 +23,7 @@ if (typeof window !== "undefined") {
 
         }
     }).catch(err => {
-        console.warn("Firebase Messaging skip initialization:", err.message);
+        // console.warn("Firebase Messaging skip initialization:", err.message);
     });
 }
 

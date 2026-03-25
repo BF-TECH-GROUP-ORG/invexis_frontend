@@ -29,13 +29,7 @@ export const createSocketConnection = (gatewayUrl, token, options = {}) => {
     const socket = io(gatewayUrl, defaultOptions);
 
     // Connection event handlers
-    socket.on('connect', () => {
 
-    });
-
-    socket.on('disconnect', (reason) => {
-
-    });
 
     socket.on('error', (error) => {
         console.error('⚠️ WebSocket error:', error);

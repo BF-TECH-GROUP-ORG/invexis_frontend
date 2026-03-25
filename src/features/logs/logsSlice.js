@@ -30,6 +30,7 @@ export const fetchLogs = createAsyncThunk(
 
 
 
+
             // Transform data to match UI expectations
             const items = logs.map(log => {
                 // Better description logic based on event type

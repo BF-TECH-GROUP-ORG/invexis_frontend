@@ -12,8 +12,11 @@ export default function MultiSalesDemo() {
 
     const handleSell = (payload) => {
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 027a82c72ef0a64de3b2dd65c744d9d9b6668872
 
         // Here you would call your actual API
         // Example:

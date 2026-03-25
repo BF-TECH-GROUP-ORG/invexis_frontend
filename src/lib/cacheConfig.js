@@ -96,9 +96,7 @@ export function getCacheStrategy(module, dataType = "DEFAULT") {
   const key = `${module.toUpperCase()}_${dataType.toUpperCase()}`;
   const strategy = CACHE_STRATEGIES[key] || CACHE_STRATEGIES.DEFAULT;
 
-  if (process.env.NODE_ENV === "development") {
 
-  }
 
   return strategy;
 }

@@ -217,10 +217,8 @@ const AnalyticsPage = () => {
     const summary = summaryRes?.data || summaryRes || {};
 
 
-
     // Sales Performance
     const rawSales = salesRes?.data || salesRes || [];
-
 
 
     const salesPerformance = rawSales.map(item => ({
@@ -234,7 +232,6 @@ const AnalyticsPage = () => {
     // Profitability
     // API: [{"date":"...","revenue":"98.00","cost":"9.00","profit":"89.00","grossMarginPercent":"..."}]
     const rawProfitability = profitabilityRes?.data || profitabilityRes || [];
-
 
 
     const profitabilityData = rawProfitability.map(item => ({
@@ -251,7 +248,6 @@ const AnalyticsPage = () => {
     const rawProducts = productsRes?.data || productsRes || [];
 
 
-
     const topProducts = rawProducts.map(item => ({
         name: item.productName || 'Unknown',
         quantity: parseInt(item.totalQuantity) || 0
@@ -260,7 +256,6 @@ const AnalyticsPage = () => {
 
     // Payment Methods
     const rawCategories = categoriesRes?.data || categoriesRes || [];
-
 
 
     const categories = rawCategories.map(item => ({
