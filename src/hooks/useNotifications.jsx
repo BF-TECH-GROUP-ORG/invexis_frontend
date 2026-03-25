@@ -28,7 +28,6 @@ export const useNotifications = () => {
         // 1. Setup Firebase Messaging (Push)
         const setupPush = async () => {
             if (!messaging || typeof Notification === 'undefined') {
-                console.warn('[Notifications] Messaging or Notification API not supported.');
                 return;
             }
 
@@ -118,9 +117,8 @@ export const useNotifications = () => {
                                     });
                                 }
                             } else {
-                                const errorData = await response.json().catch(() => ({}));
-                                console.error('[Notifications] Backend registration failed:', response.status, errorData);
-
+                                // console.error('[Notifications] Backend registration failed:', response.status, errorData);
+                                
                                 // Auto-Recovery: Clear cache on 400/401/404 to force fresh sync next time
                                 if ([400, 401, 404].includes(response.status)) {
                                     localStorage.removeItem(cachedTokenKey);
@@ -128,7 +126,7 @@ export const useNotifications = () => {
                                 }
                             }
                         } catch (fetchErr) {
-                            console.error('[Notifications] Network error during device registration:', fetchErr);
+                            // console.error('[Notifications] Network error during device registration:', fetchErr);
                         }
                     } else {
                         console.warn('[Notifications] getToken returned null');
@@ -198,7 +196,7 @@ export const useNotifications = () => {
                         registration.showNotification(title, options);
                     }
                 } catch (swErr) {
-                    console.warn('Failed to show foreground browser notification:', swErr);
+                    // console.warn('Failed to show foreground browser notification:', swErr);
                 }
             });
         }
@@ -246,7 +244,7 @@ export const useNotifications = () => {
                     await setupPush();
                 }
             } catch (err) {
-                console.error("[Notifications] Permission check failed:", err);
+                // console.error("[Notifications] Permission check failed:", err);
             }
         };
 
