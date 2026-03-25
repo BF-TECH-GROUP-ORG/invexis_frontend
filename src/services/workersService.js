@@ -16,9 +16,7 @@ export const createWorker = async (workerData, options = {}) => {
     try {
         const response = await apiClient.post(`/auth/register`, workerData, options);
         apiClient.clearCache("workers");
-        console.log("Worker created successfully:", response);
-        console.log('payload is' + workerData)
-        console.log('response is' + response)
+
         return response;
     } catch (error) {
         console.error('Failed to create worker:', error.message);
@@ -33,7 +31,7 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
     try {
         if (!companyId) return [];
         const url = `/auth/company/${companyId}/workers`;
-        console.log(`Fetching workers from: ${url}`);
+
 
         // Merge options to include headers if provided
         const config = {
@@ -44,7 +42,7 @@ export const getWorkersByCompanyId = async (companyId, options = {}) => {
             ...config,
             cache: { ttl: 60 * 60 * 1000 } // Extended TTL for service layer cache
         });
-        console.log("Workers API Raw Response:", response);
+
 
         const responseData = response.data || response;
 
@@ -71,16 +69,11 @@ export const getShopsByCompanyId = async (companyId, options = {}) => {
     if (!companyId) return [];
 
     // Check cache first
-    // if (shopsCache[companyId]) {
-    //     console.log("Returning cached shops for company:", companyId);
-    //     return shopsCache[companyId];
-    // }
+
 
     try {
         const url = `/auth/company/${companyId}/shops`;
-        console.log(`Fetching shops from: ${url}`);
-        const response = await apiClient.get(url, options);
-        console.log("Shops API Raw Response:", response);
+
 
         // Axios response.data contains the actual response body
         const responseData = response.data || response;
@@ -107,7 +100,7 @@ export const deleteWorker = async (workerId, companyId, options = {}) => {
         const url = `/auth/company/${companyId}/workers/${workerId}`;
         const response = await apiClient.delete(url, options);
         apiClient.clearCache("workers");
-        console.log("Worker deleted successfully:", response);
+
         return response;
     } catch (error) {
         console.error('Failed to delete worker:', error.message);
@@ -120,7 +113,7 @@ export const updateWorker = async (workerId, workerData, options = {}) => {
         // Note: Adjust endpoint if needed based on backend API
         const response = await apiClient.put(`/auth/users/${workerId}`, workerData, options);
         apiClient.clearCache("workers");
-        console.log("Worker updated successfully:", response);
+
         return response;
     } catch (error) {
         console.error('Failed to update worker:', error.message);
@@ -135,10 +128,7 @@ export const getWorkerById = async (workerId, options = {}) => {
         }
 
         const url = `/auth/users/${workerId}`;
-        console.log("Fetching worker from:", url);
 
-        const response = await apiClient.get(url, options);
-        console.log("Worker fetched successfully:", response);
 
         // Axios response.data contains the actual response body
         const responseData = response.data || response;

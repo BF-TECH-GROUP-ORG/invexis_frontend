@@ -2,15 +2,20 @@
 
 export default function Step1BasicInfo({ formData, updateFormData }) {
   const handleInputChange = (field, value) => {
-    updateFormData({ [field]: value });
-  };
+    const updates = { [field]: value };
 
-  const handleTagsChange = (e) => {
-    const tags = e.target.value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-    updateFormData({ tags });
+    // Automatically sync Brand and Manufacturer with Supplier Name
+    if (field === "supplierName") {
+      updates.brand = value;
+      updates.manufacturer = value;
+    }
+
+    // Automatically sync Tags with Product Name
+    if (field === "name") {
+      updates.tags = value ? [value] : [];
+    }
+
+    updateFormData(updates);
   };
 
   return (
@@ -58,151 +63,28 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
         />
       </div>
 
-      {/* Brand, Manufacturer & Supplier */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Brand
-          </label>
-          <input
-            type="text"
-            value={formData.brand}
-            onChange={(e) => handleInputChange("brand", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="Brand name"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Manufacturer
-          </label>
-          <input
-            type="text"
-            value={formData.manufacturer}
-            onChange={(e) => handleInputChange("manufacturer", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="Manufacturer name"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Supplier Name
-          </label>
-          <input
-            type="text"
-            value={formData.supplierName}
-            onChange={(e) => handleInputChange("supplierName", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="Supplier name"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sort Order
-          </label>
-          <input
-            type="number"
-            value={formData.sortOrder}
-            onChange={(e) =>
-              handleInputChange("sortOrder", parseInt(e.target.value) || 0)
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="1"
-          />
-        </div>
-      </div>
-
-      {/* Tags */}
+      {/* Supplier Name */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tags
+          Supplier Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          value={formData.tags.join(", ")}
-          onChange={handleTagsChange}
+          value={formData.supplierName}
+          onChange={(e) => handleInputChange("supplierName", e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          placeholder="Enter tags separated by commas (e.g., electronics, smartphone)"
+          placeholder="Enter supplier name"
+          required
         />
-        <p className="text-gray-500 text-sm mt-1">Separate tags with commas</p>
       </div>
 
-      {/* Condition, Availability, Visibility */}
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Condition
-          </label>
-          <select
-            value={formData.condition}
-            onChange={(e) => handleInputChange("condition", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="new">New</option>
-            <option value="used">Used</option>
-            <option value="refurbished">Refurbished</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Availability
-          </label>
-          <select
-            value={formData.availability}
-            onChange={(e) => handleInputChange("availability", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="in_stock">In Stock</option>
-            <option value="out_of_stock">Out of Stock</option>
-            <option value="pre_order">Pre-Order</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Visibility
-          </label>
-          <select
-            value={formData.visibility}
-            onChange={(e) => handleInputChange("visibility", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="public">Public</option>
-            <option value="hidden">Hidden</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Featured & Status */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.isFeatured}
-              onChange={(e) =>
-                handleInputChange("isFeatured", e.target.checked)
-              }
-              className="w-5 h-5 text-orange-500 rounded focus:ring-2 focus:ring-orange-500"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              Featured Product
-            </span>
-          </label>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => handleInputChange("status", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="draft">Draft</option>
-          </select>
-        </div>
+      {/* Hidden constant values (handled behind the scenes) */}
+      <div className="hidden">
+        <input type="hidden" value="new" name="condition" />
+        <input type="hidden" value="in_stock" name="availability" />
+        <input type="hidden" value="public" name="visibility" />
+        <input type="hidden" value="active" name="status" />
+        <input type="hidden" value="1" name="sortOrder" />
       </div>
     </div>
   );

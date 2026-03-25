@@ -108,7 +108,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                         { title: t('general.kpis.costs'), value: formatCurrency(reportData?.grandTotal?.financials?.cost || 0), Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
                         { title: t('general.kpis.profit'), value: formatCurrency(reportData?.grandTotal?.financials?.profit || 0), Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
                         { title: t('general.kpis.debts'), value: formatCurrency(reportData?.grandTotal?.debt?.balance || 0), Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
-                        { title: t('general.kpis.returns'), value: formatCurrency(reportData?.grandTotal?.sales?.discounts || 0), Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
+                        // { title: t('general.kpis.returns'), value: formatCurrency(reportData?.grandTotal?.sales?.discounts || 0), Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
                         <div key={i} className="h-full">
                             <motion.div
@@ -188,7 +188,9 @@ const GeneralTab = ({ dateRange, reportView }) => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    {dateRange.startDate ? (
+                                    {!reportData?.period?.startDate || dayjs(reportData.period.startDate).year() < 2000 ? (
+                                        t('controls.allTime') || 'All Time'
+                                    ) : dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
                                         t('common.date')
@@ -229,7 +231,9 @@ const GeneralTab = ({ dateRange, reportView }) => {
                             {/* Date Row (Single period for this report) */}
                             <TableRow sx={{ bgcolor: "white", '& td': { borderBottom: "1px solid #e5e7eb", fontSize: "0.85rem", fontWeight: "700", py: 1 } }}>
                                 <TableCell sx={{ borderRight: "1px solid #e5e7eb" }}>
-                                    {reportData?.period?.startDate ? `${dayjs(reportData.period.startDate).format('MM/DD/YYYY')} - ${dayjs(reportData.period.endDate).format('MM/DD/YYYY')}` : '-'}
+                                    {!reportData?.period?.startDate || dayjs(reportData.period.startDate).year() < 2000 
+                                        ? (t('controls.allTime') || 'All Time')
+                                        : `${dayjs(reportData.period.startDate).format('MM/DD/YYYY')} - ${dayjs(reportData.period.endDate).format('MM/DD/YYYY')}`}
                                 </TableCell>
                                 <TableCell colSpan={14} />
                             </TableRow>
@@ -272,20 +276,20 @@ const GeneralTab = ({ dateRange, reportView }) => {
                                         ))}
 
                                         {/* Shop Subtotal Row */}
-                                        <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                            <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: getShopName(shop.shopId) })}</TableCell>
-                                            <TableCell align="center">{shop.totals.inventory.initial}</TableCell>
-                                            <TableCell align="center">{shop.totals.inventory.remaining}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.inventory.stockValue)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.sales.gross)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.sales.discounts)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.sales.net)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.payments.received)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.payments.pending)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.debt.incurred)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.debt.repaid)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.financials.cost)}</TableCell>
-                                            <TableCell align="center">{formatCurrency(shop.totals.financials.profit)}</TableCell>
+                                        <TableRow sx={{ bgcolor: "#FFF7ED", "& td": { color: "#9A3412", fontWeight: "700", fontSize: "0.80rem", py: 1, borderBottom: "2px solid #FED7AA" } }}>
+                                            <TableCell colSpan={3} sx={{ pl: 2, borderRight: "none" }}>{t('common.subtotal', { name: getShopName(shop.shopId) })}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals.inventory.initial}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals.inventory.remaining}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.inventory.stockValue)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.sales.gross)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.sales.discounts)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.sales.net)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.payments.received)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.payments.pending)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.debt.incurred)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.debt.repaid)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none" }}>{formatCurrency(shop.totals.financials.cost)}</TableCell>
+                                            <TableCell align="center" sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12" }}>{formatCurrency(shop.totals.financials.profit)}</TableCell>
                                             <TableCell align="center" sx={{ borderRight: "none" }}>{shop.totals.financials.margin}%</TableCell>
                                         </TableRow>
                                         {/* Spacer Row */}
@@ -297,20 +301,20 @@ const GeneralTab = ({ dateRange, reportView }) => {
                             <TableRow sx={{ height: 16 }}><TableCell colSpan={15} sx={{ border: "none" }} /></TableRow>
 
                             {/* Grand Total Row */}
-                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                <TableCell align="center">{reportData?.grandTotal?.inventory?.initial || 0}</TableCell>
-                                <TableCell align="center">{reportData?.grandTotal?.inventory?.remaining || 0}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.inventory?.stockValue || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.gross || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.discounts || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.sales?.net || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.received || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.payments?.pending || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.debt?.incurred || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.debt?.repaid || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.financials?.cost || 0)}</TableCell>
-                                <TableCell align="center">{formatCurrency(reportData?.grandTotal?.financials?.profit || 0)}</TableCell>
+                            <TableRow sx={{ bgcolor: "#111827", "& td": { color: "white", fontWeight: "800", fontSize: "0.9rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.1)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2, borderRight: "1px solid rgba(255,255,255,0.2)" }}>{t('common.total')}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{reportData?.grandTotal?.inventory?.initial || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{reportData?.grandTotal?.inventory?.remaining || 0}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.inventory?.stockValue || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.sales?.gross || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.sales?.discounts || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.sales?.net || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.payments?.received || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.payments?.pending || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.debt?.incurred || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.debt?.repaid || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>{formatCurrency(reportData?.grandTotal?.financials?.cost || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#10B981" }}>{formatCurrency(reportData?.grandTotal?.financials?.profit || 0)}</TableCell>
                                 <TableCell align="center" sx={{ borderRight: "none" }}>{reportData?.grandTotal?.financials?.margin || 0}%</TableCell>
                             </TableRow>
                         </TableBody>

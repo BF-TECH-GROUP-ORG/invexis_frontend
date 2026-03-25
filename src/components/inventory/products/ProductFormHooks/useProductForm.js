@@ -219,7 +219,7 @@ export default function useProductForm(initialData = null) {
 
           // Show success message when all images are processed
           if (processedCount === totalFiles) {
-            console.log(`✅ Successfully uploaded ${totalFiles} image(s)`);
+
           }
         };
         img.src = reader.result;

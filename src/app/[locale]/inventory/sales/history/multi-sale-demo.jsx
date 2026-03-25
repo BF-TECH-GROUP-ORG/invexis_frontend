@@ -11,9 +11,7 @@ export default function MultiSalesDemo() {
     });
 
     const handleSell = (payload) => {
-        console.log("=== SELL PAYLOAD ===");
-        console.log(JSON.stringify(payload, null, 2));
-        console.log("====================");
+
 
         // Here you would call your actual API
         // Example:

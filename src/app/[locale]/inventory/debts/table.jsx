@@ -432,6 +432,7 @@ const DebtsTable = ({
 
   const [search, setSearch] = useState("");
   const [filterAnchor, setFilterAnchor] = useState(null);
+  const [dateFilterType, setDateFilterType] = useState("createdAt"); // 'createdAt' or 'dueDate'
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [exportAnchor, setExportAnchor] = useState(null);
@@ -703,10 +704,16 @@ const DebtsTable = ({
     }
 
     if (startDate) {
-      rows = rows.filter(r => dayjs(r.dueDate).isAfter(dayjs(startDate).subtract(1, "day")));
+      rows = rows.filter(r => {
+        const rowDate = r[dateFilterType];
+        return rowDate ? dayjs(rowDate).isAfter(dayjs(startDate).subtract(1, "day")) : false;
+      });
     }
     if (endDate) {
-      rows = rows.filter(r => dayjs(r.dueDate).isBefore(dayjs(endDate).add(1, "day")));
+      rows = rows.filter(r => {
+        const rowDate = r[dateFilterType];
+        return rowDate ? dayjs(rowDate).isBefore(dayjs(endDate).add(1, "day")) : false;
+      });
     }
 
     // Client-side filtering removed as backend handles it.
@@ -848,16 +855,76 @@ const DebtsTable = ({
       </Box>
 
       {/* Filter Popover */}
-      <Popover open={Boolean(filterAnchor)} anchorEl={filterAnchor} onClose={handleCloseFilter}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
-        <Box sx={{ p: 3, width: 280 }}>
-          <Typography fontWeight="bold" gutterBottom>Filter by Due Date</Typography>
+      <Popover 
+        open={Boolean(filterAnchor)} 
+        anchorEl={filterAnchor} 
+        onClose={handleCloseFilter}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: { borderRadius: "12px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }
+        }}
+      >
+        <Box sx={{ p: 3, width: 320 }}>
+          <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, color: "#374151" }}>
+            Date Filter Settings
+          </Typography>
+          
+          <Typography variant="caption" fontWeight="600" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
+            Filter by:
+          </Typography>
+          <ToggleButtonGroup
+            value={dateFilterType}
+            exclusive
+            onChange={(e, next) => next && setDateFilterType(next)}
+            size="small"
+            fullWidth
+            sx={{ mb: 3 }}
+          >
+            <ToggleButton value="createdAt" sx={{ textTransform: "none", py: 1, flex: 1 }}>
+              Date Incurred
+            </ToggleButton>
+            <ToggleButton value="dueDate" sx={{ textTransform: "none", py: 1, flex: 1 }}>
+              Due Date
+            </ToggleButton>
+          </ToggleButtonGroup>
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker label="From" value={startDate} onChange={setStartDate} sx={{ mt: 2, width: "100%" }} />
-            <DatePicker label="To" value={endDate} onChange={setEndDate} sx={{ mt: 2, width: "100%" }} />
+            <DatePicker 
+              label={dateFilterType === "createdAt" ? "Incurred After" : "Due After"} 
+              value={startDate} 
+              onChange={setStartDate} 
+              sx={{ 
+                width: "100%",
+                "& .MuiOutlinedInput-root": { borderRadius: "8px" }
+              }} 
+            />
+            <DatePicker 
+              label={dateFilterType === "createdAt" ? "Incurred Before" : "Due Before"} 
+              value={endDate} 
+              onChange={setEndDate} 
+              sx={{ 
+                mt: 2, 
+                width: "100%",
+                "& .MuiOutlinedInput-root": { borderRadius: "8px" }
+              }} 
+            />
           </LocalizationProvider>
-          <Button fullWidth variant="outlined" sx={{ mt: 2 }} onClick={() => { setStartDate(null); setEndDate(null); }}>
-            Clear Filters
+          
+          <Button 
+            fullWidth 
+            variant="outlined" 
+            sx={{ 
+              mt: 3, 
+              borderRadius: "8px", 
+              textTransform: "none", 
+              fontWeight: 600,
+              color: "#6b7280",
+              borderColor: "#e5e7eb"
+            }} 
+            onClick={() => { setStartDate(null); setEndDate(null); setDateFilterType("createdAt"); }}
+          >
+            Clear All Filters
           </Button>
         </Box>
       </Popover>
@@ -886,6 +953,7 @@ const DebtsTable = ({
               <TableCell align="right" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("amountPaid") || "Paid"}</TableCell>
               <TableCell align="right" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("remainingDebt") || "Remaining"}</TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("dueDate") || "Due Date"}</TableCell>
+              <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>Date Incurred</TableCell>
               <TableCell sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("isDebtCleared") || "Status"}</TableCell>
               <TableCell align="center" sx={{ bgcolor: "#f9fafb", fontWeight: 700, color: "#374151", borderBottom: "1px solid #e5e7eb" }}>{tTable("action") || "Actions"}</TableCell>
             </TableRow>
@@ -967,6 +1035,11 @@ const DebtsTable = ({
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
                       {debt.dueDate ? dayjs(debt.dueDate).format("DD/MM/YYYY") : "N/A"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {debt.createdAt ? dayjs(debt.createdAt).format("DD/MM/YYYY") : "N/A"}
                     </Typography>
                   </TableCell>
                   <TableCell>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Provider } from "react-redux";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -42,6 +42,17 @@ const getQueryClient = () => {
 const ClientProviders = ({ children, session }) => {
   // Use memoized QueryClient to prevent recreation
   const queryClient = useMemo(() => getQueryClient(), []);
+
+  // Suppress harmless Recharts ResponsiveContainer initial-render warnings
+  useEffect(() => {
+    const originalWarn = console.warn.bind(console);
+    console.warn = (...args) => {
+      const msg = args[0];
+      if (typeof msg === 'string' && msg.includes('width(') && msg.includes('height(') && msg.includes('greater than 0')) return;
+      originalWarn(...args);
+    };
+    return () => { console.warn = originalWarn; };
+  }, []);
 
   return (
     <Provider store={store}>

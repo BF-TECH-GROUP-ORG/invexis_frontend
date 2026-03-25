@@ -728,7 +728,13 @@
     "searchPlaceholder": "Rechercher par nom ou téléphone du débiteur...",
     "confirmCancelTitle": "Annuler la Dette",
     "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette dette ? Cette action est irréversible.",
-    "markPayed": "Marquer comme Payé"
+    "markPayed": "Marquer comme Payé",
+    "filters": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel"
+    }
   },
   "Debtstable": {
     "no": "N°",
@@ -745,9 +751,15 @@
   },
   "salesHistory": {
     "title": "Historique des ventes",
+    "filters": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel"
+    },
     "cards": {
-      "totalDailySales": "Ventes quotidiennes totales",
-      "totalDailyProfit": "Bénéfice quotidien total",
+      "totalSales": "Total des Ventes",
+      "totalProfit": "Bénéfice Total",
       "returnedProducts": "Produits retournés",
       "discountsApplied": "Remises appliquées"
     },
@@ -1957,6 +1969,7 @@
       "weekly": "Hebdomadaire",
       "monthly": "Mensuel",
       "yearly": "Annuel",
+      "allTime": "Tout le temps",
       "selectDate": "Sélectionner la Date",
       "exportOptions": "Options d'Exportation",
       "exportPDF": "Exporter en PDF",
@@ -1979,6 +1992,7 @@
       "none": "Aucun",
       "product": "Produit",
       "category": "Catégorie",
+      "invoice": "Facture",
       "invoiceNo": "N° de Facture",
       "customer": "Client",
       "type": "Type",
@@ -1996,6 +2010,18 @@
       "noContent": "Contenu de l'onglet non trouvé",
       "subtotal": "Sous-total {name}",
       "total": "Total",
+      "statusLabels": {
+        "completed": "Complété",
+        "validated": "Validé",
+        "processing": "En cours",
+        "canceled": "Annulé",
+        "initiated": "Initié",
+        "paid": "Payé",
+        "debt": "Dette",
+        "pending": "En attente",
+        "failed": "Échoué",
+        "refunded": "Remboursé"
+      },
       "recommendation": "Recommandation",
       "cancel": "Annuler",
       "na": "N/A",

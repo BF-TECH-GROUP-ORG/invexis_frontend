@@ -267,6 +267,9 @@
     "cancel": "Cancel"
   },
   "common": {
+    "buttons": {
+      "back": "Back"
+    },
     "noData": "No data available",
     "loading": "Loading...",
     "ok": "OK",
@@ -729,7 +732,13 @@
     "searchPlaceholder": "Search debtor name or phone...",
     "confirmCancelTitle": "Cancel Debt",
     "confirmCancelMessage": "Are you sure you want to cancel this debt? This action cannot be undone.",
-    "markPayed": "Mark as Paid"
+    "markPayed": "Mark as Paid",
+    "filters": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    }
   },
   "Debtstable": {
     "no": "No.",
@@ -746,9 +755,15 @@
   },
   "salesHistory": {
     "title": "Sales History",
+    "filters": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
     "cards": {
-      "totalDailySales": "Total Daily Sales",
-      "totalDailyProfit": "Total Daily Profit",
+      "totalSales": "Total Sales",
+      "totalProfit": "Total Profit",
       "returnedProducts": "Returned Products",
       "discountsApplied": "Discounts Applied"
     },
@@ -1944,6 +1959,7 @@
       "weekly": "Weekly",
       "monthly": "Monthly",
       "yearly": "Yearly",
+      "allTime": "All Time",
       "selectDate": "Select Date",
       "exportOptions": "Export Options",
       "exportPDF": "Export as PDF",
@@ -1984,6 +2000,18 @@
       "noContent": "Tab content not found",
       "subtotal": "{name} Subtotal",
       "total": "Total",
+      "statusLabels": {
+        "completed": "Completed",
+        "validated": "Validated",
+        "processing": "Processing",
+        "canceled": "Canceled",
+        "initiated": "Initiated",
+        "paid": "Paid",
+        "debt": "Debt",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      },
       "recommendation": "Recommendation",
       "cancel": "Cancel",
       "na": "N/A",

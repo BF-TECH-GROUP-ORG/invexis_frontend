@@ -32,8 +32,7 @@ const LogsDashboard = () => {
     const { data: session } = useSession();
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-    console.log('LogsDashboard companyId:', companyId);
-    console.log('LogsDashboard session:', session);
+
 
     const options = session?.accessToken ? {
         headers: {

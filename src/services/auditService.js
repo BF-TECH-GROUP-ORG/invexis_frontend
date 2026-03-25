@@ -11,7 +11,7 @@ export const getAuditLogs = async (companyId, params = {}, options = {}) => {
 
         const url = `${AUDIT_URL}/audit/logs?${queryParams}`;
         const response = await apiClient.get(url, options);
-        console.log('logs for all company', response);
+
         return response;
     } catch (error) {
         console.error('Failed to fetch audit logs:', error.message);

@@ -164,20 +164,20 @@ export default function AnalyticsDashboard({
   const handleViewProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Viewing product: ${product.name}`);
-    console.log("View product:", product);
+
   };
 
   const handleEditProduct = (product) => {
     setOpenActionDropdown(null);
     toast.success(`Editing product: ${product.name}`);
-    console.log("Edit product:", product);
+
   };
 
   const handleDeleteProduct = (product) => {
     setOpenActionDropdown(null);
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
       toast.success(`Product deleted: ${product.name}`);
-      console.log("Delete product:", product);
+
     }
   };
 

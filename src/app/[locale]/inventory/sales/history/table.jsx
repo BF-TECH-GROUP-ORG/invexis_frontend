@@ -777,7 +777,7 @@ const DataTable = ({
       queryClient.invalidateQueries({
         queryKey: ["salesHistory", companyId],
       });
-      console.log("Sale deleted successfully with optimistic update");
+
     },
     onError: (error, saleId, context) => {
       // Rollback to previous value on error
@@ -1516,7 +1516,7 @@ export const MultiProductSalesTable = ({ products = [], onSell }) => {
     if (onSell) {
       onSell(payload);
     } else {
-      console.log("Sell payload:", payload);
+
       // You can call your API here
       // sellProducts(payload);
     }

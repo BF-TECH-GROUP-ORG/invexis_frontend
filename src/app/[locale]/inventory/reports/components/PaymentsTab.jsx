@@ -65,15 +65,18 @@ const PaymentsTab = ({ dateRange }) => {
         staleTime: 5 * 60 * 1000,
     });
 
+    const period = rawReportData?.data?.period;
+    const isAllTime = !period?.startDate || dayjs(period.startDate).year() < 2000;
+
     // Transform and map data
     const { kpis, reportData } = React.useMemo(() => {
         if (!rawReportData?.data) return { kpis: null, reportData: [] };
         
-        const { branches, period } = rawReportData.data;
+        const { branches } = rawReportData.data;
         
-        const periodText = period 
-            ? `${dayjs(period.startDate).format('MM/DD/YYYY')} - ${dayjs(period.endDate).format('MM/DD/YYYY')}`
-            : t('common.currentPeriod');
+        const periodText = isAllTime
+            ? t('controls.allTime') || 'All Time'
+            : `${dayjs(period.startDate).format('MM/DD/YYYY')} - ${dayjs(period.endDate).format('MM/DD/YYYY')}`;
 
         const filteredBranches = selectedBranch === t('common.all') 
             ? branches 
@@ -278,7 +281,9 @@ const PaymentsTab = ({ dateRange }) => {
                             {/* Main Headers */}
                             <TableRow sx={{ bgcolor: "#333", '& th': { borderRight: "1px solid #bbadadff", color: "white", fontWeight: "700", fontSize: "0.85rem", py: 1.5 } }}>
                                 <TableCell align="center">
-                                    {dateRange.startDate ? (
+                                    {isAllTime ? (
+                                        t('controls.allTime') || 'All Time'
+                                    ) : dateRange.startDate ? (
                                         `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate?.format('MM/DD/YYYY') || ''}`
                                     ) : (
                                         t('common.date')
@@ -295,7 +300,7 @@ const PaymentsTab = ({ dateRange }) => {
                                     </Box>
                                 </TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.customerInfo')}</TableCell>
-                                <TableCell align="center">{t('common.invoiceNo')}</TableCell>
+                                <TableCell align="center">{t('common.invoice')}</TableCell>
                                 <TableCell align="center" colSpan={2}>{t('debts.table.paymentInfo')}</TableCell>
                                 <TableCell align="center">{t('common.status')}</TableCell>
                                 <TableCell align="center" colSpan={3}>{t('payments.table.reference')}</TableCell>
@@ -371,13 +376,17 @@ const PaymentsTab = ({ dateRange }) => {
                                                 );
                                             })}
                                             {/* Shop Subtotal Row */}
-                                            <TableRow sx={{ bgcolor: "#e9824bff", "& td": { color: "white", fontWeight: "700", fontSize: "0.80rem", py: 0.8, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.subtotal', { name: branch.name })}</TableCell>
-                                                <TableCell colSpan={3} />
-                                                <TableCell align="right">{formatCurrency(branch.totals?.received || 0)}</TableCell>
-                                                <TableCell align="center">-</TableCell>
-                                                <TableCell align="center" sx={{ fontSize: '0.7rem' }}>
-                                                    P: {formatCurrency(branch.totals?.pending || 0)} / F: {formatCurrency(branch.totals?.failed || 0)} / D: {formatCurrency(branch.totals?.debt || 0)}
+                                            <TableRow sx={{ bgcolor: "#FFF7ED", "& td": { color: "#9A3412", fontWeight: "700", fontSize: "0.80rem", py: 1, borderBottom: "2px solid #FED7AA" } }}>
+                                                <TableCell colSpan={3} sx={{ pl: 2, borderRight: "none" }}>{t('common.subtotal', { name: branch.name })}</TableCell>
+                                                <TableCell colSpan={3} sx={{ borderRight: "none" }} />
+                                                <TableCell align="right" sx={{ borderRight: "none", bgcolor: "#FDBA74", color: "#7C2D12", pr: 2 }}>{formatCurrency(branch.totals?.received || 0)}</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none" }}>-</TableCell>
+                                                <TableCell align="center" sx={{ borderRight: "none", fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                                                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                                        <span style={{ opacity: 0.8 }}>P: {formatCurrency(branch.totals?.pending || 0)}</span>
+                                                        <span style={{ opacity: 0.8 }}>F: {formatCurrency(branch.totals?.failed || 0)}</span>
+                                                        <span style={{ opacity: 0.8 }}>D: {formatCurrency(branch.totals?.debt || 0)}</span>
+                                                    </Box>
                                                 </TableCell>
                                                 <TableCell colSpan={3} />
                                             </TableRow>
@@ -392,13 +401,17 @@ const PaymentsTab = ({ dateRange }) => {
                             <TableRow sx={{ height: 16 }}><TableCell colSpan={11} sx={{ border: "none" }} /></TableRow>
 
                             {/* Grand Total Row */}
-                            <TableRow sx={{ bgcolor: "#3b2005ff", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.2, borderRight: "1px solid rgba(255,255,255,0.2)" } }}>
-                                <TableCell colSpan={3} sx={{ pl: 2 }}>{t('common.total')}</TableCell>
-                                <TableCell colSpan={3} />
-                                <TableCell align="right">{formatCurrency(kpis?.totalReceived || 0)}</TableCell>
-                                <TableCell align="center">-</TableCell>
-                                <TableCell align="center" sx={{ fontSize: '0.75rem' }}>
-                                    P: {formatCurrency(kpis?.pendingPayments || 0)} / F: {formatCurrency(kpis?.failedPayments || 0)} / D: {formatCurrency(kpis?.totalDebt || 0)}
+                            <TableRow sx={{ bgcolor: "#111827", "& td": { color: "white", fontWeight: "800", fontSize: "0.85rem", py: 1.5, borderRight: "1px solid rgba(255,255,255,0.1)" } }}>
+                                <TableCell colSpan={3} sx={{ pl: 2, borderRight: "1px solid rgba(255,255,255,0.2)" }}>{t('common.total')}</TableCell>
+                                <TableCell colSpan={3} sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }} />
+                                <TableCell align="right" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", bgcolor: "#10B981", pr: 2 }}>{formatCurrency(kpis?.totalReceived || 0)}</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)" }}>-</TableCell>
+                                <TableCell align="center" sx={{ borderRight: "1px solid rgba(255,255,255,0.2)", fontSize: '0.7rem' }}>
+                                    <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center' }}>
+                                        <span>P: {formatCurrency(kpis?.pendingPayments || 0)}</span>
+                                        <span>F: {formatCurrency(kpis?.failedPayments || 0)}</span>
+                                        <span>D: {formatCurrency(kpis?.totalDebt || 0)}</span>
+                                    </Box>
                                 </TableCell>
                                 <TableCell colSpan={3} />
                             </TableRow>

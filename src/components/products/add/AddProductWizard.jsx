@@ -18,7 +18,10 @@ import StepVariations from "@/components/inventory/products/ProductFormSteps/Ste
 import Step7SEO from "./steps/Step7SEO";
 import ProductReview from "./review/ProductReview";
 import SuccessModal from "./shared/SuccessModal";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+
+// Key for localStorage persistence
+const PERSISTENCE_KEY = "invexis_add_product_wizard_state";
 
 export default function AddProductWizard({
   companyId,
@@ -31,9 +34,9 @@ export default function AddProductWizard({
   const locale = params?.locale || "en";
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
-  const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Determine if user is worker or admin
   const isWorker = session?.user?.role === "worker";
@@ -72,9 +75,9 @@ export default function AddProductWizard({
     inventory: {
       trackQuantity: true,
       stockQty: 0,
-      lowStockThreshold: 0,
-      minReorderQty: 0,
-      allowBackorder: false,
+      lowStockThreshold: 10,
+      minReorderQty: 5,
+      allowBackorder: true,
       safetyStock: 0,
     },
     identifiers: {
@@ -96,18 +99,6 @@ export default function AddProductWizard({
     specifications: {},
     specsCategory: null,
 
-    // Step 7: Variations
-    variants: [],
-    variations: [],
-
-    // Step 8: SEO
-    seo: {
-      metaTitle: "",
-      metaDescription: "",
-      keywords: [],
-      slug: "",
-    },
-
     // Status & Flags
     condition: "new",
     availability: "in_stock",
@@ -125,6 +116,36 @@ export default function AddProductWizard({
       featured: false,
     },
   });
+
+  // Load persisted state on mount (only for new product)
+  useEffect(() => {
+    if (!isEdit && typeof window !== "undefined") {
+      const savedState = localStorage.getItem(PERSISTENCE_KEY);
+      if (savedState) {
+        try {
+          const { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          if (savedFormData) setFormData(savedFormData);
+          if (savedStep) setCurrentStep(savedStep);
+
+        } catch (e) {
+          console.error("Failed to restore wizard state:", e);
+        }
+      }
+    }
+    setIsInitialized(true);
+  }, [isEdit]);
+
+  // Persist state on change (only for new product)
+  useEffect(() => {
+    if (isInitialized && !isEdit && typeof window !== "undefined") {
+      const stateToSave = {
+        formData,
+        currentStep,
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(stateToSave));
+    }
+  }, [formData, currentStep, isEdit, isInitialized]);
 
   // Effect to handle worker shop assignment or initialData
   useEffect(() => {
@@ -234,23 +255,26 @@ export default function AddProductWizard({
       { id: "inventory", label: "Inventory", component: Step4Inventory },
       { id: "category", label: "Category", component: Step5Category },
       { id: "specs", label: "Specifications", component: Step6Specs },
-      { id: "variations", label: "Variations", component: StepVariations },
-      { id: "seo", label: "SEO", component: Step7SEO },
+      { id: "review", label: "Review & Submit", component: ProductReview },
     ];
+
+    // Filter out hidden steps (variations and seo as requested)
+    const hiddenStepIds = ["variations", "seo"];
+    const visibleBaseSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
 
     if (!isWorker) {
       // Admin needs to select shop first
       return [
         { id: "shop", label: "Select Shop", component: StepShop },
-        ...baseSteps,
+        ...visibleBaseSteps,
       ].map((s, idx) => ({ ...s, number: idx + 1 }));
     }
 
-    return baseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
+    return visibleBaseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
   }, [isWorker]);
 
   const TOTAL_STEPS = steps.length;
-  console.log(formData);
+
 
   const updateFormData = (updates) => {
     setFormData((prev) => ({
@@ -259,66 +283,80 @@ export default function AddProductWizard({
     }));
   };
 
-  const validateStep = (stepNumber) => {
+  const getStepStatus = (stepNumber) => {
     const stepObj = steps.find((s) => s.number === stepNumber);
-    if (!stepObj) return true;
+    if (!stepObj) return "complete";
 
     switch (stepObj.id) {
       case "shop":
-        return !!formData.shopId;
+        return formData.shopId ? "complete" : "unfilled";
       case "basic":
-        return formData.name && formData.name.length >= 3;
+        return formData.name && formData.name.length >= 3 && formData.supplierName
+          ? "complete"
+          : "unfilled";
       case "media":
-        return true;
+        return formData.images?.length > 0 ? "complete" : "unfilled";
       case "pricing":
-        return formData.pricing.basePrice > 0;
+        return formData.pricing.basePrice > 0 ? "complete" : "unfilled";
       case "inventory":
-        return formData.inventory.stockQty >= 0;
+        return formData.inventory.stockQty >= 0 ? "complete" : "unfilled";
       case "category":
-        return formData.category.id !== "";
+        return formData.category?.id ? "complete" : "unfilled"
       case "specs":
-        return true;
-      case "variations":
-        if (
-          formData.variants?.length < 0 &&
-          formData.variations?.length === 0
-        ) {
-          return false;
-        }
-        return true;
-      case "seo":
-        // Optional
-        return true;
+        return Object.keys(formData.specifications || {}).length > 0
+          ? "complete"
+          : "unfilled";
       default:
-        return true;
+        return "complete";
     }
   };
 
+  const requiredStepIds = ["shop", "basic", "pricing", "inventory", "category"];
+
+  const getStepType = (stepNumber) => {
+    const stepObj = steps.find((s) => s.number === stepNumber);
+    if (!stepObj) return "required";
+    return requiredStepIds.includes(stepObj.id) ? "required" : "optional";
+  };
+
+  const areAllRequiredStepsValid = useMemo(() => {
+    return steps
+      .filter((s) => requiredStepIds.includes(s.id))
+      .every((s) => getStepStatus(s.number) === "complete");
+  }, [formData, steps]);
+
   const handleNext = () => {
-    if (!validateStep(currentStep)) {
-      notificationBus.error("Please fill in all required fields");
+    // We only block handleNext if the step is required and not complete
+    const stepObj = steps.find(s => s.number === currentStep);
+    if (requiredStepIds.includes(stepObj?.id) && getStepStatus(currentStep) !== "complete") {
+      notificationBus.error(`Please complete the ${stepObj.label} section.`);
       return;
     }
 
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
-    } else {
-      setShowReview(true);
     }
   };
 
   const handlePrevious = () => {
-    if (showReview) {
-      setShowReview(false);
-    } else if (currentStep > 1) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
+
+    // Check all required steps for "Add" mode
+    if (!isEdit && !areAllRequiredStepsValid) {
+      const firstInvalidStep = steps.find(
+        (s) => requiredStepIds.includes(s.id) && getStepStatus(s.number) !== "complete"
+      );
+      notificationBus.error(`Please complete the ${firstInvalidStep.label} section before submitting.`);
+      setCurrentStep(firstInvalidStep.number);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -330,7 +368,12 @@ export default function AddProductWizard({
         productId: initialData?._id
       });
 
-      console.log("🚀 Product Operation Success:", response);
+
+
+      // Clear persistence on success
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(PERSISTENCE_KEY);
+      }
 
       setShowSuccessModal(true);
       notificationBus.success(
@@ -347,76 +390,77 @@ export default function AddProductWizard({
   };
 
   const handleReset = () => {
+    // Clear persistence on reset
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(PERSISTENCE_KEY);
+    }
+
     setShowSuccessModal(false);
     setCurrentStep(1);
-    setShowReview(false);
     setFormData({
-      // Reset to initial state (simplified for brevity, ideally use initial state constant)
       companyId: companyId || "",
       shopId: propShopId || "",
+      shopName: "",
       name: "",
       description: "",
       brand: "",
       manufacturer: "",
       tags: [],
-      condition: "new",
-      availability: "in_stock",
-      visibility: "public",
-      isFeatured: false,
-      status: "active",
+      supplierName: "",
+      sortOrder: 1,
       images: [],
+      videoUrls: [],
       pricing: {
         basePrice: 0,
         salePrice: null,
         listPrice: 0,
-        costPrice: 0,
+        cost: 0,
         currency: "RWF",
         priceTiers: [],
       },
       inventory: {
-        quantity: 0,
-        minStockLevel: 0,
-        maxStockLevel: 0,
         trackQuantity: true,
-        allowBackorder: false,
+        stockQty: 0,
+        lowStockThreshold: 10,
+        minReorderQty: 5,
+        allowBackorder: true,
+        safetyStock: 0,
+      },
+      identifiers: {
         sku: "",
         barcode: "",
+        scanId: "",
+        asin: "",
+        upc: "",
       },
-      supplierName: "",
+      category: {
+        id: "",
+        name: "",
+      },
       categoryId: "",
-      categoryName: "",
-      parentCategoryName: "",
-      specs: {},
-      variants: [],
-      variations: [],
-      seo: {
-        metaTitle: "",
-        metaDescription: "",
-        keywords: [],
-        slug: "",
+      specifications: {},
+      specsCategory: null,
+      condition: "new",
+      availability: "in_stock",
+      status: "active",
+      visibility: "public",
+      isFeatured: false,
+      _oldStatus: {
+        active: true,
+        visible: true,
+        availability: "in_stock",
+        condition: "new",
+        featured: false,
       },
     });
   };
 
   const renderStep = () => {
-    if (status === "loading") {
+    if (status === "loading" || !isInitialized) {
       return (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
         </div>
-      );
-    }
-
-    if (showReview) {
-      return (
-        <ProductReview
-          formData={formData}
-          steps={steps}
-          onEdit={(stepNumber) => {
-            setShowReview(false);
-            setCurrentStep(stepNumber);
-          }}
-        />
       );
     }
 
@@ -430,6 +474,8 @@ export default function AddProductWizard({
         <StepComponent
           formData={formData}
           updateFormData={updateFormData}
+          steps={steps} // For ProductReview
+          onEdit={(stepNumber) => setCurrentStep(stepNumber)} // For ProductReview
           errors={{}} // Pass errors if needed
         />
       );
@@ -450,15 +496,26 @@ export default function AddProductWizard({
         <div className="col-span-12 lg:col-span-9">
           <div className="bg-white rounded-4xl border border-gray-200">
             {/* Header */}
-            <div className="border-b border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {isEdit ? "Edit Product" : "Add New Product"}
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {isEdit
-                  ? "Update the product details below"
-                  : "Fill in the product details step by step"}
-              </p>
+            <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push(`/${locale}/inventory/products`)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+                  title="Back to Products"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {isEdit ? "Edit Product" : "Add New Product"}
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    {isEdit
+                      ? "Update the product details below"
+                      : "Fill in the product details step by step"}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Step Content */}
@@ -469,11 +526,13 @@ export default function AddProductWizard({
               <StepNavigation
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
-                showReview={showReview}
-                isValid={validateStep(currentStep)}
+                isValid={!requiredStepIds.includes(steps.find(s => s.number === currentStep)?.id) || getStepStatus(currentStep) === "complete"}
+                allStepsValid={areAllRequiredStepsValid}
                 isSubmitting={isSubmitting}
+                isEdit={isEdit}
                 onNext={handleNext}
                 onPrevious={handlePrevious}
+                onBackToList={() => router.push(`/${locale}/inventory/products`)}
                 onSubmit={handleSubmit}
               />
             </div>
@@ -482,13 +541,16 @@ export default function AddProductWizard({
 
         {/* Vertical Step Indicator - Right Side */}
         <div className="col-span-12 lg:col-span-3 sticky top-6">
-          {!showReview && status !== "loading" && (
+          {status !== "loading" && (
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-6">Progress</h3>
               <StepIndicator
                 currentStep={currentStep}
                 steps={steps}
                 orientation="vertical"
+                onStepClick={(step) => setCurrentStep(step)}
+                getStepStatus={getStepStatus}
+                getStepType={getStepType}
               />
             </div>
           )}

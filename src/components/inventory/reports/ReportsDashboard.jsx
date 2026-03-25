@@ -81,7 +81,7 @@ export default function ReportsDashboard() {
 
   const handleExport = (format) => {
     // Export logic here
-    console.log(`Exporting in ${format} format`);
+
   };
 
   return (

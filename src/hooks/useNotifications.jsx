@@ -16,16 +16,11 @@ export const useNotifications = () => {
     const initialized = useRef(false);
 
     useEffect(() => {
-        console.log('[Notifications] Hook Effect triggered', {
-            hasSession: !!session?.accessToken,
-            initialized: initialized.current,
-            permission: typeof window !== 'undefined' && typeof Notification !== 'undefined' ? Notification.permission : 'n/a'
-        });
 
         // Only run when session is available and we haven't initialized yet
         if (!session?.accessToken || initialized.current) return;
 
-        console.log('[Notifications] Initializing notification setup...');
+
         const user = session.user;
         const token = session.accessToken;
         initialized.current = true;
@@ -33,7 +28,6 @@ export const useNotifications = () => {
         // 1. Setup Firebase Messaging (Push)
         const setupPush = async () => {
             if (!messaging || typeof Notification === 'undefined') {
-                console.warn('[Notifications] Messaging or Notification API not supported.');
                 return;
             }
 
@@ -45,9 +39,9 @@ export const useNotifications = () => {
                 if (!deviceId) {
                     deviceId = `web_${Math.random().toString(36).substring(2, 15)}_${Date.now().toString(36)}`;
                     localStorage.setItem('invexis_device_id', deviceId);
-                    console.log('[Notifications] Generated new stable device ID:', deviceId);
+
                 } else {
-                    console.log('[Notifications] Using existing stable device ID:', deviceId);
+
                 }
 
                 // Check if we already have a cached token for this user
@@ -61,17 +55,17 @@ export const useNotifications = () => {
                 const SYNC_INTERVAL = 7 * 24 * 60 * 60 * 1000;
                 const needsSync = !lastSync || (Date.now() - parseInt(lastSync)) > SYNC_INTERVAL;
 
-                console.log('[Notifications] Requesting notification permission...');
+
                 const permission = await Notification.requestPermission();
 
                 if (permission === 'granted') {
-                    console.log('[Notifications] Permission granted. Registering Service Worker...');
+
 
                     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                         scope: '/'
                     });
 
-                    console.log('[Notifications] Fetching FCM Token...');
+
                     const fcmToken = await getToken(messaging, {
                         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
                         serviceWorkerRegistration: registration
@@ -81,11 +75,11 @@ export const useNotifications = () => {
                         // Check if the token AND device ID match what we have in cache
                         // This prevents redundant requests when refreshing or navigating
                         if (cachedToken === fcmToken && !needsSync) {
-                            console.log('[Notifications] FCM Token/Device already cached and synced recently. Skipping registration.');
+
                             return;
                         }
 
-                        console.log(needsSync ? '[Notifications] Periodic sync triggered.' : '[Notifications] Token/Session refreshed. Registering...');
+
 
                         // Register token with Auth Service via local proxy
                         // This avoids CORS issues and protocol mismatches
@@ -109,7 +103,7 @@ export const useNotifications = () => {
                             });
 
                             if (response.ok) {
-                                console.log('[Notifications] Device registered successfully');
+
                                 localStorage.setItem(cachedTokenKey, fcmToken);
                                 localStorage.setItem(lastSyncKey, Date.now().toString());
 
@@ -123,9 +117,8 @@ export const useNotifications = () => {
                                     });
                                 }
                             } else {
-                                const errorData = await response.json().catch(() => ({}));
-                                console.error('[Notifications] Backend registration failed:', response.status, errorData);
-
+                                // console.error('[Notifications] Backend registration failed:', response.status, errorData);
+                                
                                 // Auto-Recovery: Clear cache on 400/401/404 to force fresh sync next time
                                 if ([400, 401, 404].includes(response.status)) {
                                     localStorage.removeItem(cachedTokenKey);
@@ -133,13 +126,13 @@ export const useNotifications = () => {
                                 }
                             }
                         } catch (fetchErr) {
-                            console.error('[Notifications] Network error during device registration:', fetchErr);
+                            // console.error('[Notifications] Network error during device registration:', fetchErr);
                         }
                     } else {
                         console.warn('[Notifications] getToken returned null');
                     }
                 } else {
-                    console.log('[Notifications] Permission denied or dismissed');
+
                 }
             } catch (err) {
                 console.error('[Notifications] Push Registration Flow Failed:', err);
@@ -160,11 +153,11 @@ export const useNotifications = () => {
         });
 
         socket.on('connect', () => {
-            console.log('Connected to Notification Socket');
+
         });
 
         socket.on('notification', (notif) => {
-            console.log('In-App Notification Received:', notif);
+
             showNotification({
                 message: notif.message || notif.body || 'New Notification',
                 severity: notif.severity || 'info',
@@ -177,7 +170,7 @@ export const useNotifications = () => {
         let unsubscribeFCM = null;
         if (messaging) {
             unsubscribeFCM = onMessage(messaging, async (payload) => {
-                console.log('Foreground Push Received:', payload);
+
 
                 const title = payload.notification?.title || 'Invexis Notification';
                 const options = {
@@ -203,7 +196,7 @@ export const useNotifications = () => {
                         registration.showNotification(title, options);
                     }
                 } catch (swErr) {
-                    console.warn('Failed to show foreground browser notification:', swErr);
+                    // console.warn('Failed to show foreground browser notification:', swErr);
                 }
             });
         }
@@ -251,7 +244,7 @@ export const useNotifications = () => {
                     await setupPush();
                 }
             } catch (err) {
-                console.error("[Notifications] Permission check failed:", err);
+                // console.error("[Notifications] Permission check failed:", err);
             }
         };
 

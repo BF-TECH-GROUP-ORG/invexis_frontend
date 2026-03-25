@@ -17,6 +17,10 @@ export default function ProductReview({ formData, onEdit, steps }) {
     return value?.toString() || "N/A";
   };
 
+  const getStepNumber = (id) => {
+    return steps.find((s) => s.id === id)?.number || 1;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,7 +40,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
             Basic Information
           </h3>
           <button
-            onClick={() => onEdit(1)}
+            onClick={() => onEdit(getStepNumber("basic"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -49,9 +53,9 @@ export default function ProductReview({ formData, onEdit, steps }) {
             <dd className="font-medium text-gray-900">{formData.name}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">Brand</dt>
+            <dt className="text-sm text-gray-600">Supplier Name</dt>
             <dd className="font-medium text-gray-900">
-              {formData.brand || "N/A"}
+              {formData.supplierName || "N/A"}
             </dd>
           </div>
           <div className="col-span-2">
@@ -60,33 +64,6 @@ export default function ProductReview({ formData, onEdit, steps }) {
               {formData.description || "No description"}
             </dd>
           </div>
-          <div>
-            <dt className="text-sm text-gray-600">Condition</dt>
-            <dd className="font-medium text-gray-900 capitalize">
-              {formData.condition}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Visibility</dt>
-            <dd className="font-medium text-gray-900 capitalize">
-              {formData.visibility}
-            </dd>
-          </div>
-          {formData.tags.length > 0 && (
-            <div className="col-span-2">
-              <dt className="text-sm text-gray-600 mb-2">Tags</dt>
-              <dd className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </dd>
-            </div>
-          )}
         </dl>
       </div>
 
@@ -97,7 +74,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
             Images & Media
           </h3>
           <button
-            onClick={() => onEdit(2)}
+            onClick={() => onEdit(getStepNumber("media"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -131,7 +108,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
           <button
-            onClick={() => onEdit(3)}
+            onClick={() => onEdit(getStepNumber("pricing"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -140,23 +117,15 @@ export default function ProductReview({ formData, onEdit, steps }) {
         </div>
         <dl className="grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm text-gray-600">Base Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Sale Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.salePrice
-                ? `${formData.pricing.salePrice.toLocaleString()} RWF`
-                : "N/A"}
-            </dd>
-          </div>
-          <div>
             <dt className="text-sm text-gray-600">Cost Price</dt>
             <dd className="font-medium text-gray-900">
               {formData.pricing.cost?.toLocaleString() || "0"} RWF
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-gray-600">Selling Price</dt>
+            <dd className="font-medium text-gray-900">
+              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
             </dd>
           </div>
         </dl>
@@ -167,7 +136,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Inventory</h3>
           <button
-            onClick={() => onEdit(4)}
+            onClick={() => onEdit(getStepNumber("inventory"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -182,21 +151,9 @@ export default function ProductReview({ formData, onEdit, steps }) {
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-600">SKU</dt>
+            <dt className="text-sm text-gray-600">Low Stock Threshold</dt>
             <dd className="font-medium text-gray-900">
-              {formData.identifiers.sku || "N/A"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Min Reorder Level</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.inventory.minReorderQty}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Safety Stock</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.inventory.safetyStock}
+              {formData.inventory.lowStockThreshold}
             </dd>
           </div>
         </dl>
@@ -207,7 +164,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Category</h3>
           <button
-            onClick={() => onEdit(5)}
+            onClick={() => onEdit(getStepNumber("category"))}
             className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
           >
             <Edit2 className="w-4 h-4 mr-1" />
@@ -240,7 +197,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
               Specifications
             </h3>
             <button
-              onClick={() => onEdit(6)}
+              onClick={() => onEdit(getStepNumber("specs"))}
               className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
             >
               <Edit2 className="w-4 h-4 mr-1" />
@@ -262,7 +219,8 @@ export default function ProductReview({ formData, onEdit, steps }) {
         </div>
       )}
 
-      {/* Variations */}
+      {/* Variations (Hidden as requested) */}
+      {/* 
       {(formData.variants?.length > 0 || formData.variations?.length > 0) && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
@@ -320,8 +278,10 @@ export default function ProductReview({ formData, onEdit, steps }) {
           </div>
         </div>
       )}
+      */}
 
-      {/* SEO */}
+      {/* SEO (Hidden as requested) */}
+      {/* 
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">SEO</h3>
@@ -356,6 +316,7 @@ export default function ProductReview({ formData, onEdit, steps }) {
           )}
         </dl>
       </div>
+      */}
     </div>
   );
 }

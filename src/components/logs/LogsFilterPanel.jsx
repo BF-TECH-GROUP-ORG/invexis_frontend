@@ -43,7 +43,7 @@ const LogsFilterPanel = ({ filters, onApply, workers = [] }) => {
     const { data: session } = useSession();
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
-    console.log('LogsFilterPanel companyId:', companyId);
+
 
     const options = session?.accessToken ? {
         headers: {
@@ -71,7 +71,7 @@ const LogsFilterPanel = ({ filters, onApply, workers = [] }) => {
         return unique;
     }, [shopsData]);
 
-    console.log('LogsFilterPanel shops:', shops);
+
 
     // Basic Filters State
     const [shop, setShop] = useState(filters.shop || 'all');

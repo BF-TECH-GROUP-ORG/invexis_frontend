@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
         const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://granitic-jule-haunting.ngrok-free.dev/api';
         const url = `${backendUrl}/auth/company/${companyId}/workers`;
 
-        console.log('🔄 Proxy: Fetching workers from:', url);
+
 
         const response = await fetch(url, {
             headers: {
@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
         }
 
         const data = await response.json();
-        console.log(`✅ Proxy: Successfully fetched ${Array.isArray(data) ? data.length : 0} workers`);
+
 
         return NextResponse.json(data);
     } catch (error) {

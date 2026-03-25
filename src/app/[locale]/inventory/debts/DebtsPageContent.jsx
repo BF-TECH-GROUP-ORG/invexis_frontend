@@ -22,6 +22,11 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isBetween);
 
 const DebtsPageContent = ({ initialParams = {} }) => {
     const t = useTranslations("debtsPage");
@@ -31,6 +36,7 @@ const DebtsPageContent = ({ initialParams = {} }) => {
     const [errorDialogOpen, setErrorDialogOpen] = useState(false);
     const { data: session } = useSession();
     const [mounted, setMounted] = useState(false);
+    const [timeRange, setTimeRange] = useState("daily");
 
     useEffect(() => {
         setMounted(true);
@@ -127,6 +133,30 @@ const DebtsPageContent = ({ initialParams = {} }) => {
         retry: 1,
     });
 
+    // Client-side filtering by time range
+    const filteredDebtsByTime = useMemo(() => {
+        if (!debtsData || !Array.isArray(debtsData)) return [];
+        
+        const now = dayjs();
+        
+        return debtsData.filter(debt => {
+            const createdAt = dayjs(debt.createdAt);
+            
+            switch (timeRange) {
+                case "daily":
+                    return createdAt.isSame(now, "day");
+                case "weekly":
+                    return createdAt.isAfter(now.subtract(7, "day"));
+                case "monthly":
+                    return createdAt.isSame(now, "month");
+                case "yearly":
+                    return createdAt.isSame(now, "year");
+                default:
+                    return true;
+            }
+        });
+    }, [debtsData, timeRange]);
+
     const handleRetry = () => {
         setErrorDialogOpen(false);
         refetch();
@@ -154,13 +184,48 @@ const DebtsPageContent = ({ initialParams = {} }) => {
 
     return (
         <>
-            <DebtCards debts={debtsData} />
+            <Box sx={{ 
+                display: "flex", 
+                justifyContent: "flex-end", 
+                mb: 1
+            }}>
+                <ToggleButtonGroup
+                    value={timeRange}
+                    exclusive
+                    onChange={(e, next) => next && setTimeRange(next)}
+                    size="small"
+                    sx={{
+                        "& .MuiToggleButton-root": {
+                            px: 2,
+                            py: 0.75,
+                            textTransform: "none",
+                            fontWeight: 600,
+                            borderRadius: "8px !important",
+                            border: "1px solid #e5e7eb",
+                            ml: 1,
+                            "&.Mui-selected": {
+                                bgcolor: "#FF6D00",
+                                color: "white",
+                                "&:hover": { bgcolor: "#E65100" }
+                            }
+                        }
+                    }}
+                >
+                    <ToggleButton value="daily">{t('filters.daily')}</ToggleButton>
+                    <ToggleButton value="weekly">{t('filters.weekly')}</ToggleButton>
+                    <ToggleButton value="monthly">{t('filters.monthly')}</ToggleButton>
+                    <ToggleButton value="yearly">{t('filters.yearly')}</ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+
+            <DebtCards debts={filteredDebtsByTime} />
             <div className="pt-10 pl-3 pb-5">
                 <h1 className="text-2xl font-bold">{t('title')}</h1>
                 <p className="text-gray-700">{t('subtitle')}</p>
+                <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>Debt Details</Typography>
             </div>
             <DataTable
-                debts={debtsData}
+                debts={filteredDebtsByTime}
                 workers={filteredWorkers}
                 selectedWorkerId={selectedWorkerId}
                 setSelectedWorkerId={(id) => updateFilters({ soldBy: id })}

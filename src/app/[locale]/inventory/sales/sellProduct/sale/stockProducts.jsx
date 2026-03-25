@@ -488,7 +488,7 @@ const CurrentInventory = ({
 
   // Handle sell button - opens customer modal
   const handleSellSelected = () => {
-    console.log("Opening customer modal. Customers available:", customers.length, customers);
+
     setCustomerModal(true);
   };
 
@@ -497,13 +497,19 @@ const CurrentInventory = ({
     const errors = {};
     const totalSaleAmount = Object.values(selectedItems).reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-    if (!customerName.trim()) {
-      errors.customerName = tCustomer('errors.nameRequired');
+    // Name and phone are only mandatory for Debt sales
+    if (isDebt) {
+      if (!customerName.trim()) {
+        errors.customerName = tCustomer('errors.nameRequired');
+      }
+
+      if (!customerPhone.trim()) {
+        errors.customerPhone = tCustomer('errors.phoneRequired');
+      }
     }
 
-    if (!customerPhone.trim()) {
-      errors.customerPhone = tCustomer('errors.phoneRequired');
-    } else if (!/^[0-9+\-\s]{10,20}$/.test(customerPhone.trim())) {
+    // If phone is provided, validate its format even if it is optional
+    if (customerPhone.trim() && !/^[0-9+\-\s]{10,20}$/.test(customerPhone.trim())) {
       errors.customerPhone = tCustomer('errors.phoneInvalid');
     }
 
@@ -588,7 +594,7 @@ const CurrentInventory = ({
       const matches = customers.filter(c =>
         c.customerPhone && c.customerPhone.toString().includes(phone.trim())
       );
-      console.log("Phone input:", phone, "Customers available:", customers.length, "Matches found:", matches.length);
+
       setFilteredCustomers(matches);
     } else {
       setFilteredCustomers([]);
@@ -1370,7 +1376,7 @@ const CurrentInventory = ({
               mb: 1.2,
               fontSize: "0.95rem"
             }}>
-              {tCustomer('phoneLabel')} <span style={{ color: "#FF6D00" }}>*</span>
+              {tCustomer('phoneLabel')} {isDebt ? <span style={{ color: "#FF6D00" }}>*</span> : <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: "0.85rem", marginLeft: "4px" }}>(Optional)</span>}
             </Typography>
             <TextField
               autoFocus
@@ -1481,7 +1487,7 @@ const CurrentInventory = ({
                 mb: 1.2,
                 fontSize: "0.95rem"
               }}>
-                {tCustomer('nameLabel')} <span style={{ color: "#FF6D00" }}>*</span>
+                {tCustomer('nameLabel')} {isDebt ? <span style={{ color: "#FF6D00" }}>*</span> : <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: "0.85rem", marginLeft: "4px" }}>(Optional)</span>}
               </Typography>
 
               <TextField

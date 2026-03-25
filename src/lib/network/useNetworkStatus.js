@@ -1,7 +1,7 @@
 // src/lib/network/useNetworkStatus.js
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const PING_URL = '/favicon.ico'; 
+const PING_URL = '/images/Invexix%20Logo-Light%20Mode.png'; 
 const PING_INTERVAL_GOOD    = 30000; 
 const PING_INTERVAL_POOR    = 8000;  
 const PING_TIMEOUT          = 5000;  

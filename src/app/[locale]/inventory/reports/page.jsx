@@ -116,10 +116,6 @@ const ReportsPage = () => {
                 start = selectedDate.startOf('year');
                 end = selectedDate.endOf('year');
                 break;
-            case 'custom':
-                start = dateRange.startDate;
-                end = dateRange.endDate;
-                break;
             default:
                 start = now.startOf('day');
                 end = now.endOf('day');
@@ -128,7 +124,7 @@ const ReportsPage = () => {
         setDateRange({ startDate: start, endDate: end, filter: reportView });
     }, [reportView, selectedDate]);
 
-    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', */ 'visualize'];
+    const tabKeys = ['general', 'inventory', 'sales', 'debts', 'payments', /* 'staff', 'visualize'*/ ];
     const tabNames = tabKeys.map(key => t(`tabs.${key}`));
     const tabRefs = useRef({});
 
@@ -661,7 +657,6 @@ const ReportsPage = () => {
                             }
                         />
                         <FormControlLabel
-                            value="all"
                             control={<Radio />}
                             label={
                                 <Box>

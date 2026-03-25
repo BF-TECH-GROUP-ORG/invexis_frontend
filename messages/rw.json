@@ -730,7 +730,13 @@
     "searchPlaceholder": "Shakisha izina ry'umwenda cyangwa telefone...",
     "confirmCancelTitle": "Hagarika Imyenda",
     "confirmCancelMessage": "Urashaka koko guhagarika iyi myenda? Iyi ntambwe ntishobora gusubirwaho.",
-    "markPayed": "Shyira mu byishyuwe"
+    "markPayed": "Shyira mu byishyuwe",
+    "filters": {
+      "daily": "Buri munsi",
+      "weekly": "Buri cyumweru",
+      "monthly": "Buri kwezi",
+      "yearly": "Buri mwaka"
+    }
   },
   "Debtstable": {
     "no": "Oya",
@@ -747,9 +753,15 @@
   },
   "salesHistory": {
     "title": "Amateka y'Ubucuruzi",
+    "filters": {
+      "daily": "Buri munsi",
+      "weekly": "Buri cyumweru",
+      "monthly": "Buri kwezi",
+      "yearly": "Buri mwaka"
+    },
     "cards": {
-      "totalDailySales": "Ingano y'ibygurishijwe ku munsi",
-      "totalDailyProfit": "Inyungu y'umunsi",
+      "totalSales": "Ingano y'ibyagurishijwe byose",
+      "totalProfit": "Inyungu yose",
       "returnedProducts": "Ibyagaruwe",
       "discountsApplied": "Kugabanyirizwa byakozwe"
     },
@@ -1957,6 +1969,7 @@
       "weekly": "Buri Cyumweru",
       "monthly": "Buri Kwezi",
       "yearly": "Buri Mwaka",
+      "allTime": "Igihe Cyose",
       "selectDate": "Hitamo Itariki",
       "exportOptions": "Gusohora Raporo",
       "exportPDF": "Sohora muri PDF",
@@ -1979,6 +1992,7 @@
       "none": "Nta na kimwe",
       "product": "Igicuruzwa",
       "category": "Icyiciro",
+      "invoice": "Inyemezabwishyu",
       "invoiceNo": "No ya fagitire",
       "customer": "Umukiriya",
       "type": "Ubwoko",
@@ -1996,6 +2010,18 @@
       "noContent": "Ibirimo ntibyasanzwe",
       "subtotal": "Iterateranyo rya {name}",
       "total": "Iterateranyo",
+      "statusLabels": {
+        "completed": "Byarangiye",
+        "validated": "Byemejwe",
+        "processing": "Birimo gukorwa",
+        "canceled": "Byahagaritswe",
+        "initiated": "Byatangiye",
+        "paid": "Byarishyuwe",
+        "debt": "Ideni",
+        "pending": "Birategereje",
+        "failed": "Byanze",
+        "refunded": "Byasubijwe"
+      },
       "recommendation": "Inama",
       "cancel": "Kureka",
       "na": "N/A",

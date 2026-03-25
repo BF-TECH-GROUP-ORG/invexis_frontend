@@ -731,7 +731,13 @@
     "searchPlaceholder": "Tafuta kwa jina la mkopaji au namba ya simu...",
     "confirmCancelTitle": "Futa Deni",
     "confirmCancelMessage": "Una uhakika unataka kufuta deni hili? Kitendo hiki hakiwezi kurudiwa.",
-    "markPayed": "Weka ImeLipwa"
+    "markPayed": "Weka ImeLipwa",
+    "filters": {
+      "daily": "Kila siku",
+      "weekly": "Kila wiki",
+      "monthly": "Kila mwezi",
+      "yearly": "Kila mwaka"
+    }
   },
   "Debtstable": {
     "no": "Namba",
@@ -748,9 +754,15 @@
   },
   "salesHistory": {
     "title": "Historia ya Mauzo",
+    "filters": {
+      "daily": "Kila siku",
+      "weekly": "Kila wiki",
+      "monthly": "Kila mwezi",
+      "yearly": "Kila mwaka"
+    },
     "cards": {
-      "totalDailySales": "Jumla ya Mauzo ya Siku",
-      "totalDailyProfit": "Jumla ya Faida ya Siku",
+      "totalSales": "Mauzo yote",
+      "totalProfit": "Faida yote",
       "returnedProducts": "Bidhaa Zilizorudishwa",
       "discountsApplied": "Punguzo Zilizotumika"
     },
@@ -1958,6 +1970,7 @@
       "weekly": "Kila Wiki",
       "monthly": "Kila Mwezi",
       "yearly": "Kila Mwaka",
+      "allTime": "Muda Wote",
       "selectDate": "Chagua Tarehe",
       "exportOptions": "Chaguo za Kusafirisha",
       "exportPDF": "Hamisha kama PDF",
@@ -1980,6 +1993,7 @@
       "none": "Huna",
       "product": "Bidhaa",
       "category": "Kundi",
+      "invoice": "Ankara",
       "invoiceNo": "Nambari ya Ankara",
       "customer": "Mteja",
       "type": "Aina",
@@ -1997,6 +2011,18 @@
       "noContent": "Maudhui ya tab hiyo hayajapatikana",
       "subtotal": "Jumla Ndogo ya {name}",
       "total": "Jumla",
+      "statusLabels": {
+        "completed": "Imekamilika",
+        "validated": "Imethibitishwa",
+        "processing": "Inashughulikiwa",
+        "canceled": "Imeghairiwa",
+        "initiated": "Imeanzishwa",
+        "paid": "Iliyoitishwa",
+        "debt": "Deni",
+        "pending": "Inasubiri",
+        "failed": "Imefeli",
+        "refunded": "Imerejeshwa"
+      },
       "recommendation": "Pendekezo",
       "cancel": "Ghairi",
       "na": "N/A",

@@ -16,13 +16,13 @@ class WebSocketService {
      */
     connect(token, userId, initialRooms = []) {
         if (this.socket?.connected && this.userId === userId) {
-            console.log('[WebSocket] 🟡 Already connected as', userId);
+
             return this.socket;
         }
 
         // If reconnecting with different user, disconnect first
         if (this.socket && this.userId !== userId) {
-            console.log('[WebSocket] 🔄 Reconnecting with different user');
+
             this.disconnect();
         }
 
@@ -43,7 +43,7 @@ class WebSocketService {
         // Clean URL to prevent namespace errors if path is included
         const cleanUrl = gatewayUrl.replace(/\/$/, '').replace(/\/api$/, '');
 
-        console.log(`[WebSocket] 🔌 Connecting to ${cleanUrl}...`);
+
 
         try {
             this.socket = io(cleanUrl, {
@@ -69,7 +69,7 @@ class WebSocketService {
 
         this.socket.on('connect', () => {
             this.isConnected = true;
-            console.log(`[WebSocket] 🟢 Connected! (User: ${userId})`);
+
 
             // Automatically join personal room
             const rooms = [...new Set([`user:${userId}`, ...initialRooms])];
@@ -78,7 +78,7 @@ class WebSocketService {
 
         this.socket.on('disconnect', (reason) => {
             this.isConnected = false;
-            console.log(`[WebSocket] 🔴 Disconnected: ${reason}`);
+
         });
 
         this.socket.on('connect_error', (err) => {
@@ -87,7 +87,7 @@ class WebSocketService {
 
         // Listen for notification events
         this.socket.on('notification', (data) => {
-            console.log('[WebSocket] 🔔 New Notification Received:', data);
+
             this._emit('notification', data);
         });
     }
@@ -97,7 +97,7 @@ class WebSocketService {
    */
     disconnect() {
         if (this.socket && this.isConnected) {
-            console.log(`[WebSocket] 🔴 Disconnecting from room: user:${this.userId}`);
+
             this.socket.disconnect();
             this.isConnected = false;
         }
@@ -113,7 +113,7 @@ class WebSocketService {
         if (!this.socket) return;
         const roomArray = Array.isArray(rooms) ? rooms : [rooms];
         this.socket.emit('join', roomArray);
-        console.log(`[WebSocket] 🏠 Joining rooms: ${roomArray.join(', ')}`);
+
     }
 
     /**
@@ -124,7 +124,7 @@ class WebSocketService {
         if (!this.socket) return;
         const roomArray = Array.isArray(rooms) ? rooms : [rooms];
         this.socket.emit('leave', roomArray);
-        console.log(`[WebSocket] 🚪 Leaving rooms: ${roomArray.join(', ')}`);
+
     }
 
     /**
@@ -133,7 +133,7 @@ class WebSocketService {
      * @param {function} callback 
      */
     subscribe(event, callback) {
-        console.log(`[WebSocket] 🎧 Subscribing to internal event: ${event}`);
+
         if (!this.listeners.has(event)) {
             this.listeners.set(event, new Set());
         }
