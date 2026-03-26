@@ -1222,6 +1222,7 @@
       "deleteSelected": "Futa ({count})",
       "refresh": "Onyesha upya",
       "addCategory": "Ongeza Kitengo",
+      "export": "Hamisha",
       "addLevel3": "Ongeza Kitengo cha Ngazi ya 3",
       "active": "Inayotumika",
       "clearAll": "Futa vyote",
@@ -1299,7 +1300,8 @@
     "header": {
       "title": "Hamisho za Bidhaa",
       "subtitle": "Kumbukumbu kuu ya harakati zote za bidhaa katika kampuni yako.",
-      "addTransfer": "Ongeza Hamisho"
+      "addTransfer": "Ongeza Hamisho",
+      "export": "Hamisha Ripoti"
     },
     "stats": {
       "totalTransfers": "Jumla ya Hamisho",
@@ -1356,6 +1358,7 @@
       "filters": "Vichujio",
       "clearCache": "Futa Cache na Refresh",
       "exportPdf": "Pakua PDF",
+      "export": "Hamisha Ripoti",
       "addProduct": "Ongeza Bidhaa"
     },
     "stats": {

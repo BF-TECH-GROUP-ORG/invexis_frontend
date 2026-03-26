@@ -27,15 +27,18 @@ import {
     Store,
     RefreshCcw,
 } from "lucide-react";
+import ExportDropdown from "@/components/common/ExportDropdown";
 
 export default function TransferFilters({
     onFilterChange,
+    onExport,
     shops = [],
     workers = [],
     activeFilters = {},
     isShopsLoading = false
 }) {
     const t = useTranslations("transfers.filters");
+    const tRaw = useTranslations("transfers");
     const [anchorEl, setAnchorEl] = useState(null);
 
     // Default filters if not provided (should be handled by parent but safe-guarded here)
@@ -176,6 +179,8 @@ export default function TransferFilters({
                     >
                         <RefreshCcw size={18} />
                     </IconButton>
+
+                    <ExportDropdown onExport={onExport} label={tRaw("header.export") || "Export"} />
                 </Stack>
             </Stack>
 

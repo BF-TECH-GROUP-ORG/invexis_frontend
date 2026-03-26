@@ -1,48 +1,155 @@
-import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 /**
- * Export report content to PDF
+ * Premium Executive PDF Export
+ * Mimics the "Aquot" design with Header, KPI Cards, and Structured Tables
  */
-export const exportToPDF = (content, filename = 'report.pdf') => {
-    const element = document.createElement('div');
-    element.innerHTML = content;
+export const exportExecutivePDF = ({
+    title = "GENERAL EXECUTIVE REPORT",
+    subtitle = "",
+    period = "",
+    companyName = "Aquot",
+    companyEmail = "info@invexix.com",
+    kpis = [],
+    tables = [],
+    filename = "executive-report.pdf"
+}) => {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let currentY = 20;
 
-    const opt = {
-        margin: 10,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-    };
+    // --- 1. Header Section ---
+    doc.setTextColor(249, 115, 22); // Orange #f97316
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text(companyName, margin, currentY);
 
-    html2pdf().set(opt).from(element).save();
-};
+    doc.setTextColor(31, 41, 55); // Dark Gray #1f2937
+    doc.setFontSize(14);
+    doc.text(title.toUpperCase(), pageWidth - margin, currentY, { align: 'right' });
 
-/**
- * Print report content
- */
-export const printReport = (content, windowTitle = 'Report') => {
-    const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title>' + windowTitle + '</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write(`
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #333; color: white; font-weight: bold; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        h2, h3 { color: #333; margin-top: 20px; }
-        .kpi-container { margin-bottom: 20px; }
-        .kpi-card { display: inline-block; margin: 10px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; text-align: center; min-width: 150px; }
-        .kpi-value { font-size: 24px; font-weight: bold; color: #FF6D00; }
-        .kpi-title { font-size: 12px; color: #666; }
-    `);
-    printWindow.document.write('</style></head><body>');
-    printWindow.document.write(content);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
+    currentY += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(107, 114, 128); // Gray #6b7280
+    doc.text(`Email: ${companyEmail}`, margin, currentY);
+    doc.text(`Period: ${period}`, pageWidth - margin, currentY, { align: 'right' });
+
+    currentY += 5;
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, currentY, { align: 'right' });
+
+    currentY += 15;
+
+    // --- 2. KPI Cards Section ---
+    if (kpis && kpis.length > 0) {
+        const cardWidth = (pageWidth - (2 * margin) - (kpis.length - 1) * 5) / kpis.length;
+        const cardHeight = 25;
+
+        kpis.forEach((kpi, index) => {
+            const x = margin + (index * (cardWidth + 5));
+            
+            // Card background
+            doc.setFillColor(249, 250, 251); // #f9fafb
+            doc.roundedRect(x, currentY, cardWidth, cardHeight, 3, 3, 'F');
+            doc.setDrawColor(229, 231, 235); // #e5e7eb
+            doc.roundedRect(x, currentY, cardWidth, cardHeight, 3, 3, 'S');
+
+            // KPI Icon Circle (mimic the screenshot letters S, C, P, D)
+            const circleSize = 8;
+            const circleX = x + cardWidth - circleSize - 4;
+            const circleY = currentY + 4;
+            
+            // Choose color based on KPI type or index
+            const colors = [
+                { bg: [239, 246, 255], text: [59, 130, 246] }, // Blue
+                { bg: [254, 243, 199], text: [245, 158, 11] }, // Yellow
+                { bg: [236, 253, 245], text: [16, 185, 129] }, // Green
+                { bg: [254, 226, 226], text: [239, 68, 68] },  // Red
+            ];
+            const color = colors[index % colors.length];
+            
+            doc.setFillColor(...color.bg);
+            doc.circle(circleX + circleSize/2, circleY + circleSize/2, circleSize/2, 'F');
+            doc.setTextColor(...color.text);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            const letter = kpi.title.charAt(0).toUpperCase();
+            doc.text(letter, circleX + circleSize/2, circleY + circleSize/2 + 1, { align: 'center', baseline: 'middle' });
+
+            // KPI Text
+            doc.setTextColor(107, 114, 128);
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "bold");
+            doc.text(kpi.title.toUpperCase(), x + 6, currentY + 8);
+
+            doc.setTextColor(17, 24, 39);
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text(kpi.value.toString(), x + 6, currentY + 18);
+        });
+
+        currentY += cardHeight + 15;
+    }
+
+    // --- 3. Tables Section ---
+    tables.forEach((table, tIdx) => {
+        doc.autoTable({
+            startY: currentY,
+            head: table.head,
+            body: table.body,
+            margin: { left: margin, right: margin },
+            styles: {
+                fontSize: 7,
+                cellPadding: 2,
+                font: "helvetica",
+                lineColor: [229, 231, 235],
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: [17, 24, 39], // #111827
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                halign: 'center',
+            },
+            alternateRowStyles: {
+                fillColor: [249, 250, 251], // #f9fafb
+            },
+            columnStyles: {
+                0: { fontStyle: 'bold' },
+            },
+            didParseCell: (data) => {
+                const row = data.row.raw;
+                if (row.isSubtotal) {
+                    data.cell.styles.fillColor = [255, 247, 237]; // Orange-50 #fff7ed
+                    data.cell.styles.textColor = [154, 52, 18];  // Orange-900 #9a3412
+                    data.cell.styles.fontStyle = 'bold';
+                }
+
+                if (row.isTotal) {
+                    data.cell.styles.fillColor = [17, 24, 39]; // #111827
+                    data.cell.styles.textColor = [255, 255, 255];
+                    data.cell.styles.fontStyle = 'bold';
+                    
+                    if (data.column.index === data.row.cells.length - 2) {
+                        data.cell.styles.fillColor = [16, 185, 129]; // Emerald #10b981
+                    }
+                }
+            },
+            didDrawPage: (data) => {
+                // Footer on each page
+                const str = `© ${new Date().getFullYear()} Invexis Global. Intelligence Node. Confidential Report.`;
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text(str, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+            }
+        });
+        currentY = doc.lastAutoTable.finalY + 15;
+    });
+
+    doc.save(filename);
 };
 
 /**
@@ -51,132 +158,17 @@ export const printReport = (content, windowTitle = 'Report') => {
 export const exportToExcel = (data, filename = 'report.xlsx') => {
     const workbook = XLSX.utils.book_new();
 
-    // If data is an array of sheets
     if (Array.isArray(data)) {
         data.forEach((sheet, index) => {
             const ws = XLSX.utils.json_to_sheet(sheet.rows);
             XLSX.utils.book_append_sheet(workbook, ws, sheet.name || `Sheet${index + 1}`);
         });
     } else {
-        // Single sheet data
         const ws = XLSX.utils.json_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, ws, 'Report');
     }
 
     XLSX.writeFile(workbook, filename);
-};
-
-/**
- * Generate HTML content for current tab
- */
-export const generateTabHTML = (tabName, tabContent) => {
-    const timestamp = new Date().toLocaleString();
-
-    return `
-        <div style="font-family: Arial, sans-serif; margin: 20px;">
-            <h1 style="color: #333; border-bottom: 3px solid #FF6D00; padding-bottom: 10px;">
-                ${tabName} Report
-            </h1>
-            <p style="color: #666; font-size: 12px;">Generated on: ${timestamp}</p>
-            ${tabContent}
-        </div>
-    `;
-};
-
-/**
- * Generate HTML for all tabs combined
- */
-export const generateFullReportHTML = (tabs) => {
-    const timestamp = new Date().toLocaleString();
-
-    let html = `
-        <div style="font-family: Arial, sans-serif; margin: 20px;">
-            <h1 style="color: #333; text-align: center; border-bottom: 3px solid #FF6D00; padding-bottom: 15px;">
-                Company-Wide Reports & Analytics
-            </h1>
-            <p style="color: #666; font-size: 12px; text-align: center;">Generated on: ${timestamp}</p>
-    `;
-
-    tabs.forEach((tab, index) => {
-        html += `
-            <div style="page-break-after: always; margin: 30px 0;">
-                <h2 style="color: #333; border-left: 4px solid #FF6D00; padding-left: 10px; margin-top: 0;">
-                    ${tab.name}
-                </h2>
-                ${tab.content}
-            </div>
-        `;
-    });
-
-    html += `</div>`;
-    return html;
-};
-
-/**
- * Extract table data from DOM and convert to array format for Excel
- */
-export const extractTableDataForExcel = (tableElement) => {
-    const rows = [];
-    const headers = [];
-
-    // Get headers
-    const headerCells = tableElement.querySelectorAll('thead th');
-    headerCells.forEach(cell => {
-        headers.push(cell.textContent.trim());
-    });
-    rows.push(headers);
-
-    // Get body rows
-    const bodyCells = tableElement.querySelectorAll('tbody tr');
-    bodyCells.forEach(row => {
-        const rowData = [];
-        row.querySelectorAll('td').forEach(cell => {
-            rowData.push(cell.textContent.trim());
-        });
-        if (rowData.length > 0) {
-            rows.push(rowData);
-        }
-    });
-
-    return rows;
-};
-
-/**
- * Convert table DOM to array of arrays
- */
-export const tableToArray = (tableElement) => {
-    const result = [];
-    tableElement.querySelectorAll('tr').forEach(row => {
-        const rowData = [];
-        row.querySelectorAll('th, td').forEach(cell => {
-            rowData.push(cell.textContent.trim());
-        });
-        if (rowData.length > 0) {
-            result.push(rowData);
-        }
-    });
-    return result;
-};
-
-/**
- * Generate KPI data for Excel
- */
-export const generateKPIDataForExcel = (kpiElements) => {
-    const kpiData = [];
-
-    kpiElements.forEach(el => {
-        const titleEl = el.querySelector('[data-kpi-title]');
-        const valueEl = el.querySelector('[data-kpi-value]');
-
-        if (titleEl && valueEl) {
-            kpiData.push({
-                'KPI Name': titleEl.textContent.trim(),
-                'Value': valueEl.textContent.trim()
-            });
-        }
-    });
-
-    return kpiData;
 };
 
 /**
@@ -186,7 +178,6 @@ export const prepareExcelWorkbook = (tabsData) => {
     const sheets = [];
 
     tabsData.forEach(tab => {
-        // KPI Sheet
         if (tab.kpis && tab.kpis.length > 0) {
             sheets.push({
                 name: `${tab.name} - KPIs`,
@@ -194,11 +185,10 @@ export const prepareExcelWorkbook = (tabsData) => {
             });
         }
 
-        // Table Sheets
         if (tab.tables && tab.tables.length > 0) {
             tab.tables.forEach((table, idx) => {
                 sheets.push({
-                    name: `${tab.name} - Table${idx + 1}`.substring(0, 31), // Sheet name limit is 31 chars
+                    name: `${tab.name} - Table${idx + 1}`.substring(0, 31),
                     rows: table
                 });
             });

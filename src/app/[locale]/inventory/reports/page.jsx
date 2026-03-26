@@ -27,8 +27,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs from 'dayjs';
-import * as XLSX from 'xlsx';
 import { useTranslations } from "next-intl";
+import { exportExecutivePDF, exportToExcel, prepareExcelWorkbook } from './exportUtils';
 
 // OPTIMIZATION: Lazy load tab components to reduce initial page load time
 // This defers compilation of heavy tab components until they're actually needed
@@ -84,7 +84,6 @@ const ReportsPage = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [exportScope, setExportScope] = useState('current'); // 'current' or 'all'
-    const [exportAnchorEl, setExportAnchorEl] = useState(null);
     const [reportView, setReportView] = useState('daily');
     const [selectedDate, setSelectedDate] = useState(dayjs());
 
@@ -143,36 +142,55 @@ const ReportsPage = () => {
         handleDateMenuClose();
     };
 
-    const handleExportMenuOpen = (event) => setExportAnchorEl(event.currentTarget);
-    const handleExportMenuClose = () => setExportAnchorEl(null);
-
     const handleExportDialogOpen = () => {
         setExportDialogOpen(true);
-        handleExportMenuClose();
     };
 
     const handleExportDialogClose = () => {
         setExportDialogOpen(false);
     };
 
-    // Extract table data from tab container
+    // Extract structured data from tab container
     const extractTabData = (tabContainer) => {
         const tabData = {
             tables: [],
             kpis: []
         };
 
-        // Extract tables
+        // 1. Extract KPI cards (mimic GeneralTab structure)
+        const kpiElements = tabContainer.querySelectorAll('.MuiPaper-root'); // KPI cards are Papers in GeneralTab
+        kpiElements.forEach(el => {
+            const titleEl = el.querySelector('span') || el.querySelector('.MuiTypography-caption');
+            const valueEl = el.querySelector('h5') || el.querySelector('.MuiTypography-h5');
+            if (titleEl && valueEl && titleEl.textContent && valueEl.textContent) {
+                // Check if it's actually a KPI card (small text above large text)
+                if (titleEl.textContent.trim().length < 50 && valueEl.textContent.trim().length < 50) {
+                    tabData.kpis.push({
+                        title: titleEl.textContent.trim(),
+                        value: valueEl.textContent.trim()
+                    });
+                }
+            }
+        });
+
+        // 2. Extract tables with multi-level header support
         const tables = tabContainer.querySelectorAll('table');
         tables.forEach(table => {
-            const rows = [];
-            const headers = [];
-
-            // Get headers
-            table.querySelectorAll('thead th').forEach(th => {
-                headers.push(th.textContent.trim());
+            const tableObj = { head: [], body: [] };
+            
+            // Get all header rows (support multi-level)
+            table.querySelectorAll('thead tr').forEach(tr => {
+                const headerRow = [];
+                tr.querySelectorAll('th').forEach(th => {
+                    headerRow.push({
+                        content: th.textContent.trim(),
+                        colSpan: th.colSpan || 1,
+                        rowSpan: th.rowSpan || 1,
+                        styles: { halign: 'center' }
+                    });
+                });
+                if (headerRow.length > 0) tableObj.head.push(headerRow);
             });
-            if (headers.length > 0) rows.push(headers);
 
             // Get body rows
             table.querySelectorAll('tbody tr').forEach(tr => {
@@ -180,137 +198,122 @@ const ReportsPage = () => {
                 tr.querySelectorAll('td').forEach(td => {
                     rowData.push(td.textContent.trim());
                 });
-                if (rowData.length > 0) rows.push(rowData);
+
+                // Detect special rows by background color
+                const bgColor = window.getComputedStyle(tr).backgroundColor;
+                const isOrange = bgColor.includes('255, 247, 237') || bgColor.includes('fed7aa') || bgColor.includes('255, 215, 140');
+                const isDark = bgColor.includes('17, 24, 39') || bgColor.includes('31, 41, 55');
+
+                if (rowData.length > 0) {
+                    tableObj.body.push({
+                        ...rowData, // jspdf-autotable handles array-like objects
+                        isSubtotal: isOrange,
+                        isTotal: isDark
+                    });
+                }
             });
 
-            if (rows.length > 0) {
-                tabData.tables.push(rows);
+            if (tableObj.body.length > 0) {
+                tabData.tables.push(tableObj);
             }
         });
-
-        // Extract KPI cards
-        const kpiElements = tabContainer.querySelectorAll('[data-kpi-card]');
-        const kpiData = [];
-        kpiElements.forEach(el => {
-            const titleEl = el.querySelector('[data-kpi-title]');
-            const valueEl = el.querySelector('[data-kpi-value]');
-            if (titleEl && valueEl) {
-                kpiData.push({
-                    'Metric': titleEl.textContent.trim(),
-                    'Value': valueEl.textContent.trim()
-                });
-            }
-        });
-        if (kpiData.length > 0) tabData.kpis = kpiData;
 
         return tabData;
     };
 
-    const handleExportPDF = async () => {
-        const { jsPDF } = await import('jspdf');
-        const html2canvas = (await import('html2canvas')).default;
+    const handleExportPDF = () => {
+        const periodStr = `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate.format('MM/DD/YYYY')}`;
 
         if (exportScope === 'current') {
-            // Export current tab
             const tabContainer = tabRefs.current[currentTab];
             if (!tabContainer) return alert(t('common.noContent'));
-
-            const canvas = await html2canvas(tabContainer, { allowTaint: true, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 210;
-            const pageHeight = 295;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            pdf.save(t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.pdf');
+            
+            const data = extractTabData(tabContainer);
+            exportExecutivePDF({
+                title: `${tabNames[currentTab].toUpperCase()} REPORT`,
+                period: periodStr,
+                kpis: data.kpis,
+                tables: data.tables,
+                filename: `${tabNames[currentTab].toLowerCase()}-report.pdf`
+            });
         } else {
-            // Export all tabs
-            const { jsPDF } = await import('jspdf');
-            const html2canvas = (await import('html2canvas')).default;
-
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            let isFirstPage = true;
-
+            // All tabs - collect all data and put into one PDF with multiple tables
+            const allKpis = [];
+            const allTables = [];
+            
             for (let i = 0; i < tabNames.length; i++) {
-                const tabContainer = tabRefs.current[i];
-                if (!tabContainer) continue;
-
-                if (!isFirstPage) pdf.addPage();
-                isFirstPage = false;
-
-                const canvas = await html2canvas(tabContainer, { allowTaint: true, useCORS: true });
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                const container = tabRefs.current[i];
+                if (container) {
+                    const data = extractTabData(container);
+                    // Add a special header row to separate tabs in the PDF
+                    if (data.tables.length > 0) {
+                        allTables.push({
+                            head: [[{ content: tabNames[i].toUpperCase(), colSpan: data.tables[0].head[0].length || 10, styles: { fillColor: [249, 115, 22], textColor: [255, 255, 255] } }]],
+                            body: []
+                        });
+                        allTables.push(...data.tables);
+                    }
+                    if (allKpis.length === 0) allKpis.push(...data.kpis); // Just take first tab KPIs for now or merge
+                }
             }
 
-            pdf.save(t('export.excelSystemTitle') + '.pdf');
+            exportExecutivePDF({
+                title: "SUMMARY SYSTEM REPORT",
+                period: periodStr,
+                kpis: allKpis,
+                tables: allTables,
+                filename: "full-system-report.pdf"
+            });
         }
-
         handleExportDialogClose();
     };
 
     const handleExportExcel = () => {
-        const workbook = XLSX.utils.book_new();
-
         if (exportScope === 'current') {
-            // Export current tab
             const tabContainer = tabRefs.current[currentTab];
             if (!tabContainer) return alert(t('common.noContent'));
-
-            const tabData = extractTabData(tabContainer);
-
-            // Add KPI sheet if available
-            if (tabData.kpis.length > 0) {
-                const kpiWs = XLSX.utils.json_to_sheet(tabData.kpis);
-                XLSX.utils.book_append_sheet(workbook, kpiWs, 'KPIs');
-            }
-
-            // Add table sheets
-            tabData.tables.forEach((tableData, idx) => {
-                const ws = XLSX.utils.aoa_to_sheet(tableData);
-                XLSX.utils.book_append_sheet(workbook, ws, `Table${idx + 1}`);
+            
+            const data = extractTabData(tabContainer);
+            const rows = [];
+            data.tables.forEach(table => {
+                table.head.forEach(hRow => rows.push(hRow.map(h => h.content || h)));
+                table.body.forEach(bRow => {
+                    // Extract only the indexed values (columns)
+                    const cleanRow = [];
+                    for(let i=0; i<Object.keys(bRow).length; i++) {
+                        if (bRow[i] !== undefined) cleanRow.push(bRow[i]);
+                    }
+                    rows.push(cleanRow);
+                });
+                rows.push([]); // Spacer
             });
 
-            XLSX.writeFile(workbook, t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.xlsx');
+            exportToExcel(rows, `${tabNames[currentTab].toLowerCase()}-report.xlsx`);
         } else {
-            // Export all tabs
+            const allTabData = [];
             for (let i = 0; i < tabNames.length; i++) {
-                const tabContainer = tabRefs.current[i];
-                if (!tabContainer) continue;
-
-                const tabData = extractTabData(tabContainer);
-
-                // Add KPI sheet if available
-                if (tabData.kpis.length > 0) {
-                    const kpiWs = XLSX.utils.json_to_sheet(tabData.kpis);
-                    XLSX.utils.book_append_sheet(workbook, kpiWs, `${tabNames[i].substring(0, 20)}-KPIs`.substring(0, 31));
+                const container = tabRefs.current[i];
+                if (container) {
+                    const data = extractTabData(container);
+                    const rows = [];
+                    data.tables.forEach(table => {
+                        table.head.forEach(hRow => rows.push(hRow.map(h => h.content || h)));
+                        table.body.forEach(bRow => {
+                            const cleanRow = [];
+                            for(let i=0; i<Object.keys(bRow).length; i++) {
+                                if (bRow[i] !== undefined) cleanRow.push(bRow[i]);
+                            }
+                            rows.push(cleanRow);
+                        });
+                    });
+                    allTabData.push({
+                        name: tabNames[i],
+                        rows: rows
+                    });
                 }
-
-                // Add table sheets
-                tabData.tables.forEach((tableData, idx) => {
-                    const ws = XLSX.utils.aoa_to_sheet(tableData);
-                    XLSX.utils.book_append_sheet(workbook, ws, `${tabNames[i].substring(0, 15)}-T${idx + 1}`.substring(0, 31));
-                });
             }
-
-            XLSX.writeFile(workbook, t('export.excelSystemTitle') + '.xlsx');
+            exportToExcel(allTabData, "full-system-report.xlsx");
         }
-
         handleExportDialogClose();
     };
 
@@ -518,29 +521,10 @@ const ReportsPage = () => {
                             boxShadow: "none",
                             "&:hover": { bgcolor: "#444", boxShadow: "none" }
                         }}
-                        onClick={handleExportMenuOpen}
+                        onClick={handleExportDialogOpen}
                     >
                         {t('controls.exportOptions')}
                     </Button>
-
-                    {/* Export Dropdown Menu */}
-                    <Menu
-                        anchorEl={exportAnchorEl}
-                        open={Boolean(exportAnchorEl)}
-                        onClose={handleExportMenuClose}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    >
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📄 {t('controls.exportPDF')}
-                        </MenuItem>
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            🖨️ {t('controls.printReport')}
-                        </MenuItem>
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📊 {t('controls.exportExcel')}
-                        </MenuItem>
-                    </Menu>
                 </Box>
             </Box>
 
