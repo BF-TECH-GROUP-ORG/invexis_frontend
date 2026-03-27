@@ -3,14 +3,14 @@
 export const GROQ_MODELS = {
   // Text generation
   text_default:      'llama-3.3-70b-versatile',
-  text_multilingual: 'qwen-qwq-32b-preview', // High performance multilingual fallback
+  text_multilingual: 'moonshotai/kimi-k2-instruct-0905', 
 
   // Speech to text
   whisper_fast:      'whisper-large-v3-turbo',
   whisper_accurate:  'whisper-large-v3',
 
   // Vision
-  vision:            'llama-3.2-11b-vision-preview',
+  vision:            'meta-llama/llama-4-scout-17b-16e-instruct',
 };
 
 // Supported languages for specialized model
