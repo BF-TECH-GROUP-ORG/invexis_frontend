@@ -14,8 +14,11 @@ import {
     Stack,
     Button,
 } from "@mui/material";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { exportData } from "@/utils/exportUtils";
+import ExportDropdown from "@/components/common/ExportDropdown";
 
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
@@ -211,6 +214,29 @@ export default function TransferList({ initialParams = {} }) {
         updateFilters(newFilters);
     };
 
+    const handleExport = (format) => {
+        const columns = [
+            { header: t("table.reference"), accessor: "reference" },
+            { header: t("table.date"), accessor: (item) => new Date(item.createdAt).toLocaleDateString() },
+            { header: t("table.from"), accessor: "sourceShopName" },
+            { header: t("table.to"), accessor: "destShopName" },
+            { header: t("table.type"), accessor: (item) => item.transferType === "intra_company" ? t("table.intraCompany") : t("table.interCompany") },
+            { header: t("table.items"), accessor: (item) => item.items?.length || 0 },
+            { header: t("table.performedBy"), accessor: "workerName" },
+            { header: t("table.status"), accessor: "status" },
+        ];
+
+        exportData({
+            data: mappedTransfers,
+            columns,
+            fileName: "inventory-transfers",
+            title: t("header.title"),
+            description: "Detailed report of stock transfers between shops or companies. This document tracks movement of goods, including source, destination, and the personnel responsible for each transfer.",
+            format
+        });
+        toast.success(t("toasts.exportSuccess") || "Export successful");
+    };
+
     return (
         <Box sx={{ mx: "auto" }}>
             <Stack
@@ -233,33 +259,35 @@ export default function TransferList({ initialParams = {} }) {
                     </Typography>
                 </motion.div>
 
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <Button
-                        variant="contained"
-                        disabled
-                        startIcon={<Plus size={20} />}
-                        sx={{
-                            bgcolor: "#ff782d",
-                            "&:hover": { bgcolor: "#ea580c" },
-                            borderRadius: "12px",
-                            px: 3,
-                            py: 1.2,
-                            textTransform: "none",
-                            fontWeight: 700,
-                            boxShadow: "none",
-                            "&.Mui-disabled": {
-                                bgcolor: "#f3f4f6",
-                                color: "#9ca3af"
-                            }
-                        }}
+                <Stack direction="row" spacing={2} sx={{ width: { xs: "100%", sm: "auto" }, justifyContent: "flex-end" }}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
                     >
-                        {t("header.addTransfer")}
-                    </Button>
-                </motion.div>
+                        <Button
+                            variant="contained"
+                            disabled
+                            startIcon={<Plus size={20} />}
+                            sx={{
+                                bgcolor: "#ff782d",
+                                "&:hover": { bgcolor: "#ea580c" },
+                                borderRadius: "12px",
+                                px: 3,
+                                py: 1.2,
+                                textTransform: "none",
+                                fontWeight: 700,
+                                boxShadow: "none",
+                                "&.Mui-disabled": {
+                                    bgcolor: "#f3f4f6",
+                                    color: "#9ca3af"
+                                }
+                            }}
+                        >
+                            {t("header.addTransfer")}
+                        </Button>
+                    </motion.div>
+                </Stack>
             </Stack>
 
             <Box sx={{ mb: 6 }}>
@@ -268,6 +296,7 @@ export default function TransferList({ initialParams = {} }) {
 
             <TransferFilters
                 onFilterChange={handleFilterChange}
+                onExport={handleExport}
                 shops={shops}
                 workers={workers}
                 activeFilters={activeFilters}

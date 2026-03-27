@@ -27,8 +27,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs from 'dayjs';
-import * as XLSX from 'xlsx';
 import { useTranslations } from "next-intl";
+import { exportExecutivePDF, exportToExcel, prepareExcelWorkbook } from './exportUtils';
+import { toast } from 'react-hot-toast';
 
 // OPTIMIZATION: Lazy load tab components to reduce initial page load time
 // This defers compilation of heavy tab components until they're actually needed
@@ -84,7 +85,6 @@ const ReportsPage = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [exportScope, setExportScope] = useState('current'); // 'current' or 'all'
-    const [exportAnchorEl, setExportAnchorEl] = useState(null);
     const [reportView, setReportView] = useState('daily');
     const [selectedDate, setSelectedDate] = useState(dayjs());
 
@@ -143,243 +143,338 @@ const ReportsPage = () => {
         handleDateMenuClose();
     };
 
-    const handleExportMenuOpen = (event) => setExportAnchorEl(event.currentTarget);
-    const handleExportMenuClose = () => setExportAnchorEl(null);
-
     const handleExportDialogOpen = () => {
         setExportDialogOpen(true);
-        handleExportMenuClose();
     };
 
     const handleExportDialogClose = () => {
         setExportDialogOpen(false);
     };
 
-    // Extract table data from tab container
+    // Extract structured data from tab container
     const extractTabData = (tabContainer) => {
         const tabData = {
             tables: [],
             kpis: []
         };
 
-        // Extract tables
+        // 1. Extract KPI cards (mimic GeneralTab structure)
+        const kpiElements = tabContainer.querySelectorAll('.MuiPaper-root'); // KPI cards are Papers in GeneralTab
+        kpiElements.forEach(el => {
+            const titleEl = el.querySelector('span') || el.querySelector('.MuiTypography-caption');
+            const valueEl = el.querySelector('h5') || el.querySelector('.MuiTypography-h5');
+            if (titleEl && valueEl && titleEl.textContent && valueEl.textContent) {
+                // Check if it's actually a KPI card (small text above large text)
+                if (titleEl.textContent.trim().length < 50 && valueEl.textContent.trim().length < 50) {
+                    tabData.kpis.push({
+                        title: titleEl.textContent.trim(),
+                        value: valueEl.textContent.trim()
+                    });
+                }
+            }
+        });
+
+        // 2. Extract tables with multi-level header support
         const tables = tabContainer.querySelectorAll('table');
         tables.forEach(table => {
-            const rows = [];
-            const headers = [];
-
-            // Get headers
-            table.querySelectorAll('thead th').forEach(th => {
-                headers.push(th.textContent.trim());
+            const tableObj = { head: [], body: [] };
+            
+            // Get all header rows (support multi-level)
+            table.querySelectorAll('thead tr').forEach(tr => {
+                const headerRow = [];
+                tr.querySelectorAll('th').forEach(th => {
+                    headerRow.push({
+                        content: th.textContent.trim(),
+                        colSpan: th.colSpan || 1,
+                        rowSpan: th.rowSpan || 1,
+                        styles: { halign: 'center' }
+                    });
+                });
+                if (headerRow.length > 0) tableObj.head.push(headerRow);
             });
-            if (headers.length > 0) rows.push(headers);
 
             // Get body rows
             table.querySelectorAll('tbody tr').forEach(tr => {
                 const rowData = [];
                 tr.querySelectorAll('td').forEach(td => {
-                    rowData.push(td.textContent.trim());
+                    rowData.push({
+                        content: td.textContent.trim(),
+                        colSpan: td.colSpan || 1,
+                        rowSpan: td.rowSpan || 1,
+                        styles: td.colSpan > 1 ? { fontStyle: 'bold' } : {}
+                    });
                 });
-                if (rowData.length > 0) rows.push(rowData);
+
+                // Detect special rows by background color
+                const bgColor = window.getComputedStyle(tr).backgroundColor;
+                const isOrange = bgColor.includes('255, 247, 237') || bgColor.includes('fed7aa') || bgColor.includes('rgb(255, 247, 237)');
+                const isDark = bgColor.includes('17, 24, 39') || bgColor.includes('31, 41, 55') || bgColor.includes('rgb(17, 24, 39)');
+
+                if (rowData.length > 0) {
+                    // We use an array for the row, and attach metadata to it
+                    const rowArr = rowData;
+                    rowArr.isSubtotal = isOrange;
+                    rowArr.isTotal = isDark;
+                    tableObj.body.push(rowArr);
+                }
             });
 
-            if (rows.length > 0) {
-                tabData.tables.push(rows);
+            if (tableObj.body.length > 0) {
+                tabData.tables.push(tableObj);
             }
         });
-
-        // Extract KPI cards
-        const kpiElements = tabContainer.querySelectorAll('[data-kpi-card]');
-        const kpiData = [];
-        kpiElements.forEach(el => {
-            const titleEl = el.querySelector('[data-kpi-title]');
-            const valueEl = el.querySelector('[data-kpi-value]');
-            if (titleEl && valueEl) {
-                kpiData.push({
-                    'Metric': titleEl.textContent.trim(),
-                    'Value': valueEl.textContent.trim()
-                });
-            }
-        });
-        if (kpiData.length > 0) tabData.kpis = kpiData;
 
         return tabData;
     };
 
-    const handleExportPDF = async () => {
-        const { jsPDF } = await import('jspdf');
-        const html2canvas = (await import('html2canvas')).default;
+    const handleExportPDF = () => {
+        try {
+            toast.loading(t('common.generatingPDF') || 'Generating PDF...', { id: 'export-toast' });
+            const periodStr = `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate.format('MM/DD/YYYY')}`;
 
-        if (exportScope === 'current') {
-            // Export current tab
-            const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert(t('common.noContent'));
+            if (exportScope === 'current') {
+                const tabContainer = tabRefs.current[currentTab];
+                if (!tabContainer) throw new Error("Tab content not found");
+                
+                const data = extractTabData(tabContainer);
+                exportExecutivePDF({
+                    title: `${tabNames[currentTab].toUpperCase()} REPORT`,
+                    period: periodStr,
+                    kpis: data.kpis,
+                    tables: data.tables,
+                    filename: `${tabNames[currentTab].toLowerCase()}-report.pdf`
+                });
+            } else {
+                const allKpis = [];
+                const allTables = [];
+                
+                for (let i = 0; i < tabNames.length; i++) {
+                    const container = tabRefs.current[i];
+                    if (container) {
+                        const data = extractTabData(container);
+                        if (data.tables.length > 0) {
+                            allTables.push({
+                                head: [[{ content: tabNames[i].toUpperCase(), colSpan: (data.tables[0].head[0]?.length || 10), styles: { fillColor: [249, 115, 22], textColor: [255, 255, 255] } }]],
+                                body: []
+                            });
+                            allTables.push(...data.tables);
+                        }
+                        if (allKpis.length === 0) allKpis.push(...data.kpis);
+                    }
+                }
 
-            const canvas = await html2canvas(tabContainer, { allowTaint: true, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 210;
-            const pageHeight = 295;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+                exportExecutivePDF({
+                    title: "SUMMARY SYSTEM REPORT",
+                    period: periodStr,
+                    kpis: allKpis,
+                    tables: allTables,
+                    filename: "full-system-report.pdf"
+                });
             }
-
-            pdf.save(t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.pdf');
-        } else {
-            // Export all tabs
-            const { jsPDF } = await import('jspdf');
-            const html2canvas = (await import('html2canvas')).default;
-
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            let isFirstPage = true;
-
-            for (let i = 0; i < tabNames.length; i++) {
-                const tabContainer = tabRefs.current[i];
-                if (!tabContainer) continue;
-
-                if (!isFirstPage) pdf.addPage();
-                isFirstPage = false;
-
-                const canvas = await html2canvas(tabContainer, { allowTaint: true, useCORS: true });
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            }
-
-            pdf.save(t('export.excelSystemTitle') + '.pdf');
+            toast.success(t('common.exportSuccess') || 'Export Successful', { id: 'export-toast' });
+            handleExportDialogClose();
+        } catch (error) {
+            console.error("PDF Export failed:", error);
+            toast.error(t('common.exportError') || 'Export Failed', { id: 'export-toast' });
         }
-
-        handleExportDialogClose();
     };
 
     const handleExportExcel = () => {
-        const workbook = XLSX.utils.book_new();
-
-        if (exportScope === 'current') {
-            // Export current tab
-            const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert(t('common.noContent'));
-
-            const tabData = extractTabData(tabContainer);
-
-            // Add KPI sheet if available
-            if (tabData.kpis.length > 0) {
-                const kpiWs = XLSX.utils.json_to_sheet(tabData.kpis);
-                XLSX.utils.book_append_sheet(workbook, kpiWs, 'KPIs');
-            }
-
-            // Add table sheets
-            tabData.tables.forEach((tableData, idx) => {
-                const ws = XLSX.utils.aoa_to_sheet(tableData);
-                XLSX.utils.book_append_sheet(workbook, ws, `Table${idx + 1}`);
-            });
-
-            XLSX.writeFile(workbook, t('export.excelTabTitle', { tab: tabNames[currentTab] }) + '.xlsx');
-        } else {
-            // Export all tabs
-            for (let i = 0; i < tabNames.length; i++) {
-                const tabContainer = tabRefs.current[i];
-                if (!tabContainer) continue;
-
-                const tabData = extractTabData(tabContainer);
-
-                // Add KPI sheet if available
-                if (tabData.kpis.length > 0) {
-                    const kpiWs = XLSX.utils.json_to_sheet(tabData.kpis);
-                    XLSX.utils.book_append_sheet(workbook, kpiWs, `${tabNames[i].substring(0, 20)}-KPIs`.substring(0, 31));
-                }
-
-                // Add table sheets
-                tabData.tables.forEach((tableData, idx) => {
-                    const ws = XLSX.utils.aoa_to_sheet(tableData);
-                    XLSX.utils.book_append_sheet(workbook, ws, `${tabNames[i].substring(0, 15)}-T${idx + 1}`.substring(0, 31));
+        try {
+            toast.loading(t('common.generatingExcel') || 'Generating Excel...', { id: 'export-toast' });
+            if (exportScope === 'current') {
+                const tabContainer = tabRefs.current[currentTab];
+                if (!tabContainer) throw new Error("Tab content not found");
+                
+                const data = extractTabData(tabContainer);
+                const rows = [];
+                data.tables.forEach(table => {
+                    table.head.forEach(hRow => rows.push(hRow.map(h => h.content || h)));
+                    table.body.forEach(bRow => {
+                        const cleanRow = [];
+                        bRow.forEach(cell => {
+                            cleanRow.push(cell.content || '');
+                            // Fill in empty cells for colspan to maintain alignment in Excel
+                            for (let i = 1; i < (cell.colSpan || 1); i++) {
+                                cleanRow.push('');
+                            }
+                        });
+                        rows.push(cleanRow);
+                    });
+                    rows.push([]);
                 });
+
+                if (rows.length === 0) throw new Error("No table data found to export");
+                exportToExcel(rows, `${tabNames[currentTab].toLowerCase()}-report.xlsx`);
+            } else {
+                const allTabData = [];
+                for (let i = 0; i < tabNames.length; i++) {
+                    const container = tabRefs.current[i];
+                    if (container) {
+                        const data = extractTabData(container);
+                        const rows = [];
+                        data.tables.forEach(table => {
+                            table.head.forEach(hRow => rows.push(hRow.map(h => h.content || h)));
+                            table.body.forEach(bRow => {
+                                const cleanRow = [];
+                                bRow.forEach(cell => {
+                                    cleanRow.push(cell.content || '');
+                                    for (let i = 1; i < (cell.colSpan || 1); i++) {
+                                        cleanRow.push('');
+                                    }
+                                });
+                                rows.push(cleanRow);
+                            });
+                        });
+                        if (rows.length > 0) {
+                            allTabData.push({ name: tabNames[i], rows: rows });
+                        }
+                    }
+                }
+                if (allTabData.length === 0) throw new Error("No data found to export");
+                exportToExcel(allTabData, "full-system-report.xlsx");
             }
-
-            XLSX.writeFile(workbook, t('export.excelSystemTitle') + '.xlsx');
+            toast.success(t('common.exportSuccess') || 'Export Successful', { id: 'export-toast' });
+            handleExportDialogClose();
+        } catch (error) {
+            console.error("Excel Export failed:", error);
+            toast.error(t('common.exportError') || 'Export Failed', { id: 'export-toast' });
         }
-
-        handleExportDialogClose();
     };
 
     const handlePrint = () => {
-        if (exportScope === 'current') {
-            const tabContainer = tabRefs.current[currentTab];
-            if (!tabContainer) return alert(t('common.noContent'));
+        try {
+            toast.loading(t('common.preparingPrint') || 'Preparing for print...', { id: 'print-toast' });
+            const periodStr = `${dateRange.startDate.format('MM/DD/YYYY')} - ${dateRange.endDate.format('MM/DD/YYYY')}`;
+            const printWindow = window.open('', '', 'height=800,width=1100');
+            
+            const renderReportHTML = (title, data) => {
+                const kpiHTML = data.kpis.map((kpi, index) => {
+                    const letters = ['S', 'C', 'P', 'D'];
+                    const bgs = ['#eff6ff', '#fef3c7', '#ecfdf5', '#fee2e2'];
+                    const texts = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444'];
+                    
+                    // Map common titles to specific icons/colors
+                    const titleUpper = kpi.title.toUpperCase();
+                    let colorIdx = index % 4;
+                    let letter = kpi.title.charAt(0).toUpperCase();
 
-            const printWindow = window.open('', '', 'height=700,width=900');
-            printWindow.document.write('<html><head><title>' + t('export.pdfTitle', { tab: tabNames[currentTab] }) + '</title>');
-            printWindow.document.write(`
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-                    h1 { border-bottom: 3px solid #FF6D00; padding-bottom: 10px; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    th { background-color: #333; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background-color: #f9f9f9; }
-                    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
-                    .kpi-card { padding: 15px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
-                    .kpi-value { font-size: 24px; font-weight: bold; color: #FF6D00; }
-                    .kpi-title { font-size: 12px; color: #666; margin-top: 5px; }
-                    @media print { body { margin: 0; } }
-                </style>
-            `);
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>' + t('export.pdfTitle', { tab: tabNames[currentTab] }) + '</h1>');
-            printWindow.document.write(tabContainer.innerHTML);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.print();
-        } else {
-            const printWindow = window.open('', '', 'height=700,width=900');
-            printWindow.document.write('<html><head><title>' + t('export.pdfSystemTitle') + '</title>');
-            printWindow.document.write(`
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-                    h1 { text-align: center; border-bottom: 3px solid #FF6D00; padding-bottom: 10px; }
-                    h2 { border-left: 4px solid #FF6D00; padding-left: 10px; margin-top: 30px; page-break-after: avoid; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    th { background-color: #333; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background-color: #f9f9f9; }
-                    .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
-                    .kpi-card { padding: 15px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
-                    .kpi-value { font-size: 24px; font-weight: bold; color: #FF6D00; }
-                    .kpi-title { font-size: 12px; color: #666; margin-top: 5px; }
-                    .tab-section { page-break-inside: avoid; }
-                    @media print { body { margin: 0; } }
-                </style>
-            `);
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>' + t('export.pdfSystemFullTitle') + '</h1>');
+                    if (titleUpper.includes('REVENUE') || titleUpper.includes('SALES')) { colorIdx = 0; letter = 'S'; }
+                    else if (titleUpper.includes('COST')) { colorIdx = 1; letter = 'C'; }
+                    else if (titleUpper.includes('PROFIT')) { colorIdx = 2; letter = 'P'; }
+                    else if (titleUpper.includes('DEBT')) { colorIdx = 3; letter = 'D'; }
 
-            for (let i = 0; i < tabNames.length; i++) {
-                const tabContainer = tabRefs.current[i];
-                if (!tabContainer) continue;
-                printWindow.document.write('<div class="tab-section">');
-                printWindow.document.write('<h2>' + tabNames[i] + '</h2>');
-                printWindow.document.write(tabContainer.innerHTML);
-                printWindow.document.write('</div>');
+                    return `
+                        <div class="kpi-card">
+                            <div class="kpi-icon" style="background: ${bgs[colorIdx]}; color: ${texts[colorIdx]}">${letter}</div>
+                            <div class="kpi-label">${kpi.title}</div>
+                            <div class="kpi-value">${kpi.value}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                const tablesHTML = data.tables.map(table => {
+                    const headRow = table.head.map(hLevel => {
+                        return `<tr>${hLevel.map(h => `<th colspan="${h.colSpan || 1}" rowspan="${h.rowSpan || 1}">${h.content}</th>`).join('')}</tr>`;
+                    }).join('');
+
+                    const bodyRows = table.body.map(row => {
+                        const cellHTML = row.map(c => `
+                            <td colspan="${c.colSpan || 1}" rowspan="${c.rowSpan || 1}">${c.content}</td>
+                        `).join('');
+                        let rowClass = "";
+                        if (row.isSubtotal) rowClass = "subtotal-row";
+                        if (row.isTotal) rowClass = "total-row";
+                        return `<tr class="${rowClass}">${cellHTML}</tr>`;
+                    }).join('');
+
+                    return `<table><thead>${headRow}</thead><tbody>${bodyRows}</tbody></table>`;
+                }).join('');
+
+                return `
+                    <div class="report-page">
+                        <header>
+                            <div class="brand">INVEXIX</div>
+                            <div class="report-title">
+                                <h2>${title.toUpperCase()}</h2>
+                                <p>Period: ${periodStr}</p>
+                            </div>
+                        </header>
+                        <div class="kpi-container">${kpiHTML}</div>
+                        ${tablesHTML}
+                        <div class="footer-info">
+                            <p>Powered by invexix.com - Business Intelligence Solutions</p>
+                        </div>
+                    </div>
+                `;
+            };
+
+            let fullHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Report - ${periodStr}</title>
+                    <style>
+                        @page { size: landscape; margin: 10mm; }
+                        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; padding: 0; background: #fff; }
+                        .report-page { page-break-after: always; padding: 10px; }
+                        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; }
+                        .brand { color: #f97316; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+                        .report-title { text-align: right; }
+                        .report-title h2 { margin: 0; color: #111827; font-size: 16px; letter-spacing: 0.5px; }
+                        .report-title p { margin: 4px 0 0; color: #6b7280; font-size: 10px; }
+                        .kpi-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+                        .kpi-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+                        .kpi-icon { position: absolute; right: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+                        .kpi-label { font-size: 9px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; }
+                        .kpi-value { font-size: 22px; font-weight: 800; color: #111827; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10.5px; }
+                        th { background: #111827; color: #fff; padding: 10px 8px; text-align: center; border: 1px solid #374151; font-weight: 600; }
+                        td { padding: 8px; border: 1px solid #e5e7eb; text-align: left; color: #374151; }
+                        tr:nth-child(even) { background: #f9fafb; }
+                        .subtotal-row td { background: #fff7ed !important; color: #9a3412; font-weight: 700; border-top: 1px solid #ffedd5; border-bottom: 1px solid #ffedd5; }
+                        .total-row td { background: #111827 !important; color: #fff; font-weight: 700; border: 1px solid #111827; }
+                        /* Profit cell highlighting */
+                        .subtotal-row td:nth-last-child(2) { background: #f97316 !important; color: #fff; border: none; }
+                        .total-row td:nth-last-child(2) { background: #10b981 !important; color: #fff; border: none; }
+                        .footer-info { border-top: 1px solid #f3f4f6; padding-top: 15px; text-align: center; color: #9ca3af; font-size: 9px; }
+                    </style>
+                </head>
+                <body>
+            `;
+
+            if (exportScope === 'current') {
+                const tabContainer = tabRefs.current[currentTab];
+                if (tabContainer) {
+                    const data = extractTabData(tabContainer);
+                    fullHTML += renderReportHTML(tabNames[currentTab], data);
+                }
+            } else {
+                for (let i = 0; i < tabNames.length; i++) {
+                    const container = tabRefs.current[i];
+                    if (container) {
+                        const data = extractTabData(container);
+                        if (data.tables.length > 0) {
+                            fullHTML += renderReportHTML(tabNames[i], data);
+                        }
+                    }
+                }
             }
 
-            printWindow.document.write('</body></html>');
+            fullHTML += "</body></html>";
+            printWindow.document.write(fullHTML);
             printWindow.document.close();
-            printWindow.print();
+            
+            setTimeout(() => {
+                printWindow.print();
+                toast.success(t('common.printReady') || 'Print Ready', { id: 'print-toast' });
+            }, 500);
+            
+            handleExportDialogClose();
+        } catch (error) {
+            console.error("Print failed:", error);
+            toast.error(t('common.printError') || 'Print Failed', { id: 'print-toast' });
         }
-
-        handleExportDialogClose();
     };
 
     return (
@@ -518,29 +613,10 @@ const ReportsPage = () => {
                             boxShadow: "none",
                             "&:hover": { bgcolor: "#444", boxShadow: "none" }
                         }}
-                        onClick={handleExportMenuOpen}
+                        onClick={handleExportDialogOpen}
                     >
                         {t('controls.exportOptions')}
                     </Button>
-
-                    {/* Export Dropdown Menu */}
-                    <Menu
-                        anchorEl={exportAnchorEl}
-                        open={Boolean(exportAnchorEl)}
-                        onClose={handleExportMenuClose}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    >
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📄 {t('controls.exportPDF')}
-                        </MenuItem>
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            🖨️ {t('controls.printReport')}
-                        </MenuItem>
-                        <MenuItem onClick={handleExportDialogOpen} sx={{ fontWeight: '600' }}>
-                            📊 {t('controls.exportExcel')}
-                        </MenuItem>
-                    </Menu>
                 </Box>
             </Box>
 
@@ -657,6 +733,7 @@ const ReportsPage = () => {
                             }
                         />
                         <FormControlLabel
+                            value="all"
                             control={<Radio />}
                             label={
                                 <Box>

@@ -1218,6 +1218,7 @@
       "deleteSelected": "Supprimer ({count})",
       "refresh": "Actualiser",
       "addCategory": "Ajouter une catégorie",
+      "export": "Exporter",
       "addLevel3": "Ajouter une catégorie de niveau 3",
       "active": "Active",
       "clearAll": "Tout effacer",
@@ -1295,7 +1296,8 @@
     "header": {
       "title": "Transferts d’inventaire",
       "subtitle": "Journal principal de tous les mouvements de produits au sein de votre écosystème.",
-      "addTransfer": "Ajouter un transfert"
+      "addTransfer": "Ajouter un transfert",
+      "export": "Exporter le rapport"
     },
     "stats": {
       "totalTransfers": "Total des transferts",
@@ -1352,6 +1354,7 @@
       "filters": "Filtres",
       "clearCache": "Vider le cache et actualiser",
       "exportPdf": "Exporter en PDF",
+      "export": "Exporter le rapport",
       "addProduct": "Ajouter un produit"
     },
     "stats": {

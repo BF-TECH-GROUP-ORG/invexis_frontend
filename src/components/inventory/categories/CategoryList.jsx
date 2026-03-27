@@ -11,6 +11,8 @@ import AddCategoryModal from "./AddCategoryModal";
 import FilterModal from "./FilterModal";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
+import { exportData } from "@/utils/exportUtils";
+import ExportDropdown from "@/components/common/ExportDropdown";
 import useAuth from '@/hooks/useAuth';
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -151,33 +153,25 @@ export default function CategoryList({ initialParams = {} }) {
     setShowAddModal(true);
   };
 
-  const handleExport = () => {
-    try {
-      const csv = [
-        ["ID", "Name", "Slug", "Level", "Parent", "Status", "Created"],
-        ...items.map(cat => [
-          cat._id || "",
-          cat.name || "",
-          cat.slug || "",
-          cat.level || "",
-          cat.parentCategory?.name || "-",
-          cat.isActive ? "Active" : "Inactive",
-          cat.createdAt ? new Date(cat.createdAt).toLocaleDateString() : ""
-        ])
-      ].map(row => row.join(",")).join("\n");
+  const handleExport = (format) => {
+    const columns = [
+      { header: t("table.name") || "Name", accessor: "name" },
+      { header: t("table.slug") || "Slug", accessor: "slug" },
+      { header: t("table.level") || "Level", accessor: "level" },
+      { header: t("table.parent") || "Parent", accessor: (cat) => cat.parentCategory?.name || "-" },
+      { header: t("table.status") || "Status", accessor: (cat) => cat.isActive ? "Active" : "Inactive" },
+      { header: t("table.created") || "Created", accessor: (cat) => cat.createdAt ? new Date(cat.createdAt).toLocaleDateString() : "" },
+    ];
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `categories-${new Date().toISOString().slice(0, 10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-
-      toast.success(t("toasts.exportSuccess"));
-    } catch (err) {
-      toast.error(t("toasts.exportFailed"));
-    }
+    exportData({
+      data: items,
+      columns,
+      fileName: "inventory-categories",
+      title: t("list.title") || "Categories",
+      description: "This report provides a comprehensive list of all product categories in the inventory. It includes category names, hierarchical levels, parent categories, and their current status, facilitating easy organization and management of products.",
+      format
+    });
+    toast.success(t("toasts.exportSuccess"));
   };
 
   const handleSort = (field) => {
@@ -285,9 +279,7 @@ export default function CategoryList({ initialParams = {} }) {
                 <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> {t("list.refresh")}
               </button>
 
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700">
-                <Download size={18} />
-              </button>
+              <ExportDropdown onExport={handleExport} label={t("list.export") || "Export"} />
 
               <div className="flex border border-gray-300 rounded-full overflow-hidden p-0.5">
                 <button

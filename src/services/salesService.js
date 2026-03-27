@@ -2,7 +2,7 @@ import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
 const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
-const SALES_URL = `${process.env.NEXT_PUBLIC_API_URL}/sales`;
+const SALES_URL = `/sales`;
 const DEBT_URL = `/debt`;
 
 export const getAllProducts = async (companyId = null, options = {}) => {
