@@ -10,13 +10,13 @@ export const exportExecutivePDF = ({
     title = "GENERAL EXECUTIVE REPORT",
     subtitle = "",
     period = "",
-    companyName = "Aquot",
+    companyName = "INVEXIX",
     companyEmail = "info@invexix.com",
     kpis = [],
     tables = [],
     filename = "executive-report.pdf"
 }) => {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = new jsPDF('l', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     let currentY = 20;
@@ -62,21 +62,37 @@ export const exportExecutivePDF = ({
             const circleX = x + cardWidth - circleSize - 4;
             const circleY = currentY + 4;
             
-            // Choose color based on KPI type or index
             const colors = [
                 { bg: [239, 246, 255], text: [59, 130, 246] }, // Blue
                 { bg: [254, 243, 199], text: [245, 158, 11] }, // Yellow
                 { bg: [236, 253, 245], text: [16, 185, 129] }, // Green
                 { bg: [254, 226, 226], text: [239, 68, 68] },  // Red
             ];
-            const color = colors[index % colors.length];
+
+            // Map common titles to specific letters and colors from sample
+            const titleUpper = kpi.title.toUpperCase();
+            let letter = kpi.title.charAt(0).toUpperCase();
+            let color = colors[index % colors.length];
+
+            if (titleUpper.includes('REVENUE') || titleUpper.includes('SALES')) {
+                letter = 'S';
+                color = { bg: [239, 246, 255], text: [59, 130, 246] }; // Blue
+            } else if (titleUpper.includes('COST')) {
+                letter = 'C';
+                color = { bg: [254, 243, 199], text: [245, 158, 11] }; // Yellow/Orange
+            } else if (titleUpper.includes('PROFIT')) {
+                letter = 'P';
+                color = { bg: [236, 253, 245], text: [16, 185, 129] }; // Green
+            } else if (titleUpper.includes('DEBT') || titleUpper.includes('CREDIT')) {
+                letter = 'D';
+                color = { bg: [254, 226, 226], text: [239, 68, 68] };  // Red
+            }
             
             doc.setFillColor(...color.bg);
             doc.circle(circleX + circleSize/2, circleY + circleSize/2, circleSize/2, 'F');
             doc.setTextColor(...color.text);
             doc.setFontSize(8);
             doc.setFont("helvetica", "bold");
-            const letter = kpi.title.charAt(0).toUpperCase();
             doc.text(letter, circleX + circleSize/2, circleY + circleSize/2 + 1, { align: 'center', baseline: 'middle' });
 
             // KPI Text
@@ -122,18 +138,27 @@ export const exportExecutivePDF = ({
             },
             didParseCell: (data) => {
                 const row = data.row.raw;
-                if (row.isSubtotal) {
+                const cellIndex = data.column.index;
+                const totalCols = data.row.cells.length;
+                const isProfitCell = cellIndex === totalCols - 2;
+
+                if (row && row.isSubtotal) {
                     data.cell.styles.fillColor = [255, 247, 237]; // Orange-50 #fff7ed
                     data.cell.styles.textColor = [154, 52, 18];  // Orange-900 #9a3412
                     data.cell.styles.fontStyle = 'bold';
+                    
+                    if (isProfitCell) {
+                        data.cell.styles.fillColor = [249, 115, 22]; // Orange #f97316
+                        data.cell.styles.textColor = [255, 255, 255];
+                    }
                 }
 
-                if (row.isTotal) {
+                if (row && row.isTotal) {
                     data.cell.styles.fillColor = [17, 24, 39]; // #111827
                     data.cell.styles.textColor = [255, 255, 255];
                     data.cell.styles.fontStyle = 'bold';
                     
-                    if (data.column.index === data.row.cells.length - 2) {
+                    if (isProfitCell) {
                         data.cell.styles.fillColor = [16, 185, 129]; // Emerald #10b981
                     }
                 }
@@ -158,13 +183,13 @@ export const exportExecutivePDF = ({
 export const exportToExcel = (data, filename = 'report.xlsx') => {
     const workbook = XLSX.utils.book_new();
 
-    if (Array.isArray(data)) {
+    if (Array.isArray(data) && data.length > 0 && data[0].rows) {
         data.forEach((sheet, index) => {
-            const ws = XLSX.utils.json_to_sheet(sheet.rows);
+            const ws = XLSX.utils.aoa_to_sheet(sheet.rows);
             XLSX.utils.book_append_sheet(workbook, ws, sheet.name || `Sheet${index + 1}`);
         });
     } else {
-        const ws = XLSX.utils.json_to_sheet(data);
+        const ws = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(workbook, ws, 'Report');
     }
 
