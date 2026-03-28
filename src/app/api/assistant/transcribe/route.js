@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { GROQ_MODELS } from "@/lib/assistant/modelRouter";
 
 export async function POST(req) {
-  const groqKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
   try {
     const formData = await req.formData();

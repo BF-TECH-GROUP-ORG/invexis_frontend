@@ -36,7 +36,7 @@ async function executeTool(toolName, toolArgs, userId) {
 }
 
 export async function POST(req) {
-  const groqKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   console.log(
@@ -61,7 +61,7 @@ export async function POST(req) {
       if (!groqKey) {
         console.error("[Assistant API] NEXT_PUBLIC_GROQ_API_KEY is missing");
         return NextResponse.json(
-          { error: "NEXT_PUBLIC_GROQ_API_KEY is not set." },
+          { error: "GROQ_API_KEY is not set on the server." },
           { status: 500 },
         );
       }
