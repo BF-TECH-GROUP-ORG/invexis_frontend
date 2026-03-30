@@ -60,7 +60,6 @@ const getNavItems = (t) => [
     prefetch: true,
     tourId: "tour-reports-sidebar",
     id: "sidebar-reports",
-    id: "sidebar-notifications",
   },
 
   // MANAGEMENT

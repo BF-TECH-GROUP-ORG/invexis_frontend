@@ -14,88 +14,70 @@
   z-index: 100000 !important;
 }
 
-/* ─── Inara dark theme ─── */
+/* ─── Inara blue tooltip theme ─── */
 .inara-tour-popover.driver-popover {
-  background: #081422 !important;
-  border: 1px solid rgba(255, 120, 45, 0.3) !important;
-  border-radius: 20px !important;
-  padding: 24px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-  min-width: 280px !important;
-  max-width: 340px !important;
+  background: #1d4ed8 !important; /* Blue background like Image 2 */
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 30px rgba(0, 78, 216, 0.3) !important;
+  min-width: 260px !important;
+  max-width: 320px !important;
   color: white !important;
-
-  /* ─── FIX: popover follows element, not center ─── */
-  position: fixed !important;
 }
 
 .inara-tour-popover .driver-popover-title {
-  color: #ff782d !important;
-  font-size: 18px !important;
+  color: white !important;
+  font-size: 16px !important;
   font-weight: 800 !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 6px !important;
   font-family: 'Metropolis', 'Outfit', sans-serif !important;
 }
 
 .inara-tour-popover .driver-popover-description {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   font-size: 14px !important;
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
   font-weight: 500 !important;
 }
 
-.inara-tour-popover .driver-popover-progress-text {
-  color: rgba(255, 255, 255, 0.4) !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.inara-tour-popover .driver-popover-next-btn {
-  background: #ff782d !important;
+.inara-tour-popover .driver-popover-next-btn,
+.inara-tour-popover .driver-popover-prev-btn {
+  background: white !important;
   border: none !important;
-  border-radius: 12px !important;
-  color: #fff !important;
+  border-radius: 8px !important;
+  color: #1d4ed8 !important;
   font-weight: 800 !important;
-  padding: 10px 20px !important;
+  padding: 8px 16px !important;
   text-shadow: none !important;
   transition: all 0.2s ease;
+  margin-top: 10px;
 }
 
-.inara-tour-popover .driver-popover-next-btn:hover {
-  background: #ea580c !important;
+.inara-tour-popover .driver-popover-next-btn:hover,
+.inara-tour-popover .driver-popover-prev-btn:hover {
+  background: #f8fafc !important;
   transform: translateY(-1px);
 }
 
-.inara-tour-popover .driver-popover-prev-btn {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  color: rgba(255, 255, 255, 0.6) !important;
-  font-weight: 700 !important;
-  padding: 10px 20px !important;
-  text-shadow: none !important;
-}
-
 .inara-tour-popover .driver-popover-close-btn {
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .inara-tour-popover .driver-popover-close-btn:hover {
-  color: #ff782d !important;
+  color: white !important;
 }
 
-/* Arrow pointing to element */
+/* Arrow pointing to element - match blue background */
 .inara-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow {
-  border-right-color: #081422 !important;
+  border-right-color: #1d4ed8 !important;
 }
 .inara-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow {
-  border-left-color: #081422 !important;
+  border-left-color: #1d4ed8 !important;
 }
 .inara-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow {
-  border-bottom-color: #081422 !important;
+  border-bottom-color: #1d4ed8 !important;
 }
 .inara-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
-  border-top-color: #081422 !important;
+  border-top-color: #1d4ed8 !important;
 }

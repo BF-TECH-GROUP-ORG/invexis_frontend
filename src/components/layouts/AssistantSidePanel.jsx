@@ -19,7 +19,7 @@ import { transcribeAudio, sendMessage } from "@/lib/assistant/aiClient";
 import { useVoiceRecorder } from "@/lib/assistant/useVoiceRecorder";
 import { useTextToSpeech } from "@/lib/assistant/useTextToSpeech";
 import { toast } from "react-hot-toast";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { startTour, TOUR_MAP, resolveTourKey } from "@/lib/assistant/tourService";
 import InaraResponse from "../Assistant/InaraResponse";
@@ -273,7 +273,7 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     if (!navPending) return;
     const targetPath = navPending.path;
     if (!isAuthenticated && targetPath.startsWith('/inventory')) {
-      router.push(`/${locale}/auth/login`);
+      router.push(`/auth/login`);
       setNavPending(null);
       onClose();
       return;
