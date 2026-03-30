@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -23,6 +23,8 @@ import {
   BarChart3,
   Files,
   History,
+  Box,
+  Settings2,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useLoading } from "@/contexts/LoadingContext";
@@ -32,6 +34,7 @@ import AnalyticsService from "@/services/analyticsService";
 import { getSalesHistory } from "@/services/salesService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
+import { getOrganization } from "@/services/organizationService";
 import dayjs from "dayjs";
 
 /* STATIC NAV ITEMS TEMPLATE - will be replaced with translations in component */
@@ -60,7 +63,6 @@ const getNavItems = (t) => [
     prefetch: true,
     tourId: "tour-reports-sidebar",
     id: "sidebar-reports",
-    id: "sidebar-notifications",
   },
 
   // MANAGEMENT
@@ -76,7 +78,7 @@ const getNavItems = (t) => [
     ],
   },
   {
-    title: t("sidebar.inventory"),
+    title: t("sidebar.salesStock"),
     icon: <Package size={20} />,
     roles: ["worker", "company_admin"],
     tourId: "tour-inventory",
@@ -86,6 +88,18 @@ const getNavItems = (t) => [
       { title: t("sidebar.products"), path: "/inventory/products", prefetch: true, id: "sidebar-products" },
       { title: t("sidebar.transfers"), path: "/inventory/transfer", prefetch: true, id: "sidebar-transfers" },
       { title: t("sidebar.stockOps"), path: "/inventory/stock", prefetch: true, id: "sidebar-stock" },
+    ],
+  },
+  {
+    title: t("sidebar.materialStock"),
+    icon: <Box size={20} />,
+    roles: ["worker", "company_admin"],
+    tourId: "tour-material-stock",
+    id: "sidebar-mgmt-material",
+    children: [
+      { title: t("sidebar.products"), path: "/inventory/products?type=material", prefetch: true, id: "sidebar-mat-products" },
+      { title: t("sidebar.operations"), path: "/inventory/stock?type=material", prefetch: true, id: "sidebar-mat-ops" },
+      { title: t("sidebar.reports"), path: "/inventory/reports?tab=inventory", prefetch: true, id: "sidebar-mat-reports" },
     ],
   },
 
@@ -120,7 +134,6 @@ const getNavItems = (t) => [
       { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
       { title: t("sidebar.payments"), path: "/inventory/billing/payments", prefetch: true, id: "sidebar-payments" },
       { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" },
-      { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" }
     ],
   },
   {
@@ -160,6 +173,17 @@ export default function SideBar({
   const user = session?.user;
   const userRole = user?.role;
   const assignedDepartments = user?.assignedDepartments || [];
+  const companyId = user?.companies?.[0];
+
+  // Fetch company details to determine business mode (RETAIL, INDUSTRIAL, HYBRID)
+  const { data: companyData } = useQuery({
+    queryKey: ['company', companyId],
+    queryFn: () => getOrganization(companyId),
+    enabled: !!companyId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const businessType = companyData?.business_type || 'RETAIL';
 
   const navItems = getNavItems(t);
 
@@ -357,6 +381,24 @@ export default function SideBar({
 
   const visibleFor = (item) => {
     if (!item) return false;
+
+    // 1. Business Mode Filtering (Global Constraints)
+    if (businessType === 'INDUSTRIAL') {
+      const forbiddenForIndustrial = [
+        t("sidebar.salesStock"),
+        t("sidebar.sales"),
+        t("sidebar.debts"),
+        t("sidebar.billingAndPayments"),
+        t("sidebar.documents"),
+      ];
+      if (forbiddenForIndustrial.includes(item.title)) return false;
+    }
+
+    if (businessType === 'RETAIL') {
+      if (item.title === t("sidebar.materialStock")) return false;
+    }
+
+    // 2. Role/Department Filtering (Existing Logic)
     if (userRole === "company_admin") return true;
 
     const itemTitle = item.title.trim();
