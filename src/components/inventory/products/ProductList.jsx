@@ -14,9 +14,8 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
+import { exportData } from "@/utils/exportUtils";
+import ExportDropdown from "@/components/common/ExportDropdown";
 import { useSession } from "next-auth/react";
 import apiClient from "@/lib/apiClient";
 import {
@@ -229,119 +228,28 @@ export default function ProductList({ initialParams = {} }) {
     toast.success(t("toasts.refreshSuccess"));
   };
 
-  const handleExportPDF = async () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.setTextColor(249, 115, 22);
-    doc.text(t("report.title"), 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(
-      t("report.generatedOn", {
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      }),
-      14,
-      30
-    );
-
-    const tableColumn = [
-      t("report.image"),
-      t("report.productDetails"),
-      t("report.category"),
-      t("report.stockPrice"),
-      t("report.status"),
-      t("report.totalValue"),
+  const handleExport = (format) => {
+    const columns = [
+      { header: t("report.productDetails"), accessor: (p) => p.name },
+      { header: t("report.category"), accessor: (p) => p.category?.name || p.categoryId?.name || "N/A" },
+      { header: t("report.price"), accessor: (p) => {
+        const basePrice = p.pricing?.basePrice || p.pricingId?.basePrice || p.basePrice || p.price || 0;
+        const salePrice = p.pricing?.salePrice || p.pricingId?.salePrice || p.salePrice || 0;
+        const effectivePrice = salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
+        return Number(effectivePrice).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0 });
+      }},
+      { header: t("report.qty"), accessor: (p) => p.stock?.total ?? p.stock ?? 0 },
+      { header: t("report.status"), accessor: (p) => (p.stock?.total ?? p.stock ?? 0) > 0 ? t("report.inStock") : t("report.outOfStock") },
     ];
-    const tableRows = [];
 
-    for (const product of products) {
-      const basePrice =
-        product.pricing?.basePrice ||
-        product.pricingId?.basePrice ||
-        product.basePrice ||
-        product.price ||
-        product.unitPrice ||
-        product.UnitPrice ||
-        product.cost ||
-        0;
-
-      const salePrice =
-        product.pricing?.salePrice ||
-        product.pricingId?.salePrice ||
-        product.salePrice ||
-        0;
-
-      const effectivePrice =
-        salePrice > 0 && salePrice < basePrice ? salePrice : basePrice;
-
-      const stock =
-        product.stock?.total ??
-        product.stock?.available ??
-        product.inventory?.quantity ??
-        product.stock ??
-        0;
-      const totalValue = effectivePrice * stock;
-      const status = stock > 0 ? t("report.inStock") : t("report.outOfStock");
-      const discount = product.pricing?.discount || product.discount || 0;
-
-      const rowData = [
-        "",
-        `${product.name}\n${product.description
-          ? String(product.description).substring(0, 30) + "..."
-          : ""
-        }`,
-        product.category?.name || product.categoryId?.name || "N/A",
-        `${t("report.qty")}: ${stock}\n${t("report.price")}: ${Number(effectivePrice).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}${discount > 0 ? `\n${t("report.disc")}: ${discount}%` : ""
-        }`,
-        status,
-        `${Number(totalValue).toLocaleString("en-US", { style: "currency", currency: "RWF", minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
-      ];
-      tableRows.push(rowData);
-    }
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 35,
-      theme: "grid",
-      headStyles: {
-        fillColor: [249, 115, 22],
-        textColor: 255,
-        fontStyle: "bold",
-      },
-      styles: {
-        fontSize: 9,
-        cellPadding: 3,
-        valign: "middle",
-        overflow: "linebreak",
-      },
-      columnStyles: {
-        0: { cellWidth: 15 },
-        1: { cellWidth: 50 },
-      },
-      didDrawCell: (data) => {
-        if (data.column.index === 0 && data.cell.section === "body") {
-          const product = products[data.row.index];
-          if (product.image?.url) {
-            try {
-              doc.addImage(
-                product.image.url,
-                "JPEG",
-                data.cell.x + 1,
-                data.cell.y + 1,
-                13,
-                13
-              );
-            } catch (e) { }
-          }
-        }
-      },
-      minCellHeight: 15,
+    exportData({
+      data: products,
+      columns,
+      fileName: "inventory-products",
+      title: t("report.title"),
+      description: "This report contains a detailed list of all products in the inventory, including their current stock levels, categories, and pricing information. It helps in tracking inventory value and identifying low stock items.",
+      format
     });
-
-    doc.save(`inventory-report-${new Date().toISOString().slice(0, 10)}.pdf`);
     toast.success(t("report.success"));
   };
 
@@ -550,13 +458,7 @@ export default function ProductList({ initialParams = {} }) {
               <RefreshCw size={18} />
             </button>
 
-            <button
-              onClick={handleExportPDF}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full hover:bg-gray-50 transition text-gray-700"
-            >
-              <Download size={18} />
-              {t("header.exportPdf")}
-            </button>
+            <ExportDropdown onExport={handleExport} label={t("header.export")} />
 
             <Link
               id="add-product-btn"

@@ -134,6 +134,37 @@ const getFilteredSteps = (path, currentPath) => {
   return tour.steps;
 };
 
+export const TOUR_MAP = tourMapping;
+
+/**
+ * Maps natural language intent to a tour key from TOUR_MAP
+ */
+export function resolveTourKey(text) {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+
+  const intents = [
+    { key: "/inventory/dashboard", keywords: ["dashboard", "overview", "stats", "kpi", "performance"] },
+    { key: "/inventory/notifications", keywords: ["notification", "alert", "announcement", "message"] },
+    { key: "/inventory/workers/list", keywords: ["staff", "worker", "employee", "team", "hire", "register staff"] },
+    { key: "/inventory/categories", keywords: ["category", "categories", "hierarchy", "classification"] },
+    { key: "/inventory/products", keywords: ["product", "item", "inventory", "catalog", "add item", "add product"] },
+    { key: "/inventory/sales/sellProduct/sale", keywords: ["sale", "sell", "pos", "point of sale", "stock-out", "transaction"] },
+    { key: "/inventory/transfer", keywords: ["transfer", "move stock", "send stock"] },
+    { key: "/inventory/debts", keywords: ["debt", "receivable", "owe", "credit"] },
+    { key: "/inventory/billing/invoices", keywords: ["invoice", "billing", "bill"] },
+    { key: "/inventory/logs", keywords: ["log", "audit", "history", "activity"] },
+  ];
+
+  for (const intent of intents) {
+    if (intent.keywords.some(kw => lower.includes(kw))) {
+      return intent.key;
+    }
+  }
+
+  return null;
+}
+
 export const startTour = async (path, onComplete, currentPath, navigate) => {
   const tour = tourMapping[path];
   if (!tour) {

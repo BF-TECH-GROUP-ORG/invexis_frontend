@@ -131,7 +131,6 @@ const getNavItems = (t) => [
     tourId: "tour-billing",
     id: "sidebar-mgmt-billing",
     children: [
-      { title: t("sidebar.invoices"), path: "/inventory/billing/invoices", prefetch: true, id: "sidebar-invoices" },
       { title: t("sidebar.payments"), path: "/inventory/billing/payments", prefetch: true, id: "sidebar-payments" },
       { title: t("sidebar.transactions"), path: "/inventory/billing/transactions", prefetch: true, id: "sidebar-transactions" },
     ],

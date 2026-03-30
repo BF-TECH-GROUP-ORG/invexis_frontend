@@ -7,42 +7,54 @@ import {
   Compass, Languages, ShieldCheck, Zap, MousePointer2, 
   Copy, RotateCcw, Edit2, Check, CheckCircle2, ChevronRight,
   Package, ShoppingCart, Users, Settings, Mic, MicOff, Image as ImageIcon, 
-  Play, Pause, Paperclip, Square, RotateCw, RefreshCcw
+  Play, Pause, Paperclip, Square, RotateCw, RefreshCcw,
+  ThumbsUp, ThumbsDown, MoreHorizontal, Clock, ArrowLeft, History, User, Plus,
+  Volume2, VolumeX, ExternalLink, Shield, Brain
 } from "lucide-react";
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
 import { useAssistant } from "@/lib/assistant/useAssistant";
 import { transcribeAudio, sendMessage } from "@/lib/assistant/aiClient";
 import { useVoiceRecorder } from "@/lib/assistant/useVoiceRecorder";
 import { useTextToSpeech } from "@/lib/assistant/useTextToSpeech";
+import { toast } from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
-import { startTour, tourMapping } from "@/lib/assistant/tourService";
+import { startTour, TOUR_MAP, resolveTourKey } from "@/lib/assistant/tourService";
 import InaraResponse from "../Assistant/InaraResponse";
 import AssistantNetworkError from "../Assistant/AssistantNetworkError";
 import ReadAloudButton from "../Assistant/ReadAloudButton";
+import SuggestionChips from "../Assistant/SuggestionChips";
+import RegistrationForm from "../Assistant/RegistrationForm";
+import MemoryManager from "../Assistant/MemoryManager";
+import useAuth from "@/hooks/useAuth";
+
+dayjs.extend(relativeTime);
 
 // Import tour styles
 import "@/styles/tour.css";
+
 export default function AssistantSidePanel({ isOpen, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
-  const { messages, setMessages, loading, error, quality, online, sendUserMessage, clearMessages, dismissError } = useAssistant();
+  const { user } = useAuth();
+  const { messages, setMessages, loading, error, quality, online, sendUserMessage, clearMessages, dismissError, isAuthenticated, loadSession, sessionId } = useAssistant();
   const tts = useTextToSpeech();
 
-  const [ttsLang, setTtsLang] = useState(locale); // Global TTS language
+  const [ttsLang, setTtsLang] = useState(locale); 
   const [input, setInput] = useState("");
-  // ... rest of state ...
-
-  const cycleTtsLang = () => {
-    const langs = ['en', 'fr', 'sw', 'rw'];
-    const nextIdx = (langs.indexOf(ttsLang) + 1) % langs.length;
-    setTtsLang(langs[nextIdx]);
-  };
-
-  const getLangLabel = (l) => {
-    const labels = { en: 'English', fr: 'French', sw: 'Swahili', rw: 'Kinyarwanda' };
-    return labels[l] || l.toUpperCase();
-  };
+  const [currentSuggestions, setCurrentSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [view, setView] = useState('chat'); // 'chat' | 'history' | 'memory'
+  const [chatHistory, setChatHistory] = useState([]);
+  const [feedbackState, setFeedbackState] = useState({}); 
+  const [negativeFeedbackIdx, setNegativeFeedbackIdx] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const [navPending, setNavPending] = useState(null); 
   const [isNavigating, setIsNavigating] = useState(false);
@@ -50,7 +62,7 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
   const [copiedId, setCopiedId] = useState(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null); // { base64, type, preview }
+  const [selectedImage, setSelectedImage] = useState(null); 
   const [isTranscribing, setIsTranscribing] = useState(false);
   
   const scrollRef = useRef(null);
@@ -103,11 +115,8 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
 
   const handleSend = async (e, textOverride = null) => {
     if (e) e.preventDefault();
-    
     const text = textOverride || input;
-    
     if (isRecording) return;
-
     if (!text.trim() && !selectedImage && !audioBlob) return;
 
     let finalPrompt = text;
@@ -118,7 +127,6 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
         try {
             const transcript = await transcribeAudio(audioBlob);
             if (!transcript || !transcript.trim()) {
-                console.error("Transcription returned empty text");
                 setIsTranscribing(false);
                 return;
             }
@@ -135,10 +143,17 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     setInput("");
     setSelectedImage(null);
     clearRecording();
+    setShowSuggestions(false);
+    setCurrentSuggestions([]);
     
     const reply = await sendUserMessage(finalPrompt, { appLocale: locale }, finalImage);
 
     if (reply) {
+      if (reply.toLowerCase().includes("collect your details") || reply.toLowerCase().includes("registration request")) {
+        setShowRegistration(true);
+      }
+      
+      // 1. Check for manual navigation command in JSON
       try {
         let navData = null;
         const fencedMatch = reply.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -163,6 +178,15 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
       } catch (err) {
         console.error("Failed to parse navigation command:", err);
       }
+
+      // 2. Intent-based tour detection (from documentation)
+      const tourKey = resolveTourKey(finalPrompt);
+      if (tourKey && TOUR_MAP[tourKey]) {
+        // Auto-show tour prompt after 600ms as per documentation
+        setTimeout(() => {
+          setNavPending({ path: tourKey, label: TOUR_MAP[tourKey].title });
+        }, 600);
+      }
     }
   };
 
@@ -174,398 +198,461 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
 
   const handleEdit = (text, index) => {
     setInput(text);
-    // Remove the message and all subsequent messages
     setMessages(prev => prev.slice(0, index));
   };
 
+  const fetchHistory = useCallback(async () => {
+    if (!user?.id) return;
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/assistant/history?userId=${user.id}`);
+      const data = await res.json();
+      setChatHistory(Array.isArray(data) ? data.sort((a, b) => new Date(b.updatedAt) - new Date(b.createdAt)) : []);
+    } catch (e) {
+      console.error("Failed to fetch history:", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (view === 'history') {
+      fetchHistory();
+    }
+  }, [view, fetchHistory]);
+
+  const handleStartNewChat = () => {
+    clearMessages();
+    setView('chat');
+    setIsMenuOpen(false);
+  };
+
+  const handleSelectHistory = (session) => {
+    loadSession(session);
+    setView('chat');
+  };
+
+  const handleFeedback = async (idx, type, reason = null) => {
+    const msg = messages[idx];
+    const userMsg = messages[idx - 1];
+    setFeedbackState(prev => ({ ...prev, [idx]: type }));
+    
+    if (type === 'negative' && !reason) {
+      setNegativeFeedbackIdx(idx);
+      return;
+    }
+
+    try {
+      await fetch('/api/assistant/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          messageIndex: idx,
+          feedback: type,
+          reason,
+          userMessage: userMsg?.content,
+          inaraReply: msg.content
+        }),
+      });
+      setNegativeFeedbackIdx(null);
+    } catch (e) {
+      console.error("Feedback failed:", e);
+    }
+  };
+
   const handleRefresh = async (index) => {
-    // Find the user message before this assistant message
     const userMsg = messages[index - 1];
     if (userMsg && userMsg.role === 'user') {
-      // Remove the assistant message and re-send
       setMessages(prev => prev.slice(0, index));
       handleSend(null, userMsg.content);
     }
   };
 
-  const simulateCursorToElement = async (selector) => {
-    const element = document.querySelector(selector);
-    if (!element) return;
-    const rect = element.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    setCursorPos({ x, y, opacity: 1 });
-    await new Promise(r => setTimeout(r, 1200));
-    const ripple = document.createElement('div');
-    ripple.className = 'inara-click-ripple';
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    document.body.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 1000);
-  };
-
   const confirmNavigation = async () => {
     if (!navPending) return;
     const targetPath = navPending.path;
+    if (!isAuthenticated && targetPath.startsWith('/inventory')) {
+      router.push(`/${locale}/auth/login`);
+      setNavPending(null);
+      onClose();
+      return;
+    }
     const tour = tourMapping[targetPath];
     setIsNavigating(true);
     onClose(); 
-    
-    // Auto-expand sidebar if it's an inventory page and sidebar is collapsed
-    if (!isSidebarExpanded && targetPath.startsWith('/inventory')) {
-        const sidebarToggle = document.querySelector('#sidebar-toggle-btn');
-        if (sidebarToggle) {
-            await simulateCursorToElement('#sidebar-toggle-btn');
-            sidebarToggle.click();
-            await new Promise(r => setTimeout(r, 500));
-        }
+    if (tour) {
+      startTour(targetPath, () => { setIsNavigating(false); setNavPending(null); }, pathname, (p) => router.push(p));
+    } else {
+      router.push(targetPath);
+      setIsNavigating(false);
+      setNavPending(null);
     }
-    
-    if (!tour) {
-        router.push(targetPath);
-        setIsNavigating(false);
-        setNavPending(null);
-        return;
-    }
-
-    // Start the enhanced tour with navigation support
-    startTour(
-      targetPath, 
-      () => { 
-        setIsNavigating(false); 
-        setNavPending(null); 
-      }, 
-      pathname, 
-      (p) => router.push(p)
-    );
   };
 
-  const formatTime = (date) => {
-    if (!date) return "";
-    return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date(date));
+  const getTimeAgo = (date) => {
+    if (!date) return "Just now";
+    return dayjs(date).fromNow();
   };
-
-  const quickQuestions = [
-    { label: "Add Product", icon: <Package size={14} />, query: "How do I add a new product?" },
-    { label: "Make Sale", icon: <ShoppingCart size={14} />, query: "Show me how to process a sale" },
-    { label: "Add Staff", icon: <Users size={14} />, query: "How do I add a staff member?" },
-    { label: "Change Language", icon: <Settings size={14} />, query: "How do I change the app language?" },
-  ];
 
   return (
     <>
       <style jsx global>{`
         .inara-click-ripple { position: fixed; width: 40px; height: 40px; background: rgba(255, 120, 45, 0.4); border-radius: 50%; transform: translate(-50%, -50%) scale(0); animation: inara-ripple 0.8s ease-out; pointer-events: none; z-index: 9999; }
         @keyframes inara-ripple { to { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
-
-        /* Enhanced Markdown Styling */
-        .inara-markdown-content {
-          color: inherit;
-          font-family: inherit;
-        }
-        .inara-markdown-content p {
-          margin-bottom: 12px;
-        }
-        .inara-markdown-content p:last-child {
-          margin-bottom: 0;
-        }
-        .inara-markdown-content strong {
-          color: #ff782d;
-          font-weight: 800;
-        }
-        .inara-markdown-content em {
-          color: #64748b;
-          font-style: italic;
-        }
-        .inara-markdown-content h1, 
-        .inara-markdown-content h2, 
-        .inara-markdown-content h3 {
-          color: #081422;
-          font-weight: 900;
-          margin-top: 16px;
-          margin-bottom: 8px;
-          line-height: 1.2;
-          text-transform: uppercase;
-          letter-spacing: -0.02em;
-        }
-        .inara-markdown-content h1 { font-size: 1.25rem; }
-        .inara-markdown-content h2 { font-size: 1.1rem; }
-        .inara-markdown-content h3 { font-size: 1rem; }
-        
-        .inara-markdown-content ul, 
-        .inara-markdown-content ol {
-          margin-bottom: 12px;
-          padding-left: 20px;
-        }
-        .inara-markdown-content li {
-          margin-bottom: 6px;
-          position: relative;
-        }
-        .inara-markdown-content ul li::before {
-          content: "•";
-          color: #ff782d;
-          font-weight: bold;
-          display: inline-block; 
-          width: 1em;
-          margin-left: -1em;
-        }
-        .inara-markdown-content code {
-          background: rgba(0,0,0,0.05);
-          padding: 2px 6px;
-          border-radius: 6px;
-          font-family: monospace;
-          font-size: 0.9em;
-          color: #ea580c;
-        }
       `}</style>
 
       {!isOpen && mounted && (
         <motion.button
           initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: 0 }} whileHover={{ scale: 1.1 }} whileActive={{ scale: 0.9 }}
           onClick={() => window.dispatchEvent(new CustomEvent('open-inara'))}
-          className={`fixed right-6 z-[1110] w-12 h-12 bg-gradient-to-br from-[#ff782d] to-[#ea580c] text-white rounded-2xl shadow-xl shadow-orange-500/20 flex items-center justify-center group border-2 border-white/20 bottom-24 ${isHomePage ? "md:bottom-28" : "md:bottom-6"}`}
+          className={`fixed right-6 z-[1110] w-12 h-12 bg-[#081422] text-white rounded-2xl shadow-xl shadow-slate-900/20 flex items-center justify-center group border border-white/10 bottom-24 ${isHomePage ? "md:bottom-28" : "md:bottom-6"}`}
         >
-          <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white animate-pulse"></span>
+          <Bot size={22} className="group-hover:scale-110 transition-transform text-[#ff782d]" />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#ff782d] rounded-full border-2 border-white animate-pulse"></span>
         </motion.button>
       )}
-
-
-      {/* CUSTOM CURSOR */}
-      <motion.div animate={{ x: cursorPos.x, y: cursorPos.y, opacity: cursorPos.opacity, scale: cursorPos.opacity ? 1 : 0.5 }} transition={{ type: "spring", damping: 30, stiffness: 200 }} className="fixed top-0 left-0 z-[10000] pointer-events-none text-[#ff782d]">
-        <MousePointer2 size={32} fill="currentColor" className="drop-shadow-[0_5px_15px_rgba(255,120,45,0.4)]" />
-      </motion.div>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1150]" />
-            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 220 }} className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[1200] flex flex-col border-l border-slate-200" >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[1200]" />
+            <motion.div 
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} 
+              transition={{ type: "spring", damping: 30, stiffness: 250 }} 
+              className="fixed top-0 right-0 h-full w-full max-w-[440px] bg-white shadow-2xl z-[1300] flex flex-col border-l border-slate-100 md:h-[calc(100vh-2rem)] md:m-4 md:rounded-[2rem] overflow-hidden" 
+            >
               
-              {/* Header */}
-              <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-[#081422] text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff782d] opacity-10 rounded-full blur-3xl -mr-10 -mt-10" />
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="p-2.5 bg-[#ff782d] rounded-2xl shadow-lg shadow-[#ff782d]/20"><Bot size={26} className="text-white" /></div>
+              {/* Header - Chatbase Style */}
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-black text-white z-[1310]">
+                <div className="flex items-center gap-3">
+                  {view === 'history' ? (
+                    <button onClick={() => setView('chat')} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ArrowLeft size={18} /></button>
+                  ) : (
+                    <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/10"><Bot size={18} className="text-[#ff782d]" /></div>
+                  )}
                   <div>
-                    <h2 className="font-extrabold text-xl tracking-tight leading-none">Inara</h2>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Advanced Assistant</p>
-                    </div>
+                    <h2 className="font-bold text-[15px] tracking-tight">{view === 'history' ? 'Recent chats' : 'Inara AI Assistant'}</h2>
+                    {view !== 'history' && (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Always online</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 relative z-10">
-                  <button 
-                    onClick={cycleTtsLang} 
-                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/5 rounded-xl transition-all active:scale-95 group" 
-                    title={`Reading Language: ${getLangLabel(ttsLang)}`}
-                  >
-                    <Languages size={18} className="text-[#ff782d]" />
-                    <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-white">{ttsLang}</span>
-                  </button>
-                  <button onClick={clearMessages} className="p-2 hover:bg-white/5 rounded-xl transition-all active:scale-90" title="Clear Chat"><Trash2 size={18} className="text-slate-400" /></button>
-                  <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-all active:scale-90"><X size={22} className="text-slate-400" /></button>
+
+                <div className="flex items-center gap-1">
+                  <div className="relative">
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors"><MoreHorizontal size={18} /></button>
+                    <AnimatePresence>
+                      {isMenuOpen && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+                          animate={{ opacity: 1, scale: 1, y: 0 }} 
+                          exit={{ opacity: 0, scale: 0.95, y: 10 }} 
+                          className="absolute right-0 mt-3 w-44 bg-white rounded-xl shadow-2xl border border-slate-100 py-1.5 z-[1500]" 
+                        >
+                          <button onClick={handleStartNewChat} className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 transition-colors">
+                            <Plus size={14} className="text-[#ff782d]" />
+                            <span className="text-[13px] font-bold">New Chat</span>
+                          </button>
+                          <button onClick={() => { setView('history'); setIsMenuOpen(false); }} className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 transition-colors">
+                            <History size={14} className="text-[#ff782d]" />
+                            <span className="text-[13px] font-bold">History</span>
+                          </button>
+                          <button onClick={() => { setView('memory'); setIsMenuOpen(false); }} className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 transition-colors">
+                            <Brain size={14} className="text-[#ff782d]" />
+                            <span className="text-[13px] font-bold">Memories</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors"><X size={18} /></button>
                 </div>
               </div>
 
               {/* Chat Area */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-8 scroll-smooth bg-white">
-                {messages.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 border border-slate-100"><MessageSquare size={32} className="text-[#081422]" /></div>
-                    <h3 className="text-[#081422] font-black text-xl mb-2 tracking-tight">Need a Hand?</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed max-w-[280px] mb-8">Click a shortcut below to start a practice tour or use voice/images to ask anything.</p>
-                    <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-                      {quickQuestions.map((q, i) => (
-                        <button key={i} onClick={() => handleSend(null, q.query)} className="flex flex-col items-center gap-2 p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-orange-300 hover:bg-orange-50/50 transition-all group" >
-                          <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-orange-500 shadow-sm">{q.icon}</div>
-                          <span className="text-[11px] font-bold text-slate-600 group-hover:text-orange-700">{q.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {messages.map((msg, idx) => (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex flex-col group ${msg.role === "user" ? "items-end" : "items-start"}`} >
-                    <div className={`max-w-[88%] px-4 py-2 rounded-3xl shadow-sm relative transition-all duration-200 ${msg.role === "user" ? "bg-[#081422] text-white rounded-tr-none hover:shadow-md" : "bg-slate-100 border border-slate-200 text-slate-800 rounded-tl-none hover:bg-slate-200/50"}`}>
-                      {msg.role === "assistant" && (
-                          <div className="flex items-center gap-2 mb-2">
-                              <Bot size={12} className="text-[#ff782d]" />
-                              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Inara Guide</span>
-                          </div>
-                      )}
-                      <div className="text-[14px] leading-relaxed">
-                          {msg.role === "assistant" 
-                            ? <InaraResponse content={msg.content} /> 
-                            : <div className="whitespace-pre-wrap">{msg.content}</div>
-                          }
-                      </div>
-                    </div>
-                    
-                    {/* Interactive Controls Row */}
-                    <div className={`flex items-center gap-3 mt-1.5 px-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{formatTime(msg.timestamp)}</span>
-                        
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleCopy(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Copy">
-                                {copiedId === idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                            </button>
-                            
-                            {msg.role === 'user' && (
-                                <button onClick={() => handleEdit(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Edit">
-                                    <Edit2 size={12} />
-                                </button>
-                            )}
-                            
-                            {msg.role === 'assistant' && (
-                                <>
-                                    <button onClick={() => handleRefresh(idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#ff782d] transition-all" title="Regenerate">
-                                        <RefreshCcw size={12} />
-                                    </button>
-                                    <ReadAloudButton text={msg.content} id={idx} tts={tts} lang={ttsLang} />
-                                </>
-                            )}
-                        </div>
-                    </div>
-                  </motion.div>
-                ))}
-
-                {(loading || isTranscribing) && (
-                  <div className="flex justify-start">
-                    <div className="bg-slate-100 border border-slate-200 p-4 rounded-3xl rounded-tl-none shadow-sm flex items-center gap-2">
-                      <div className="flex gap-1.5">
-                        {[0, 1, 2].map((i) => ( <motion.div key={i} animate={{ y: [0, -6, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }} className="w-2 h-2 bg-[#ff782d] rounded-full" /> ))}
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase ml-2">{isTranscribing ? 'Transcribing Voice...' : 'Thinking...'}</span>
-                    </div>
-                  </div>
-                )}
-
-                <AnimatePresence>
-                  {navPending && !isNavigating && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-5 bg-slate-50 border border-slate-200 rounded-[2rem] shadow-xl space-y-4" >
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 bg-[#081422] rounded-2xl text-white shadow-lg"><Compass size={24} className="text-[#ff782d]" /></div>
-                        <div>
-                          <h4 className="font-black text-[#081422] text-sm uppercase tracking-tight">Interactive Tour</h4>
-                          <p className="text-xs text-slate-500">I'll take you on a real guided tour of <strong>{navPending.label}</strong>.</p>
-                        </div>
-                      </div>
-                      <div className="pt-2 flex items-center gap-3">
-                        <button onClick={() => setNavPending(null)} className="flex-1 py-3.5 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">Later</button>
-                        <button onClick={confirmNavigation} className="flex-[2] py-3.5 bg-[#ff782d] text-white rounded-2xl text-xs font-black shadow-lg shadow-[#ff782d]/20 hover:bg-[#e66a25] transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest">Start Tour <ChevronRight size={16} /></button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Advanced Input Area */}
-              <div className="p-5 border-t border-slate-100 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-8 bg-white relative">
                 
-                {/* Error Display */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4" >
-                      {error.type === 'offline' || error.type === 'slow' ? (
-                        <AssistantNetworkError 
-                          quality={quality} 
-                          onRetry={() => {
-                            dismissError();
-                            error.retryFn?.();
-                          }} 
-                        />
-                      ) : (
-                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600">
-                          <div className="p-1 bg-red-100 rounded-lg"><X size={14} /></div>
-                          <div className="flex-1">
-                            <p className="text-[11px] font-bold leading-tight">{error.message || String(error)}</p>
+                {view === 'memory' ? (
+                  <MemoryManager userId={user?.id} onClose={() => setView('chat')} />
+                ) : view === 'history' ? (
+                  <div className="space-y-3">
+                    {loadingHistory ? (
+                      <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <RefreshCcw className="animate-spin text-[#ff782d]" size={24} />
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Loading chats...</p>
+                      </div>
+                    ) : chatHistory.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-4"><Clock size={24} className="text-slate-300" /></div>
+                        <h3 className="text-slate-900 font-bold text-sm mb-1">No chats yet</h3>
+                        <p className="text-slate-500 text-[12px]">Your recent conversations will appear here.</p>
+                      </div>
+                    ) : (
+                      chatHistory.map((session, idx) => (
+                        <motion.button 
+                          key={session.sessionId}
+                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
+                          onClick={() => handleSelectHistory(session)}
+                          className="w-full text-left p-4 bg-white border border-slate-100 rounded-xl hover:border-slate-200 hover:shadow-sm transition-all group"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-slate-900 text-[13px] line-clamp-1 flex-1 pr-4">{session.summary || "Untitled Chat"}</h4>
+                            <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">{getTimeAgo(session.updatedAt)}</span>
                           </div>
-                          <button type="button" onClick={dismissError} className="p-1 hover:bg-red-100 rounded-lg transition-colors"><X size={12} /></button>
+                          <p className="text-[12px] text-slate-500 line-clamp-1 opacity-70">
+                            Inara: {session.messages[session.messages.length - 1]?.content || "..."}
+                          </p>
+                        </motion.button>
+                      ))
+                    )}
+                    <div className="pt-6 flex justify-center">
+                       <button onClick={handleStartNewChat} className="px-6 py-2.5 bg-black text-white rounded-lg text-[12px] font-bold shadow-lg hover:bg-slate-900 active:scale-95 flex items-center gap-2">
+                         <Plus size={14} /> Start a new chat
+                       </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {messages.length === 0 && (
+                      <div className="h-full flex flex-col justify-between py-10">
+                        <div className="space-y-4">
+                          <div className="p-4 bg-slate-50 border border-slate-100 rounded-[2rem] max-w-[85%]">
+                            <p className="text-[14px] text-slate-700 leading-relaxed">Hi 👋 looking to get the most out of Invexix?</p>
+                          </div>
+                          <div className="p-4 bg-slate-50 border border-slate-100 rounded-[2rem] max-w-[85%]">
+                            <p className="text-[14px] text-slate-700 leading-relaxed">Tell me what you're trying to do and I'll guide you through it in real-time.</p>
+                          </div>
                         </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
-                {/* Futuristic Voice Recording UI */}
-                <AnimatePresence>
-                    {(isRecording || audioUrl) && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="mb-4 p-4 bg-[#081422] rounded-[2rem] border border-orange-500/40 flex flex-col gap-4 shadow-2xl relative overflow-hidden z-[1300]" >
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl" />
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            <button onClick={() => handleSend(null, "How can Inara help me?")} className="px-4 py-2 border border-slate-200 rounded-full text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">How can Inara help me?</button>
+                            <button onClick={() => handleSend(null, "How do I add a product?")} className="px-4 py-2 border border-slate-200 rounded-full text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">How do I add a product?</button>
+                            <button onClick={() => handleSend(null, "Can I see a demo?")} className="px-4 py-2 border border-slate-200 rounded-full text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">Can I see a demo?</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {messages.map((msg, idx) => (
+                      <div key={idx} className={`flex flex-col group ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                        <div className={`max-w-[85%] px-4 py-2 rounded-[2rem] relative transition-all ${msg.role === "user" ? "bg-black text-white rounded-tr-none" : "bg-slate-50 border border-slate-100 text-slate-800 rounded-tl-none"}`}>
+                          <div className="text-[14px] leading-relaxed">
+                              {msg.role === "assistant" 
+                                ? <InaraResponse 
+                                    content={msg.content} 
+                                    onSuggestionsFound={(s) => {
+                                      if (idx === messages.length - 1) {
+                                        setCurrentSuggestions(s);
+                                        setShowSuggestions(true);
+                                      }
+                                    }} 
+                                  /> 
+                                : <div className="whitespace-pre-wrap">{msg.content}</div>
+                              }
+                          </div>
+                        </div>
+                        
+                        {/* Message Actions & Time */}
+                        <div className={`flex items-center gap-3 mt-2 px-1 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-400 font-medium">{getTimeAgo(msg.timestamp)}</span>
+                              {msg.usage && (
+                                <span className="text-[9px] text-slate-300 font-bold uppercase tracking-tighter">
+                                  {msg.usage.total_tokens || (msg.usage.input_tokens + msg.usage.output_tokens)} tokens
+                                </span>
+                              )}
+                            </div>
                             
-                            <div className="flex items-center justify-between px-2 relative z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${isRecording && !isPaused ? 'bg-red-500 animate-pulse' : 'bg-slate-500'}`} />
-                                    <span className="text-[11px] font-black text-white uppercase tracking-widest">{durationFormatted}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button type="button" onClick={clearRecording} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer" title="Delete"><Trash2 size={16} /></button>
-                                    <button type="button" onClick={isPaused ? resumeRecording : pauseRecording} className="p-2 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl hover:bg-orange-500/20 transition-all cursor-pointer" title={isPaused ? "Resume" : "Pause"}>
-                                        {isPaused ? <RotateCw size={16} /> : <Pause size={16} />}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => handleCopy(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all">
+                                    {copiedId === idx ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                                </button>
+                                
+                                {msg.role === 'user' && (
+                                    <button onClick={() => handleEdit(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all">
+                                        <Edit2 size={13} />
                                     </button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-end gap-1 px-4 h-12 relative z-10">
-                                {waveformData.map((h, i) => (
-                                    <motion.div key={i} animate={{ height: isRecording && !isPaused ? h : 4 }} className={`flex-1 rounded-full transition-colors duration-300 ${isRecording && !isPaused ? 'bg-gradient-to-t from-orange-600 to-orange-400' : 'bg-slate-700'}`} />
-                                ))}
-                            </div>
-
-                            <div className="flex items-center gap-3 mt-2 relative z-10">
-                                {isRecording ? (
-                                    <button type="button" onClick={stopRecording} className="flex-1 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer" >
-                                        <Square size={14} fill="currentColor" /> Stop Recording
-                                    </button>
-                                ) : audioUrl && (
+                                )}
+                                
+                                {msg.role === 'assistant' && (
                                     <>
-                                        <button type="button" onClick={() => { if(isAudioPlaying) audioPlaybackRef.current.pause(); else audioPlaybackRef.current.play(); }} className="flex-1 py-3 bg-slate-800 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer" >
-                                            {isAudioPlaying ? <><Square size={14} fill="currentColor" /> Stop</> : <><Play size={14} fill="currentColor" /> Preview</>}
+                                        <button onClick={() => handleRefresh(idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all">
+                                            <RefreshCcw size={13} />
                                         </button>
-                                        <button type="button" onClick={(e) => handleSend(e)} className="flex-[2] py-3 bg-[#ff782d] text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:bg-[#e66a25] transition-all flex items-center justify-center gap-2 cursor-pointer" >
-                                            <Send size={14} /> Send Prompt
+                                        <button onClick={() => handleFeedback(idx, 'positive')} className={`p-1.5 hover:bg-slate-100 rounded-lg transition-all ${feedbackState[idx] === 'positive' ? 'text-emerald-500' : 'text-slate-400 hover:text-black'}`}>
+                                            <ThumbsUp size={13} fill={feedbackState[idx] === 'positive' ? 'currentColor' : 'none'} />
                                         </button>
+                                        <button onClick={() => handleFeedback(idx, 'negative')} className={`p-1.5 hover:bg-slate-100 rounded-lg transition-all ${feedbackState[idx] === 'negative' ? 'text-red-500' : 'text-slate-400 hover:text-black'}`}>
+                                            <ThumbsDown size={13} fill={feedbackState[idx] === 'negative' ? 'currentColor' : 'none'} />
+                                        </button>
+                                        <ReadAloudButton text={msg.content} id={idx} tts={tts} lang={ttsLang} iconSize={13} />
                                     </>
                                 )}
+                                <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all" onClick={() => tts.speak(msg.content, ttsLang)}><Volume2 size={13} /></button>
                             </div>
-                            {audioUrl && <audio ref={audioPlaybackRef} src={audioUrl} onPlay={() => setIsAudioPlaying(true)} onPause={() => setIsAudioPlaying(false)} onEnded={() => setIsAudioPlaying(false)} className="hidden" />}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        </div>
 
-                {/* Image Preview */}
-                <AnimatePresence>
-                    {selectedImage && (
-                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-4 relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-orange-500 shadow-xl group" >
-                            <img src={selectedImage.preview} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button type="button" onClick={() => setSelectedImage(null)} className="bg-red-500 text-white rounded-full p-1.5 shadow-lg"><X size={14} /></button>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <form onSubmit={handleSend} className="relative flex items-center gap-3">
-                  <div className="relative flex-1">
-                      <input type="text" value={input} onChange={(e) => setInput(e.target.value)} disabled={isRecording || isTranscribing} placeholder={isTranscribing ? "Inara is listening..." : "Ask Inara..."} className="w-full pl-5 pr-24 py-4 bg-slate-50 border border-transparent rounded-[1.5rem] text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-[#ff782d]/20 focus:border-[#ff782d] focus:bg-white transition-all shadow-inner" />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                        <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"><Paperclip size={18} /></button>
-                        <button type="button" onClick={startRecording} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all"><Mic size={18} /></button>
+                        {msg.role === "assistant" && idx === messages.length - 1 && (
+                          <div className="mt-4 flex flex-wrap gap-2 justify-start w-full">
+                            <SuggestionChips 
+                              suggestions={currentSuggestions} 
+                              visible={showSuggestions && !loading} 
+                              onSelect={(text) => handleSend(null, text)}
+                            />
+                          </div>
+                        )}
                       </div>
-                      <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
-                  </div>
-                  <button type="submit" disabled={(!input.trim() && !selectedImage && !audioBlob) || loading || isTranscribing} className={`p-4 rounded-[1.2rem] transition-all shadow-lg ${input.trim() || selectedImage || audioBlob ? "bg-[#081422] text-white shadow-slate-200 scale-100 hover:bg-black active:scale-90" : "bg-slate-100 text-slate-300 scale-95 opacity-50 cursor-not-allowed shadow-none"}`}><Send size={20} /></button>
-                </form>
-                <div className="mt-5 px-1 flex justify-between items-center">
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Inara System <span className="text-[#ff782d] opacity-60 ml-1">v5.1 Stable</span>
-                    </p>
-                </div>
+                    ))}
+
+                    {loading && (
+                      <div className="flex justify-start">
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-[2rem] rounded-tl-none flex items-center gap-2">
+                          <div className="flex gap-1">
+                            {[0, 1, 2].map((i) => ( <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }} className="w-1.5 h-1.5 bg-slate-400 rounded-full" /> ))}
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Inara is thinking...</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {error && (
+                      <AssistantNetworkError 
+                        quality={error.type === 'offline' ? 'offline' : 'slow'} 
+                        onRetry={error.retryFn} 
+                      />
+                    )}
+                  </>
+                )}
               </div>
+
+              {/* Input Area */}
+              {view === 'chat' && (
+                <div className="px-5 pb-5 pt-2 bg-white">
+                  
+                  {/* Voice Recorder Card */}
+                  <AnimatePresence>
+                    {(isRecording || audioUrl) && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                        animate={{ opacity: 1, y: 0, scale: 1 }} 
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="mb-4 p-4 bg-slate-900 rounded-2xl shadow-2xl border border-white/5 relative overflow-hidden"
+                      >
+                        <div className="flex items-center gap-4 relative z-10">
+                          <div className="w-10 h-10 rounded-full bg-[#ff782d] flex items-center justify-center text-white shadow-lg shadow-[#ff782d]/20">
+                            {isRecording ? (
+                              <div className="w-3 h-3 bg-white rounded-sm animate-pulse" />
+                            ) : (
+                              <button onClick={() => isAudioPlaying ? audioPlaybackRef.current.pause() : audioPlaybackRef.current.play()} className="hover:scale-110 transition-transform">
+                                {isAudioPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+                                {isRecording ? "Recording..." : "Voice Message"}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#ff782d] tabular-nums">
+                                {durationFormatted}
+                              </span>
+                            </div>
+                            
+                            {/* Waveform Visualization */}
+                            <div className="h-8 flex items-end gap-[2px]">
+                              {waveformData.map((h, i) => (
+                                <motion.div 
+                                  key={i} 
+                                  initial={{ height: 4 }}
+                                  animate={{ height: isRecording ? h : (audioUrl ? 4 : 4) }}
+                                  className="flex-1 bg-white/20 rounded-full min-h-[4px]"
+                                  style={{ background: i < (waveformData.length * 0.4) ? '#ff782d' : 'rgba(255,255,255,0.2)' }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button onClick={clearRecording} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                            {isRecording ? (
+                              <button onClick={stopRecording} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                                <Square size={18} fill="currentColor" />
+                              </button>
+                            ) : (
+                              <button onClick={() => handleSend(null)} className="w-10 h-10 rounded-full bg-[#ff782d] flex items-center justify-center text-white hover:bg-[#e66a25] shadow-lg shadow-[#ff782d]/20 transition-all active:scale-95">
+                                <Send size={18} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {audioUrl && (
+                          <audio 
+                            ref={audioPlaybackRef} 
+                            src={audioUrl} 
+                            onPlay={() => setIsAudioPlaying(true)} 
+                            onPause={() => setIsAudioPlaying(false)} 
+                            onEnded={() => setIsAudioPlaying(false)}
+                            className="hidden" 
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Tour Prompt */}
+                  <AnimatePresence>
+                    {navPending && !isNavigating && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-4 bg-slate-900 text-white rounded-xl shadow-xl flex items-center justify-between gap-4" >
+                        <div className="flex items-center gap-3">
+                          <Compass size={20} className="text-[#ff782d]" />
+                          <p className="text-[12px] font-medium leading-tight">Start guided tour of <strong>{navPending.label}</strong>?</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setNavPending(null)} className="text-[11px] font-bold text-white/50 hover:text-white px-2 py-1 transition-colors uppercase">Skip</button>
+                          <button onClick={confirmNavigation} className="bg-[#ff782d] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-[#e66a25] transition-colors uppercase">Start</button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 p-2.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-2 group transition-all outline-none ring-0">
+                       <Paperclip size={18} className="text-slate-400 cursor-pointer hover:text-black ml-1" onClick={() => fileInputRef.current.click()} />
+                       <input 
+                        type="text" 
+                        value={input} 
+                        onChange={(e) => setInput(e.target.value)} 
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend(e)} 
+                        placeholder="Ask me anything..." 
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-[14px] font-medium text-slate-800 placeholder:text-slate-400 py-1" 
+                       />
+                       <Mic size={18} className={`cursor-pointer transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-black'}`} onClick={isRecording ? stopRecording : startRecording} />
+                    </div>
+                    <button 
+                      onClick={handleSend} 
+                      disabled={!input.trim() || loading} 
+                      className={`p-3 rounded-xl transition-all shadow-sm ${input.trim() ? "bg-black text-white hover:bg-slate-900 scale-100" : "bg-slate-100 text-slate-300 scale-95"}`}
+                    >
+                      <Send size={18} />
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
+                  </div>
+                  
+                  <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400 font-medium px-1">
+                    <Shield size={10} />
+                    <span>By chatting, you agree to our <span className="underline cursor-pointer hover:text-slate-600">privacy policy</span></span>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </>
         )}

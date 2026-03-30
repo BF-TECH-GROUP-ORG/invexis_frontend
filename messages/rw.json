@@ -1224,6 +1224,7 @@
       "deleteSelected": "Siba ({count})",
       "refresh": "Kugarura",
       "addCategory": "Ongeraho icyiciro",
+      "export": "Sohora",
       "addLevel3": "Ongeraho icyiciro rwa 3",
       "active": "Gikoreshwa",
       "clearAll": "Siba byose",
@@ -1301,7 +1302,8 @@
     "header": {
       "title": "Ihererekanyabicuruzwa",
       "subtitle": "Amateka y’ihererekanyabicuruzwa byose mu kigo cyawe.",
-      "addTransfer": "Ongera Ihererekanyabicuruzwa"
+      "addTransfer": "Ongera Ihererekanyabicuruzwa",
+      "export": "Sohora Raporo"
     },
     "stats": {
       "totalTransfers": "Ihererekanyabicuruzwa Byose",
@@ -1358,6 +1360,7 @@
       "filters": "Ibyahisemo",
       "clearCache": "Hanagura Cache ugarure bundi bushya",
       "exportPdf": "Kuramo PDF",
+      "export": "Sohora Raporo",
       "addProduct": "Ongera Igicuruzwa"
     },
     "stats": {

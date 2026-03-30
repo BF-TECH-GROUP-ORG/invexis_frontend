@@ -1226,6 +1226,7 @@
       "deleteSelected": "Delete ({count})",
       "refresh": "Refresh",
       "addCategory": "Add Category",
+      "export": "Export",
       "addLevel3": "Add Level 3 Category",
       "active": "Active",
       "clearAll": "Clear all",
@@ -1288,7 +1289,8 @@
     "header": {
       "title": "Inventory Transfers",
       "subtitle": "Master log of all product movements across your company ecosystem.",
-      "addTransfer": "Add Transfer"
+      "addTransfer": "Add Transfer",
+      "export": "Export Report"
     },
     "stats": {
       "totalTransfers": "Total Transfers",
@@ -1345,6 +1347,7 @@
       "filters": "Filters",
       "clearCache": "Clear Cache & Refresh",
       "exportPdf": "Export PDF",
+      "export": "Export Report",
       "addProduct": "Add Product"
     },
     "stats": {
