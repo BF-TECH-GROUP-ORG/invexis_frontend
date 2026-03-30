@@ -78,7 +78,7 @@ const getNavItems = (t) => [
     ],
   },
   {
-    title: t("sidebar.salesStock"),
+    title: t("sidebar.saleableStock"),
     icon: <Package size={20} />,
     roles: ["worker", "company_admin"],
     tourId: "tour-inventory",
@@ -384,7 +384,7 @@ export default function SideBar({
     // 1. Business Mode Filtering (Global Constraints)
     if (businessType === 'INDUSTRIAL') {
       const forbiddenForIndustrial = [
-        t("sidebar.salesStock"),
+        t("sidebar.saleableStock"),
         t("sidebar.sales"),
         t("sidebar.debts"),
         t("sidebar.billingAndPayments"),

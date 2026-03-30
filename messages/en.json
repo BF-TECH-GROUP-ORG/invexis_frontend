@@ -25,7 +25,7 @@
     "staffList": "Staff List",
     "shops": "Shops",
     "inventory": "Inventory",
-    "salesStock": "Sales Stock",
+    "saleableStock": "Saleable Stock",
     "materialStock": "Material Stock",
     "products": "Products",
     "transfers": "Transfers",
