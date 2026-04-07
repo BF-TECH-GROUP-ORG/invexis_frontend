@@ -26,7 +26,7 @@ export default function UnauthorizedPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-orange-900/10 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 bg-orange-900/10"></div>
       </motion.div>
 
       {/* Right Side - Unauthorized Message with Animations */}
