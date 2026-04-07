@@ -69,6 +69,8 @@ export async function createProductApiClient(formData, options = {}) {
  * Strips binary files and prepares clean metadata for the API
  */
 function prepareMetadata(formData) {
+    const isForSale = formData.isForSale !== false;
+
     // Transform specifications object to array of {name, value} for backend compatibility
     const specsArray = Object.entries(formData.specifications || {}).map(
         ([name, value]) => ({
@@ -78,7 +80,6 @@ function prepareMetadata(formData) {
     );
 
     // Format images and STRIP base64 URLs if they have a binary file 
-    // to avoid sending massive payloads in the JSON part of multipart
     const formattedImages = (formData.images || []).map((img, index) => {
         const isBase64 = typeof img.url === "string" && img.url.startsWith("data:");
         return {
@@ -105,38 +106,43 @@ function prepareMetadata(formData) {
         visibility: formData.visibility,
         isFeatured: formData.isFeatured,
         sortOrder: formData.sortOrder,
-        costPrice: formData.pricing?.cost,
+        isForSale: isForSale,
+    };
 
-        pricing: {
+    // Only include pricing if the product is for sale
+    if (isForSale) {
+        payload.pricing = {
             basePrice: formData.pricing?.basePrice || 0,
             salePrice: formData.pricing?.salePrice,
             listPrice: formData.pricing?.listPrice || 0,
             cost: formData.pricing?.cost || 0,
             currency: formData.pricing?.currency || "RWF",
             priceTiers: formData.pricing?.priceTiers || [],
-        },
-
-        inventory: {
-            trackQuantity: formData.inventory?.trackQuantity ?? true,
-            stockQty: formData.inventory?.stockQty || 0,
-            lowStockThreshold: formData.inventory?.lowStockThreshold || 0,
-            minReorderQty: formData.inventory?.minReorderQty || 0,
-            allowBackorder: formData.inventory?.allowBackorder ?? false,
-            safetyStock: formData.inventory?.safetyStock || 0,
-        },
-
-        images: formattedImages,
-
-        specs: specsArray,
-
-        seo: {
+        };
+        payload.costPrice = formData.pricing?.cost;
+        
+        // Only include SEO for saleable products
+        payload.seo = {
             metaTitle: formData.seo?.metaTitle || formData.name || "",
             metaDescription: formData.seo?.metaDescription || 
                 `${formData.description || ""} ${specsArray.map(s => `${s.name}: ${s.value}`).join(", ")}`.trim() || 
                 formData.name || "",
             keywords: formData.seo?.keywords || formData.tags || [],
-        },
+        };
+    }
+
+    // Inventory - Use clean structure compatible with user request and backend initializers
+    payload.inventory = {
+        trackQuantity: formData.inventory?.trackQuantity ?? true,
+        quantity: formData.inventory?.stockQty || 0, // Backend initializers look for 'quantity'
+        lowStockThreshold: formData.inventory?.lowStockThreshold || 0,
+        minReorderQty: formData.inventory?.minReorderQty || 0,
+        allowBackorder: formData.inventory?.allowBackorder ?? false,
+        safetyStock: formData.inventory?.safetyStock || 0,
     };
+
+    payload.images = formattedImages;
+    payload.specs = specsArray;
 
     // Add optional identifiers if present
     const hasIdentifiers = Object.values(formData.identifiers || {}).some(
@@ -147,19 +153,17 @@ function prepareMetadata(formData) {
     }
 
     // Handle variations/variants mapping
-    // If the wizard has 'variations', use that.
     if (formData.variations && formData.variations.length > 0) {
         payload.variations = formData.variations;
     } else if (formData.variants && formData.variants.length > 0) {
         payload.variations = formData.variants;
     } else {
         // Auto-populate variations if empty using specs and product name
-        // Create a single default variation
         payload.variations = [{
             name: "Default",
             options: formData.specifications || {},
             initialStock: formData.inventory?.stockQty || 0,
-            price: formData.pricing?.basePrice || 0,
+            price: isForSale ? (formData.pricing?.basePrice || 0) : 0,
             sku: formData.identifiers?.sku || "",
         }];
     }

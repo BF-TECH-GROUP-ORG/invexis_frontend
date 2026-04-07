@@ -279,7 +279,7 @@ export default function AddProductWizard({
     }
 
     return filteredSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
-  }, [isWorker]);
+  }, [isWorker, formData.isForSale]);
 
   const TOTAL_STEPS = steps.length;
 
