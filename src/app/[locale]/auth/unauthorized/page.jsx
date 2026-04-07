@@ -92,13 +92,13 @@ export default function UnauthorizedPage() {
             transition={{ duration: 0.5, delay: 0.6 }}
             className="w-full space-y-3"
           >
-            <Link
+            <a
               href={`/${locale}/#contact`}
               className="group flex items-center justify-center gap-3 w-full py-3.5 px-6 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
             >
               Request Registration
               <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </a>
             
             <Link
               href={`/${locale}/auth/login`}
