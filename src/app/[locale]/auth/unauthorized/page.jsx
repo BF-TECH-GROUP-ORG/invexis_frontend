@@ -58,7 +58,7 @@ export default function UnauthorizedPage() {
               className="absolute inset-0 bg-orange-500 rounded-full blur-xl"
             ></motion.div>
             
-            <div className="relative w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/50 dark:to-orange-800/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center shadow-2xl border-4 border-white dark:border-[#1a1a1a]">
+            <div className="relative w-24 h-24 bg-linear-to-br from-orange-100 to-orange-200 dark:from-orange-900/50 dark:to-orange-800/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center shadow-2xl border-4 border-white dark:border-[#1a1a1a]">
               <HiOutlineShieldExclamation className="w-12 h-12" />
             </div>
           </motion.div>
@@ -94,7 +94,7 @@ export default function UnauthorizedPage() {
           >
             <Link
               href={`/${locale}/#contact`}
-              className="group flex items-center justify-center gap-3 w-full py-3.5 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
+              className="group flex items-center justify-center gap-3 w-full py-3.5 px-6 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
             >
               Request Registration
               <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
