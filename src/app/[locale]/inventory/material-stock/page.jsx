@@ -8,14 +8,16 @@ export const metadata = {
 
 export default function MaterialStockPage() {
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-[#f8fafc]">
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      }>
-        <MaterialStockList />
-      </Suspense>
+    <div className="min-h-screen bg-white">
+      <div className="pt-8">
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        }>
+          <MaterialStockList />
+        </Suspense>
+      </div>
     </div>
   );
 }

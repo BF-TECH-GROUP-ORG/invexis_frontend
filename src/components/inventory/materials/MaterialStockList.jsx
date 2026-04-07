@@ -140,11 +140,11 @@ export default function MaterialStockList({ initialParams = {} }) {
     <div className="space-y-6">
       <MaterialStockStats stats={stats} isMounted={isMounted} />
 
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
+      <div className="bg-white">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-[#081422] flex items-center gap-2">
-              <Layers className="text-blue-600" />
+              <Layers className="text-[#081422]" />
               Material Stock & Assets
             </h1>
             <p className="text-sm text-gray-400 font-medium">Manage non-saleable internal supplies and company assets</p>
@@ -161,7 +161,7 @@ export default function MaterialStockList({ initialParams = {} }) {
                 placeholder="Search materials..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-blue-100 rounded-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm bg-blue-50/10 font-bold"
+                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all text-sm bg-gray-50/50 font-bold"
               />
             </div>
 
@@ -169,7 +169,7 @@ export default function MaterialStockList({ initialParams = {} }) {
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-full transition font-bold text-sm ${currentCategory ? "border-blue-500 text-blue-600 bg-blue-50" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-full transition font-bold text-sm ${currentCategory ? "border-black text-black bg-gray-50" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}
               >
                 <Filter size={16} /> Filters
               </button>
@@ -190,7 +190,7 @@ export default function MaterialStockList({ initialParams = {} }) {
 
             <button onClick={handleRefresh} className="p-2 border border-gray-200 rounded-full hover:bg-gray-50 text-gray-400"><RefreshCw size={18} /></button>
 
-            <Link href={routes.add} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-500/20">
+            <Link href={routes.add} className="flex items-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
               <Plus size={20} /> Add Material
             </Link>
           </div>

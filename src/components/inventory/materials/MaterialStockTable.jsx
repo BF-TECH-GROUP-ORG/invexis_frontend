@@ -106,7 +106,7 @@ export default function MaterialStockTable({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={`hover:bg-blue-50/30 transition-colors ${selectedIds.includes(product._id) ? "bg-blue-50/50" : ""}`}
+                      className={`hover:bg-gray-50 transition-colors ${selectedIds.includes(product._id) ? "bg-gray-50" : ""}`}
                     >
                       <td className="px-6 py-4">
                         <input
@@ -174,7 +174,7 @@ export default function MaterialStockTable({
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={viewUrl(product._id)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition"
                             title="View Details"
                           >
                             <Eye size={18} />
