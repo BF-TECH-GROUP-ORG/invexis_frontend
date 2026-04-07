@@ -99,7 +99,7 @@ const getNavItems = (t) => [
     children: [
       { title: t("sidebar.products"), path: "/inventory/material-stock", prefetch: true, id: "sidebar-mat-products" },
       { title: t("sidebar.operations"), path: "/inventory/stock?type=material", prefetch: true, id: "sidebar-mat-ops" },
-      { title: t("sidebar.reports"), path: "/inventory/reports?tab=inventory", prefetch: true, id: "sidebar-mat-reports" },
+      { title: t("sidebar.reports"), path: "/inventory/material-stock/reports", prefetch: true, id: "sidebar-mat-reports" },
     ],
   },
 
