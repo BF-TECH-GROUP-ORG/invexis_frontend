@@ -100,6 +100,7 @@ export default function AddProductWizard({
     specsCategory: null,
 
     // Status & Flags
+    isForSale: true,
     condition: "new",
     availability: "in_stock",
     status: "active",
@@ -258,19 +259,26 @@ export default function AddProductWizard({
       { id: "review", label: "Review & Submit", component: ProductReview },
     ];
 
-    // Filter out hidden steps (variations and seo as requested)
-    const hiddenStepIds = ["variations", "seo"];
-    const visibleBaseSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
+    // Filter steps based on product purpose
+    let filteredSteps = baseSteps;
+    if (formData.isForSale === false) {
+      // Products not for sale don't need pricing or SEO (SEO hidden anyway)
+      filteredSteps = baseSteps.filter(s => s.id !== "pricing" && s.id !== "seo");
+    } else {
+      // Normal for-sale products
+      const hiddenStepIds = ["variations", "seo"];
+      filteredSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
+    }
 
     if (!isWorker) {
       // Admin needs to select shop first
       return [
         { id: "shop", label: "Select Shop", component: StepShop },
-        ...visibleBaseSteps,
+        ...filteredSteps,
       ].map((s, idx) => ({ ...s, number: idx + 1 }));
     }
 
-    return visibleBaseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
+    return filteredSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
   }, [isWorker]);
 
   const TOTAL_STEPS = steps.length;
@@ -311,7 +319,13 @@ export default function AddProductWizard({
     }
   };
 
-  const requiredStepIds = ["shop", "basic", "pricing", "inventory", "category"];
+  const requiredStepIds = useMemo(() => {
+    const ids = ["shop", "basic", "inventory", "category"];
+    if (formData.isForSale !== false) {
+      ids.push("pricing");
+    }
+    return ids;
+  }, [formData.isForSale]);
 
   const getStepType = (stepNumber) => {
     const stepObj = steps.find((s) => s.number === stepNumber);
@@ -445,6 +459,7 @@ export default function AddProductWizard({
       status: "active",
       visibility: "public",
       isFeatured: false,
+      isForSale: true,
       _oldStatus: {
         active: true,
         visible: true,
