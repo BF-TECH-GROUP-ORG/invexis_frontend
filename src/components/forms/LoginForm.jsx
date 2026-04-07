@@ -109,7 +109,7 @@ const LoginPage = () => {
             submitIcon={!submitting && <HiArrowRight />}
             isLoading={submitting}
             error={error}
-            oauthOptions={["google", "otp"]}
+            oauthOptions={["google"]}
             fields={[
               {
                 label: tForm("email"),

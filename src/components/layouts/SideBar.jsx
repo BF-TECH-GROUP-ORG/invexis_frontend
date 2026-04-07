@@ -23,7 +23,7 @@ import {
   BarChart3,
   Files,
   History,
-  Box,
+  Layers,
   Settings2,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -92,7 +92,7 @@ const getNavItems = (t) => [
   },
   {
     title: t("sidebar.materialStock"),
-    icon: <Box size={20} />,
+    icon: <Layers size={20} />,
     roles: ["worker", "company_admin"],
     tourId: "tour-material-stock",
     id: "sidebar-mgmt-material",
