@@ -1,10 +1,9 @@
 import apiClient from "@/lib/apiClient";
 
-let API_BASE;
 
 export async function getOrganization(id) {
     try {
-        const data = await apiClient.get(`${API_BASE}/company/companies/${id}`);
+        const data = await apiClient.get(`/company/companies/${id}`);
         return data;
     } catch (err) {
         throw err;
@@ -13,7 +12,7 @@ export async function getOrganization(id) {
 
 export async function updateOrganization(id, payload) {
     try {
-        const data = await apiClient.put(`${API_BASE}/company/companies/${id}`, payload);
+        const data = await apiClient.put(`/company/companies/${id}`, payload);
         return data;
     } catch (err) {
         throw err;

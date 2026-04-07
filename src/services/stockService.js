@@ -1,22 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/**
- * Standardized URL builder for stock service
- */
-const buildUrl = (path) => {
-  const base = (API_BASE || "").replace(/\/+$/, "");
-  const p = path.startsWith("/") ? path : `/${path}`;
-
-  // Prevent double /api if it exists in base
-  if (base.endsWith("/api") && p.startsWith("/api")) {
-    return base + p.substring(4);
-  }
-
-  return `${base}${p}`;
-};
 
 /**
  * Lookup product by scanned QR/Barcode data
@@ -25,7 +10,7 @@ const buildUrl = (path) => {
 export async function lookupProduct(scanData, options = {}) {
   try {
     const res = await apiClient.post(
-      buildUrl(`/inventory/v1/stock/lookup`),
+      `/inventory/v1/stock/lookup`,
       scanData,
       options
     );
@@ -45,7 +30,7 @@ export async function lookupProduct(scanData, options = {}) {
 export async function stockIn(payload, options = {}) {
   try {
     const res = await apiClient.post(
-      buildUrl(`/inventory/v1/stock/bulk-in`),
+      `/inventory/v1/stock/bulk-in`,
       payload,
       options
     );
@@ -65,7 +50,7 @@ export async function stockIn(payload, options = {}) {
 export async function stockOut(payload, options = {}) {
   try {
     const res = await apiClient.post(
-      buildUrl(`/inventory/v1/stock/out`),
+      `/inventory/v1/stock/out`,
       payload,
       options
     );
@@ -87,7 +72,7 @@ export async function bulkStockIn(payload, options = {}) {
     // payload may be either an array of items or an object { companyId, shopId, userId, items }
     const body = Array.isArray(payload) ? { items: payload } : payload;
     const res = await apiClient.post(
-      buildUrl(`/inventory/v1/stock/bulk-in`),
+      `/inventory/v1/stock/bulk-in`,
       body,
       options
     );
@@ -107,7 +92,7 @@ export async function bulkStockIn(payload, options = {}) {
 export async function bulkStockOut(items, options = {}) {
   try {
     const res = await apiClient.post(
-      buildUrl(`/inventory/v1/stock/bulk-out`),
+      `/inventory/v1/stock/bulk-out`,
       { items },
       options
     );
@@ -140,7 +125,7 @@ export async function getAllStockChanges(
   if (companyId) params.companyId = companyId;
   if (productId) params.productId = productId;
 
-  return apiClient.get(buildUrl(`/inventory/v1/stock/changes`), {
+  return apiClient.get(`/inventory/v1/stock/changes`, {
     params,
     cache: cacheStrategy, // NO-STORE
     ...options,
@@ -169,7 +154,7 @@ export async function getStockHistory({
   const params = { page, limit };
   if (productId) params.productId = productId;
 
-  return apiClient.get(buildUrl(`/inventory/v1/stock/history`), {
+  return apiClient.get(`/inventory/v1/stock/history`, {
     params,
     cache: cacheStrategy, // 1 hour cache
     ...options
@@ -193,7 +178,7 @@ export async function getStockChangeHistory(
   if (companyId) params.companyId = companyId;
 
   return apiClient.get(
-    buildUrl(`/inventory/v1/analytics/stock-change-history`),
+    `/inventory/v1/analytics/stock-change-history`,
     {
       params,
       cache: cacheStrategy,
@@ -213,7 +198,7 @@ export async function getDailySummary({ companyId } = {}, options = {}) {
   const params = {};
   if (companyId) params.companyId = companyId;
 
-  return apiClient.get(buildUrl(`/inventory/v1/stock/daily-summary`), {
+  return apiClient.get(`/inventory/v1/stock/daily-summary`, {
     params,
     cache: cacheStrategy,
     ...options,
@@ -228,7 +213,7 @@ export async function getDailySummary({ companyId } = {}, options = {}) {
  * @returns {Promise<Object>} The stock change data
  */
 export async function getStockChangeById(id, options = {}) {
-  return apiClient.get(buildUrl(`/inventory/v1/stock/changes/${id}`), options);
+  return apiClient.get(`/inventory/v1/stock/changes/${id}`, options);
 }
 
 /**
@@ -239,7 +224,7 @@ export async function getStockChangeById(id, options = {}) {
  * @returns {Promise<Object>} Created stock change data
  */
 export async function createStockChange(payload, options = {}) {
-  return apiClient.post(buildUrl(`/inventory/v1/stock/changes`), payload, options);
+  return apiClient.post(`/inventory/v1/stock/changes`, payload, options);
 }
 
 const stockService = {
@@ -268,7 +253,7 @@ export default stockService;
  */
 export async function transferToShop(companyId, shopId, payload, options = {}) {
   const res = await apiClient.post(
-    buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`),
+    `/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-transfer`,
     payload,
     options
   );
@@ -283,7 +268,7 @@ export async function transferToShop(companyId, shopId, payload, options = {}) {
  */
 export async function transferToCompany(companyId, shopId, payload, options = {}) {
   const res = await apiClient.post(
-    buildUrl(`/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`),
+    `/inventory/v1/companies/${companyId}/shops/${shopId}/bulk-cross-company-transfer`,
     payload,
     options
   );
@@ -300,7 +285,7 @@ export async function transferToCompany(companyId, shopId, payload, options = {}
  * @returns {Promise<Object>} Company details
  */
 export async function getCompanyDetails(id, options = {}) {
-  return apiClient.get(buildUrl(`/company/companies/${id}`), options);
+  return apiClient.get(`/company/companies/${id}`, options);
 }
 
 /**
@@ -311,7 +296,7 @@ export async function getCompanyDetails(id, options = {}) {
  */
 export async function getAllCompanies(options = {}) {
   try {
-    const response = await apiClient.get(buildUrl(`/company/companies`), options);
+    const response = await apiClient.get(`/company/companies`, options);
 
 
     // Axios wraps response in response.data

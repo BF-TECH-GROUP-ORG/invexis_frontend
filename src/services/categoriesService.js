@@ -1,10 +1,6 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-// Prefer a local proxy base when available (NEXT_PUBLIC_API_URL), otherwise use the explicit inventory API URL.
-// This mirrors productsService so local dev can set `NEXT_PUBLIC_API_URL=/api` and avoid CORS.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
 
 
 /**
@@ -21,7 +17,7 @@ export async function getCompanyId(companyId, options = {}) {
   const cacheStrategy = getCacheStrategy("ORGANIZATION");
 
   const data = await apiClient.get(
-    `${API_BASE}/company/companies/${companyId}`,
+    `/company/companies/${companyId}`,
     {
       cache: cacheStrategy,
       ...options,
@@ -52,7 +48,7 @@ export async function ParentCategories(companyId, options = {}) {
   const cacheStrategy = getCacheStrategy("CATEGORIES");
 
   const data = await apiClient.post(
-    `${API_BASE}/inventory/v1/categories/by-ids`,
+    `/inventory/v1/categories/by-ids`,
     { ids: categoryIds },
     { cache: cacheStrategy, ...options }
   );
@@ -76,7 +72,7 @@ export async function getCategories(params = {}, options = {}) {
   const cacheStrategy = getCacheStrategy("CATEGORIES");
 
   return apiClient.get(
-    `${API_BASE}/inventory/v1/categories/company/${companyId}/level3`,
+    `/inventory/v1/categories/company/${companyId}/level3`,
     {
       params,
       cache: cacheStrategy,
@@ -98,7 +94,7 @@ export async function createCategory(payload) {
   if (!companyId) throw new Error("Company ID is required for creation");
 
   const data = await apiClient.post(
-    `${API_BASE}/inventory/v1/categories/company/${companyId}/level3`,
+    `/inventory/v1/categories/company/${companyId}/level3`,
     payload
   );
 
@@ -118,7 +114,7 @@ export async function createCategory(payload) {
  */
 export async function updateCategory(id, updates) {
   const data = await apiClient.put(
-    `${API_BASE}/inventory/v1/categories/${id}`,
+    `/inventory/v1/categories/${id}`,
     updates
   );
 
@@ -137,7 +133,7 @@ export async function updateCategory(id, updates) {
  */
 export async function deleteCategory(id) {
   const data = await apiClient.delete(
-    `${API_BASE}/inventory/v1/categories/${id}`
+    `/inventory/v1/categories/${id}`
   );
 
   // Clear categories cache since we modified data
@@ -157,7 +153,7 @@ export async function getCategoryWithParent(id, options = {}) {
   const cacheStrategy = getCacheStrategy("CATEGORIES");
 
   return apiClient.get(
-    `${API_BASE}/inventory/v1/categories/level3/${id}/with-parent`,
+    `/inventory/v1/categories/level3/${id}/with-parent`,
     {
       cache: cacheStrategy,
       ...options,

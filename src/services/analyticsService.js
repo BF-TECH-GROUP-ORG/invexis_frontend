@@ -13,17 +13,7 @@ import apiClient from "@/lib/apiClient";
  * - companyId: UUID (auto-filtered by backend middleware for company_admin)
  */
 
-/**
- * Protocol Stabilizer: Converts wss:// to https:// for fetch/axios requests
- */
-const getApiBase = () => {
-    let url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL_SW || "http://localhost:5000";
-    if (url.startsWith("wss://")) return url.replace("wss://", "https://");
-    if (url.startsWith("ws://")) return url.replace("ws://", "http://");
-    return url;
-};
 
-const BASE_API = getApiBase();
 
 const AnalyticsService = {
     /**
@@ -52,13 +42,7 @@ const AnalyticsService = {
         if (filters.dateRange?.start) params.startDate = filters.dateRange.start;
         if (filters.dateRange?.end) params.endDate = filters.dateRange.end;
 
-        const baseUrl = BASE_API.endsWith('/') ? BASE_API : `${BASE_API}/`;
-        const url = new URL(`analytics/reports/${reportPath}`, baseUrl);
-        const fullPath = url.toString();
-
-
-
-        const response = await apiClient.get(fullPath, {
+        const response = await apiClient.get(`/analytics/reports/${reportPath}`, {
             params,
             retries: 2, // Enable retries for analytics reports
             cache: { ttl: 60 * 1000 }, // Default 1 min cache for analytics

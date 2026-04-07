@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL_SW
+
 
 /**
  * Get User Notifications
@@ -21,7 +21,7 @@ export async function getNotifications({ page = 1, limit = 20, unreadOnly, role,
         if (companyId) params.companyId = companyId;
         if (type) params.type = type;
 
-        const response = await apiClient.get(API_BASE, {
+        const response = await apiClient.get(`/notification`, {
             params,
             retries: 0,
             timeout: 10000,
@@ -40,7 +40,7 @@ export async function getNotifications({ page = 1, limit = 20, unreadOnly, role,
  */
 export async function markNotificationsRead({ notificationIds, all } = {}, options = {}) {
     try {
-        const response = await apiClient.post(`${API_BASE}/mark-read`, {
+        const response = await apiClient.post(`/notification/mark-read`, {
             notificationIds,
             all,
         }, options);
@@ -57,7 +57,7 @@ export async function markNotificationsRead({ notificationIds, all } = {}, optio
  */
 export async function createNotification(payload, options = {}) {
     try {
-        const response = await apiClient.post(API_BASE, payload, options);
+        const response = await apiClient.post(`/notification`, payload, options);
         return response;
     } catch (error) {
         console.error("Error creating notification:", error);

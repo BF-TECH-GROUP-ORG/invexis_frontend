@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 /**
  * Get all sales invoices for a company
@@ -12,7 +12,7 @@ export const getCompanySalesInvoices = async (companyId, options = {}) => {
     if (!companyId) return { success: false, data: [] };
 
     try {
-        const url = `${BASE_URL}/document/sales/company/${companyId}/invoices`;
+        const url = `/document/sales/company/${companyId}/invoices`;
         const response = await apiClient.get(url, {
             ...options,
             cache: { ttl: 5 * 60 * 1000 } // 5 minutes cache
@@ -36,7 +36,7 @@ export const getCompanyInventoryMedia = async (companyId, options = {}) => {
     if (!companyId) return { success: false, data: [] };
 
     try {
-        const url = `${BASE_URL}/document/inventory/company/${companyId}/media`;
+        const url = `/document/inventory/company/${companyId}/media`;
         const response = await apiClient.get(url, {
             ...options,
             cache: { ttl: 5 * 60 * 1000 }
