@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
 import { notificationBus } from "@/lib/notificationBus";
@@ -118,23 +118,35 @@ export default function AddProductWizard({
     },
   });
 
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type");
+
   // Load persisted state on mount (only for new product)
   useEffect(() => {
     if (!isEdit && typeof window !== "undefined") {
       const savedState = localStorage.getItem(PERSISTENCE_KEY);
       if (savedState) {
         try {
-          const { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          let { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          
+          // Support pre-configuring for material stock via URL
+          if (typeParam === "material" && savedFormData) {
+            savedFormData.isForSale = false;
+          }
+          
           if (savedFormData) setFormData(savedFormData);
           if (savedStep) setCurrentStep(savedStep);
 
         } catch (e) {
           console.error("Failed to restore wizard state:", e);
         }
+      } else if (typeParam === "material") {
+        // If no saved state, initialize as material if requested
+        setFormData(prev => ({ ...prev, isForSale: false }));
       }
     }
     setIsInitialized(true);
-  }, [isEdit]);
+  }, [isEdit, typeParam]);
 
   // Persist state on change (only for new product)
   useEffect(() => {

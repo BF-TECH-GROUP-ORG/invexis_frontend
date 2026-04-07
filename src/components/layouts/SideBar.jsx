@@ -97,7 +97,7 @@ const getNavItems = (t) => [
     tourId: "tour-material-stock",
     id: "sidebar-mgmt-material",
     children: [
-      { title: t("sidebar.products"), path: "/inventory/products?type=material", prefetch: true, id: "sidebar-mat-products" },
+      { title: t("sidebar.products"), path: "/inventory/material-stock", prefetch: true, id: "sidebar-mat-products" },
       { title: t("sidebar.operations"), path: "/inventory/stock?type=material", prefetch: true, id: "sidebar-mat-ops" },
       { title: t("sidebar.reports"), path: "/inventory/reports?tab=inventory", prefetch: true, id: "sidebar-mat-reports" },
     ],
@@ -396,7 +396,8 @@ export default function SideBar({
     }
 
     if (businessType === 'RETAIL') {
-      if (item.title === t("sidebar.materialStock")) return false;
+      // Material Stock is now allowed for RETAIL internal assets/supplies
+      // if (item.title === t("sidebar.materialStock")) return false;
     }
 
     // 2. Role/Department Filtering (Existing Logic)
