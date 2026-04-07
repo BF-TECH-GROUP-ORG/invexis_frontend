@@ -182,7 +182,9 @@ export default function SideBar({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const businessType = companyData?.business_type || 'RETAIL';
+  // Some APIs return { success: true, data: {...} } while others return direct object
+  const companyRecord = companyData?.data || companyData;
+  const businessType = companyRecord?.business_type || 'RETAIL';
 
   const navItems = getNavItems(t);
 
