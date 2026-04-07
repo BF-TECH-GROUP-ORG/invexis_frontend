@@ -283,6 +283,13 @@ export default function AddProductWizard({
 
   const TOTAL_STEPS = steps.length;
 
+  // Safety clamp for currentStep when steps change dynamically
+  useEffect(() => {
+    if (currentStep > TOTAL_STEPS && TOTAL_STEPS > 0) {
+      setCurrentStep(TOTAL_STEPS);
+    }
+  }, [TOTAL_STEPS, currentStep]);
+
 
   const updateFormData = (updates) => {
     setFormData((prev) => ({
