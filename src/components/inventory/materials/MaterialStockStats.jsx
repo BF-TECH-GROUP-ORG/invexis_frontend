@@ -14,7 +14,7 @@ import {
  * MaterialStockStats - Specialized analytics for non-saleable items
  */
 export default function MaterialStockStats({ stats, isMounted }) {
-  const t = useTranslations("products.stats");
+  const t = useTranslations("materials.stats");
   const [isCompact, setIsCompact] = useState(true);
 
   const formatValue = (value) => {
@@ -27,7 +27,7 @@ export default function MaterialStockStats({ stats, isMounted }) {
 
   const statCards = [
     {
-      title: "Total Materials", // Fallback if translation missing
+      title: t("total"),
       value: stats.total || 0,
       Icon: Layers,
       color: "#3b82f6",
@@ -35,7 +35,7 @@ export default function MaterialStockStats({ stats, isMounted }) {
       key: "total",
     },
     {
-      title: "In Stock Assets",
+      title: t("stock"),
       value: stats.inStock || 0,
       Icon: Database,
       color: "#10b981",
@@ -43,7 +43,7 @@ export default function MaterialStockStats({ stats, isMounted }) {
       key: "stock",
     },
     {
-      title: "Low Stock Alert",
+      title: t("lowStock"),
       value: stats.lowStock || 0,
       Icon: AlertTriangle,
       color: "#f59e0b",
@@ -51,7 +51,7 @@ export default function MaterialStockStats({ stats, isMounted }) {
       key: "low_stock",
     },
     {
-      title: "Total Asset Value",
+      title: t("value"),
       value: stats.totalValue || 0,
       Icon: Package,
       color: "#8b5cf6",

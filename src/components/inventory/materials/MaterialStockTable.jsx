@@ -19,7 +19,7 @@ export default function MaterialStockTable({
   pagination = { page: 1, pages: 1 },
   onPageChange = () => { },
 }) {
-  const t = useTranslations("products.table");
+  const t = useTranslations("materials.table");
   const commonT = useTranslations("common");
 
   const toggleSelectAll = () => {
@@ -75,7 +75,7 @@ export default function MaterialStockTable({
         <table className="w-full text-left">
           <thead className="bg-[#fbfcff] text-xs font-semibold text-gray-500 uppercase tracking-wider">
             <tr>
-              <th className="px-6 py-4 w-10">
+              <th className="px-6 py-4">
                 <input
                   type="checkbox"
                   checked={products.length > 0 && selectedIds.length === products.length}
@@ -83,12 +83,12 @@ export default function MaterialStockTable({
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
               </th>
-              <th className="px-6 py-4">Product / Asset</th>
-              <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4">Brand / Manufacturer</th>
-              <th className="px-6 py-4 text-center">Stock Level</th>
-              <th className="px-6 py-4 text-center">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-6 py-4">{t("product")}</th>
+              <th className="px-6 py-4">{t("category")}</th>
+              <th className="px-6 py-4">{t("brand")}</th>
+              <th className="px-6 py-4 text-center">{t("stockLevel")}</th>
+              <th className="px-6 py-4 text-center">{t("status")}</th>
+              <th className="px-6 py-4 text-right">{t("actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -150,22 +150,22 @@ export default function MaterialStockTable({
                           <span className={`text-sm font-bold ${isOutOfStock ? "text-red-600" : isLowStock ? "text-orange-600" : "text-emerald-600"}`}>
                             {stock.toLocaleString()}
                           </span>
-                          <span className="text-[10px] text-gray-400 uppercase font-medium">Units</span>
+                          <span className="text-[10px] text-gray-400 uppercase font-medium">{t("units")}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center">
                           {isOutOfStock ? (
                             <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase flex items-center gap-1">
-                              <AlertCircle size={10} /> Out of Stock
+                              <AlertCircle size={10} /> {t("outOfStock")}
                             </span>
                           ) : isLowStock ? (
                             <span className="px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">
-                              Low Stock
+                              {t("lowStock")}
                             </span>
                           ) : (
                             <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">
-                              In Stock
+                              {t("inStock")}
                             </span>
                           )}
                         </div>
@@ -175,21 +175,21 @@ export default function MaterialStockTable({
                           <Link
                             href={viewUrl(product._id)}
                             className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition"
-                            title="View Details"
+                            title={t("viewDetails")}
                           >
                             <Eye size={18} />
                           </Link>
                           <Link
                             href={editUrl(product._id)}
                             className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                            title="Edit"
+                            title={t("edit")}
                           >
                             <Edit size={18} />
                           </Link>
                           <button
                             onClick={() => onDelete(product._id)}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="Delete"
+                            title={t("delete")}
                           >
                             <Trash2 size={18} />
                           </button>
@@ -205,8 +205,8 @@ export default function MaterialStockTable({
                       <div className="p-3 rounded-full bg-gray-50 text-gray-400">
                         <Package size={32} />
                       </div>
-                      <p className="text-gray-500 font-medium">No materials found in stock</p>
-                      <p className="text-xs text-gray-400">Click the add button to register new internal assets</p>
+                      <p className="text-gray-500 font-medium">{t("noMaterials")}</p>
+                      <p className="text-xs text-gray-400">{t("addPrompt")}</p>
                     </div>
                   </td>
                 </tr>
@@ -220,7 +220,7 @@ export default function MaterialStockTable({
       {pagination.pages > 1 && (
         <div className="px-6 py-4 bg-[#fbfcff] border-t border-gray-100 flex items-center justify-between">
           <div className="text-xs text-gray-500">
-            Showing Page <span className="font-bold text-gray-900">{pagination.page}</span> of <span className="font-bold text-gray-900">{pagination.pages}</span>
+            {t("showingPage", { page: pagination.page, pages: pagination.pages })}
           </div>
           <div className="flex gap-2">
             <button
@@ -228,14 +228,14 @@ export default function MaterialStockTable({
               onClick={() => onPageChange(pagination.page - 1)}
               className="px-3 py-1.5 text-xs font-medium border rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              Previous
+              {t("previous")}
             </button>
             <button
               disabled={pagination.page >= pagination.pages}
               onClick={() => onPageChange(pagination.page + 1)}
               className="px-3 py-1.5 text-xs font-medium border rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              Next
+              {t("next")}
             </button>
           </div>
         </div>

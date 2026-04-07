@@ -262,13 +262,13 @@ export default function AddProductWizard({
   // Define steps dynamically
   const steps = useMemo(() => {
     const baseSteps = [
-      { id: "basic", label: "Basic Info", component: Step1BasicInfo },
-      { id: "media", label: "Media", component: Step2Media },
-      { id: "pricing", label: "Pricing", component: Step3Pricing },
-      { id: "inventory", label: "Inventory", component: Step4Inventory },
-      { id: "category", label: "Category", component: Step5Category },
-      { id: "specs", label: "Specifications", component: Step6Specs },
-      { id: "review", label: "Review & Submit", component: ProductReview },
+      { id: "basic", label: t("form.basicInfo"), component: Step1BasicInfo },
+      { id: "media", label: t("form.media"), component: Step2Media },
+      { id: "pricing", label: t("form.pricing"), component: Step3Pricing },
+      { id: "inventory", label: t("form.inventory"), component: Step4Inventory },
+      { id: "category", label: t("form.category"), component: Step5Category },
+      { id: "specs", label: t("form.specs"), component: Step6Specs },
+      { id: "review", label: t("form.review"), component: ProductReview },
     ];
 
     // Filter steps based on product purpose
@@ -285,7 +285,7 @@ export default function AddProductWizard({
     if (!isWorker) {
       // Admin needs to select shop first
       return [
-        { id: "shop", label: "Select Shop", component: StepShop },
+        { id: "shop", label: t("form.selectShop"), component: StepShop },
         ...filteredSteps,
       ].map((s, idx) => ({ ...s, number: idx + 1 }));
     }
@@ -535,18 +535,18 @@ export default function AddProductWizard({
                 <button
                   onClick={() => router.push(`/${locale}/inventory/products`)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
-                  title="Back to Products"
+                  title={t("header.backToProducts") || "Back"}
                 >
                   <ArrowLeft className="w-6 h-6" />
                 </button>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {isEdit ? "Edit Product" : "Add New Product"}
+                    {isEdit ? t("form.modal.editTitle") : t("form.modal.createTitle")}
                   </h1>
                   <p className="text-gray-600 mt-1">
                     {isEdit
-                      ? "Update the product details below"
-                      : "Fill in the product details step by step"}
+                      ? t("form.modal.editSubtitle") || "Update the details"
+                      : t("form.modal.createSubtitle") || "Fill in the details"}
                   </p>
                 </div>
               </div>
@@ -577,7 +577,7 @@ export default function AddProductWizard({
         <div className="col-span-12 lg:col-span-3 sticky top-6">
           {status !== "loading" && (
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Progress</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">{t("form.progress") || "Progress"}</h3>
               <StepIndicator
                 currentStep={currentStep}
                 steps={steps}

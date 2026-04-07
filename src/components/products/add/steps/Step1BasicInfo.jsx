@@ -1,6 +1,10 @@
-"use client";
+import { useTranslations } from "next-intl";
 
 export default function Step1BasicInfo({ formData, updateFormData }) {
+  const t = useTranslations("materials.wizard");
+  const tableT = useTranslations("materials.table");
+  const productsT = useTranslations("products");
+
   const handleInputChange = (field, value) => {
     const updates = { [field]: value };
 
@@ -22,10 +26,10 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Basic Product Information
+          {productsT("form.basicInfo") || "Basic Information"}
         </h2>
         <p className="text-gray-600 mb-6">
-          Enter the essential details about your product
+          {productsT("form.basicInfoDesc") || "Enter the essential details"}
         </p>
 
         {/* Product Type Selection */}
@@ -47,10 +51,10 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
               </svg>
             </div>
             <span className={`font-bold text-lg mb-1 ${formData.isForSale !== false ? "text-orange-900" : "text-gray-900"}`}>
-              For Sale
+              {t("forSale")}
             </span>
             <p className={`text-sm ${formData.isForSale !== false ? "text-orange-700" : "text-gray-500"}`}>
-              Standard products sold to customers with pricing and tax info.
+              {t("forSaleDesc")}
             </p>
           </button>
 
@@ -71,10 +75,10 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
               </svg>
             </div>
             <span className={`font-bold text-lg mb-1 ${formData.isForSale === false ? "text-orange-900" : "text-gray-900"}`}>
-              Not For Sale
+              {t("internal")}
             </span>
             <p className={`text-sm ${formData.isForSale === false ? "text-orange-700" : "text-gray-500"}`}>
-              Internal assets, office supplies, or tools not intended for retail.
+              {t("internalDesc")}
             </p>
           </button>
         </div>
@@ -83,19 +87,19 @@ export default function Step1BasicInfo({ formData, updateFormData }) {
       {/* Product Name */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Product Name <span className="text-red-500">*</span>
+          {productsT("table.productName")} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          placeholder="Enter product name"
+          placeholder={productsT("header.searchPlaceholder") || "Enter name"}
           required
         />
         {formData.name && formData.name.length < 3 && (
           <p className="text-red-500 text-sm mt-1">
-            Name must be at least 3 characters
+            {productsT("form.validation.nameMinLength") || "Name is too short"}
           </p>
         )}
       </div>

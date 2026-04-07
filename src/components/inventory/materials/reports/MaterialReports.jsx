@@ -30,7 +30,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function MaterialReports() {
   const { data: session } = useSession();
-  const t = useTranslations("products");
+  const t = useTranslations("materials.reports");
+  const commonT = useTranslations("common");
   
   // Filters State
   const [filter, setFilter] = useState("daily");
@@ -124,75 +125,83 @@ export default function MaterialReports() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Export started");
-  }, [reportData]);
+    toast.success(t("exportStarted"));
+  }, [reportData, t]);
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#081422]"></div>
-      <p className="text-gray-400 font-medium animate-pulse">Generating Material Insights...</p>
+      <p className="text-gray-400 font-medium animate-pulse">{t("insights")}</p>
     </div>
   );
 
   const grandTotal = reportData?.grandTotal || { value: { totalValue: 0 }, kpis: { totalItems: 0, lowStockItems: 0 } };
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#081422] flex items-center gap-3">
-            <BarChart3 className="text-gray-900" size={32} />
-            Material Stock Reports
+          <h1 className="text-2xl font-extrabold text-[#081422] flex items-center gap-3">
+            <BarChart3 className="text-gray-900" size={28} />
+            {t("title")}
           </h1>
-          <p className="text-gray-500 font-medium mt-1">Deep insights into internal assets, valuation and movement trends</p>
+          <p className="text-sm text-gray-500 font-medium mt-0.5">{t("subtitle")}</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 transition font-bold text-sm ${isFilterOpen ? "border-black bg-black text-white" : "border-gray-100 bg-white text-gray-700 hover:border-gray-300"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition font-bold text-sm ${isFilterOpen ? "border-black bg-black text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}
           >
-            <Filter size={18} />
-            Advanced Filters
+            <Filter size={16} />
+            {t("advancedFilters")}
           </button>
           
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold text-sm shadow-xl shadow-gray-200"
+            className="flex items-center gap-2 px-4 py-2 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold text-sm"
           >
-            <Download size={18} />
-            Export CSV
+            <Download size={16} />
+            {t("exportCsv")}
           </button>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard 
-          title="Total Asset Value" 
+          title={t("assetValue")} 
           value={`RWF ${grandTotal.value.totalValue.toLocaleString()}`} 
-          icon={<TrendingUp className="text-emerald-500" />} 
-          desc="Current valuation"
+          icon={<TrendingUp size={24} />} 
+          desc={t("valuationDesc")}
+          color="#10b981"
+          bgColor="#ecfdf5"
         />
         <SummaryCard 
-          title="Total Items" 
+          title={t("totalItems")} 
           value={grandTotal.kpis.totalItems} 
-          icon={<Package className="text-blue-500" />} 
-          desc="Across all branches"
+          icon={<Package size={24} />} 
+          desc={t("branchDesc")}
+          color="#3b82f6"
+          bgColor="#eff6ff"
         />
         <SummaryCard 
-          title="Low Stock Assets" 
+          title={t("lowStockAssets")} 
           value={grandTotal.kpis.lowStockItems} 
-          icon={<AlertTriangle className="text-orange-500" />} 
-          desc="Requires replenishment"
+          icon={<AlertTriangle size={24} />} 
+          desc={t("replenishDesc")}
           warning={grandTotal.kpis.lowStockItems > 0}
+          color="#f59e0b"
+          bgColor="#fef3c7"
         />
         <SummaryCard 
-          title="Stock Movement" 
+          title={t("stockMovement")} 
           value={grandTotal.movement?.in || 0} 
-          icon={<RefreshCw className="text-purple-500" />} 
-          desc="Total restocks (In)"
+          icon={<RefreshCw size={24} />} 
+          desc={t("movementDesc")}
+          color="#8b5cf6"
+          bgColor="#f3e8ff"
         />
       </div>
 
@@ -209,18 +218,18 @@ export default function MaterialReports() {
               {/* Period */}
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
-                  <Calendar size={14} /> Reporting Period
+                  <Calendar size={14} /> {t("period")}
                 </label>
                 <select 
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 focus:border-black outline-none transition"
                 >
-                  <option value="daily">Today (Daily)</option>
-                  <option value="weekly">This Week</option>
-                  <option value="monthly">This Month</option>
-                  <option value="yearly">This Year</option>
-                  <option value="custom">Custom Range</option>
+                  <option value="daily">{commonT("filters.daily")}</option>
+                  <option value="weekly">{commonT("filters.weekly")}</option>
+                  <option value="monthly">{commonT("filters.monthly")}</option>
+                  <option value="yearly">{commonT("filters.yearly")}</option>
+                  <option value="custom">{commonT("filters.custom")}</option>
                 </select>
               </div>
 
@@ -228,7 +237,7 @@ export default function MaterialReports() {
               {filter === "custom" && (
                 <>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Start Date</label>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{t("startDate")}</label>
                     <input 
                       type="date"
                       value={startDate}
@@ -237,7 +246,7 @@ export default function MaterialReports() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">End Date</label>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{t("endDate")}</label>
                     <input 
                       type="date"
                       value={endDate}
@@ -251,14 +260,14 @@ export default function MaterialReports() {
               {/* Shop/Branch */}
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
-                  <MapPin size={14} /> Branch / Shop
+                  <MapPin size={14} /> {t("branch")}
                 </label>
                 <select 
                   value={shopId}
                   onChange={(e) => setShopId(e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 focus:border-black outline-none transition"
                 >
-                  <option value="">All Branches</option>
+                  <option value="">{t("allBranches")}</option>
                   {shops.map(s => <option key={s._id} value={s._id}>{s.name || s.shopId}</option>)}
                 </select>
               </div>
@@ -266,14 +275,14 @@ export default function MaterialReports() {
               {/* Category */}
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
-                  <Layers size={14} /> Category
+                  <Layers size={14} /> {t("materials.table.category")}
                 </label>
                 <select 
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 focus:border-black outline-none transition"
                 >
-                  <option value="">All Categories</option>
+                  <option value="">{t("allCategories")}</option>
                   {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                 </select>
               </div>
@@ -293,17 +302,26 @@ export default function MaterialReports() {
   );
 }
 
-function SummaryCard({ title, value, icon, desc, warning }) {
+function SummaryCard({ title, value, icon, desc, warning, color, bgColor }) {
   return (
-    <div className={`p-6 border rounded-3xl bg-white transition-all ${warning ? "border-orange-200 bg-orange-50/20" : "border-gray-100 hover:border-black hover:shadow-xl hover:shadow-gray-100"}`}>
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-black transition-colors">{icon}</div>
-        {warning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>}
-      </div>
-      <div>
-        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{title}</p>
-        <h3 className="text-2xl font-black text-[#081422]">{value}</h3>
-        <p className="text-xs text-gray-500 mt-2 font-medium">{desc}</p>
+    <div className={`p-5 border rounded-2xl bg-white transition-all border-gray-100 hover:border-[#081422] overflow-hidden`}>
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0 pr-2">
+          <div className="text-sm text-[#6b7280] font-medium mb-1 truncate">{title}</div>
+          <div className="flex items-center gap-2">
+            <h3 className={`font-bold font-jetbrains text-[#081422] transition-all ${value.toString().length > 12 ? "text-lg" : "text-2xl"}`}>
+              {value}
+            </h3>
+            {warning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-wider truncate">{desc}</p>
+        </div>
+        <div 
+          className="p-3 rounded-xl shrink-0"
+          style={{ backgroundColor: bgColor }}
+        >
+          <div style={{ color: color }}>{icon}</div>
+        </div>
       </div>
     </div>
   );
