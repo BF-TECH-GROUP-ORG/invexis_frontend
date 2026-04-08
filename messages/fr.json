@@ -275,7 +275,19 @@
       "forSale": "Produit à vendre",
       "forSaleDesc": "Articles à vendre aux clients pour générer des revenus",
       "internal": "Usage interne / Matériel",
-      "internalDesc": "Fournitures, outils ou actifs utilisés au sein de l'entreprise (non destinés à la vente)"
+      "internalDesc": "Fournitures, outils ou actifs utilisés au sein de l'entreprise (non destinés à la vente)",
+      "header": {
+        "backToProducts": "Retour aux Matériels"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Modifier le Matériel",
+          "createTitle": "Enregistrer un Nouveau Matériel",
+          "editSubtitle": "Mettre à jour les spécifications et identifiants de l'article",
+          "createSubtitle": "Définir les informations de base et les identifiants pour les actifs internes"
+        },
+        "progress": "État d'avancement"
+      }
     }
   },
   "pages": {

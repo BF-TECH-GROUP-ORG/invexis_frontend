@@ -279,7 +279,19 @@
       "forSale": "Product for Sale",
       "forSaleDesc": "Items to be sold to customers for revenue",
       "internal": "Internal Use / Material",
-      "internalDesc": "Supplies, tools, or assets used within the company (Not for sale)"
+      "internalDesc": "Supplies, tools, or assets used within the company (Not for sale)",
+      "header": {
+        "backToProducts": "Back to Materials"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Edit Material",
+          "createTitle": "Register New Material",
+          "editSubtitle": "Update item specifications and identifiers",
+          "createSubtitle": "Define basic info and identifiers for internal assets"
+        },
+        "progress": "Setup Progress"
+      }
     }
   },
   "pages": {

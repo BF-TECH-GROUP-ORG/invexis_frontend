@@ -5,6 +5,7 @@ import { useRouter, useParams, useSearchParams, usePathname } from "next/navigat
 import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
 import { notificationBus } from "@/lib/notificationBus";
+import { useTranslations } from "next-intl";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
 import StepShop from "./steps/StepShop";
@@ -29,6 +30,7 @@ export default function AddProductWizard({
   initialData = null,
   isEdit = false,
 }) {
+  const t = useTranslations("materials.wizard");
   const router = useRouter();
   const params = useParams();
   const locale = params?.locale || "en";

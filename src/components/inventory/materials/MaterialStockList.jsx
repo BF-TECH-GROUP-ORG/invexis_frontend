@@ -22,7 +22,9 @@ import MaterialStockStats from "./MaterialStockStats";
  * MaterialStockList - Container for non-saleable items (Internal Assets/Supplies)
  */
 export default function MaterialStockList({ initialParams = {} }) {
-  const t = useTranslations("products");
+  const t = useTranslations();
+  const tm = useTranslations("materials");
+  const tf = useTranslations("form");
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -102,7 +104,7 @@ export default function MaterialStockList({ initialParams = {} }) {
 
   // Handlers
   const handleDelete = async (id) => {
-    if (!confirm(t("toasts.deleteConfirm"))) return;
+    if (!confirm(tf("deleteConfirm") || "Are you sure?")) return;
     try {
       await dispatch(deleteProduct(id)).unwrap();
       toast.success("Material deleted successfully");
@@ -145,9 +147,9 @@ export default function MaterialStockList({ initialParams = {} }) {
           <div>
             <h1 className="text-2xl font-extrabold text-[#081422] flex items-center gap-2">
               <Layers className="text-[#081422]" />
-              {t("materials.reports.title")}
+              {tm("reports.title")}
             </h1>
-            <p className="text-sm text-gray-400 font-medium">{t("materials.reports.subtitle")}</p>
+            <p className="text-sm text-gray-400 font-medium">{tm("reports.subtitle")}</p>
           </div>
 
           <div className="flex flex-wrap gap-3 items-center">
@@ -158,7 +160,7 @@ export default function MaterialStockList({ initialParams = {} }) {
               </div>
               <input
                 type="text"
-                placeholder={t("common.search")}
+                placeholder={tf("search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all text-sm bg-gray-50/50 font-bold"
@@ -171,17 +173,17 @@ export default function MaterialStockList({ initialParams = {} }) {
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className={`flex items-center gap-2 px-4 py-2 border rounded-full transition font-bold text-sm ${currentCategory ? "border-black text-black bg-gray-50" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}
               >
-                <Filter size={16} /> {t("materials.reports.advancedFilters")}
+                <Filter size={16} /> {tm("reports.advancedFilters")}
               </button>
               {isFilterOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl border border-gray-100 p-4 z-20 shadow-xl">
-                   <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t("materials.reports.category")}</label>
+                   <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{tm("reports.category") || "Category"}</label>
                    <select
                      value={currentCategory}
                      onChange={(e) => { updateFilters({ category: e.target.value }); setIsFilterOpen(false); }}
                      className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
                    >
-                     <option value="">{t("materials.reports.allCategories")}</option>
+                     <option value="">{tm("reports.allCategories") || "All Categories"}</option>
                      {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                    </select>
                 </div>
@@ -191,7 +193,7 @@ export default function MaterialStockList({ initialParams = {} }) {
             <button onClick={handleRefresh} className="p-2 border border-gray-200 rounded-full hover:bg-gray-50 text-gray-400"><RefreshCw size={18} /></button>
 
             <Link href={routes.add} className="flex items-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
-              <Plus size={20} /> {t("common.add")} Material
+              <Plus size={20} /> {tf("add")} Material
             </Link>
           </div>
         </div>

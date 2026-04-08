@@ -276,11 +276,23 @@
       "noRecords": "Nta makuru y'ibikoresho yabonetse muri iki gihe."
     },
     "wizard": {
-      "purpose": "Iki gicuruzwa ni icy'iki?",
-      "forSale": "Igicuruzwa cyo kugurisha",
-      "forSaleDesc": "Ibintu bigurishwa abakiriya kugira ngo binjize amafaranga",
-      "internal": "Gukoresha imbere / Igikoresho",
-      "internalDesc": "Ibikoresho, ibikoresho by'akazi, cyangwa imitungo ikoreshwa mu kigo (ntabwo ari ibyo kugurisha)"
+      "purpose": "Iki gikoresho kigenewe iki?",
+      "forSale": "Igikoresho kigurishwa",
+      "forSaleDesc": "Ibicuruzwa bigurishwa abakiriya kugira ngo binjize inyungu",
+      "internal": "Gukoresha imbere / Ibikoresho",
+      "internalDesc": "Ibikoresho, ibikoresho cyangwa umutungo ukoreshwa muri sosiyete (Bidakoreshwa mu kugurisha)",
+      "header": {
+        "backToProducts": "Subira mu Bikoresho"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Hindura Igikoresho",
+          "createTitle": "Injiza Igikoresho Gishya",
+          "editSubtitle": "Vugurura ibisobanuro n'ibiranga igikoresho",
+          "createSubtitle": "Imyirondoro y'ibanze n'ibiranga umutungo w'imbere"
+        },
+        "progress": "Intambwe imaze guterwa"
+      }
     }
   },
   "pages": {

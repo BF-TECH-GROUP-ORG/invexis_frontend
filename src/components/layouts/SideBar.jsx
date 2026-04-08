@@ -239,8 +239,9 @@ export default function SideBar({
   );
 
   const isActive = useCallback(
-    (path) => {
+    (path, exact = false) => {
       const currentPath = optimisticPath || pathname;
+      if (exact) return currentPath === path;
       return currentPath === path || currentPath.startsWith(`${path}/`);
     },
     [pathname, optimisticPath]
@@ -584,22 +585,22 @@ export default function SideBar({
                                   className="ml-12 mt-2 space-y-1 overflow-hidden"
                                 >
                                   {item.children.filter(visibleFor).map((child) => (
-                                    <Link
-                                      key={child.title}
-                                      href={child.path}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        setMoreModalOpen(false);
-                                        if (!isActive(child.path)) {
-                                          setOptimisticPath(child.path);
-                                          startNavigating();
-                                          router.push(child.path);
-                                        }
-                                      }}
-                                      className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
-                                    >
-                                      {child.title}
-                                    </Link>
+                                      <Link
+                                        key={child.title}
+                                        href={child.path}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          setMoreModalOpen(false);
+                                          if (!isActive(child.path, true)) {
+                                            setOptimisticPath(child.path);
+                                            startNavigating();
+                                            router.push(child.path);
+                                          }
+                                        }}
+                                        className={`block px-4 py-3 text-sm rounded-lg transition ${isActive(child.path, true) ? "bg-orange-500 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                                      >
+                                        {child.title}
+                                      </Link>
                                   ))}
                                 </motion.div>
                               )}
@@ -732,12 +733,12 @@ export default function SideBar({
                                   href={child.path}
                                   onMouseEnter={() => prefetchData(child)}
                                   onClick={() => {
-                                    if (!isActive(child.path)) {
+                                    if (!isActive(child.path, true)) {
                                       setOptimisticPath(child.path);
                                       startNavigating();
                                     }
                                   }}
-                                  className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                  className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path, true)
                                     ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                     : "text-gray-600 hover:bg-gray-100"
                                     }`}

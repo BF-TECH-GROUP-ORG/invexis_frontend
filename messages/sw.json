@@ -273,11 +273,23 @@
       "noRecords": "Hakuna rekodi za nyenzo zilizopatikana kwa kipindi hiki."
     },
     "wizard": {
-      "purpose": "Bidhaa hii ni kwa ajili ya nini?",
-      "forSale": "Bidhaa kwa ajili ya Kuuza",
-      "forSaleDesc": "Vitu vya kuuzwa kwa wateja kwa ajili ya mapato",
-      "internal": "Matumizi ya Ndani / Nyenzo",
-      "internalDesc": "Vifaa, zana, au rasilimali zinazotumika ndani ya kampuni (Sio kwa ajili ya kuuza)"
+      "purpose": "Bidhaa hii ni ya nini?",
+      "forSale": "Bidhaa ya kuuza",
+      "forSaleDesc": "Vitu vya kuuzwa kwa wateja kwa mapato",
+      "internal": "Matumizi ya ndani / Nyenzo",
+      "internalDesc": "Vifaa, zana au mali inayotumika ndani ya kampuni (Sio ya kuuzwa)",
+      "header": {
+        "backToProducts": "Rudi kwenye Nyenzo"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Hariri Nyenzo",
+          "createTitle": "Sajili Nyenzo Mpya",
+          "editSubtitle": "Sasisha maelezo ya bidhaa na vitambulisho",
+          "createSubtitle": "Fafanua maelezo ya msingi na vitambulisho vya mali ya ndani"
+        },
+        "progress": "Maendeleo ya Usanidi"
+      }
     }
   },
   "pages": {

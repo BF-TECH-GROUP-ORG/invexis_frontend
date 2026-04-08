@@ -296,7 +296,7 @@ export default function MaterialReports() {
 
 function SummaryCard({ title, value, icon, desc, warning, color, bgColor }) {
   return (
-    <div className={`p-5 border rounded-2xl bg-white transition-all border-gray-100 hover:border-[#081422] overflow-hidden`}>
+    <div className={`p-5 border rounded-2xl bg-white transition-all border-gray-100 hover:border-[#081422] shadow-md hover:shadow-lg overflow-hidden`}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0 pr-2">
           <div className="text-sm text-[#6b7280] font-medium mb-1 truncate">{title}</div>

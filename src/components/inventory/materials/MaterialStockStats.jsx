@@ -68,7 +68,7 @@ export default function MaterialStockStats({ stats, isMounted }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group relative border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#081422] transition-all"
+            className="group relative border border-gray-200 rounded-2xl p-5 bg-white hover:border-[#081422] shadow-md hover:shadow-lg transition-all"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0 pr-2">
