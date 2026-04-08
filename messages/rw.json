@@ -291,7 +291,15 @@
           "editSubtitle": "Vugurura ibisobanuro n'ibiranga igikoresho",
           "createSubtitle": "Imyirondoro y'ibanze n'ibiranga umutungo w'imbere"
         },
-        "progress": "Intambwe imaze guterwa"
+        "progress": "Intambwe imaze guterwa",
+        "selectShop": "Aho bibikwa",
+        "basicInfo": "Amakuru y'ibanze",
+        "media": "Amafoto/Inyandiko",
+        "pricing": "Amakuru y'ibiciro",
+        "inventory": "Ibikoresho bihari",
+        "category": "Icyiciro cy'igikoresho",
+        "specs": "Imiterere ya tekiniki",
+        "review": "Genzura wemeze"
       }
     },
     "detail": {

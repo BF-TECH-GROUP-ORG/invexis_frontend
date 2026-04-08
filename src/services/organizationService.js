@@ -19,6 +19,26 @@ export async function updateOrganization(id, payload) {
     }
 }
 
-const organizationService = { getOrganization, updateOrganization };
+export async function getCompanyAssets(companyId, params = {}) {
+    try {
+        const data = await apiClient.get(`/inventory/v1/companies/${companyId}/assets`, { params });
+        return data;
+    } catch (err) {
+        throw err;
+    }
+}
+
+export async function getCompanyAssetReport(companyId, params = {}) {
+    try {
+        const data = await apiClient.get(`/inventory/v1/companies/${companyId}/assets/report`, { 
+            params: { ...params, companyId } 
+        });
+        return data;
+    } catch (err) {
+        throw err;
+    }
+}
+
+const organizationService = { getOrganization, updateOrganization, getCompanyAssets, getCompanyAssetReport };
 
 export default organizationService;

@@ -290,7 +290,15 @@
           "editSubtitle": "Update item specifications and identifiers",
           "createSubtitle": "Define basic info and identifiers for internal assets"
         },
-        "progress": "Setup Progress"
+        "progress": "Setup Progress",
+        "selectShop": "Storage Location",
+        "basicInfo": "Basic Information",
+        "media": "Attachments",
+        "pricing": "Pricing Information",
+        "inventory": "Initial Stock",
+        "category": "Asset Category",
+        "specs": "Technical Specs",
+        "review": "Review & Confirm"
       }
     },
     "detail": {

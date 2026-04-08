@@ -10,8 +10,8 @@ import { useSession } from "next-auth/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 
-import { getProducts } from "@/services/productsService";
 import { getCategories } from "@/services/categoriesService";
+import { getCompanyAssets } from "@/services/organizationService";
 import { deleteProduct } from "@/features/products/productsSlice";
 import apiClient from "@/lib/apiClient";
 
@@ -87,7 +87,7 @@ export default function MaterialStockList({ initialParams = {} }) {
 
   const { data: productsResponse, isLoading: productsLoading } = useQuery({
     queryKey: ["materials", fetchParams],
-    queryFn: () => getProducts(fetchParams, options),
+    queryFn: () => getCompanyAssets(companyId, fetchParams),
     enabled: !!companyId && !!accessToken,
   });
 

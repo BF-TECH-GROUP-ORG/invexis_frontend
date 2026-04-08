@@ -288,7 +288,15 @@
           "editSubtitle": "Sasisha maelezo ya bidhaa na vitambulisho",
           "createSubtitle": "Fafanua maelezo ya msingi na vitambulisho vya mali ya ndani"
         },
-        "progress": "Maendeleo ya Usanidi"
+        "progress": "Maendeleo ya Usanidi",
+        "selectShop": "Eneo la Hifadhi",
+        "basicInfo": "Maelezo ya Msingi",
+        "media": "Viambatisho",
+        "pricing": "Habari za Bei",
+        "inventory": "Akiba ya Awali",
+        "category": "Kategoria ya Rasilimali",
+        "specs": "Vipimo vya Kiufundi",
+        "review": "Kagua na Uthibitishe"
       }
     },
     "detail": {

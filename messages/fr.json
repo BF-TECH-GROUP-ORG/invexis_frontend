@@ -286,7 +286,15 @@
           "editSubtitle": "Mettre à jour les spécifications et identifiants de l'article",
           "createSubtitle": "Définir les informations de base et les identifiants pour les actifs internes"
         },
-        "progress": "État d'avancement"
+        "progress": "État d'avancement",
+        "selectShop": "Lieu de stockage",
+        "basicInfo": "Informations de base",
+        "media": "Pièces jointes",
+        "pricing": "Informations sur les prix",
+        "inventory": "Stock initial",
+        "category": "Catégorie d'actif",
+        "specs": "Spécifications techniques",
+        "review": "Réviser et confirmer"
       }
     },
     "detail": {

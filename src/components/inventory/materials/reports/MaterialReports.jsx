@@ -19,12 +19,10 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
-
-import MaterialReportTable from "./MaterialReportTable";
 import { getCategories } from "@/services/categoriesService";
-import { getShops } from "@/services/branches"; // Assuming this exists or using organizationService
+import { getCompanyAssetReport } from "@/services/organizationService";
+import { getShops } from "@/services/branches";
+import apiClient from "@/lib/apiClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -48,18 +46,14 @@ export default function MaterialReports() {
   const { data: reportData, isLoading, isError, refetch } = useQuery({
     queryKey: ["material-report", { companyId, filter, startDate, endDate, shopId, categoryId }],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE}/inventory/v1/reports`, {
-        params: {
-          companyId,
-          filter,
-          startDate: filter === 'custom' ? startDate : undefined,
-          endDate: filter === 'custom' ? endDate : undefined,
-          shopId: shopId || undefined,
-          isForSale: "false", // Critical
-        },
-        headers: { Authorization: `Bearer ${accessToken}` }
+      const resp = await getCompanyAssetReport(companyId, {
+        filter,
+        startDate: filter === 'custom' ? startDate : undefined,
+        endDate: filter === 'custom' ? endDate : undefined,
+        shopId: shopId || undefined,
+        categoryId: categoryId || undefined,
       });
-      return data.data;
+      return resp.data;
     },
     enabled: !!companyId && !!accessToken,
   });
