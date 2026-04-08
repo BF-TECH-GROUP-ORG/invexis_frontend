@@ -90,41 +90,71 @@ export default function MaterialReports() {
   const categories = categoriesResponse || [];
   const shops = shopsResponse || [];
 
-  // Export Logic (CSV)
   const handleExport = useCallback(() => {
-    if (!reportData || !reportData.branches) return;
+    if (!reportData?.branches?.length) {
+      toast.error(t("noRecords") || "No records to export");
+      return;
+    }
+
+    const doc = new jsPDF();
     
-    const rows = [
-      ["Material Name", "Category", "Branch", "Opening Stock", "Stock In", "Stock Out", "Closing Stock", "Unit Cost", "Total Value", "Status"]
-    ];
-
-    reportData.branches.forEach(branch => {
-      branch.products.forEach(p => {
-        rows.push([
-          p.productName,
-          p.categoryName,
-          branch.shopId, // Or branch name if available
-          p.stats.movement.open,
-          p.stats.movement.in,
-          p.stats.movement.out,
-          p.stats.movement.close,
-          p.stats.value.unitPrice,
-          p.stats.value.totalValue,
-          p.stats.status.stockStatus
-        ]);
+    // Header Styling
+    doc.setFontSize(22);
+    doc.setTextColor(8, 20, 34);
+    doc.text("Asset Management Report", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Company Assets Inventory - ${new Date().toLocaleDateString()}`, 14, 30);
+    doc.text(`Period: ${startDate} to ${endDate}`, 14, 36);
+    
+    let currentY = 45;
+    
+    reportData.branches.forEach((branch, index) => {
+      if (index > 0 && currentY > 180) {
+        doc.addPage();
+        currentY = 20;
+      } else if (index > 0) {
+        currentY += 10;
+      }
+      
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Branch: ${branch.shopName || branch.shopId}`, 14, currentY);
+      currentY += 6;
+      
+      const tableRows = branch.products.map(p => [
+        p.productName,
+        p.stats.movement.open,
+        p.stats.movement.in,
+        p.stats.movement.out,
+        p.stats.movement.close,
+        p.stats.status.stockStatus
+      ]);
+      
+      doc.autoTable({
+        startY: currentY,
+        head: [['Asset', 'Opening', 'In', 'Out', 'Final', 'Status']],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { fillColor: [8, 20, 34], fontStyle: 'bold' },
+        styles: { fontSize: 8 },
+        margin: { left: 14, right: 14 }
       });
+      
+      currentY = doc.lastAutoTable.finalY + 8;
+      
+      // Subtotals
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Branch Summary: ${branch.totals.movement.close} Total | ${branch.totals.movement.in} In | ${branch.totals.movement.out} Out`, 14, currentY);
+      currentY += 15;
     });
-
-    const csvContent = "data:text/csv;charset=utf-8," + rows.map(r => r.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `material_report_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(t("exportStarted"));
-  }, [reportData, t]);
+    
+    doc.save(`invexis_asset_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success(t("exportPdfStarted") || "PDF Export Started");
+  }, [reportData, startDate, endDate, t]);
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">

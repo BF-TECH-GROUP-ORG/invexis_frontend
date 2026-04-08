@@ -103,6 +103,39 @@ export default function MaterialDetailClient({ id }) {
     }
   };
 
+  const [codeSubTab, setCodeSubTab] = useState("qr");
+  const [mainMedia, setMainMedia] = useState(null);
+
+  const mediaItems = useMemo(() => {
+    const items = [];
+    if (!product) return items;
+    // Images
+    const imgs = product.media?.images || product.images || [];
+    if (Array.isArray(imgs)) {
+      imgs.forEach((img) => {
+        items.push({ type: "image", url: img.url || img, isPrimary: img.isPrimary });
+      });
+    }
+    // Videos
+    const vids = product.media?.videos || product.videoUrls || [];
+    if (Array.isArray(vids)) {
+      vids.forEach((vid) => {
+        const url = vid.url || vid;
+        if (typeof url === "string") {
+          items.push({ type: "video", url: url });
+        }
+      });
+    }
+    return items;
+  }, [product]);
+
+  useEffect(() => {
+    if (mediaItems.length > 0 && !mainMedia) {
+      const primary = mediaItems.find(m => m.isPrimary) || mediaItems[0];
+      setMainMedia(primary);
+    }
+  }, [mediaItems, mainMedia]);
+
   if (loading || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -126,37 +159,6 @@ export default function MaterialDetailClient({ id }) {
     { id: "codes", label: t("codes"), icon: QrCode },
     { id: "history", label: t("movementHistory"), icon: History },
   ];
-
-  const [codeSubTab, setCodeSubTab] = useState("qr");
-  const [mainMedia, setMainMedia] = useState(null);
-
-  const mediaItems = useMemo(() => {
-    const items = [];
-    // Images
-    const imgs = product.media?.images || product.images || [];
-    if (Array.isArray(imgs)) {
-      imgs.forEach((img) => {
-        items.push({ type: "image", url: img.url || img, isPrimary: img.isPrimary });
-      });
-    }
-    // Videos
-    const vids = product.media?.videos || product.videoUrls || [];
-    if (Array.isArray(vids)) {
-      vids.forEach((vid) => {
-        const url = vid.url || vid;
-        if (typeof url === "string") {
-          items.push({ type: "video", url: url });
-        }
-      });
-    }
-    return items;
-  }, [product]);
-
-  useEffect(() => {
-    if (mediaItems.length > 0 && !mainMedia) {
-      setMainMedia(mediaItems[0]);
-    }
-  }, [mediaItems, mainMedia]);
 
   const handlePrintCode = (type, url, payload) => {
     const printWindow = window.open("", "_blank");
