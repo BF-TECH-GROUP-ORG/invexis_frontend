@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById, deleteProduct } from "@/features/products/productsSlice";
 import { useRouter, usePathname } from "next/navigation";

@@ -148,7 +148,7 @@ export default function MaterialReports() {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition font-bold text-sm ${isFilterOpen ? "border-black bg-black text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl border transition font-bold text-sm ${isFilterOpen ? "border-black bg-black text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}
           >
             <Filter size={16} />
             {t("advancedFilters")}
@@ -156,7 +156,7 @@ export default function MaterialReports() {
           
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold text-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold text-sm"
           >
             <Download size={16} />
             {t("exportCsv")}

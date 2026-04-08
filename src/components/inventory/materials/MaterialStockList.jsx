@@ -164,7 +164,7 @@ export default function MaterialStockList({ initialParams = {} }) {
             <p className="text-sm text-gray-400 font-medium">{tm("reports.subtitle")}</p>
           </div>
 
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -204,7 +204,7 @@ export default function MaterialStockList({ initialParams = {} }) {
 
             <button onClick={handleRefresh} className="p-2 border border-gray-200 rounded-full hover:bg-gray-50 text-gray-400"><RefreshCw size={18} /></button>
 
-            <Link href={routes.add} className="flex items-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
+            <Link href={routes.add} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
               <Plus size={20} /> {tf("add")} Material
             </Link>
           </div>
