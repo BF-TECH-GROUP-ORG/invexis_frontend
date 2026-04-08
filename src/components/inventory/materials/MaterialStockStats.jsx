@@ -50,20 +50,10 @@ export default function MaterialStockStats({ stats, isMounted }) {
       bgColor: "#fef3c7",
       key: "low_stock",
     },
-    {
-      title: t("value"),
-      value: stats.totalValue || 0,
-      Icon: Package,
-      color: "#8b5cf6",
-      bgColor: "#f3e8ff",
-      key: "value",
-      isCurrency: true,
-      hasToggle: true,
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {statCards.map((card, index) => {
         const Icon = card.Icon;
         const displayValue = !isMounted

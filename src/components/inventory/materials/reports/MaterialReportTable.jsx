@@ -59,11 +59,7 @@ function BranchReportSection({ branch }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-8">
-          <div className="hidden md:flex flex-col items-end">
-            <p className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">{t("branchValue")}</p>
-            <p className="text-sm font-black text-[#081422]">RWF {branch.totals.value.totalValue.toLocaleString()}</p>
-          </div>
+        <div className="flex items-center gap-4">
           <div className={`p-2 rounded-lg transition-transform ${isOpen ? "rotate-180" : ""}`}>
             <ChevronDown className="text-gray-400" size={20} />
           </div>
@@ -82,42 +78,37 @@ function BranchReportSection({ branch }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#fbfcff] text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <th className="px-6 py-4">{t("materialInfo")}</th>
-                    <th className="px-6 py-4">{t("opening")}</th>
-                    <th className="px-6 py-4">{t("stockIn")}</th>
-                    <th className="px-6 py-4">{t("stockOut")}</th>
-                    <th className="px-6 py-4">{t("available")}</th>
-                    <th className="px-6 py-4">{t("totalValue")}</th>
-                    <th className="px-6 py-4 text-center">{useTranslations("materials.table")("status")}</th>
+                  <tr className="bg-[#fbfcff] text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">{t("materialInfo")}</th>
+                    <th className="px-5 py-3">{t("opening")}</th>
+                    <th className="px-5 py-3">{t("stockIn")}</th>
+                    <th className="px-5 py-3">{t("stockOut")}</th>
+                    <th className="px-5 py-3">{t("available")}</th>
+                    <th className="px-5 py-3 text-center">{useTranslations("materials.table")("status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {branch.products.map((p) => (
                     <tr key={p.productId} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3">
                         <p className="text-sm font-bold text-gray-900">{p.productName}</p>
-                        <p className="text-xs text-gray-400 truncate uppercase mt-0.5">{p.categoryName}</p>
+                        <p className="text-[10px] text-gray-400 font-bold tracking-tight">{p.categoryName}</p>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{p.stats.movement.open}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3 text-sm text-gray-500">{p.stats.movement.open}</td>
+                      <td className="px-5 py-3">
                         <div className="flex items-center gap-1 text-emerald-600 font-bold text-sm">
                           <ArrowUpRight size={14} />
                           {p.stats.movement.in}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3">
                         <div className="flex items-center gap-1 text-orange-500 font-bold text-sm">
                           <ArrowDownRight size={14} />
                           {p.stats.movement.out}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-900">{p.stats.movement.close}</td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-bold text-gray-900">RWF {p.stats.value.totalValue.toLocaleString()}</p>
-                        <p className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">@ {p.stats.value.unitPrice.toLocaleString()}</p>
-                      </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-5 py-3 text-sm font-bold text-gray-900">{p.stats.movement.close}</td>
+                      <td className="px-5 py-3 text-center">
                         <StatusBadge status={p.stats.status.stockStatus} />
                       </td>
                     </tr>
@@ -127,7 +118,7 @@ function BranchReportSection({ branch }) {
             </div>
             
             {/* Branch Footer / KPI Footer */}
-            <div className="p-6 bg-gray-50/30 flex flex-wrap gap-12 border-t border-gray-100">
+            <div className="p-4 bg-gray-50/30 flex flex-wrap gap-10 border-t border-gray-100">
                <KpiItem label={t("totalStock")} value={branch.totals.movement.close} />
                <KpiItem label={t("inflow")} value={branch.totals.movement.in} color="text-emerald-600" />
                <KpiItem label={t("outflow")} value={branch.totals.movement.out} color="text-orange-500" />

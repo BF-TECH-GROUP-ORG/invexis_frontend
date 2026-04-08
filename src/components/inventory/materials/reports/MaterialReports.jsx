@@ -138,9 +138,9 @@ export default function MaterialReports() {
   const grandTotal = reportData?.grandTotal || { value: { totalValue: 0 }, kpis: { totalItems: 0, lowStockItems: 0 } };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
         <div>
           <h1 className="text-2xl font-extrabold text-[#081422] flex items-center gap-3">
             <BarChart3 className="text-gray-900" size={28} />
@@ -169,15 +169,7 @@ export default function MaterialReports() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard 
-          title={t("assetValue")} 
-          value={`RWF ${grandTotal.value.totalValue.toLocaleString()}`} 
-          icon={<TrendingUp size={24} />} 
-          desc={t("valuationDesc")}
-          color="#10b981"
-          bgColor="#ecfdf5"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <SummaryCard 
           title={t("totalItems")} 
           value={grandTotal.kpis.totalItems} 
@@ -212,7 +204,7 @@ export default function MaterialReports() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-gray-50/50 border border-gray-100 rounded-3xl p-8"
+            className="bg-gray-50/50 border border-gray-100 rounded-2xl p-6"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Period */}
