@@ -292,6 +292,29 @@
         },
         "progress": "Setup Progress"
       }
+    },
+    "detail": {
+      "overview": "Overview",
+      "specifications": "Specifications",
+      "movementHistory": "Movement History",
+      "loading": "Loading Asset...",
+      "assetName": "Asset Name",
+      "category": "Category",
+      "shop": "Shop / Warehouse",
+      "sku": "SKU Identifier",
+      "barcode": "Barcode",
+      "assetId": "Asset ID",
+      "brandOrigin": "Brand / Origin",
+      "currentQuantity": "Current Quantity",
+      "registeredDate": "Registered Date",
+      "internalDescription": "Internal Description",
+      "technicalDetails": "Technical Details",
+      "noTechnicalSpecs": "No technical specs defined",
+      "deleteConfirm": {
+        "title": "Delete Internal Asset?",
+        "message": "Are you sure you want to permanently delete \"{name}\"? This will remove all associated stock and history from the records.",
+        "confirm": "Delete Asset"
+      }
     }
   },
   "pages": {

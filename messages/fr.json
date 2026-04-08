@@ -288,6 +288,29 @@
         },
         "progress": "État d'avancement"
       }
+    },
+    "detail": {
+      "overview": "Aperçu",
+      "specifications": "Spécifications",
+      "movementHistory": "Historique des mouvements",
+      "loading": "Chargement de l'actif...",
+      "assetName": "Nom de l'actif",
+      "category": "Catégorie",
+      "shop": "Boutique / Entrepôt",
+      "sku": "Identifiant SKU",
+      "barcode": "Code-barres",
+      "assetId": "ID de l'actif",
+      "brandOrigin": "Marque / Origine",
+      "currentQuantity": "Quantité actuelle",
+      "registeredDate": "Date d'enregistrement",
+      "internalDescription": "Description interne",
+      "technicalDetails": "Détails techniques",
+      "noTechnicalSpecs": "Aucune spécification technique définie",
+      "deleteConfirm": {
+        "title": "Supprimer l'actif interne?",
+        "message": "Êtes-vous sûr de vouloir supprimer définitivement \"{name}\"? Cela supprimera tout le stock et l'historique associés des enregistrements.",
+        "confirm": "Supprimer l'actif"
+      }
     }
   },
   "pages": {

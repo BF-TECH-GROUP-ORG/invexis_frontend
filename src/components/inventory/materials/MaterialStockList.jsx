@@ -17,6 +17,7 @@ import apiClient from "@/lib/apiClient";
 
 import MaterialStockTable from "./MaterialStockTable";
 import MaterialStockStats from "./MaterialStockStats";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 
 /**
  * MaterialStockList - Container for non-saleable items (Internal Assets/Supplies)
@@ -44,6 +45,8 @@ export default function MaterialStockList({ initialParams = {} }) {
   const [searchTerm, setSearchTerm] = useState(searchTermFromUrl);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
   const filterRef = useRef(null);
 
   const currentUser = useMemo(() => session?.user || initialParams?.user, [session?.user, initialParams?.user]);
@@ -103,14 +106,22 @@ export default function MaterialStockList({ initialParams = {} }) {
   const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
 
   // Handlers
-  const handleDelete = async (id) => {
-    if (!confirm(tf("deleteConfirm") || "Are you sure?")) return;
+  const handleDeleteRequest = (id) => {
+    setDeleteModal({ isOpen: true, id });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.id) return;
+    setIsDeleting(true);
     try {
-      await dispatch(deleteProduct(id)).unwrap();
+      await dispatch(deleteProduct(deleteModal.id)).unwrap();
       toast.success("Material deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["materials"] });
+      setDeleteModal({ isOpen: false, id: null });
     } catch {
       toast.error("Failed to delete material");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -131,11 +142,11 @@ export default function MaterialStockList({ initialParams = {} }) {
     totalValue: products.reduce((sum, p) => sum + (p.pricing?.cost || 0) * (p.shopInventory?.quantity || 0), 0),
   }), [products, pagination.total]);
 
-  const basePath = "/inventory/products"; // Reuse product routes for detail/edit
+  const productPath = "/inventory/products";
   const routes = {
-    add: `${basePath}/add-wizard?type=material`, // Pre-configure for material
-    view: (id) => `${basePath}/${id}`,
-    edit: (id) => `${basePath}/${id}/edit`,
+    add: `${productPath}/add-wizard?type=material`,
+    view: (id) => `/inventory/material-stock/${id}`,
+    edit: (id) => `${productPath}/${id}/edit?type=material`,
   };
 
   return (
@@ -201,13 +212,23 @@ export default function MaterialStockList({ initialParams = {} }) {
         <MaterialStockTable
           products={products}
           loading={productsLoading}
-          onDelete={handleDelete}
+          onDelete={handleDeleteRequest}
           viewUrl={routes.view}
           editUrl={routes.edit}
           pagination={pagination}
           onPageChange={(p) => updateFilters({ page: p })}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isDeleting}
+        title={tm("deleteConfirm.title") || "Delete Asset?"}
+        message={tm("deleteConfirm.message") || "Are you sure you want to delete this material asset? This action cannot be undone."}
+        confirmText={tm("deleteConfirm.confirm") || "Delete Asset"}
+      />
     </div>
   );
 }

@@ -290,6 +290,29 @@
         },
         "progress": "Maendeleo ya Usanidi"
       }
+    },
+    "detail": {
+      "overview": "Maelezo ya jumla",
+      "specifications": "Vipimo",
+      "movementHistory": "Historia ya miondoko",
+      "loading": "Inapakia Rasilimali...",
+      "assetName": "Jina la Rasilimali",
+      "category": "Kategoria",
+      "shop": "Duka / Ghala",
+      "sku": "Kitambulisho cha SKU",
+      "barcode": "Msimbo pau",
+      "assetId": "ID ya Rasilimali",
+      "brandOrigin": "Chapa / Asili",
+      "currentQuantity": "Idadi ya sasa",
+      "registeredDate": "Tarehe ya kusajiliwa",
+      "internalDescription": "Maelezo ya ndani",
+      "technicalDetails": "Maelezo ya kiufundi",
+      "noTechnicalSpecs": "Hakuna maelezo ya kiufundi yaliyofafanuliwa",
+      "deleteConfirm": {
+        "title": "Futa Rasilimali ya Ndani?",
+        "message": "Je, una uhakika unataka kufuta kabisa \"{name}\"? Hii itaondoa akiba na historia yote inayohusiana kutoka kwenye rekodi.",
+        "confirm": "Futa Rasilimali"
+      }
     }
   },
   "pages": {

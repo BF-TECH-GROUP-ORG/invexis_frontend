@@ -293,6 +293,29 @@
         },
         "progress": "Intambwe imaze guterwa"
       }
+    },
+    "detail": {
+      "overview": "Incamake",
+      "specifications": "Ibisobanuro",
+      "movementHistory": "Amateka y'ingendo",
+      "loading": "Biratunganywa...",
+      "assetName": "Izina ry'igikoresho",
+      "category": "Icyiciro",
+      "shop": "Iduka / Ububiko",
+      "sku": "Idonzi rya SKU",
+      "barcode": "Siganwa ry'uturongo",
+      "assetId": "ID y'igikoresho",
+      "brandOrigin": "Ikimenyetso / Inkomoko",
+      "currentQuantity": "Umubare uhari",
+      "registeredDate": "Itariki cyanditsweho",
+      "internalDescription": "Ibisobanuro by'imbere",
+      "technicalDetails": "Ibisobanuro bya tekiniki",
+      "noTechnicalSpecs": "Nta bisobanuro bya tekiniki bihari",
+      "deleteConfirm": {
+        "title": "Gusiba iki gikoresho?",
+        "message": "Ese wizeye neza ko ushaka gusiba burundu \"{name}\"? Ibi bizasiba ibikoresho byose n'amateka yabyo mu bitabo.",
+        "confirm": "Siba Igikoresho"
+      }
     }
   },
   "pages": {

@@ -138,12 +138,10 @@ export default function AddProductWizard({
           
           if (savedFormData) setFormData(savedFormData);
           if (savedStep) setCurrentStep(savedStep);
-
         } catch (e) {
           console.error("Failed to restore wizard state:", e);
         }
       } else if (typeParam === "material") {
-        // If no saved state, initialize as material if requested
         setFormData(prev => ({ ...prev, isForSale: false }));
       }
     }
@@ -244,6 +242,8 @@ export default function AddProductWizard({
         videoUrls: (initialData.media?.videos || [])
           .filter((v) => v.type === "url")
           .map((v) => v.url),
+        // Ensure isForSale is correctly synchronized from backend
+        isForSale: initialData.isForSale ?? prev.isForSale ?? true,
       }));
     } else if (
       status === "authenticated" &&
