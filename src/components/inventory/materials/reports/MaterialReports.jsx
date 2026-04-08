@@ -25,6 +25,8 @@ import { getCompanyAssetReport } from "@/services/organizationService";
 import { getShops } from "@/services/branches";
 import apiClient from "@/lib/apiClient";
 import MaterialReportTable from "./MaterialReportTable";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -136,7 +138,7 @@ export default function MaterialReports() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-[#081422]">
         <div>
           <h1 className="text-2xl font-extrabold text-[#081422] flex items-center gap-3">
             <BarChart3 className="text-gray-900" size={28} />
@@ -159,7 +161,7 @@ export default function MaterialReports() {
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold text-sm"
           >
             <Download size={16} />
-            {t("exportCsv")}
+            {t("exportPdf") || "Export PDF"}
           </button>
         </div>
       </div>
@@ -292,7 +294,7 @@ export default function MaterialReports() {
 
 function SummaryCard({ title, value, icon, desc, warning, color, bgColor }) {
   return (
-    <div className={`p-5 border rounded-2xl bg-white transition-all border-gray-100 hover:border-[#081422] shadow-md hover:shadow-lg overflow-hidden`}>
+    <div className={`p-5 border rounded-2xl bg-white transition-all border-gray-100 hover:border-[#081422] shadow-sm hover:shadow-md overflow-hidden`}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0 pr-2">
           <div className="text-sm text-[#6b7280] font-medium mb-1 truncate">{title}</div>

@@ -117,12 +117,32 @@ function BranchReportSection({ branch }) {
               </table>
             </div>
             
-            {/* Branch Footer / KPI Footer */}
-            <div className="p-4 bg-gray-50/30 flex flex-wrap gap-10 border-t border-gray-100">
-               <KpiItem label={t("totalStock")} value={branch.totals.movement.close} />
-               <KpiItem label={t("inflow")} value={branch.totals.movement.in} color="text-emerald-600" />
-               <KpiItem label={t("outflow")} value={branch.totals.movement.out} color="text-orange-500" />
-               <KpiItem label={t("lowStockItems")} value={branch.totals.kpis.lowStockItems} color="text-orange-600" />
+            {/* Branch Footer / KPI Footer - Aligned with columns */}
+            <div className="bg-gray-50/50 border-t border-gray-100">
+               <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_100px] items-center px-5 py-4">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t("branchTotals") || "Branch Totals"}</div>
+                  <div className="text-sm font-bold text-gray-900 text-center">-</div>
+                  <div className="flex items-center gap-1 text-emerald-600 font-bold text-sm">
+                    <ArrowUpRight size={14} />
+                    {branch.totals.movement.in}
+                  </div>
+                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm">
+                    <ArrowDownRight size={14} />
+                    {branch.totals.movement.out}
+                  </div>
+                  <div className="text-sm font-bold text-[#081422]">
+                    {branch.totals.movement.close}
+                  </div>
+                  <div className="text-center">
+                    {branch.totals.kpis.lowStockItems > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold uppercase">
+                        {branch.totals.kpis.lowStockItems} {t("lowStock") || "Low"}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tight">{t("allHealthy") || "Healthy"}</span>
+                    )}
+                  </div>
+               </div>
             </div>
           </motion.div>
         )}
