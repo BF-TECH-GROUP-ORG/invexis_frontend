@@ -95,8 +95,8 @@ export default function MaterialStockTable({
             <AnimatePresence mode="popLayout">
               {products.length > 0 ? (
                 products.map((product, index) => {
-                  const stock = product.shopInventory?.quantity ?? product.stock ?? 0;
-                  const threshold = product.shopInventory?.lowStockThreshold ?? 10;
+                  const stock = product.stock?.total ?? product.shopInventory?.quantity ?? 0;
+                  const threshold = product.stock?.lowStockThreshold ?? product.shopInventory?.lowStockThreshold ?? 10;
                   const isLowStock = stock > 0 && stock <= threshold;
                   const isOutOfStock = stock <= 0;
 

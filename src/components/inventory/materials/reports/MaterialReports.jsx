@@ -18,6 +18,7 @@ import {
   Layers
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { getCategories } from "@/services/categoriesService";
 import { getCompanyAssetReport } from "@/services/organizationService";

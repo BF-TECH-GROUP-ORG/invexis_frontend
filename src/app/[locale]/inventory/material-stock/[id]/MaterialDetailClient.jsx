@@ -21,7 +21,18 @@ import {
   Info,
   Layers,
   FileText,
-  Warehouse
+  Warehouse,
+  FileBadge,
+  Image as ImageIcon,
+  Video,
+  Eye,
+  PlayCircle,
+  X,
+  Printer,
+  Copy,
+  BarChart3,
+  Bell,
+  Truck
 } from "lucide-react";
 import shopService from "@/services/shopService";
 import ConfirmModal from "@/components/shared/ConfirmModal";
@@ -103,16 +114,72 @@ export default function MaterialDetailClient({ id }) {
     );
   }
 
-  const stock = product.shopInventory?.quantity ?? product.stock ?? 0;
-  const threshold = product.shopInventory?.lowStockThreshold ?? 10;
+  const stock = product.stock?.total ?? product.shopInventory?.quantity ?? 0;
+  const threshold = product.stock?.lowStockThreshold ?? product.shopInventory?.lowStockThreshold ?? 10;
   const isLowStock = stock > 0 && stock <= threshold;
   const isOutOfStock = stock <= 0;
 
   const tabs = [
     { id: "overview", label: t("overview"), icon: Layout },
     { id: "specs", label: t("specifications"), icon: FileText },
+    { id: "media", label: t("media"), icon: ImageIcon },
+    { id: "codes", label: t("codes"), icon: QrCode },
     { id: "history", label: t("movementHistory"), icon: History },
   ];
+
+  const [codeSubTab, setCodeSubTab] = useState("qr");
+  const [mainMedia, setMainMedia] = useState(null);
+
+  const mediaItems = useMemo(() => {
+    const items = [];
+    // Images
+    const imgs = product.media?.images || product.images || [];
+    if (Array.isArray(imgs)) {
+      imgs.forEach((img) => {
+        items.push({ type: "image", url: img.url || img, isPrimary: img.isPrimary });
+      });
+    }
+    // Videos
+    const vids = product.media?.videos || product.videoUrls || [];
+    if (Array.isArray(vids)) {
+      vids.forEach((vid) => {
+        const url = vid.url || vid;
+        if (typeof url === "string") {
+          items.push({ type: "video", url: url });
+        }
+      });
+    }
+    return items;
+  }, [product]);
+
+  useEffect(() => {
+    if (mediaItems.length > 0 && !mainMedia) {
+      setMainMedia(mediaItems[0]);
+    }
+  }, [mediaItems, mainMedia]);
+
+  const handlePrintCode = (type, url, payload) => {
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print ${type}</title>
+          <style>
+            body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+            img { max-width: 300px; margin-bottom: 20px; }
+            .payload { font-size: 24px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h1>${product.name}</h1>
+          <img src="${url}" />
+          <div class="payload">${payload}</div>
+          <script>window.onload = () => { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto pt-6 px-4 pb-20">
@@ -286,6 +353,176 @@ export default function MaterialDetailClient({ id }) {
                        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t("noTechnicalSpecs")}</p>
                     </div>
                   )}
+                </motion.div>
+            )}
+
+            {activeTab === "media" && (
+                <motion.div
+                  key="media"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <section className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10">
+                    <div className="flex items-center justify-between mb-10">
+                      <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span className="w-1 h-6 bg-orange-500 rounded-full" />
+                        {t("media")}
+                      </h3>
+                    </div>
+
+                    {mediaItems.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-24 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                        <div className="p-5 bg-gray-100 rounded-full text-gray-400 mb-4">
+                          <ImageIcon size={40} />
+                        </div>
+                        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">
+                          {t("noMedia")}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {mediaItems.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            className="group relative aspect-square rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all"
+                          >
+                            {item.type === "image" ? (
+                              <img src={item.url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            ) : (
+                              <div className="w-full h-full bg-[#081422] flex items-center justify-center text-white">
+                                <PlayCircle size={48} />
+                              </div>
+                            )}
+                            {item.isPrimary && (
+                              <div className="absolute top-4 left-4 px-2 py-1 bg-white/90 backdrop-blur rounded-lg shadow-sm border border-gray-100 text-[8px] font-black uppercase tracking-widest">
+                                Primary
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </motion.div>
+            )}
+
+            {activeTab === "codes" && (
+                <motion.div
+                  key="codes"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <section className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10">
+                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+                      <span className="w-1 h-6 bg-blue-600 rounded-full" />
+                      {t("codes")}
+                    </h3>
+
+                    <div className="flex gap-2 p-1.5 bg-gray-50 rounded-2xl mb-10 max-w-md mx-auto">
+                      <button
+                        onClick={() => setCodeSubTab("qr")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          codeSubTab === "qr" ? "bg-white text-orange-600 shadow-sm" : "text-gray-400 hover:text-black"
+                        }`}
+                      >
+                        <QrCode size={16} /> QR CODE
+                      </button>
+                      <button
+                        onClick={() => setCodeSubTab("barcode")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          codeSubTab === "barcode" ? "bg-white text-orange-600 shadow-sm" : "text-gray-400 hover:text-black"
+                        }`}
+                      >
+                        <BarChart3 size={16} /> BARCODE
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center py-10">
+                      <AnimatePresence mode="wait">
+                        {codeSubTab === "qr" ? (
+                          <motion.div
+                            key="qr"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="flex flex-col items-center"
+                          >
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-inner ring-8 ring-gray-50 mb-8">
+                               {product.codes?.qrCodeUrl || product.qrCodeUrl ? (
+                                 <img src={product.codes.qrCodeUrl || product.qrCodeUrl} className="w-64 h-64 object-contain" />
+                               ) : (
+                                 <div className="w-64 h-64 flex items-center justify-center text-gray-300 italic text-sm">
+                                   {t("noQr")}
+                                 </div>
+                               )}
+                            </div>
+                            {product.identifiers?.qrCode && (
+                              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payload:</span>
+                                <code className="text-sm font-bold text-gray-700">{product.identifiers.qrCode}</code>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(product.identifiers.qrCode);
+                                    toast.success("Copied to clipboard");
+                                  }}
+                                  className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-orange-600 transition-all"
+                                >
+                                  <Copy size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handlePrintCode("QR Code", product.codes?.qrCodeUrl || product.qrCodeUrl, product.identifiers.qrCode)}
+                                  className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-blue-600 transition-all"
+                                >
+                                  <Printer size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="barcode"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="flex flex-col items-center w-full max-w-2xl px-10"
+                          >
+                            <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm w-full ring-8 ring-gray-50 mb-8 overflow-hidden">
+                               {product.codes?.barcodeUrl || product.barcodeUrl ? (
+                                 <img src={product.codes.barcodeUrl || product.barcodeUrl} className="w-full h-32 object-contain" />
+                               ) : (
+                                 <div className="h-32 flex items-center justify-center text-gray-300 italic text-sm">
+                                   {t("noBarcode")}
+                                 </div>
+                               )}
+                            </div>
+                            {product.identifiers?.barcode && (
+                              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Payload:</span>
+                                <code className="text-sm font-bold text-gray-700">{product.identifiers.barcode}</code>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(product.identifiers.barcode);
+                                    toast.success("Copied to clipboard");
+                                  }}
+                                  className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-orange-600 transition-all"
+                                >
+                                  <Copy size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handlePrintCode("Barcode", product.codes?.barcodeUrl || product.barcodeUrl, product.identifiers.barcode)}
+                                  className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-blue-600 transition-all"
+                                >
+                                  <Printer size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </section>
                 </motion.div>
             )}
 

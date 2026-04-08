@@ -134,12 +134,13 @@ export default function MaterialStockList({ initialParams = {} }) {
   // Stats calculation
   const stats = useMemo(() => ({
     total: pagination.total || products.length,
-    inStock: products.filter(p => (p.shopInventory?.quantity || 0) > 0).length,
+    inStock: products.filter(p => (p.stock?.total || p.shopInventory?.quantity || 0) > 0).length,
     lowStock: products.filter(p => {
-      const qty = p.shopInventory?.quantity || 0;
-      return qty > 0 && qty <= (p.shopInventory?.lowStockThreshold || 10);
+      const qty = p.stock?.total || p.shopInventory?.quantity || 0;
+      const threshold = p.stock?.lowStockThreshold || p.shopInventory?.lowStockThreshold || 10;
+      return qty > 0 && qty <= threshold;
     }).length,
-    totalValue: products.reduce((sum, p) => sum + (p.pricing?.cost || 0) * (p.shopInventory?.quantity || 0), 0),
+    totalValue: products.reduce((sum, p) => sum + (p.pricing?.cost || 0) * (p.stock?.total || p.shopInventory?.quantity || 0), 0),
   }), [products, pagination.total]);
 
   const productPath = "/inventory/products";
