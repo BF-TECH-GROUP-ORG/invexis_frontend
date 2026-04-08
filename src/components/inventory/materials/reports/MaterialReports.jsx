@@ -24,6 +24,7 @@ import { getCategories } from "@/services/categoriesService";
 import { getCompanyAssetReport } from "@/services/organizationService";
 import { getShops } from "@/services/branches";
 import apiClient from "@/lib/apiClient";
+import MaterialReportTable from "./MaterialReportTable";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
