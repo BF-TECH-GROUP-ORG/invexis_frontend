@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 
 /**
  * Get all discounts for a company
@@ -13,7 +13,7 @@ export async function getDiscounts({ companyId, page = 1, limit = 20, status, ty
         if (status) params.status = status;
         if (type) params.type = type;
 
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/discounts/company/${companyId}`, {
+        const data = await apiClient.get(`/inventory/v1/discounts/company/${companyId}`, {
             params
         });
         return data;
@@ -28,7 +28,7 @@ export async function getDiscounts({ companyId, page = 1, limit = 20, status, ty
  */
 export async function getDiscountById(id) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/discounts/${id}`);
+        const data = await apiClient.get(`/inventory/v1/discounts/${id}`);
         return data;
     } catch (err) {
         throw err;
@@ -41,7 +41,7 @@ export async function getDiscountById(id) {
  */
 export async function createDiscount(payload) {
     try {
-        const data = await apiClient.post(`${API_BASE}/inventory/v1/discounts`, payload);
+        const data = await apiClient.post(`/inventory/v1/discounts`, payload);
         return data;
     } catch (err) {
         throw err;
@@ -54,7 +54,7 @@ export async function createDiscount(payload) {
  */
 export async function updateDiscount(id, updates) {
     try {
-        const data = await apiClient.put(`${API_BASE}/inventory/v1/discounts/${id}`, updates);
+        const data = await apiClient.put(`/inventory/v1/discounts/${id}`, updates);
         return data;
     } catch (err) {
         throw err;
@@ -67,7 +67,7 @@ export async function updateDiscount(id, updates) {
  */
 export async function deleteDiscount(id) {
     try {
-        const data = await apiClient.delete(`${API_BASE}/inventory/v1/discounts/${id}`);
+        const data = await apiClient.delete(`/inventory/v1/discounts/${id}`);
         return data;
     } catch (err) {
         throw err;
@@ -80,7 +80,7 @@ export async function deleteDiscount(id) {
  */
 export async function toggleDiscountStatus(id) {
     try {
-        const data = await apiClient.patch(`${API_BASE}/inventory/v1/discounts/${id}/toggle`, {});
+        const data = await apiClient.patch(`/inventory/v1/discounts/${id}/toggle`, {});
         return data;
     } catch (err) {
         throw err;
@@ -93,7 +93,7 @@ export async function toggleDiscountStatus(id) {
  */
 export async function applyDiscountToProducts(id, productIds) {
     try {
-        const data = await apiClient.post(`${API_BASE}/inventory/v1/discounts/${id}/apply`, { productIds });
+        const data = await apiClient.post(`/inventory/v1/discounts/${id}/apply`, { productIds });
         return data;
     } catch (err) {
         throw err;

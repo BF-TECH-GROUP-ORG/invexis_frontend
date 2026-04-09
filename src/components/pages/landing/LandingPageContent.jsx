@@ -293,13 +293,33 @@ function HomePageContent() {
         </div>
 
         <div className={styles.navLinks}>
-          <a href="#home">{t("nav.home")}</a>
-          <a href="#about">{t("nav.about")}</a>
-          <a href="#features">{t("nav.features")}</a>
-          <a href="#pricing">{t("nav.pricing")}</a>
-          <a href="#why">{t("nav.why")}</a>
-          <a href="#faq">{t("nav.faq")}</a>
-          <a href="#contact">{t("nav.contact")}</a>
+          {sections.map((section) => (
+            <div key={section.id} className="relative py-2">
+              <a
+                href={`#${section.id}`}
+                className={`${styles.navLink} ${activeSection === section.id ? styles.activeLink : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(section.id)?.scrollIntoView({
+                    behavior: "smooth",
+                  });
+                }}
+              >
+                {section.label}
+              </a>
+              {activeSection === section.id && (
+                <motion.div
+                  layoutId="activeNavIndicator"
+                  className={styles.activeIndicator}
+                  transition={{
+                    type: "spring",
+                    stiffness: 380,
+                    damping: 30,
+                  }}
+                />
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center gap-4">
@@ -397,12 +417,16 @@ function HomePageContent() {
       >
         <div className={styles.mobileMenuContent}>
           <div className={styles.mobileNavLinks}>
-            <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.home")}</a>
-            <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.about")}</a>
-            <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.features")}</a>
-            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.pricing")}</a>
-            <a href="#why" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.why")}</a>
-            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)}>{t("nav.faq")}</a>
+            {sections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                className={`${styles.mobileLink} ${activeSection === section.id ? styles.mobileLinkActive : ""}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {section.label}
+              </a>
+            ))}
           </div>
 
           <div className={styles.mobileAuthActions}>

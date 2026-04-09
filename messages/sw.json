@@ -26,6 +26,7 @@
     "shops": "Maduka",
     "inventory": "Hesabu",
     "products": "Bidhaa",
+    "assets": "Rasilimali",
     "transfers": "Uhamaji",
     "stockOps": "Uendeshaji wa Hisa",
     "sales": "Mauzo",
@@ -207,6 +208,125 @@
     },
     "workers": {
       "title": "Wafanyakazi"
+    }
+  },
+  "materials": {
+    "stats": {
+      "total": "Jumla ya Nyenzo",
+      "stock": "Rasilimali Zilizohesabiwa",
+      "lowStock": "Arifa ya Hisa ya Chini",
+      "value": "Thamani Jumla ya Rasilimali"
+    },
+    "table": {
+      "product": "Bidhaa / Rasilimali",
+      "category": "Kategoria",
+      "brand": "Chapa / Mtengenezaji",
+      "stockLevel": "Kiwango cha Hisa",
+      "status": "Hali",
+      "actions": "Vitendo",
+      "units": "Vitengo",
+      "inStock": "Ipo",
+      "lowStock": "Hisa ya Chini",
+      "outOfStock": "Imeisha",
+      "viewDetails": "Angalia Maelezo",
+      "edit": "Hariri",
+      "delete": "Futa",
+      "noMaterials": "Hakuna nyenzo zilizopatikana kwenye hisa",
+      "addPrompt": "Bonyeza kitufe cha kuongeza ili kusajili rasilimali mpya za ndani",
+      "showingPage": "Inaonyesha Ukurasa wa {page} kati ya {pages}",
+      "previous": "Iliyopita",
+      "next": "Inayofuata"
+    },
+    "reports": {
+      "title": "Ripoti za Hisa za Nyenzo",
+      "subtitle": "Maarifa ya kina kuhusu rasilimali za ndani, thamani na mienendo",
+      "advancedFilters": "Vichujio vya Juu",
+      "exportCsv": "Hamisha CSV",
+      "assetValue": "Thamani Jumla ya Rasilimali",
+      "totalItems": "Jumla ya Vitu",
+      "lowStockAssets": "Rasilimali za Hisa ya Chini",
+      "stockMovement": "Mienendo ya Hisa",
+      "valuationDesc": "Thamani ya sasa",
+      "branchDesc": "Katika matawi yote",
+      "replenishDesc": "Inahitaji kuongezwa",
+      "movementDesc": "Jumla ya nyongeza (Ingia)",
+      "period": "Kipindi cha Ripoti",
+      "startDate": "Tarehe ya Kuanza",
+      "endDate": "Tarehe ya Kumaliza",
+      "branch": "Tawi / Duka",
+      "allBranches": "Matawi Yote",
+      "allCategories": "Kategoria Zote",
+      "insights": "Inatengeneza Maarifa ya Nyenzo...",
+      "exportStarted": "Uhamishaji umeanza",
+      "branchValue": "Thamani ya Tawi",
+      "materialItems": "Vitu {count} vya Nyenzo",
+      "materialInfo": "Maelezo ya Nyenzo",
+      "opening": "Ufunguzi",
+      "stockIn": "Ingia",
+      "stockOut": "Toka",
+      "available": "Inapatikana",
+      "totalValue": "Thamani Jumla",
+      "totalStock": "Jumla ya Hisa",
+      "inflow": "Ingia",
+      "outflow": "Toka",
+      "lowStockItems": "Vitu vya Hisa ya Chini",
+      "noRecords": "Hakuna rekodi za nyenzo zilizopatikana kwa kipindi hiki."
+    },
+    "wizard": {
+      "purpose": "Bidhaa hii ni ya nini?",
+      "forSale": "Bidhaa ya kuuza",
+      "forSaleDesc": "Vitu vya kuuzwa kwa wateja kwa mapato",
+      "internal": "Matumizi ya ndani / Nyenzo",
+      "internalDesc": "Vifaa, zana au mali inayotumika ndani ya kampuni (Sio ya kuuzwa)",
+      "header": {
+        "backToProducts": "Rudi kwenye Nyenzo"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Hariri Nyenzo",
+          "createTitle": "Sajili Nyenzo Mpya",
+          "editSubtitle": "Sasisha maelezo ya bidhaa na vitambulisho",
+          "createSubtitle": "Fafanua maelezo ya msingi na vitambulisho vya mali ya ndani"
+        },
+        "progress": "Maendeleo ya Usanidi",
+        "selectShop": "Eneo la Hifadhi",
+        "basicInfo": "Maelezo ya Msingi",
+        "media": "Viambatisho",
+        "pricing": "Habari za Bei",
+        "inventory": "Akiba ya Awali",
+        "category": "Kategoria ya Rasilimali",
+        "specs": "Vipimo vya Kiufundi",
+        "review": "Kagua na Uthibitishe"
+      }
+    },
+    "detail": {
+      "overview": "Maelezo ya jumla",
+      "specifications": "Vipimo",
+      "movementHistory": "Historia ya miondoko",
+      "media": "Media na Rasilimali",
+      "codes": "Vitambulisho na Misimbo",
+      "qrCode": "Msimbo wa QR",
+      "noQr": "Hakuna msimbo wa QR uliotengenezwa",
+      "noBarcode": "Hakuna msimbo wa upau uliotengenezwa",
+      "noMedia": "Hakuna faili za media zilizoambatishwa",
+      "loading": "Inapakia Rasilimali...",
+      "assetName": "Jina la Rasilimali",
+      "category": "Kategoria",
+      "shop": "Duka / Ghala",
+      "sku": "Kitambulisho cha SKU",
+      "barcode": "Msimbo pau",
+      "assetId": "ID ya Rasilimali",
+      "brandOrigin": "Chapa / Asili",
+      "currentQuantity": "Idadi ya sasa",
+      "registeredDate": "Tarehe ya kusajiliwa",
+      "internalDescription": "Maelezo ya ndani",
+      "technicalDetails": "Maelezo ya kiufundi",
+      "noTechnicalSpecs": "Hakuna maelezo ya kiufundi yaliyofafanuliwa",
+      "deleteConfirm": {
+        "title": "Futa Rasilimali ya Ndani?",
+        "message": "Je, una uhakika unataka kufuta kabisa \"{name}\"? Hii itaondoa akiba na historia yote inayohusiana kutoka kwenye rekodi.",
+        "confirm": "Futa Rasilimali"
+      }
     }
   },
   "pages": {

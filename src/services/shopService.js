@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-const SHOP_API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 /**
  * Get all shops

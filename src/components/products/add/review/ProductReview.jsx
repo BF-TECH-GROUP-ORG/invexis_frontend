@@ -58,6 +58,18 @@ export default function ProductReview({ formData, onEdit, steps }) {
               {formData.supplierName || "N/A"}
             </dd>
           </div>
+          <div>
+            <dt className="text-sm text-gray-600">Product Purpose</dt>
+            <dd className="mt-1">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                formData.isForSale !== false
+                  ? "bg-green-100 text-green-800"
+                  : "bg-blue-100 text-blue-800"
+              }`}>
+                {formData.isForSale !== false ? "For Sale" : "Internal Use / Not For Sale"}
+              </span>
+            </dd>
+          </div>
           <div className="col-span-2">
             <dt className="text-sm text-gray-600">Description</dt>
             <dd className="font-medium text-gray-900">
@@ -103,33 +115,35 @@ export default function ProductReview({ formData, onEdit, steps }) {
         </div>
       </div>
 
-      {/* Pricing */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
-          <button
-            onClick={() => onEdit(getStepNumber("pricing"))}
-            className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
-          >
-            <Edit2 className="w-4 h-4 mr-1" />
-            Edit
-          </button>
+      {/* Pricing - Only show if for sale */}
+      {formData.isForSale !== false && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
+            <button
+              onClick={() => onEdit(getStepNumber("pricing"))}
+              className="flex items-center text-orange-500 hover:text-orange-600 text-sm font-medium"
+            >
+              <Edit2 className="w-4 h-4 mr-1" />
+              Edit
+            </button>
+          </div>
+          <dl className="grid grid-cols-2 gap-4">
+            <div>
+              <dt className="text-sm text-gray-600">Cost Price</dt>
+              <dd className="font-medium text-gray-900">
+                {formData.pricing.cost?.toLocaleString() || "0"} RWF
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-600">Selling Price</dt>
+              <dd className="font-medium text-gray-900">
+                {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
+              </dd>
+            </div>
+          </dl>
         </div>
-        <dl className="grid grid-cols-2 gap-4">
-          <div>
-            <dt className="text-sm text-gray-600">Cost Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.cost?.toLocaleString() || "0"} RWF
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-gray-600">Selling Price</dt>
-            <dd className="font-medium text-gray-900">
-              {formData.pricing.basePrice?.toLocaleString() || "0"} RWF
-            </dd>
-          </div>
-        </dl>
-      </div>
+      )}
 
       {/* Inventory */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">

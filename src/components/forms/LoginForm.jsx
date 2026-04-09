@@ -34,6 +34,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const queryError = searchParams.get("error");
 
   // Client-side fallback redirect if already authenticated
   useEffect(() => {
@@ -42,7 +43,16 @@ const LoginPage = () => {
     }
   }, [status, callbackUrl, router]);
 
-  if (status === "authenticated") return null;
+  // Handle Google SSO errors from URL
+  useEffect(() => {
+    if (queryError === "google_user_missing") {
+      router.push("/auth/unauthorized");
+    } else if (queryError === "google_auth_failed" || queryError === "google_user_inactive") {
+      setError(t("loginFailed") || "Google authentication failed or account is inactive. Please try again.");
+    }
+  }, [queryError, router, t]);
+
+  if (status === "authenticated" || queryError === "google_user_missing") return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,7 +119,7 @@ const LoginPage = () => {
             submitIcon={!submitting && <HiArrowRight />}
             isLoading={submitting}
             error={error}
-            oauthOptions={["google", "otp"]}
+            oauthOptions={["google"]}
             fields={[
               {
                 label: tForm("email"),

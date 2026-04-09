@@ -12,6 +12,7 @@ const publicPages = [
     "/auth/verify-otp",
     "/auth/reset-password/*",
     "/auth/otp-login/*",
+    "/auth/unauthorized",
     "/welcome",
     "/errors/*"
 ];

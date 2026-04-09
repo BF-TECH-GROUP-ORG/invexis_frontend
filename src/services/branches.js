@@ -1,11 +1,10 @@
 import apiClient from "@/lib/apiClient";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const getBranches = async (companyId, options = {}) => {
   try {
     if (!companyId) return [];
-    const url = `${BASE_URL}/shop/`;
+    const url = `/shop/`;
 
     const response = await apiClient.get(url, {
       params: { companyId },
@@ -44,7 +43,7 @@ export const getBranches = async (companyId, options = {}) => {
 
 export const getBranchById = async (branchId, companyId) => {
   try {
-    const response = await apiClient.get(`${BASE_URL}/shop/${branchId}`, {
+    const response = await apiClient.get(`/shop/${branchId}`, {
       params: { companyId },
     });
 
@@ -63,7 +62,7 @@ export const createBranch = async (branchData) => {
   }
 
   try {
-    const response = await apiClient.post(`${BASE_URL}/shop`, branchData);
+    const response = await apiClient.post(`/shop`, branchData);
     apiClient.clearCache("shop");
     apiClient.clearCache("branches");
 
@@ -77,7 +76,7 @@ export const createBranch = async (branchData) => {
 export const updateBranch = async (branchId, branchData, companyId) => {
   try {
     const response = await apiClient.patch(
-      `${BASE_URL}/shop/${branchId}`,
+      `/shop/${branchId}`,
       branchData,
       {
         params: { companyId },
@@ -95,7 +94,7 @@ export const updateBranch = async (branchId, branchData, companyId) => {
 
 export const deleteBranch = async (branchId, companyId) => {
   try {
-    const response = await apiClient.delete(`${BASE_URL}/shop/${branchId}`, {
+    const response = await apiClient.delete(`/shop/${branchId}`, {
       params: { companyId },
     });
     apiClient.clearCache("shop");

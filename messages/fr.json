@@ -26,6 +26,7 @@
     "shops": "Magasins",
     "inventory": "Inventaire",
     "products": "Produits",
+    "assets": "Actifs",
     "transfers": "Transferts",
     "stockOps": "Opérations de stock",
     "sales": "Ventes",
@@ -205,6 +206,125 @@
     },
     "workers": {
       "title": "Employés"
+    }
+  },
+  "materials": {
+    "stats": {
+      "total": "Total des matériaux",
+      "stock": "Actifs en stock",
+      "lowStock": "Alerte de stock faible",
+      "value": "Valeur totale des actifs"
+    },
+    "table": {
+      "product": "Produit / Actif",
+      "category": "Catégorie",
+      "brand": "Marque / Fabricant",
+      "stockLevel": "Niveau de stock",
+      "status": "Statut",
+      "actions": "Actions",
+      "units": "Unités",
+      "inStock": "En stock",
+      "lowStock": "Stock faible",
+      "outOfStock": "Rupture de stock",
+      "viewDetails": "Voir les détails",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "noMaterials": "Aucun matériau trouvé en stock",
+      "addPrompt": "Cliquez sur le bouton ajouter pour enregistrer de nouveaux actifs internes",
+      "showingPage": "Affichage de la page {page} sur {pages}",
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "reports": {
+      "title": "Rapports sur les stocks de matériaux",
+      "subtitle": "Aperçu détaillé des actifs internes, de la valorisation et des tendances de mouvement",
+      "advancedFilters": "Filtres avancés",
+      "exportCsv": "Exporter en CSV",
+      "assetValue": "Valeur totale des actifs",
+      "totalItems": "Total des articles",
+      "lowStockAssets": "Actifs à faible stock",
+      "stockMovement": "Mouvement de stock",
+      "valuationDesc": "Valorisation actuelle",
+      "branchDesc": "Dans toutes les succursales",
+      "replenishDesc": "Nécessite un réapprovisionnement",
+      "movementDesc": "Réapprovisionnements totaux (Entrée)",
+      "period": "Période de rapport",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "branch": "Succursale / Magasin",
+      "allBranches": "Toutes les succursales",
+      "allCategories": "Toutes les catégories",
+      "insights": "Génération de perspectives sur les matériaux...",
+      "exportStarted": "Exportation commencée",
+      "branchValue": "Valeur de la succursale",
+      "materialItems": "{count} articles matériels",
+      "materialInfo": "Info matériel",
+      "opening": "Ouverture",
+      "stockIn": "Entrée de stock",
+      "stockOut": "Sortie de stock",
+      "available": "Disponible",
+      "totalValue": "Valeur totale",
+      "totalStock": "Stock total",
+      "inflow": "Entrée",
+      "outflow": "Sortie",
+      "lowStockItems": "Articles à faible stock",
+      "noRecords": "Aucun enregistrement de matériel trouvé pour cette période."
+    },
+    "wizard": {
+      "purpose": "À quoi sert ce produit ?",
+      "forSale": "Produit à vendre",
+      "forSaleDesc": "Articles à vendre aux clients pour générer des revenus",
+      "internal": "Usage interne / Matériel",
+      "internalDesc": "Fournitures, outils ou actifs utilisés au sein de l'entreprise (non destinés à la vente)",
+      "header": {
+        "backToProducts": "Retour aux Matériels"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Modifier le Matériel",
+          "createTitle": "Enregistrer un Nouveau Matériel",
+          "editSubtitle": "Mettre à jour les spécifications et identifiants de l'article",
+          "createSubtitle": "Définir les informations de base et les identifiants pour les actifs internes"
+        },
+        "progress": "État d'avancement",
+        "selectShop": "Lieu de stockage",
+        "basicInfo": "Informations de base",
+        "media": "Pièces jointes",
+        "pricing": "Informations sur les prix",
+        "inventory": "Stock initial",
+        "category": "Catégorie d'actif",
+        "specs": "Spécifications techniques",
+        "review": "Réviser et confirmer"
+      }
+    },
+    "detail": {
+      "overview": "Aperçu",
+      "specifications": "Spécifications",
+      "movementHistory": "Historique des mouvements",
+      "media": "Médias et actifs",
+      "codes": "Identifiants et codes",
+      "qrCode": "Code QR",
+      "noQr": "Aucun code QR généré",
+      "noBarcode": "Aucun code-barres généré",
+      "noMedia": "Aucun fichier média attaché",
+      "loading": "Chargement de l'actif...",
+      "assetName": "Nom de l'actif",
+      "category": "Catégorie",
+      "shop": "Boutique / Entrepôt",
+      "sku": "Identifiant SKU",
+      "barcode": "Code-barres",
+      "assetId": "ID de l'actif",
+      "brandOrigin": "Marque / Origine",
+      "currentQuantity": "Quantité actuelle",
+      "registeredDate": "Date d'enregistrement",
+      "internalDescription": "Description interne",
+      "technicalDetails": "Détails techniques",
+      "noTechnicalSpecs": "Aucune spécification technique définie",
+      "deleteConfirm": {
+        "title": "Supprimer l'actif interne?",
+        "message": "Êtes-vous sûr de vouloir supprimer définitivement \"{name}\"? Cela supprimera tout le stock et l'historique associés des enregistrements.",
+        "confirm": "Supprimer l'actif"
+      }
     }
   },
   "pages": {

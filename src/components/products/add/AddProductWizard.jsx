@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "react-hot-toast"; // Keep for other components if needed, or remove if fully replacing
 import { useSession } from "next-auth/react";
 import { notificationBus } from "@/lib/notificationBus";
+import { useTranslations } from "next-intl";
 import StepIndicator from "./shared/StepIndicator";
 import StepNavigation from "./shared/StepNavigation";
 import StepShop from "./steps/StepShop";
@@ -29,6 +30,7 @@ export default function AddProductWizard({
   initialData = null,
   isEdit = false,
 }) {
+  const t = useTranslations("materials.wizard");
   const router = useRouter();
   const params = useParams();
   const locale = params?.locale || "en";
@@ -100,6 +102,7 @@ export default function AddProductWizard({
     specsCategory: null,
 
     // Status & Flags
+    isForSale: true,
     condition: "new",
     availability: "in_stock",
     status: "active",
@@ -117,23 +120,33 @@ export default function AddProductWizard({
     },
   });
 
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type");
+
   // Load persisted state on mount (only for new product)
   useEffect(() => {
     if (!isEdit && typeof window !== "undefined") {
       const savedState = localStorage.getItem(PERSISTENCE_KEY);
       if (savedState) {
         try {
-          const { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          let { formData: savedFormData, currentStep: savedStep } = JSON.parse(savedState);
+          
+          // Support pre-configuring for material stock via URL
+          if (typeParam === "material" && savedFormData) {
+            savedFormData.isForSale = false;
+          }
+          
           if (savedFormData) setFormData(savedFormData);
           if (savedStep) setCurrentStep(savedStep);
-
         } catch (e) {
           console.error("Failed to restore wizard state:", e);
         }
+      } else if (typeParam === "material") {
+        setFormData(prev => ({ ...prev, isForSale: false }));
       }
     }
     setIsInitialized(true);
-  }, [isEdit]);
+  }, [isEdit, typeParam]);
 
   // Persist state on change (only for new product)
   useEffect(() => {
@@ -229,6 +242,8 @@ export default function AddProductWizard({
         videoUrls: (initialData.media?.videos || [])
           .filter((v) => v.type === "url")
           .map((v) => v.url),
+        // Ensure isForSale is correctly synchronized from backend
+        isForSale: initialData.isForSale ?? prev.isForSale ?? true,
       }));
     } else if (
       status === "authenticated" &&
@@ -249,31 +264,45 @@ export default function AddProductWizard({
   // Define steps dynamically
   const steps = useMemo(() => {
     const baseSteps = [
-      { id: "basic", label: "Basic Info", component: Step1BasicInfo },
-      { id: "media", label: "Media", component: Step2Media },
-      { id: "pricing", label: "Pricing", component: Step3Pricing },
-      { id: "inventory", label: "Inventory", component: Step4Inventory },
-      { id: "category", label: "Category", component: Step5Category },
-      { id: "specs", label: "Specifications", component: Step6Specs },
-      { id: "review", label: "Review & Submit", component: ProductReview },
+      { id: "basic", label: t("form.basicInfo"), component: Step1BasicInfo },
+      { id: "media", label: t("form.media"), component: Step2Media },
+      { id: "pricing", label: t("form.pricing"), component: Step3Pricing },
+      { id: "inventory", label: t("form.inventory"), component: Step4Inventory },
+      { id: "category", label: t("form.category"), component: Step5Category },
+      { id: "specs", label: t("form.specs"), component: Step6Specs },
+      { id: "review", label: t("form.review"), component: ProductReview },
     ];
 
-    // Filter out hidden steps (variations and seo as requested)
-    const hiddenStepIds = ["variations", "seo"];
-    const visibleBaseSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
+    // Filter steps based on product purpose
+    let filteredSteps = baseSteps;
+    if (formData.isForSale === false) {
+      // Products not for sale don't need pricing or SEO (SEO hidden anyway)
+      filteredSteps = baseSteps.filter(s => s.id !== "pricing" && s.id !== "seo");
+    } else {
+      // Normal for-sale products
+      const hiddenStepIds = ["variations", "seo"];
+      filteredSteps = baseSteps.filter(s => !hiddenStepIds.includes(s.id));
+    }
 
     if (!isWorker) {
       // Admin needs to select shop first
       return [
-        { id: "shop", label: "Select Shop", component: StepShop },
-        ...visibleBaseSteps,
+        { id: "shop", label: t("form.selectShop"), component: StepShop },
+        ...filteredSteps,
       ].map((s, idx) => ({ ...s, number: idx + 1 }));
     }
 
-    return visibleBaseSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
-  }, [isWorker]);
+    return filteredSteps.map((s, idx) => ({ ...s, number: idx + 1 }));
+  }, [isWorker, formData.isForSale]);
 
   const TOTAL_STEPS = steps.length;
+
+  // Safety clamp for currentStep when steps change dynamically
+  useEffect(() => {
+    if (currentStep > TOTAL_STEPS && TOTAL_STEPS > 0) {
+      setCurrentStep(TOTAL_STEPS);
+    }
+  }, [TOTAL_STEPS, currentStep]);
 
 
   const updateFormData = (updates) => {
@@ -311,7 +340,13 @@ export default function AddProductWizard({
     }
   };
 
-  const requiredStepIds = ["shop", "basic", "pricing", "inventory", "category"];
+  const requiredStepIds = useMemo(() => {
+    const ids = ["shop", "basic", "inventory", "category"];
+    if (formData.isForSale !== false) {
+      ids.push("pricing");
+    }
+    return ids;
+  }, [formData.isForSale]);
 
   const getStepType = (stepNumber) => {
     const stepObj = steps.find((s) => s.number === stepNumber);
@@ -445,6 +480,7 @@ export default function AddProductWizard({
       status: "active",
       visibility: "public",
       isFeatured: false,
+      isForSale: true,
       _oldStatus: {
         active: true,
         visible: true,
@@ -501,18 +537,18 @@ export default function AddProductWizard({
                 <button
                   onClick={() => router.push(`/${locale}/inventory/products`)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
-                  title="Back to Products"
+                  title={t("header.backToProducts") || "Back"}
                 >
                   <ArrowLeft className="w-6 h-6" />
                 </button>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {isEdit ? "Edit Product" : "Add New Product"}
+                    {isEdit ? t("form.modal.editTitle") : t("form.modal.createTitle")}
                   </h1>
                   <p className="text-gray-600 mt-1">
                     {isEdit
-                      ? "Update the product details below"
-                      : "Fill in the product details step by step"}
+                      ? t("form.modal.editSubtitle") || "Update the details"
+                      : t("form.modal.createSubtitle") || "Fill in the details"}
                   </p>
                 </div>
               </div>
@@ -543,7 +579,7 @@ export default function AddProductWizard({
         <div className="col-span-12 lg:col-span-3 sticky top-6">
           {status !== "loading" && (
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Progress</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">{t("form.progress") || "Progress"}</h3>
               <StepIndicator
                 currentStep={currentStep}
                 steps={steps}

@@ -74,19 +74,38 @@
 
 .navLinks {
   display: flex;
-  gap: 2.5rem;
+  gap: 2rem;
+  align-items: center;
 }
 
-.navLinks a {
+.navLink {
   font-weight: 700;
   color: #4b5563;
   text-decoration: none;
-  font-size: 0.9375rem;
-  transition: color 0.2s;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0.5rem 0.25rem;
+  letter-spacing: -0.01em;
 }
 
-.navLinks a:hover {
+.navLink:hover {
   color: #111827;
+}
+
+.activeLink {
+  color: #f97316 !important;
+}
+
+.activeIndicator {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #f97316, #fbbf24);
+  border-radius: 99px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
 .joinWaitlist {
@@ -1572,16 +1591,29 @@
   gap: 1.5rem;
 }
 
-.mobileNavLinks a {
-  font-size: 1.5rem;
+.mobileNavLinks a,
+.mobileLink {
   font-weight: 800;
-  color: #111827;
+  color: #1f2937;
   text-decoration: none;
-  transition: color 0.2s;
+  font-size: 2.25rem;
+  letter-spacing: -0.04em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  width: fit-content;
 }
 
-.mobileNavLinks a:hover {
+.mobileLinkActive {
+  color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.05);
+  padding-left: 1.5rem !important;
+}
+
+.mobileNavLinks a:hover,
+.mobileLink:hover {
   color: #f97316;
+  transform: translateX(10px);
 }
 
 .mobileAuthActions {

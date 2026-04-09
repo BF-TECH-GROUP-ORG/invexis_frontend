@@ -1,7 +1,5 @@
 import apiClient from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
 /**
  * Get all alerts for a company
  * GET /v1/alerts/company/:companyId
@@ -14,7 +12,7 @@ export async function getAlerts({ companyId, page = 1, limit = 20, type, priorit
         if (priority) params.priority = priority;
         if (status) params.status = status;
 
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/company/${companyId}`, {
+        const data = await apiClient.get(`/inventory/v1/alerts/company/${companyId}`, {
             params
         });
         return data;
@@ -29,7 +27,7 @@ export async function getAlerts({ companyId, page = 1, limit = 20, type, priorit
  */
 export async function getAlertById(id) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/${id}`);
+        const data = await apiClient.get(`/inventory/v1/alerts/${id}`);
         return data;
     } catch (err) {
         throw err;
@@ -42,7 +40,7 @@ export async function getAlertById(id) {
  */
 export async function createAlert(payload) {
     try {
-        const data = await apiClient.post(`${API_BASE}/inventory/v1/alerts`, payload);
+        const data = await apiClient.post(`/inventory/v1/alerts`, payload);
         return data;
     } catch (err) {
         throw err;
@@ -55,7 +53,7 @@ export async function createAlert(payload) {
  */
 export async function updateAlert(id, updates) {
     try {
-        const data = await apiClient.put(`${API_BASE}/inventory/v1/alerts/${id}`, updates);
+        const data = await apiClient.put(`/inventory/v1/alerts/${id}`, updates);
         return data;
     } catch (err) {
         throw err;
@@ -68,7 +66,7 @@ export async function updateAlert(id, updates) {
  */
 export async function deleteAlert(id) {
     try {
-        const data = await apiClient.delete(`${API_BASE}/inventory/v1/alerts/${id}`);
+        const data = await apiClient.delete(`/inventory/v1/alerts/${id}`);
         return data;
     } catch (err) {
         throw err;
@@ -81,7 +79,7 @@ export async function deleteAlert(id) {
  */
 export async function resolveAlert(id) {
     try {
-        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/${id}/resolve`, {});
+        const data = await apiClient.patch(`/inventory/v1/alerts/${id}/resolve`, {});
         return data;
     } catch (err) {
         throw err;
@@ -94,7 +92,7 @@ export async function resolveAlert(id) {
  */
 export async function markAlertAsRead(id) {
     try {
-        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/${id}/read`, {});
+        const data = await apiClient.patch(`/inventory/v1/alerts/${id}/read`, {});
         return data;
     } catch (err) {
         throw err;
@@ -107,7 +105,7 @@ export async function markAlertAsRead(id) {
  */
 export async function markAllAlertsAsRead(companyId) {
     try {
-        const data = await apiClient.patch(`${API_BASE}/inventory/v1/alerts/company/${companyId}/read-all`, {});
+        const data = await apiClient.patch(`/inventory/v1/alerts/company/${companyId}/read-all`, {});
         return data;
     } catch (err) {
         throw err;
@@ -120,7 +118,7 @@ export async function markAllAlertsAsRead(companyId) {
  */
 export async function getAlertSettings(companyId) {
     try {
-        const data = await apiClient.get(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`);
+        const data = await apiClient.get(`/inventory/v1/alerts/settings/${companyId}`);
         return data;
     } catch (err) {
         throw err;
@@ -133,7 +131,7 @@ export async function getAlertSettings(companyId) {
  */
 export async function updateAlertSettings(companyId, settings) {
     try {
-        const data = await apiClient.put(`${API_BASE}/inventory/v1/alerts/settings/${companyId}`, settings);
+        const data = await apiClient.put(`/inventory/v1/alerts/settings/${companyId}`, settings);
         return data;
     } catch (err) {
         throw err;

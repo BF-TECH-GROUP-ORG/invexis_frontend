@@ -28,6 +28,7 @@
     "saleableStock": "Ububiko bw'Ibicuruza",
     "materialStock": "Ububiko bw'Ibikoresho",
     "products": "Ibicuruzwa",
+    "assets": "Imitungo",
     "transfers": "Icyuzuzo",
     "stockOps": "Ibikorwa by'Imbiko",
     "operations": "Ibikorwa",
@@ -210,6 +211,125 @@
     },
     "workers": {
       "title": "Abakozi"
+    }
+  },
+  "materials": {
+    "stats": {
+      "total": "Ibikoresho Byose",
+      "stock": "Imitungo Iri mu Bubiko",
+      "lowStock": "Inyubako ya Stock Ntoya",
+      "value": "Agaciro k'Imitungo Yose"
+    },
+    "table": {
+      "product": "Igicuruzwa / Umutungo",
+      "category": "Icyiciro",
+      "brand": "Ikirango / Uruganda",
+      "stockLevel": "Urwego rwa Stock",
+      "status": "Imiterere",
+      "actions": "Ibikorwa",
+      "units": "Ibice",
+      "inStock": "Bihari",
+      "lowStock": "Biri hafi gushira",
+      "outOfStock": "Byashize",
+      "viewDetails": "Reba birambuye",
+      "edit": "Hindura",
+      "delete": "Siba",
+      "noMaterials": "Nta bikoresho byabonetse mu bubiko",
+      "addPrompt": "Kanda buto yo kongeraho kugira ngo wandikishe imitungo mishya y'imbere",
+      "showingPage": "Kwerekana urupapuro rwa {page} kuri {pages}",
+      "previous": "Ibibanza",
+      "next": "Ibikurikira"
+    },
+    "reports": {
+      "title": "Raporo z'Ububiko bw'Ibikoresho",
+      "subtitle": "Incamake y'imitungo y'imbere, agaciro n'uko ibintu bigenda",
+      "advancedFilters": "Akayunguruzo Gahanitse",
+      "exportCsv": "Kohereza muri CSV",
+      "assetValue": "Agaciro k'Imitungo Yose",
+      "totalItems": "Ibicuruzwa Byose",
+      "lowStockAssets": "Imitungo Iri Hafi Gushira",
+      "stockMovement": "Imigendekere y'Ibikoresho" ,
+      "valuationDesc": "Agaciro kariho ubu",
+      "branchDesc": "Mu mashami yose",
+      "replenishDesc": "Bikeneye kongerwamo",
+      "movementDesc": "Igiteranyo cy'ibyinjiye",
+      "period": "Igihe cya Raporo",
+      "startDate": "Itariki y'Imbitiriro",
+      "endDate": "Itariki y'Iherezo",
+      "branch": "Ishami / Iduka",
+      "allBranches": "Amashami Yose",
+      "allCategories": "Ibyiciro Byose",
+      "insights": "Gutegura amakuru y'ibikoresho...",
+      "exportStarted": "Kohereza hanze byatangiye",
+      "branchValue": "Agaciro k'Ishami",
+      "materialItems": "Ibikoresho {count}",
+      "materialInfo": "Amakuru y'Igikoresho",
+      "opening": "Ibyari bihari",
+      "stockIn": "Ibyinjiye",
+      "stockOut": "Ibisohotse",
+      "available": "Bihari ubu",
+      "totalValue": "Agaciro Kose",
+      "totalStock": "Igiteranyo Kose",
+      "inflow": "Ibyinjiye",
+      "outflow": "Ibisohotse",
+      "lowStockItems": "Ibicuruzwa biri hafi gushira",
+      "noRecords": "Nta makuru y'ibikoresho yabonetse muri iki gihe."
+    },
+    "wizard": {
+      "purpose": "Iki gikoresho kigenewe iki?",
+      "forSale": "Igikoresho kigurishwa",
+      "forSaleDesc": "Ibicuruzwa bigurishwa abakiriya kugira ngo binjize inyungu",
+      "internal": "Gukoresha imbere / Ibikoresho",
+      "internalDesc": "Ibikoresho, ibikoresho cyangwa umutungo ukoreshwa muri sosiyete (Bidakoreshwa mu kugurisha)",
+      "header": {
+        "backToProducts": "Subira mu Bikoresho"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Hindura Igikoresho",
+          "createTitle": "Injiza Igikoresho Gishya",
+          "editSubtitle": "Vugurura ibisobanuro n'ibiranga igikoresho",
+          "createSubtitle": "Imyirondoro y'ibanze n'ibiranga umutungo w'imbere"
+        },
+        "progress": "Intambwe imaze guterwa",
+        "selectShop": "Aho bibikwa",
+        "basicInfo": "Amakuru y'ibanze",
+        "media": "Amafoto/Inyandiko",
+        "pricing": "Amakuru y'ibiciro",
+        "inventory": "Ibikoresho bihari",
+        "category": "Icyiciro cy'igikoresho",
+        "specs": "Imiterere ya tekiniki",
+        "review": "Genzura wemeze"
+      }
+    },
+    "detail": {
+      "overview": "Incamake",
+      "specifications": "Ibisobanuro",
+      "movementHistory": "Amateka y'ingendo",
+      "media": "Amafoto n'amashusho",
+      "codes": "Ibiranga n'amakode",
+      "qrCode": "Kode ya QR",
+      "noQr": "Nta kode ya QR yashyizweho",
+      "noBarcode": "Nta kode y'imirongo yashyizweho",
+      "noMedia": "Nta mafoto cyangwa amashusho ariho",
+      "loading": "Biratunganywa...",
+      "assetName": "Izina ry'igikoresho",
+      "category": "Icyiciro",
+      "shop": "Iduka / Ububiko",
+      "sku": "Idonzi rya SKU",
+      "barcode": "Siganwa ry'uturongo",
+      "assetId": "ID y'igikoresho",
+      "brandOrigin": "Ikimenyetso / Inkomoko",
+      "currentQuantity": "Umubare uhari",
+      "registeredDate": "Itariki cyanditsweho",
+      "internalDescription": "Ibisobanuro by'imbere",
+      "technicalDetails": "Ibisobanuro bya tekiniki",
+      "noTechnicalSpecs": "Nta bisobanuro bya tekiniki bihari",
+      "deleteConfirm": {
+        "title": "Gusiba iki gikoresho?",
+        "message": "Ese wizeye neza ko ushaka gusiba burundu \"{name}\"? Ibi bizasiba ibikoresho byose n'amateka yabyo mu bitabo.",
+        "confirm": "Siba Igikoresho"
+      }
     }
   },
   "pages": {

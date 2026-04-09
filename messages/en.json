@@ -28,6 +28,7 @@
     "saleableStock": "Saleable Stock",
     "materialStock": "Material Stock",
     "products": "Products",
+    "assets": "Assets",
     "transfers": "Transfers",
     "stockOps": "Stock Ops",
     "operations": "Operations",
@@ -209,6 +210,125 @@
     },
     "workers": {
       "title": "Workers"
+    }
+  },
+  "materials": {
+    "stats": {
+      "total": "Total Materials",
+      "stock": "In Stock Assets",
+      "lowStock": "Low Stock Alert",
+      "value": "Total Asset Value"
+    },
+    "table": {
+      "product": "Product / Asset",
+      "category": "Category",
+      "brand": "Brand / Manufacturer",
+      "stockLevel": "Stock Level",
+      "status": "Status",
+      "actions": "Actions",
+      "units": "Units",
+      "inStock": "In Stock",
+      "lowStock": "Low Stock",
+      "outOfStock": "Out of Stock",
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "noMaterials": "No materials found in stock",
+      "addPrompt": "Click the add button to register new internal assets",
+      "showingPage": "Showing Page {page} of {pages}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "reports": {
+      "title": "Material Stock Reports",
+      "subtitle": "Deep insights into internal assets, valuation and movement trends",
+      "advancedFilters": "Advanced Filters",
+      "exportCsv": "Export CSV",
+      "assetValue": "Total Asset Value",
+      "totalItems": "Total Items",
+      "lowStockAssets": "Low Stock Assets",
+      "stockMovement": "Stock Movement",
+      "valuationDesc": "Current valuation",
+      "branchDesc": "Across all branches",
+      "replenishDesc": "Requires replenishment",
+      "movementDesc": "Total restocks (In)",
+      "period": "Reporting Period",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "branch": "Branch / Shop",
+      "allBranches": "All Branches",
+      "allCategories": "All Categories",
+      "insights": "Generating Material Insights...",
+      "exportStarted": "Export started",
+      "branchValue": "Branch Value",
+      "materialItems": "{count} Material Items",
+      "materialInfo": "Material Info",
+      "opening": "Opening",
+      "stockIn": "Stock In",
+      "stockOut": "Stock Out",
+      "available": "Available",
+      "totalValue": "Total Value",
+      "totalStock": "Total Stock",
+      "inflow": "Inflow",
+      "outflow": "Outflow",
+      "lowStockItems": "Low Stock Items",
+      "noRecords": "No material records found for this period."
+    },
+    "wizard": {
+      "purpose": "What is this product for?",
+      "forSale": "Product for Sale",
+      "forSaleDesc": "Items to be sold to customers for revenue",
+      "internal": "Internal Use / Material",
+      "internalDesc": "Supplies, tools, or assets used within the company (Not for sale)",
+      "header": {
+        "backToProducts": "Back to Materials"
+      },
+      "form": {
+        "modal": {
+          "editTitle": "Edit Material",
+          "createTitle": "Register New Material",
+          "editSubtitle": "Update item specifications and identifiers",
+          "createSubtitle": "Define basic info and identifiers for internal assets"
+        },
+        "progress": "Setup Progress",
+        "selectShop": "Storage Location",
+        "basicInfo": "Basic Information",
+        "media": "Attachments",
+        "pricing": "Pricing Information",
+        "inventory": "Initial Stock",
+        "category": "Asset Category",
+        "specs": "Technical Specs",
+        "review": "Review & Confirm"
+      }
+    },
+    "detail": {
+      "overview": "Overview",
+      "specifications": "Specifications",
+      "movementHistory": "Movement History",
+      "media": "Media & Assets",
+      "codes": "Identifiers & Codes",
+      "qrCode": "QR Code",
+      "noQr": "No QR Code generated",
+      "noBarcode": "No Barcode generated",
+      "noMedia": "No media files attached",
+      "loading": "Loading Asset...",
+      "assetName": "Asset Name",
+      "category": "Category",
+      "shop": "Shop / Warehouse",
+      "sku": "SKU Identifier",
+      "barcode": "Barcode",
+      "assetId": "Asset ID",
+      "brandOrigin": "Brand / Origin",
+      "currentQuantity": "Current Quantity",
+      "registeredDate": "Registered Date",
+      "internalDescription": "Internal Description",
+      "technicalDetails": "Technical Details",
+      "noTechnicalSpecs": "No technical specs defined",
+      "deleteConfirm": {
+        "title": "Delete Internal Asset?",
+        "message": "Are you sure you want to permanently delete \"{name}\"? This will remove all associated stock and history from the records.",
+        "confirm": "Delete Asset"
+      }
     }
   },
   "pages": {

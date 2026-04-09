@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { getCacheStrategy } from "@/lib/cacheConfig";
 
-const URL = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/products`;
+const PRODUCTS_URL = `/inventory/v1/products`;
 const SALES_URL = `/sales`;
 const DEBT_URL = `/debt`;
 
@@ -10,9 +10,9 @@ export const getAllProducts = async (companyId = null, options = {}) => {
 
 
   try {
-    let requestUrl = URL;
+    let requestUrl = PRODUCTS_URL;
     if (companyId) {
-      requestUrl = `${process.env.NEXT_PUBLIC_API_URL}/inventory/v1/companies/${companyId}/products`;
+      requestUrl = `/inventory/v1/companies/${companyId}/products`;
     }
 
     const apiData = await apiClient.get(requestUrl, { cache: cacheStrategy, ...options });
@@ -58,7 +58,7 @@ export const singleProductFetch = async (productId) => {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
   try {
-    const data = await apiClient.get(`${URL}/${productId}`, {
+    const data = await apiClient.get(`${PRODUCTS_URL}/${productId}`, {
       cache: cacheStrategy,
     });
 

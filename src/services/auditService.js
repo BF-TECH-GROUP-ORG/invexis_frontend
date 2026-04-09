@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const AUDIT_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 export const getAuditLogs = async (companyId, params = {}, options = {}) => {
     try {
@@ -9,7 +9,7 @@ export const getAuditLogs = async (companyId, params = {}, options = {}) => {
             ...params
         }).toString();
 
-        const url = `${AUDIT_URL}/audit/logs?${queryParams}`;
+        const url = `/audit/logs?${queryParams}`;
         const response = await apiClient.get(url, options);
 
         return response;

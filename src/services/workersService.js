@@ -1,16 +1,6 @@
 import apiClient from "@/lib/apiClient";
 
-const WORKERS_URL = process.env.NEXT_PUBLIC_API_URL;
-const AUTH_URL = WORKERS_URL;
 
-// Helper to ensure URL is set
-const ensureUrl = (url, name) => {
-    if (!url) {
-        console.warn(`${name} is not set. API calls will be skipped.`);
-        return null;
-    }
-    return url;
-};
 
 export const createWorker = async (workerData, options = {}) => {
     try {
@@ -123,28 +113,14 @@ export const updateWorker = async (workerId, workerData, options = {}) => {
 
 export const getWorkerById = async (workerId, options = {}) => {
     try {
-        if (!AUTH_URL) {
-            throw new Error('API URL is not configured. Please check NEXT_PUBLIC_API_URL environment variable.');
-        }
-
-        const url = `/auth/users/${workerId}`;
-
-
-        // Axios response.data contains the actual response body
+        const response = await apiClient.get(`/auth/users/${workerId}`, options);
         const responseData = response.data || response;
-
-        // Return the user data, handling different response structures
         return responseData.user || responseData;
     } catch (error) {
         const errorMessage = error.message || 'Unknown error occurred';
-        console.error('Failed to fetch worker:', {
-            message: errorMessage,
-            url: `${AUTH_URL}/auth/users/${workerId}`
-        });
+        console.error('Failed to fetch worker:', { message: errorMessage });
         throw new Error(errorMessage);
     }
-
-
 }
 
 
