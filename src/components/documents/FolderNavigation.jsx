@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 /**
  * FolderNavigation - Premium Glassmorphic Navigation
  */
-export default function FolderNavigation({ onSelect, activeCategory }) {
+export default function FolderNavigation({ onSelect, activeCategory, filterType, onFilterSelect }) {
     const [isOpen, setIsOpen] = useState(true);
 
     const mainCategories = [
@@ -123,10 +123,44 @@ export default function FolderNavigation({ onSelect, activeCategory }) {
                     </nav>
                 </div>
 
-
+                {/* System Section - Filtering ASIDE */}
+                <div className="pt-6 border-t border-slate-50/50">
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.h3
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-4"
+                            >
+                                Filter By Type
+                            </motion.h3>
+                        )}
+                    </AnimatePresence>
+                    <nav className="space-y-1.5 px-2">
+                        {[
+                            { id: 'all', label: 'All Records', icon: <Menu size={18} /> },
+                            { id: 'invoice', label: 'Invoices', icon: <FileText size={18} /> },
+                            { id: 'media', label: 'Media', icon: <LayoutGrid size={18} /> }
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => onFilterSelect(item.id)}
+                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 group ${filterType === item.id
+                                    ? "bg-slate-100 text-[#081422] ring-1 ring-slate-200 shadow-sm"
+                                    : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                                } ${!isOpen && 'justify-center'}`}
+                            >
+                                <span className={`shrink-0 transition-colors duration-300 ${filterType === item.id ? 'text-orange-500' : 'group-hover:text-slate-600'}`}>
+                                    {item.icon}
+                                </span>
+                                {isOpen && (
+                                    <span className="font-bold text-xs tracking-tight">{item.label}</span>
+                                )}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
             </div>
-
-
         </motion.div>
     );
 }

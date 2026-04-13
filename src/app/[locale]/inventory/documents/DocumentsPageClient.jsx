@@ -209,43 +209,9 @@ export default function DocumentsPageClient() {
                                     className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/50 outline-none transition-all text-sm font-medium"
                                 />
                             </div>
-                             <div className="relative">
-                                <button 
-                                    onClick={() => setShowFilterMenu(!showFilterMenu)}
-                                    className={`p-3.5 border rounded-2xl shadow-sm transition-all flex items-center gap-2 ${showFilterMenu ? 'bg-[#081422] text-white border-[#081422]' : 'bg-white border-slate-100 text-slate-400 hover:text-[#081422]'}`}
-                                >
+                                <button onClick={() => setShowFilterMenu(!showFilterMenu)} className="p-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-[#081422] transition-all hidden">
                                     <Menu size={20} />
-                                    {filterType !== 'all' && <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-orange-500 text-white rounded-full">{filterType}</span>}
                                 </button>
-                                
-                                <AnimatePresence>
-                                    {showFilterMenu && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                            className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-md border border-slate-100 rounded-3xl shadow-2xl z-50 p-2 overflow-hidden"
-                                        >
-                                            <div className="px-4 py-3 border-b border-slate-50 mb-1">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filter by type</span>
-                                            </div>
-                                            {[
-                                                { id: 'all', label: 'All Document Types' },
-                                                { id: 'invoice', label: 'Invoices & Receipts' },
-                                                { id: 'media', label: 'Inventory Media' }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => { setFilterType(item.id); setShowFilterMenu(false); }}
-                                                    className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition-all ${filterType === item.id ? 'bg-orange-50 text-orange-600' : 'text-slate-600 hover:bg-slate-50'}`}
-                                                >
-                                                    {item.label}
-                                                </button>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
                             <button className="p-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-[#081422] transition-all">
                                 <MoreVertical size={20} />
                             </button>
@@ -304,7 +270,12 @@ export default function DocumentsPageClient() {
 
                 {/* Desktop Side Navigation */}
                 <div className="hidden md:block">
-                    <FolderNavigation onSelect={handleCategorySelect} activeCategory={drillState.category} />
+                    <FolderNavigation 
+                        onSelect={handleCategorySelect} 
+                        activeCategory={drillState.category}
+                        filterType={filterType}
+                        onFilterSelect={setFilterType}
+                    />
                 </div>
             </div>
 
@@ -323,7 +294,12 @@ export default function DocumentsPageClient() {
                             exit={{ x: "100%" }}
                             className="absolute right-0 top-0 bottom-0 w-80 shadow-2xl"
                         >
-                            <FolderNavigation onSelect={(cat) => { handleCategorySelect(cat); setShowSidebar(false); }} activeCategory={drillState.category} />
+                            <FolderNavigation 
+                                onSelect={(cat) => { handleCategorySelect(cat); setShowSidebar(false); }} 
+                                activeCategory={drillState.category}
+                                filterType={filterType}
+                                onFilterSelect={setFilterType}
+                            />
                         </motion.div>
                     </motion.div>
                 )}
