@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import productsService from "@/services/productsService";
 import { getDailySummary } from "@/services/stockService";
+import { getBranches } from "@/services/branches";
 import {
   StockLookup,
   StockOperationForm,
@@ -110,6 +111,22 @@ export default function StockManagementContent({ initialParams = {} }) {
   });
 
   const productsCache = productsRes?.data || productsRes || [];
+  
+  // Query for branches/shops to get names
+  const { data: branchesRes } = useQuery({
+    queryKey: ["branches", companyId],
+    queryFn: () => getBranches(companyId, options),
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 30 * 1000 * 60,
+  });
+
+  const shopNames = useMemo(() => {
+    const branches = branchesRes?.data || branchesRes || [];
+    return branches.reduce((acc, b) => {
+      acc[b._id || b.id] = b.name || b.branchName;
+      return acc;
+    }, {});
+  }, [branchesRes]);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCodeType, setSelectedCodeType] = useState("qr"); // 'qr' or 'barcode'
@@ -296,6 +313,9 @@ export default function StockManagementContent({ initialParams = {} }) {
               companyId={companyId}
               displayMode="scanner"
               canPerformOperations={canPerformOperations}
+              userShopId={userShopId}
+              restrictToShop={isSalesWorker}
+              shopNames={shopNames}
             />
             <div className="bg-white rounded-xl border border-gray-300 p-6">
               {selectedProduct ? (

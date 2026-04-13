@@ -235,6 +235,11 @@
       "previous": "Précédent",
       "next": "Suivant"
     },
+    "deleteConfirm": {
+      "title": "Supprimer l'actif interne ?",
+      "message": "Êtes-vous sûr de vouloir supprimer définitivement cet actif ? Cette action ne peut pas être annulée.",
+      "confirm": "Supprimer l'actif"
+    },
     "reports": {
       "title": "Rapports sur les stocks de matériaux",
       "subtitle": "Aperçu détaillé des actifs internes, de la valorisation et des tendances de mouvement",
@@ -269,7 +274,15 @@
       "inflow": "Entrée",
       "outflow": "Sortie",
       "lowStockItems": "Articles à faible stock",
-      "noRecords": "Aucun enregistrement de matériel trouvé pour cette période."
+      "noRecords": "Aucun enregistrement de matériel trouvé pour cette période.",
+      "branchTotals": "Totaux par succursale",
+      "allHealthy": "Tous les articles sont en bon état",
+      "shop": "Magasin",
+      "materials": {
+        "table": {
+          "category": "Catégorie"
+        }
+      }
     },
     "wizard": {
       "purpose": "À quoi sert ce produit ?",
@@ -399,7 +412,14 @@
     "active": "Actif",
     "inactive": "Inactif",
     "open": "Ouvert",
-    "closed": "Fermé"
+    "closed": "Fermé",
+    "filters": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "custom": "Période personnalisée"
+    }
   },
   "home": {
     "login": "Connexion",
