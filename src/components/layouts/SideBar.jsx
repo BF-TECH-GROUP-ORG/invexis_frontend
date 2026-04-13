@@ -399,57 +399,54 @@ export default function SideBar({
     // 2. Admins see everything
     if (userRole === "company_admin" || userRole === "super_admin") return true;
 
-    // If item has explicit role restriction, check it
-    if (item.roles && item.roles.length > 0) {
-      if (!item.roles.includes(userRole)) return false;
-    }
-
     const itemTitle = item.title?.trim();
     if (!itemTitle) return true;
 
     const isSales = assignedDepartments.includes("sales");
     const isManagement = assignedDepartments.includes("management");
 
-    // ─── SALES DEPARTMENT RULES ────────────────────────────────────────────────
+    // 3. ── DEPARTMENT RULES (checked BEFORE role restrictions) ─────────────────
+    // Sales department users: strictly allowed list only, bypass role check
     if (isSales) {
-      // Overview section: Notifications ONLY (Dashboard hidden — they auto-redirect to POS)
-      const overviewTitles = [
-        t("sidebar.notifications"),
-      ];
-      if (overviewTitles.includes(itemTitle)) return true;
+      // Overview: Notifications ONLY (Dashboard hidden — auto-redirect to POS)
+      const salesOverview = [t("sidebar.notifications")];
+      if (salesOverview.includes(itemTitle)) return true;
 
-      // Management items allowed for sales:
-      const salesManagementAllowed = [
+      // Management items for sales users
+      const salesAllowed = [
         t("sidebar.sales"),
         t("sidebar.salesHistory"),
         t("sidebar.stockOut"),
         t("sidebar.debts"),
-        // Material Stock parent + only Assets & Operations sub-items
         t("sidebar.materialStock"),
         t("sidebar.assets"),
         t("sidebar.operations"),
-        // Saleable Stock parent + only Products, Transfers, Stock Ops
         t("sidebar.saleableStock"),
         t("sidebar.products"),
         t("sidebar.transfers"),
         t("sidebar.stockOps"),
       ];
-      return salesManagementAllowed.includes(itemTitle);
+      return salesAllowed.includes(itemTitle);
     }
 
-    // ─── MANAGEMENT DEPARTMENT RULES ───────────────────────────────────────────
+    // Management department: see everything (except admin-only)
     if (isManagement) return true;
 
-    // Default: allow based on roles for workers without explicit department
-    if (userRole === "worker" || userRole === "sales") return true;
+    // 4. ── ROLE-BASED RESTRICTION (for workers without explicit department) ────
+    if (item.roles && item.roles.length > 0) {
+      if (!item.roles.includes(userRole)) return false;
+    }
 
-    // Overview is always visible to authenticated users
+    // Default overview visible for all authenticated workers
     const overviewTitles = [
       t("sidebar.dashboard"),
       t("sidebar.notifications"),
       t("sidebar.reports"),
     ];
     if (overviewTitles.includes(itemTitle)) return true;
+
+    // Workers see their role-permitted items
+    if (userRole === "worker" || userRole === "sales") return true;
 
     return false;
   };
