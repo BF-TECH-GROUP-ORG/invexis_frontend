@@ -174,6 +174,7 @@ export default function StockLookup({
             companyId,
             search: scanInput.trim(),
             limit: 20,
+            isForSale: "all",
           });
           const foundList = res?.data || res || [];
           if (foundList && foundList.length === 1) {
