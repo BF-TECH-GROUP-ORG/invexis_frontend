@@ -443,10 +443,11 @@ export default function SideBar({
       t("sidebar.notifications"),
       t("sidebar.reports"),
     ];
-    if (overviewTitles.includes(itemTitle)) return true;
+    // But ONLY grant this if they aren't part of sales/management (which have their own explicit rules above)
+    if (!isSales && !isManagement && overviewTitles.includes(itemTitle)) return true;
 
-    // Workers see their role-permitted items
-    if (userRole === "worker" || userRole === "sales") return true;
+    // Workers without specific departments see their role-permitted items
+    if (!isSales && !isManagement && (userRole === "worker" || userRole === "sales")) return true;
 
     return false;
   };
