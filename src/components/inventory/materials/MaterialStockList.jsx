@@ -11,6 +11,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 
 import { getBranches } from "@/services/branches";
+import { getCompanyAssets } from "@/services/organizationService";
+import { getCategories } from "@/services/categoriesService";
+import { deleteProduct } from "@/features/products/productsSlice";
+import apiClient from "@/lib/apiClient";
 import MaterialStockStats from "./MaterialStockStats";
 import MaterialStockTable from "./MaterialStockTable";
 import ConfirmModal from "@/components/shared/ConfirmModal";
