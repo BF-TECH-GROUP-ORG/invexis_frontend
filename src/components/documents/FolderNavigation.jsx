@@ -1,16 +1,6 @@
 "use client";
 
-import {
-    Folder,
-    ShoppingCart,
-    Package,
-    Wallet,
-    BarChart3,
-    ChevronLeft,
-    Menu,
-    FileText,
-    LayoutGrid
-} from "lucide-react";
+import { Folder, ShoppingCart, Package, Wallet, BarChart3, ChevronLeft, Menu, FileText, LayoutGrid, Plus } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
