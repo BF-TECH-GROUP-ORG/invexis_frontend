@@ -396,7 +396,7 @@ export default function SideBar({
       if (forbiddenForIndustrial.includes(item.title)) return false;
     }
 
-    // 2. Role/Department Filtering
+    // 2. Admins see everything
     if (userRole === "company_admin" || userRole === "super_admin") return true;
 
     // If item has explicit role restriction, check it
@@ -405,38 +405,52 @@ export default function SideBar({
     }
 
     const itemTitle = item.title?.trim();
-    if (!itemTitle) return true; // Default to visible for untitled items
+    if (!itemTitle) return true;
 
     const isSales = assignedDepartments.includes("sales");
     const isManagement = assignedDepartments.includes("management");
 
-    // Overview section (Dashboard, Notifications, Reports) - generally visible to all authenticated users
+    // ─── SALES DEPARTMENT RULES ────────────────────────────────────────────────
+    if (isSales) {
+      // Overview section: Dashboard + Notifications ONLY (no Reports)
+      const overviewTitles = [
+        t("sidebar.dashboard"),
+        t("sidebar.notifications"),
+      ];
+      if (overviewTitles.includes(itemTitle)) return true;
+
+      // Management items allowed for sales:
+      const salesManagementAllowed = [
+        t("sidebar.sales"),
+        t("sidebar.salesHistory"),
+        t("sidebar.stockOut"),
+        t("sidebar.debts"),
+        // Material Stock parent + only Assets & Operations sub-items
+        t("sidebar.materialStock"),
+        t("sidebar.assets"),
+        t("sidebar.operations"),
+        // Saleable Stock parent + only Products, Transfers, Stock Ops
+        t("sidebar.saleableStock"),
+        t("sidebar.products"),
+        t("sidebar.transfers"),
+        t("sidebar.stockOps"),
+      ];
+      return salesManagementAllowed.includes(itemTitle);
+    }
+
+    // ─── MANAGEMENT DEPARTMENT RULES ───────────────────────────────────────────
+    if (isManagement) return true;
+
+    // Default: allow based on roles for workers without explicit department
+    if (userRole === "worker" || userRole === "sales") return true;
+
+    // Overview is always visible to authenticated users
     const overviewTitles = [
       t("sidebar.dashboard"),
       t("sidebar.notifications"),
       t("sidebar.reports"),
     ];
     if (overviewTitles.includes(itemTitle)) return true;
-
-    if (isSales) {
-      const salesAllowedTitles = [
-        t("sidebar.sales"),
-        t("sidebar.salesHistory"),
-        t("sidebar.stockOut"),
-        t("sidebar.debts"),
-        t("sidebar.materialStock"),
-        t("sidebar.assets"),
-        t("sidebar.operations"),
-        t("sidebar.materialReports"), 
-      ];
-      return salesAllowedTitles.includes(itemTitle);
-    }
-
-    if (isManagement) return true;
-    
-    // Default: Allow if no specific roles restriction was found or if it's a basic item
-    // For workers without departments, they should at least see what's in their roles list
-    if (userRole === "worker" || userRole === "sales") return true;
 
     return false;
   };
