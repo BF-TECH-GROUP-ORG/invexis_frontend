@@ -169,12 +169,12 @@ export async function getStockHistory({
  * Use for historical analytics and paginated history views.
  */
 export async function getStockChangeHistory(
-  { companyId, page = 1, limit = 50 } = {},
+  { companyId, page = 1, limit = 50, ...rest } = {},
   options = {}
 ) {
   const cacheStrategy = getCacheStrategy("INVENTORY", "METADATA");
 
-  const params = { page, limit };
+  const params = { page, limit, ...rest };
   if (companyId) params.companyId = companyId;
 
   return apiClient.get(

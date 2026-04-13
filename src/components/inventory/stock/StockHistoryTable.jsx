@@ -31,6 +31,11 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   // Sync state with URL params
   const searchTerm = searchParams.get("search") || initialParams.search || "";
   const filterType = searchParams.get("type") || initialParams.type || "all";
+  const timeframe = searchParams.get("timeframe") || initialParams.timeframe || "all";
+  const startDate = searchParams.get("startDate") || initialParams.startDate || "";
+  const endDate = searchParams.get("endDate") || initialParams.endDate || "";
+  const reason = searchParams.get("reason") || initialParams.reason || "all";
+  
   const page = parseInt(searchParams.get("page") || initialParams.page || "0");
   const rowsPerPage = parseInt(searchParams.get("limit") || initialParams.limit || "10");
 
@@ -63,8 +68,26 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ["stock-change-history", { page: page + 1, limit: rowsPerPage, companyId }],
-    queryFn: () => getStockChangeHistory({ page: page + 1, limit: rowsPerPage, companyId }, options),
+    queryKey: ["stock-change-history", { 
+      page: page + 1, 
+      limit: rowsPerPage, 
+      companyId,
+      timeframe,
+      startDate,
+      endDate,
+      reason,
+      type: filterType
+    }],
+    queryFn: () => getStockChangeHistory({ 
+      page: page + 1, 
+      limit: rowsPerPage, 
+      companyId,
+      timeframe,
+      startDate,
+      endDate,
+      reason,
+      type: filterType === "all" ? undefined : filterType
+    }, options),
     enabled: !!companyId && !!session?.accessToken,
     staleTime: 5 * 1000 * 60,
   });
@@ -140,37 +163,89 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              value={debouncedSearch}
-              onChange={(e) => setDebouncedSearch(e.target.value)}
-              className="w-full px-4 py-2.5 pl-10 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder={t("searchPlaceholder")}
+                value={debouncedSearch}
+                onChange={(e) => setDebouncedSearch(e.target.value)}
+                className="w-full px-4 py-2.5 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm transition-all"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filterType}
+                onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">{t("allTypes") || "All Types"}</option>
+                <option value="in">{t("table.stockIn")}</option>
+                <option value="out">{t("table.stockOut")}</option>
+              </select>
+
+              <select
+                value={timeframe}
+                onChange={(e) => updateFilters({ timeframe: e.target.value, page: 0, startDate: "", endDate: "" })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">Any Time</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+                <option value="custom">Custom Range</option>
+              </select>
+
+              <select
+                value={reason}
+                onChange={(e) => updateFilters({ reason: e.target.value, page: 0 })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">All Reasons</option>
+                <option value="sale">Sale</option>
+                <option value="damaged">Damaged</option>
+                <option value="expired">Expired</option>
+                <option value="restock">Restock</option>
+                <option value="manual">Manual Adjustment</option>
+                <option value="other">Other</option>
+              </select>
+
+              <button
+                onClick={() => refetch()}
+                className="px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 active:scale-95 shadow-sm shadow-orange-200"
+              >
+                <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+                {t("refresh")}
+              </button>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <select
-              value={filterType}
-              onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
-              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
-            >
-              <option value="all">{t("allTypes") || "All Types"}</option>
-              <option value="in">{t("table.stockIn")}</option>
-              <option value="out">{t("table.stockOut")}</option>
-            </select>
-
-            <button
-              onClick={() => refetch()}
-              className="px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
-              {t("refresh")}
-            </button>
-          </div>
+          {timeframe === "custom" && (
+            <div className="flex items-center gap-3 p-3 bg-orange-50/50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+               <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-orange-800 uppercase tracking-widest mb-1 ml-1">Start Date</label>
+                  <input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => updateFilters({ startDate: e.target.value, page: 0 })}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+               </div>
+               <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-orange-800 uppercase tracking-widest mb-1 ml-1">End Date</label>
+                  <input 
+                    type="date" 
+                    value={endDate}
+                    onChange={(e) => updateFilters({ endDate: e.target.value, page: 0 })}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+               </div>
+            </div>
+          )}
         </div>
 
         {/* Stats summary */}

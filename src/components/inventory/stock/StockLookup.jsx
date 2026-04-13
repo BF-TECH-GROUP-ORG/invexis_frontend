@@ -32,6 +32,8 @@ const ProductCarousel = ({ images = [], productName = "" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+
+
   const slides = useMemo(() => {
     if (images && images.length > 0) {
       return images.map(img => typeof img === 'string' ? img : img.url).filter(Boolean);
@@ -150,6 +152,12 @@ export default function StockLookup({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (outDialogOpen && product?.isForSale && outReason === "sale") {
+      setOutReason("damaged");
+    }
+  }, [outDialogOpen, product, outReason]);
 
   const { showSnackbar } = useSnackbar();
   // Filter suggestions from cached products by name / sku
@@ -270,7 +278,6 @@ export default function StockLookup({
         reason: outReason,
       });
       setOutQty("");
-      setOutReason("sale");
       setOutDialogOpen(false);
       showSnackbar(td("success"), "success");
       onProductFound && onProductFound(product);
@@ -591,11 +598,16 @@ export default function StockLookup({
                         }
                       }}
                     >
-                      {["sale", "damaged", "expired", "transferOut", "other"].map((r) => (
-                        <MenuItem key={r} value={r}>
-                          {td(`reasons.${r}`)}
-                        </MenuItem>
-                      ))}
+                      {["sale", "damaged", "expired", "other"]
+                        .filter(r => {
+                          if (r === "sale" && product?.isForSale) return false;
+                          return true;
+                        })
+                        .map((r) => (
+                          <MenuItem key={r} value={r}>
+                            {td(`reasons.${r}`)}
+                          </MenuItem>
+                        ))}
                     </TextField>
                   </div>
                 </div>
