@@ -159,7 +159,7 @@ export default function DocumentsPageClient() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-8rem)] flex flex-col bg-slate-50/50 rounded-3xl border border-white/80  overflow-hidden backdrop-blur-sm">
+        <div className="min-h-[calc(100vh-8rem)] flex flex-col bg-slate-50/50 rounded-4xl border border-white/80 shadow-lg overflow-hidden backdrop-blur-sm">
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0 bg-white/40 relative">
