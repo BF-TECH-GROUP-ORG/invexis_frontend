@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
 import FolderNavigation from '@/components/documents/FolderNavigation';
-import Statistics from '@/components/documents/Statistics';
 import InvoicePreviewModal from '@/app/[locale]/inventory/billing/components/InvoicePreviewModal';
 import { Search, Menu, AlertCircle, Filter, MoreVertical } from 'lucide-react';
 import { Alert } from '@mui/material';
@@ -215,7 +214,7 @@ export default function DocumentsPageClient() {
                                     onClick={() => setShowFilterMenu(!showFilterMenu)}
                                     className={`p-3.5 border rounded-2xl shadow-sm transition-all flex items-center gap-2 ${showFilterMenu ? 'bg-[#081422] text-white border-[#081422]' : 'bg-white border-slate-100 text-slate-400 hover:text-[#081422]'}`}
                                 >
-                                    <Filter size={20} />
+                                    <Menu size={20} />
                                     {filterType !== 'all' && <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-orange-500 text-white rounded-full">{filterType}</span>}
                                 </button>
                                 
@@ -254,13 +253,6 @@ export default function DocumentsPageClient() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto scrollbar-hide px-8 pb-12">
-                        {/* Immersive Insights */}
-                        {!drillState.year && !drillState.month && (
-                            <div className="mb-4">
-                                <Statistics />
-                            </div>
-                        )}
-
                         {isLoading ? (
                             !drillState.year ? <YearGridSkeleton /> : !drillState.month ? <MonthGridSkeleton /> : <DocumentListSkeleton />
                         ) : isError ? (

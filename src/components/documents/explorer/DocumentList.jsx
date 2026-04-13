@@ -91,9 +91,9 @@ export default function DocumentList({ documents, year, month, onOpenValues, onB
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: idx * 0.05, duration: 0.6 }}
-                                className={`group relative flex flex-col md:flex-row md:items-center p-5 md:p-6 border transition-all duration-500 rounded-4xl overflow-hidden ${isSelected
-                                    ? 'bg-orange-50/50 border-orange-200/50 shadow-[0_20px_40px_rgba(255,120,45,0.08)]'
-                                    : 'bg-white/40 backdrop-blur-xl border-white/60 hover:border-orange-200/50 hover:bg-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_25px_50px_-10px_rgba(255,120,45,0.1)]'
+                                className={`group relative flex flex-col md:flex-row md:items-center p-5 md:p-6 border transition-all duration-700 rounded-4xl overflow-hidden ${isSelected
+                                    ? 'bg-orange-50/60 border-orange-200/60 shadow-[0_30px_60px_-15px_rgba(255,120,45,0.12)]'
+                                    : 'bg-white/40 backdrop-blur-2xl border-white/80 hover:border-orange-200/50 hover:bg-white/95 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.03)] hover:shadow-[0_40px_80px_-15px_rgba(8,20,34,0.1)]'
                                 }`}
                             >
                                 {/* Active Indicator Bar */}
