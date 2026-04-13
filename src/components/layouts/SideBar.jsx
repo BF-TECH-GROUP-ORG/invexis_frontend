@@ -412,9 +412,8 @@ export default function SideBar({
 
     // ─── SALES DEPARTMENT RULES ────────────────────────────────────────────────
     if (isSales) {
-      // Overview section: Dashboard + Notifications ONLY (no Reports)
+      // Overview section: Notifications ONLY (Dashboard hidden — they auto-redirect to POS)
       const overviewTitles = [
-        t("sidebar.dashboard"),
         t("sidebar.notifications"),
       ];
       if (overviewTitles.includes(itemTitle)) return true;
