@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Pause,
   Play,
+  TrendingDown,
 } from "lucide-react";
 import { lookupProduct, stockOut } from "@/services/stockService";
 import productsService from "@/services/productsService";
