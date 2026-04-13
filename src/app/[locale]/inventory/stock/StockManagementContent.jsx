@@ -10,6 +10,7 @@ import {
   TrendingDown,
   Activity,
   Barcode,
+  X,
 } from "lucide-react";
 import productsService from "@/services/productsService";
 import { getDailySummary } from "@/services/stockService";
@@ -129,10 +130,18 @@ export default function StockManagementContent({ initialParams = {} }) {
   }, [branchesRes]);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [batchItems, setBatchItems] = useState([]);
   const [selectedCodeType, setSelectedCodeType] = useState("qr"); // 'qr' or 'barcode'
 
   const handleProductFound = (product) => {
     setSelectedProduct(product);
+  };
+
+  const handleSelectBatchItem = (item) => {
+    const found = productsCache.find(p => (p._id || p.id) === item.productId);
+    if (found) {
+        setSelectedProduct(found);
+    }
   };
 
   const handleOperationSuccess = () => {
@@ -421,21 +430,114 @@ export default function StockManagementContent({ initialParams = {} }) {
               companyId={companyId}
               productsCache={productsCache}
               canPerformOperations={canPerformOperations}
+              batchItems={batchItems}
+              setBatchItems={setBatchItems}
             />
-            <div className="bg-white rounded-xl border border-gray-300 p-6">
-              {selectedProduct ? (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{selectedProduct.name || selectedProduct.productName || "Product"}</h3>
-                  <p className="text-sm text-gray-500">{t("scanner.sku")}: {selectedProduct.sku || selectedProduct.productSku || selectedProduct._id}</p>
-                  <p className="text-sm text-gray-500">{t("scanner.stock")}: {selectedProduct.inventory?.quantity ?? selectedProduct.stock?.available ?? selectedProduct.stock ?? "—"}</p>
-                  {selectedProduct.description && <p className="mt-2 text-sm text-gray-600">{selectedProduct.description}</p>}
-                  <div className="mt-3">
-                    <Link href={`/inventory/products/${selectedProduct._id || selectedProduct.id}`} className="text-sm text-orange-600 hover:underline">{t("scanner.openProduct")}</Link>
+            <div className="bg-white rounded-xl border border-gray-300 overflow-hidden min-h-[500px] flex flex-col md:flex-row">
+              {selectedProduct || batchItems.length > 0 ? (
+                <>
+                  {/* Left Column: Batch & Info */}
+                  <div className="flex-1 p-6 border-r border-gray-100 flex flex-col min-w-0">
+                    <div className="flex items-center justify-between mb-4">
+                       <h3 className="text-lg font-bold text-gray-900 truncate">
+                        {selectedProduct ? (selectedProduct.name || selectedProduct.ProductName) : "Current Batch"}
+                       </h3>
+                       {batchItems.length > 0 && (
+                         <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full uppercase">
+                           {batchItems.length} items
+                         </span>
+                       )}
+                    </div>
+                    
+                    <div className="flex-1 overflow-auto space-y-4 pr-2 custom-scrollbar">
+                      {/* Sub-header: Current Product Quick Info if any */}
+                      {selectedProduct && (
+                        <div className="bg-orange-50/50 p-3 rounded-xl border border-orange-100">
+                           <p className="text-[10px] font-bold text-orange-800 uppercase tracking-widest mb-1">Active Selection</p>
+                           <p className="text-xs text-gray-600 line-clamp-2">{selectedProduct.description || "No description available."}</p>
+                           <div className="mt-3 flex gap-4">
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Stock</p>
+                                <p className="text-sm font-bold text-gray-900">{selectedProduct.inventory?.quantity ?? selectedProduct.stock?.available ?? "—"}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Shop</p>
+                                <p className="text-sm font-bold text-gray-900">{shopNames[selectedProduct.shopId || selectedProduct.metadata?.shopId] || selectedProduct.shopId || "-"}</p>
+                              </div>
+                           </div>
+                        </div>
+                      )}
+
+                      {/* Scrollable Batch List */}
+                      {batchItems.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                             <History size={12} /> Pending Submission
+                          </p>
+                          <div className="space-y-2">
+                             {batchItems.map((item, idx) => (
+                               <div 
+                                 key={`${item.productId}-${idx}`} 
+                                 onClick={() => handleSelectBatchItem(item)}
+                                 className="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100 hover:border-orange-200 transition-colors group cursor-pointer"
+                               >
+                                  <div className="min-w-0">
+                                     <p className="text-sm font-bold text-gray-900 truncate">{item.productName}</p>
+                                     <p className="text-[10px] text-gray-500 font-medium">QTY: {item.quantity}</p>
+                                  </div>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setBatchItems(prev => prev.filter(p => p.productId !== item.productId));
+                                    }}
+                                    className="p-1.5 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedProduct && (
+                      <div className="mt-6 pt-4 border-t border-gray-50">
+                        <Link 
+                          href={`/inventory/products/${selectedProduct._id || selectedProduct.id}`} 
+                          className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                        >
+                          <Activity size={16} />
+                          {t("scanner.openProduct")}
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                </div>
+
+                  {/* Right Column: Image Carousel */}
+                  <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-0">
+                    {selectedProduct ? (
+                      <div className="w-full h-full">
+                         <StockLookup.ProductCarousel 
+                            images={selectedProduct.media?.images || selectedProduct.images || []} 
+                            productName={selectedProduct.name}
+                         />
+                      </div>
+                    ) : (
+                      <div className="text-center p-6 grayscale opacity-20">
+                         <Package size={80} className="mx-auto text-gray-400 mb-2" />
+                         <p className="text-xs uppercase font-bold tracking-widest text-gray-500">No Product Selected</p>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
-                <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg mb-4 text-center">
-                  <p className="text-sm text-orange-700">{t("operations.noProductSelected")}</p>
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                   <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-4">
+                      <ArrowRightLeft className="text-orange-300" size={32} />
+                   </div>
+                  <p className="text-sm font-bold text-gray-900 mb-1">{t("operations.noProductSelected")}</p>
+                  <p className="text-xs text-gray-500 max-w-[200px]">Search for a product or add items to your batch to see details here.</p>
                 </div>
               )}
             </div>

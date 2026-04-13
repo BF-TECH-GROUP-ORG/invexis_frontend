@@ -559,6 +559,7 @@ export default function StockLookup({
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '12px',
                           backgroundColor: '#f9fafb',
+                          height: '48px',
                         }
                       }}
                     />
@@ -578,6 +579,15 @@ export default function StockLookup({
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '12px',
                           backgroundColor: '#f9fafb',
+                          height: '48px',
+                        },
+                        '& .MuiSelect-select': {
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          height: '48px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          boxSizing: 'border-box'
                         }
                       }}
                     >
@@ -629,3 +639,6 @@ export default function StockLookup({
     </div>
   );
 }
+
+StockLookup.ProductCarousel = ProductCarousel;
+

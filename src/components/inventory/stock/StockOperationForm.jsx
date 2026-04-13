@@ -13,7 +13,9 @@ export default function StockOperationForm({
   onSuccess = () => { },
   companyId,
   productsCache = [],
-  canPerformOperations = true, // ADDED prop
+  canPerformOperations = true,
+  batchItems = [],
+  setBatchItems = () => { },
 }) {
   const t = useTranslations("stockManagement.operations");
   const { user } = useAuth();
@@ -22,18 +24,22 @@ export default function StockOperationForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Batch state - products added for bulk in
-  const [batchItems, setBatchItems] = useState([]);
-
+  // Batch state lifted to parent
+  
   // When product prop changes, populate the form (but do not auto-add to batch)
   useEffect(() => {
     if (!product) {
       setQuantity("");
       return;
     }
-    // Default quantity empty so user must set it to add
-    setQuantity("");
-  }, [product]);
+    // If product is in batch, load its quantity
+    const inBatch = batchItems.find(item => item.productId === (product._id || product.id));
+    if (inBatch) {
+      setQuantity(String(inBatch.quantity));
+    } else {
+      setQuantity("");
+    }
+  }, [product, batchItems]);
 
   const addToBatch = () => {
     if (!product || !Number(quantity) || Number(quantity) <= 0) {
@@ -146,34 +152,22 @@ export default function StockOperationForm({
       const failed = results.filter((r) => !r.ok);
 
       if (failed.length === 0) {
-        showSnackbar(
-          t("errors.bulkSuccess", { count: successCount }),
-          "success"
-        );
-        setMessage({
-          type: "success",
-          text: t("errors.bulkSuccess", { count: successCount }),
-        });
+        const msg = t("errors.bulkSuccess", { count: itemsToSubmit.length });
+        showSnackbar(msg, "success");
+        setMessage({ type: "success", text: msg });
         setBatchItems([]);
         setQuantity("");
-        onSuccess();
+        onSuccess && onSuccess();
       } else {
         const firstErr = failed[0];
-        showSnackbar(t("errors.bulkPartial", { error: firstErr.error }), "error");
-        setMessage({
-          type: "error",
-          text: t("errors.bulkPartial", { error: firstErr.error }),
-        });
+        const msg = t("errors.bulkPartial", { error: firstErr.error });
+        showSnackbar(msg, "error");
+        setMessage({ type: "error", text: msg });
       }
     } catch (err) {
-      showSnackbar(
-        err.response?.data?.message || t("errors.bulkFailed"),
-        "error"
-      );
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || t("errors.bulkFailed"),
-      });
+      const msg = err.response?.data?.message || t("errors.bulkFailed");
+      showSnackbar(msg, "error");
+      setMessage({ type: "error", text: msg });
     } finally {
       setLoading(false);
     }
@@ -195,32 +189,7 @@ export default function StockOperationForm({
         </div>
       </div>
 
-      {/* Batch chips */}
-      {batchItems.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            {batchItems.map((b) => (
-              <div
-                key={b.productId}
-                className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2 text-sm"
-              >
-                <button
-                  onClick={() => loadBatchItem(b)}
-                  className="font-medium text-gray-800"
-                >
-                  {b.productName}
-                </button>
-                <button
-                  onClick={() => removeFromBatch(b.productId)}
-                  className="p-1 rounded-full hover:bg-gray-200"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Batch chips removed (now in right panel) */}
 
       {/* Selected Product */}
       {product ? (
