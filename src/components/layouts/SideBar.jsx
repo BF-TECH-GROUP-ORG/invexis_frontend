@@ -827,13 +827,13 @@ export default function SideBar({
                                 href={child.path}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (!isActive(child.path)) {
+                                  if (!isActive(child.path, true)) {
                                     setOptimisticPath(child.path);
                                     startNavigating();
                                     router.push(child.path);
                                   }
                                 }}
-                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path, true)
                                   ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                   : "text-gray-600 hover:bg-gray-100"
                                   }`}
@@ -891,13 +891,13 @@ export default function SideBar({
                   onClick={(e) => {
                     e.preventDefault();
                     setHoverItem(null);
-                    if (!isActive(child.path)) {
+                    if (!isActive(child.path, true)) {
                       setOptimisticPath(child.path);
                       startNavigating();
                       router.push(child.path);
                     }
                   }}
-                  className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+                  className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path, true) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
                 >
                   {child.title}
                 </Link>
