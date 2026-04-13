@@ -90,7 +90,7 @@ export default function StockManagementContent({ initialParams = {} }) {
   } : {}, [session?.accessToken]);
 
   // Query for daily summary
-  const { data: summaryRes } = useQuery({
+  const { data: summaryRes, refetch: refetchSummary } = useQuery({
     queryKey: ["daily-summary", companyId, isSalesWorker ? userShopId : null],
     queryFn: () => getDailySummary({ companyId, shopId: isSalesWorker ? userShopId : undefined }, options),
     enabled: !!companyId && !!session?.accessToken,
