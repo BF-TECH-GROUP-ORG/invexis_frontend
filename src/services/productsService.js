@@ -20,12 +20,14 @@ export async function getProducts({
   category,
   search,
   companyId,
+  isForSale,
 } = {}, options = {}) {
   if (!companyId) return [];
 
   const params = { page, limit };
   if (category) params.category = category;
   if (search) params.search = search;
+  if (isForSale) params.isForSale = isForSale;
 
   return apiClient.get(`${INVENTORY_BASE}/companies/${companyId}/products`, {
     params,
