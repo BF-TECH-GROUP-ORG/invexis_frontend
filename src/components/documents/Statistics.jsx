@@ -63,7 +63,7 @@ export default function Statistics() {
                 delay={0.3}
             />
             <StatCard
-                label="Vaulted Items"
+                label="Verified Records"
                 value={stats.archived}
                 subtext="SECURE"
                 icon={ShieldCheck}

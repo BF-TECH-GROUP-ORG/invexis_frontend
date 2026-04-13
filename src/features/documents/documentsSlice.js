@@ -240,4 +240,20 @@ export const {
   clearSelection, setCurrentDocument, addDocument, clearCurrentDocument, clearError, resetFilters
 } = dataSlice.actions;
 
+// ==================== SELECTORS ====================
+export const selectDocumentStats = (state) => {
+  const items = state.documents.items || [];
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  return {
+    total: items.length,
+    thisMonth: items.filter(item => new Date(item.date || item.createdAt) >= thisMonthStart).length,
+    totalAmount: items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0),
+    financial: items.filter(item => item.category === "Financial").length,
+    archived: items.filter(item => item.status === "Archived" || item.status === "Verified").length,
+    trash: items.filter(item => item.status === "Trash").length,
+  };
+};
+
 export default dataSlice.reducer;

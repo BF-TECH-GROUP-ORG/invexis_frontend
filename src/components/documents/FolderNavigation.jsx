@@ -27,14 +27,10 @@ export default function FolderNavigation({ onSelect, activeCategory }) {
         { id: "Sales & Orders", label: "Sales & Orders", icon: <ShoppingCart size={20} /> },
         { id: "Inventory", label: "Inventory", icon: <Package size={20} /> },
         { id: "Financial", label: "Financial", icon: <Wallet size={20} /> },
-        { id: "Human Resources", label: "Human Resources", icon: <Users size={20} /> },
         { id: "Reports", label: "Reports", icon: <BarChart3 size={20} /> },
     ];
 
-    const systemItems = [
-        { id: "Trash", label: "Trash", icon: <Trash2 size={20} /> },
-        { id: "Archived", label: "Archived", icon: <Archive size={20} /> },
-    ];
+
 
     return (
         <motion.div
@@ -127,65 +123,10 @@ export default function FolderNavigation({ onSelect, activeCategory }) {
                     </nav>
                 </div>
 
-                {/* System Section */}
-                <div>
-                    <AnimatePresence>
-                        {isOpen && (
-                            <motion.h3
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-4"
-                            >
-                                Operations
-                            </motion.h3>
-                        )}
-                    </AnimatePresence>
-                    <nav className="space-y-1.5">
-                        {systemItems.map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => onSelect(item.id)}
-                                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group ${activeCategory === item.id
-                                    ? "bg-orange-500 text-white shadow-xl shadow-orange-500/10"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-[#081422]"
-                                } ${!isOpen && 'justify-center'}`}
-                            >
-                                <span className={`shrink-0 transition-transform duration-300 ${!isOpen && 'group-hover:scale-125'}`}>
-                                    {item.icon}
-                                </span>
 
-                                <AnimatePresence>
-                                    {isOpen && (
-                                        <motion.span
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            className="font-bold text-sm tracking-tight whitespace-nowrap"
-                                        >
-                                            {item.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-                            </button>
-                        ))}
-                    </nav>
-                </div>
             </div>
 
-            {/* Bottom Accent */}
-            <div className="p-6 border-t border-slate-50">
-                <div className={`flex items-center gap-4 ${!isOpen && 'justify-center'}`}>
-                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-lg">
-                        <Archive size={20} />
-                    </div>
-                    {isOpen && (
-                        <div className="flex flex-col">
-                            <span className="text-xs font-black text-[#081422] uppercase tracking-tighter">Vault Storage</span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Premium Plan</span>
-                        </div>
-                    )}
-                </div>
-            </div>
+
         </motion.div>
     );
 }
