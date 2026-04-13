@@ -114,6 +114,7 @@ export default function StockLookup({
   productsLoading = false,
   companyId = null,
   displayMode = "default", // 'scanner' will render larger QR/barcode
+  canPerformOperations = true, // ADDED canPerformOperations prop
 }) {
   const t = useTranslations("stockManagement.scanner");
   const td = useTranslations("stockManagement.dialogs.confirmStockOut");
@@ -456,12 +457,18 @@ export default function StockLookup({
                 </div>
 
                 <div className="mt-4">
-                  <button
-                    onClick={() => setOutDialogOpen(true)}
-                    className="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-sm hover:shadow-red-200 active:scale-[0.98]"
-                  >
-                    {t("stockOutBtn")}
-                  </button>
+                  {canPerformOperations ? (
+                    <button
+                      onClick={() => setOutDialogOpen(true)}
+                      className="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-sm hover:shadow-red-200 active:scale-[0.98]"
+                    >
+                      {t("stockOutBtn")}
+                    </button>
+                  ) : (
+                    <div className="p-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold text-center border border-blue-100 flex items-center justify-center gap-2">
+                       <AlertCircle size={14} /> Read Only Mode
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

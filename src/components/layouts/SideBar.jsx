@@ -144,7 +144,7 @@ const getNavItems = (t) => [
     tourId: "tour-documents",
     id: "sidebar-documents",
   },
-  {
+  /* {
     title: t("sidebar.logsAndAudits"),
     icon: <History size={20} />,
     path: "/inventory/logs",
@@ -152,7 +152,7 @@ const getNavItems = (t) => [
     prefetch: true,
     tourId: "tour-logs",
     id: "sidebar-logs",
-  },
+  }, */
 ];
 
 export default function SideBar({
@@ -415,6 +415,10 @@ export default function SideBar({
         t("sidebar.salesHistory"),
         t("sidebar.stockOut"),
         t("sidebar.debts"),
+        t("sidebar.materialStock"),
+        t("sidebar.assets"),
+        t("sidebar.operations"),
+        t("categories.list.title"), // Note: we don't enable this by user prompt, but if needed. 
       ];
       return salesAllowedTitles.includes(itemTitle);
     }

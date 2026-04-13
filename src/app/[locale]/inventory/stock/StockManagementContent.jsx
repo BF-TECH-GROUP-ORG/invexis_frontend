@@ -42,21 +42,42 @@ export default function StockManagementContent({ initialParams = {} }) {
   const companyObj = user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
+  // User RBAC
+  const userRole = user?.role;
+  const assignedDepartments = user?.assignedDepartments || [];
+  const isCompanyAdmin = userRole === "company_admin" || userRole === "super_admin";
+  const isSalesWorker = assignedDepartments.includes("sales") && !isCompanyAdmin && !assignedDepartments.includes("management");
+  const isManagement = assignedDepartments.includes("management") && !isCompanyAdmin;
+  
+  const type = searchParams.get("type");
+  const isMaterialType = type === "material";
+  
+  // For materials, sales workers can only view (no update/delete)
+  const canPerformOperations = isCompanyAdmin || isManagement || (!isMaterialType && isSalesWorker);
+  const userShopId = user?.shops?.[0] || user?.branches?.[0];
+
   // Sync state with URL params
   const activeTab = searchParams.get("tab") || initialParams.tab || "scanner";
 
   // Helper to update filters/state in URL
   const updateFilters = useCallback((updates) => {
     const params = new URLSearchParams(searchParams);
+    
+    // Auto-enforce shopId for sales workers
+    if (isSalesWorker && userShopId) {
+      params.set("shopId", userShopId);
+    }
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === null || value === undefined || value === "" || value === "All") {
         params.delete(key);
-      } else {
+      } else {``
         params.set(key, value);
       }
     });
+
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, pathname, router]);
+  }, [searchParams, pathname, router, isSalesWorker, userShopId]);
 
   const setTab = (tabId) => updateFilters({ tab: tabId });
 
@@ -67,8 +88,8 @@ export default function StockManagementContent({ initialParams = {} }) {
 
   // Query for daily summary
   const { data: summaryRes } = useQuery({
-    queryKey: ["daily-summary", companyId],
-    queryFn: () => getDailySummary({ companyId }, options),
+    queryKey: ["daily-summary", companyId, isSalesWorker ? userShopId : null],
+    queryFn: () => getDailySummary({ companyId, shopId: isSalesWorker ? userShopId : undefined }, options),
     enabled: !!companyId && !!session?.accessToken,
     staleTime: 5 * 1000 * 60,
   });
@@ -77,8 +98,13 @@ export default function StockManagementContent({ initialParams = {} }) {
 
   // Query for products cache
   const { data: productsRes, isLoading: productsLoading } = useQuery({
-    queryKey: ["products-cache", companyId],
-    queryFn: () => productsService.getProducts({ companyId, limit: 1000, isForSale: "all" }, options),
+    queryKey: ["products-cache", companyId, isSalesWorker ? userShopId : null, isMaterialType],
+    queryFn: () => productsService.getProducts({ 
+        companyId, 
+        limit: 1000, 
+        isForSale: isMaterialType ? "false" : "all",
+        shopId: isSalesWorker ? userShopId : undefined 
+    }, options),
     enabled: !!companyId && !!session?.accessToken,
     staleTime: 10 * 1000 * 60,
   });
@@ -269,6 +295,7 @@ export default function StockManagementContent({ initialParams = {} }) {
               productsLoading={productsLoading}
               companyId={companyId}
               displayMode="scanner"
+              canPerformOperations={canPerformOperations}
             />
             <div className="bg-white rounded-xl border border-gray-300 p-6">
               {selectedProduct ? (
@@ -373,6 +400,7 @@ export default function StockManagementContent({ initialParams = {} }) {
               onSuccess={handleOperationSuccess}
               companyId={companyId}
               productsCache={productsCache}
+              canPerformOperations={canPerformOperations}
             />
             <div className="bg-white rounded-xl border border-gray-300 p-6">
               {selectedProduct ? (
@@ -397,7 +425,7 @@ export default function StockManagementContent({ initialParams = {} }) {
         <div className={activeTab === "history" ? "block animate-in fade-in duration-200" : "hidden"}>
           <StockHistoryTable
             companyId={companyId}
-            initialParams={initialParams}
+            initialParams={{ ...initialParams, shopId: isSalesWorker ? userShopId : undefined }}
             updateFilters={updateFilters}
           />
         </div>

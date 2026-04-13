@@ -13,6 +13,7 @@ export default function StockOperationForm({
   onSuccess = () => { },
   companyId,
   productsCache = [],
+  canPerformOperations = true, // ADDED prop
 }) {
   const t = useTranslations("stockManagement.operations");
   const { user } = useAuth();
@@ -245,6 +246,12 @@ export default function StockOperationForm({
         </div>
       )}
 
+      {!canPerformOperations && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-700 text-sm font-bold flex items-center gap-2">
+           <AlertCircle size={18} /> Read Only Mode: You do not have permission to perform operations on these items.
+        </div>
+      )}
+
       <form onSubmit={handleSubmitBatch} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -253,10 +260,11 @@ export default function StockOperationForm({
           <input
             type="number"
             min="1"
+            disabled={!canPerformOperations}
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             placeholder={t("qtyPlaceholder")}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 disabled:opacity-50"
           />
         </div>
 
@@ -275,8 +283,8 @@ export default function StockOperationForm({
           <button
             type="button"
             onClick={addToBatch}
-            disabled={!product || !Number(quantity) || Number(quantity) <= 0}
-            className={`flex-1 py-2.5 ${!product || !Number(quantity) || Number(quantity) <= 0
+            disabled={!canPerformOperations || !product || !Number(quantity) || Number(quantity) <= 0}
+            className={`flex-1 py-2.5 ${!canPerformOperations || !product || !Number(quantity) || Number(quantity) <= 0
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-orange-500 hover:bg-orange-600"
               } text-white rounded-lg transition-colors`}
@@ -286,11 +294,12 @@ export default function StockOperationForm({
           <button
             type="submit"
             disabled={
+              !canPerformOperations ||
               loading ||
               (batchItems.length === 0 &&
                 (!product || !Number(quantity) || Number(quantity) <= 0))
             }
-            className={`flex-1 py-2.5 ${loading ||
+            className={`flex-1 py-2.5 ${!canPerformOperations || loading ||
                 (batchItems.length === 0 &&
                   (!product || !Number(quantity) || Number(quantity) <= 0))
                 ? "bg-gray-300 cursor-not-allowed"
