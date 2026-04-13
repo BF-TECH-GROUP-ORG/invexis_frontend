@@ -17,6 +17,7 @@ import { getDailySummary } from "@/services/stockService";
 import { getBranches } from "@/services/branches";
 import {
   StockLookup,
+  ProductCarousel,
   StockOperationForm,
   StockHistoryTable,
 } from "@/components/inventory/stock";
@@ -358,13 +359,13 @@ export default function StockManagementContent({ initialParams = {} }) {
                   <div className="mt-8 flex flex-col items-center gap-4 transition-all duration-300">
                     {selectedCodeType === "qr" ? (
                       selectedProduct.codes?.qrPayload ? (
-                        <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
+                        <div className="flex flex-col items-center gap-2">
                           <img
-                            alt="Large QR"
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(selectedProduct.codes.qrPayload)}`}
-                            className="w-56 h-56 bg-white p-2 rounded-md border shadow-lg"
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedProduct.codes.qrPayload)}`}
+                            alt="Product QR"
+                            className="w-32 h-32 shadow-sm"
                           />
-                          <p className="mt-4 font-mono text-sm text-gray-400 select-all">{selectedProduct.codes.qrPayload}</p>
+                          <p className="mt-4 font-mono text-sm text-gray-500 select-all tracking-widest">{selectedProduct.codes.qrPayload}</p>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-10 text-gray-400">
@@ -374,9 +375,8 @@ export default function StockManagementContent({ initialParams = {} }) {
                       )
                     ) : (
                       selectedProduct.codes?.barcodePayload ? (
-                        <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
+                        <div className="flex flex-col items-center gap-2">
                           <img
-                            alt="Large Barcode"
                             src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(selectedProduct.codes.barcodePayload)}&code=Code128&translate-esc=true`}
                             className="h-32 shadow-sm"
                           />
@@ -458,11 +458,11 @@ export default function StockManagementContent({ initialParams = {} }) {
                            <div className="mt-3 flex gap-4">
                               <div>
                                 <p className="text-[10px] font-bold text-gray-400 uppercase">Stock</p>
-                                <p className="text-sm font-bold text-gray-900">{selectedProduct.inventory?.quantity ?? selectedProduct.stock?.available ?? "—"}</p>
+                                 <p className="text-sm font-bold text-gray-900">{selectedProduct?.inventory?.quantity ?? selectedProduct?.stock?.available ?? "—"}</p>
                               </div>
                               <div>
                                 <p className="text-[10px] font-bold text-gray-400 uppercase">Shop</p>
-                                <p className="text-sm font-bold text-gray-900">{shopNames[selectedProduct.shopId || selectedProduct.metadata?.shopId] || selectedProduct.shopId || "-"}</p>
+                                <p className="text-sm font-bold text-gray-900">{shopNames[selectedProduct?.shopId || selectedProduct?.metadata?.shopId] || selectedProduct?.shopId || "-"}</p>
                               </div>
                            </div>
                         </div>
@@ -516,14 +516,15 @@ export default function StockManagementContent({ initialParams = {} }) {
 
                   {/* Right Column: Image Carousel */}
                   <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-0">
-                    {selectedProduct ? (
+                    {selectedProduct && (
                       <div className="w-full h-full">
-                         <StockLookup.ProductCarousel 
+                         <ProductCarousel 
                             images={selectedProduct.media?.images || selectedProduct.images || []} 
                             productName={selectedProduct.name}
                          />
                       </div>
-                    ) : (
+                    )}
+                    {!selectedProduct && (
                       <div className="text-center p-6 grayscale opacity-20">
                          <Package size={80} className="mx-auto text-gray-400 mb-2" />
                          <p className="text-xs uppercase font-bold tracking-widest text-gray-500">No Product Selected</p>

@@ -28,7 +28,7 @@ import {
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useTranslations } from "next-intl";
 
-const ProductCarousel = ({ images = [], productName = "" }) => {
+export const ProductCarousel = ({ images = [], productName = "" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -652,5 +652,5 @@ export default function StockLookup({
   );
 }
 
-StockLookup.ProductCarousel = ProductCarousel;
+
 
