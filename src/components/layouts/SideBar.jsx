@@ -402,8 +402,12 @@ export default function SideBar({
     const itemTitle = item.title?.trim();
     if (!itemTitle) return true;
 
-    const isSales = assignedDepartments.includes("sales");
-    const isManagement = assignedDepartments.includes("management");
+    // Ensure safe, case-insensitive department matching
+    const safeDepartments = assignedDepartments.map((d) =>
+      String(d).toLowerCase().trim()
+    );
+    const isSales = safeDepartments.includes("sales");
+    const isManagement = safeDepartments.includes("management");
 
     // 3. ── DEPARTMENT RULES (checked BEFORE role restrictions) ─────────────────
     // Sales department users: strictly allowed list only, bypass role check

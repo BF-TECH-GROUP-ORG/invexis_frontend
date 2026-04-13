@@ -32,7 +32,9 @@ const DashboardPage = async ({ params, searchParams }) => {
   // Sales users land directly on the Stock-Out (POS) page — dashboard is not their home.
   const assignedDepartments = session?.user?.assignedDepartments || [];
   const userRole = session?.user?.role;
-  if (assignedDepartments.includes("sales") && userRole !== "company_admin") {
+  const safeDepartments = assignedDepartments.map((d) => String(d).toLowerCase().trim());
+  
+  if (safeDepartments.includes("sales") && userRole !== "company_admin") {
     redirect(`/${locale}/inventory/sales/sellProduct/sale`);
   }
   // ────────────────────────────────────────────────────────────────────────────
