@@ -5,13 +5,11 @@ import {
     ShoppingCart,
     Package,
     Wallet,
-    Users,
     BarChart3,
-    Trash2,
-    Archive,
     ChevronLeft,
     Menu,
-    Plus
+    FileText,
+    LayoutGrid
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
