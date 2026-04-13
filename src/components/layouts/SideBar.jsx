@@ -396,21 +396,30 @@ export default function SideBar({
       if (forbiddenForIndustrial.includes(item.title)) return false;
     }
 
-    if (businessType === 'RETAIL') {
-      // Material Stock is now allowed for RETAIL internal assets/supplies
-      // if (item.title === t("sidebar.materialStock")) return false;
+    // 2. Role/Department Filtering
+    if (userRole === "company_admin" || userRole === "super_admin") return true;
+
+    // If item has explicit role restriction, check it
+    if (item.roles && item.roles.length > 0) {
+      if (!item.roles.includes(userRole)) return false;
     }
 
-    // 2. Role/Department Filtering (Existing Logic)
-    if (userRole === "company_admin") return true;
+    const itemTitle = item.title?.trim();
+    if (!itemTitle) return true; // Default to visible for untitled items
 
-    const itemTitle = item.title.trim();
     const isSales = assignedDepartments.includes("sales");
     const isManagement = assignedDepartments.includes("management");
 
+    // Overview section (Dashboard, Notifications, Reports) - generally visible to all authenticated users
+    const overviewTitles = [
+      t("sidebar.dashboard"),
+      t("sidebar.notifications"),
+      t("sidebar.reports"),
+    ];
+    if (overviewTitles.includes(itemTitle)) return true;
+
     if (isSales) {
       const salesAllowedTitles = [
-        t("sidebar.notifications"),
         t("sidebar.sales"),
         t("sidebar.salesHistory"),
         t("sidebar.stockOut"),
@@ -418,12 +427,17 @@ export default function SideBar({
         t("sidebar.materialStock"),
         t("sidebar.assets"),
         t("sidebar.operations"),
-        t("categories.list.title"), // Note: we don't enable this by user prompt, but if needed. 
+        t("sidebar.materialReports"), 
       ];
       return salesAllowedTitles.includes(itemTitle);
     }
 
     if (isManagement) return true;
+    
+    // Default: Allow if no specific roles restriction was found or if it's a basic item
+    // For workers without departments, they should at least see what's in their roles list
+    if (userRole === "worker" || userRole === "sales") return true;
+
     return false;
   };
 

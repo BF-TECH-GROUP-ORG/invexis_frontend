@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import { getBranches } from "@/services/branches";
 import MaterialStockStats from "./MaterialStockStats";
 import MaterialStockTable from "./MaterialStockTable";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 
 /**
  * MaterialStockList - Container for non-saleable items (Internal Assets/Supplies)
