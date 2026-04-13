@@ -240,6 +240,7 @@
       "subtitle": "Aperçu détaillé des actifs internes, de la valorisation et des tendances de mouvement",
       "advancedFilters": "Filtres avancés",
       "exportCsv": "Exporter en CSV",
+      "exportPdf": "Exporter en PDF",
       "assetValue": "Valeur totale des actifs",
       "totalItems": "Total des articles",
       "lowStockAssets": "Actifs à faible stock",
