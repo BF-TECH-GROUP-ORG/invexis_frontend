@@ -78,7 +78,7 @@ export default function StockManagementContent({ initialParams = {} }) {
   // Query for products cache
   const { data: productsRes, isLoading: productsLoading } = useQuery({
     queryKey: ["products-cache", companyId],
-    queryFn: () => productsService.getProducts({ companyId, limit: 1000 }, options),
+    queryFn: () => productsService.getProducts({ companyId, limit: 1000, isForSale: "all" }, options),
     enabled: !!companyId && !!session?.accessToken,
     staleTime: 10 * 1000 * 60,
   });
