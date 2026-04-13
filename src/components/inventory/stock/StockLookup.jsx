@@ -32,7 +32,9 @@ const ProductCarousel = ({ images = [], productName = "" }) => {
   const [isPaused, setIsPaused] = useState(false);
 
   const slides = useMemo(() => {
-    if (images && images.length > 0) return images;
+    if (images && images.length > 0) {
+      return images.map(img => typeof img === 'string' ? img : img.url).filter(Boolean);
+    }
     // Fallback if no images
     return ["https://via.placeholder.com/400x400?text=No+Image+Available"];
   }, [images]);
@@ -59,7 +61,7 @@ const ProductCarousel = ({ images = [], productName = "" }) => {
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((url, i) => (
-          <div key={url + i} className="w-full h-full shrink-0">
+          <div key={`${url}-${i}`} className="w-full h-full shrink-0">
             <img
               src={url}
               alt={`${productName} - ${i + 1}`}
@@ -316,7 +318,7 @@ export default function StockLookup({
                         </div>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {s.stock?.available ?? s.stock?.total ?? s.stock ?? 0}
+                        {s.stock?.total ?? s.stock?.available ?? s.stock ?? s.inventory?.quantity ?? 0}
                       </div>
                     </div>
                   </li>
@@ -349,11 +351,11 @@ export default function StockLookup({
                         {s.identifiers?.sku || s.sku || ""}
                       </div>
                       <div className="text-xs text-gray-400">
-                        {t("shop")}: {s.shopId || s.metadata?.shopId || "-"}
+                        {t("shop")}: {s.metadata?.shopId || s.shopId || "-"}
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
-                      {s.stock?.available ?? s.stock?.total ?? s.stock ?? 0}
+                      {s.stock?.total ?? s.stock?.available ?? s.stock ?? s.inventory?.quantity ?? 0}
                     </div>
                   </div>
                 </li>
@@ -423,7 +425,7 @@ export default function StockLookup({
               {/* Image Section */}
               <div className="w-full md:w-48 shrink-0">
                 <ProductCarousel
-                  images={product.images || product.Images}
+                  images={product.media?.images || product.images || product.Images}
                   productName={product.name || product.ProductName}
                 />
               </div>
@@ -444,13 +446,13 @@ export default function StockLookup({
                     <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("stock")}</p>
                       <p className="text-lg font-black text-orange-600">
-                        {product.stock?.available ?? product.stock ?? 0}
+                        {product.stock?.available ?? product.stock ?? product.inventory?.quantity ?? 0}
                       </p>
                     </div>
                     <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("shop")}</p>
                       <p className="text-sm font-bold text-gray-700 truncate">
-                        {product.shopId || product.metadata?.shopId || "-"}
+                        {product.metadata?.shopId || product.shopId || "-"}
                       </p>
                     </div>
                   </div>

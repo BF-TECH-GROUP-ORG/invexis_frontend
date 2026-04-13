@@ -11,6 +11,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 
 import { getBranches } from "@/services/branches";
+import MaterialStockStats from "./MaterialStockStats";
+import MaterialStockTable from "./MaterialStockTable";
 
 /**
  * MaterialStockList - Container for non-saleable items (Internal Assets/Supplies)

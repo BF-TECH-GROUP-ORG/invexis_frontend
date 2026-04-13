@@ -52,8 +52,8 @@ export default function StockManagementContent({ initialParams = {} }) {
   const type = searchParams.get("type");
   const isMaterialType = type === "material";
   
-  // For materials, sales workers can only view (no update/delete)
-  const canPerformOperations = isCompanyAdmin || isManagement || (!isMaterialType && isSalesWorker);
+  // Restore operation permissions for all roles as requested by user
+  const canPerformOperations = true; 
   const userShopId = user?.shops?.[0] || user?.branches?.[0];
 
   // Sync state with URL params
