@@ -51,10 +51,10 @@ function BranchReportSection({ branch }) {
           </div>
           <div>
             <h3 className="text-lg font-black text-[#081422]">
-              {t("branch")}: {branch.shopId}
+              {t("branch")}: {branch.shopId || branch.shopName || "Unknown"}
             </h3>
             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-0.5">
-              {t("materialItems", { count: branch.products.length })}
+              {t("materialItems", { count: branch.products?.length || 0 })}
             </p>
           </div>
         </div>
@@ -88,28 +88,28 @@ function BranchReportSection({ branch }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {branch.products.map((p) => (
+                  {(branch.products || []).map((p) => (
                     <tr key={p.productId} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-5 py-3">
                         <p className="text-sm font-bold text-gray-900">{p.productName}</p>
                         <p className="text-[10px] text-gray-400 font-bold tracking-tight">{p.categoryName}</p>
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-500">{p.stats.movement.open}</td>
+                      <td className="px-5 py-3 text-sm text-gray-500">{p.stats?.movement?.open || 0}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1 text-emerald-600 font-bold text-sm">
                           <ArrowUpRight size={14} />
-                          {p.stats.movement.in}
+                          {p.stats?.movement?.in || 0}
                         </div>
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1 text-orange-500 font-bold text-sm">
                           <ArrowDownRight size={14} />
-                          {p.stats.movement.out}
+                          {p.stats?.movement?.out || 0}
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-sm font-bold text-gray-900">{p.stats.movement.close}</td>
+                      <td className="px-5 py-3 text-sm font-bold text-gray-900">{p.stats?.movement?.close || 0}</td>
                       <td className="px-5 py-3 text-center">
-                        <StatusBadge status={p.stats.status.stockStatus} />
+                        <StatusBadge status={p.stats?.status?.stockStatus || "Unknown"} />
                       </td>
                     </tr>
                   ))}
@@ -124,19 +124,19 @@ function BranchReportSection({ branch }) {
                   <div className="text-sm font-bold text-gray-900 text-center">-</div>
                   <div className="flex items-center gap-1 text-emerald-600 font-bold text-sm">
                     <ArrowUpRight size={14} />
-                    {branch.totals.movement.in}
+                    {branch.totals?.movement?.in || 0}
                   </div>
                   <div className="flex items-center gap-1 text-orange-500 font-bold text-sm">
                     <ArrowDownRight size={14} />
-                    {branch.totals.movement.out}
+                    {branch.totals?.movement?.out || 0}
                   </div>
                   <div className="text-sm font-bold text-[#081422]">
-                    {branch.totals.movement.close}
+                    {branch.totals?.movement?.close || 0}
                   </div>
                   <div className="text-center">
-                    {branch.totals.kpis.lowStockItems > 0 ? (
+                    {(branch.totals?.kpis?.lowStockItems || 0) > 0 ? (
                       <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100 text-[9px] font-bold uppercase">
-                        {branch.totals.kpis.lowStockItems} {t("lowStock") || "Low"}
+                        {branch.totals?.kpis?.lowStockItems || 0} {t("lowStock") || "Low"}
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tight">{t("allHealthy") || "Healthy"}</span>

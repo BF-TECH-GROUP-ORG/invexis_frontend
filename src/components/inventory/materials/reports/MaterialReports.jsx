@@ -126,13 +126,13 @@ export default function MaterialReports() {
       doc.text(`Branch: ${branch.shopName || branch.shopId}`, 14, currentY);
       currentY += 6;
       
-      const tableRows = branch.products.map(p => [
-        p.productName,
-        p.stats.movement.open,
-        p.stats.movement.in,
-        p.stats.movement.out,
-        p.stats.movement.close,
-        p.stats.status.stockStatus
+      const tableRows = (branch.products || []).map(p => [
+        p.productName || 'Unknown',
+        p.stats?.movement?.open || 0,
+        p.stats?.movement?.in || 0,
+        p.stats?.movement?.out || 0,
+        p.stats?.movement?.close || 0,
+        p.stats?.status?.stockStatus || 'Unknown'
       ]);
       
       doc.autoTable({
@@ -150,7 +150,7 @@ export default function MaterialReports() {
       // Subtotals
       doc.setFontSize(9);
       doc.setTextColor(100);
-      doc.text(`Branch Summary: ${branch.totals.movement.close} Total | ${branch.totals.movement.in} In | ${branch.totals.movement.out} Out`, 14, currentY);
+      doc.text(`Branch Summary: ${branch.totals?.movement?.close || 0} Total | ${branch.totals?.movement?.in || 0} In | ${branch.totals?.movement?.out || 0} Out`, 14, currentY);
       currentY += 15;
     });
     
@@ -158,12 +158,7 @@ export default function MaterialReports() {
     toast.success(t("exportPdfStarted") || "PDF Export Started");
   }, [reportData, startDate, endDate, t]);
 
-  if (isLoading) return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#081422]"></div>
-      <p className="text-gray-400 font-medium animate-pulse">{t("insights")}</p>
-    </div>
-  );
+
 
   const grandTotal = reportData?.grandTotal || { value: { totalValue: 0 }, kpis: { totalItems: 0, lowStockItems: 0 } };
 
@@ -195,6 +190,13 @@ export default function MaterialReports() {
     const vals = allProducts.map(p => p.stats?.movement?.in || 0).sort((a, b) => b - a);
     return vals.map(v => ({ val: v }));
   }, [reportData]);
+
+  if (isLoading) return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#081422]"></div>
+      <p className="text-gray-400 font-medium animate-pulse">{t("insights")}</p>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
