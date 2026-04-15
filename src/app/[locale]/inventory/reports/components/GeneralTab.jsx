@@ -108,7 +108,7 @@ const GeneralTab = ({ dateRange, reportView }) => {
                         { title: t('general.kpis.costs'), value: formatCurrency(reportData?.grandTotal?.financials?.cost || 0), Icon: BarChart3, color: "#f59e0b", bgColor: "#fef3c7" },
                         { title: t('general.kpis.profit'), value: formatCurrency(reportData?.grandTotal?.financials?.profit || 0), Icon: TrendingUp, color: "#10b981", bgColor: "#ecfdf5" },
                         { title: t('general.kpis.debts'), value: formatCurrency(reportData?.grandTotal?.debt?.balance || 0), Icon: CreditCard, color: "#ef4444", bgColor: "#fee2e2" },
-                        // { title: t('general.kpis.returns'), value: formatCurrency(reportData?.grandTotal?.sales?.discounts || 0), Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
+                        { title: t('general.kpis.returns'), value: formatCurrency(reportData?.grandTotal?.returns?.amount || 0), Icon: RefreshCw, color: "#8b5cf6", bgColor: "#f3e8ff" }
                     ].map((kpi, i) => (
                         <div key={i} className="h-full">
                             <motion.div
