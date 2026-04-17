@@ -277,7 +277,7 @@ const AnalyticsPage = () => {
 
     // Employee Performance
     const rawEmployees = employeeRes?.data || employeeRes || [];
-    const workers = workersRes || [];
+    const workers = workersRes?.data || workersRes || [];
     const employeePerformance = rawEmployees.map(item => {
         const worker = workers.find(w => (w._id || w.id) === item.employeeId);
         return {
