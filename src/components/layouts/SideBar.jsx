@@ -412,8 +412,8 @@ export default function SideBar({
     // 3. ── DEPARTMENT RULES (checked BEFORE role restrictions) ─────────────────
     // Sales department users: strictly allowed list only, bypass role check
     if (isSales) {
-      // Overview: Notifications ONLY (Dashboard hidden — auto-redirect to POS)
-      const salesOverview = [t("sidebar.notifications")];
+      // Overview: Dashboard allowed
+      const salesOverview = [t("sidebar.dashboard")];
       if (salesOverview.includes(itemTitle)) return true;
 
       // Management items for sales users
@@ -422,9 +422,6 @@ export default function SideBar({
         t("sidebar.salesHistory"),
         t("sidebar.stockOut"),
         t("sidebar.debts"),
-        t("sidebar.materialStock"),
-        t("sidebar.assets"),
-        t("sidebar.operations"),
         t("sidebar.saleableStock"),
         t("sidebar.products"),
         t("sidebar.transfers"),

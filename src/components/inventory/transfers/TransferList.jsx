@@ -65,6 +65,12 @@ export default function TransferList({ initialParams = {} }) {
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || initialCompanyId;
 
+    const isSalesWorker = React.useMemo(() => {
+        const userRole = session?.user?.role;
+        const assignedDepartments = session?.user?.assignedDepartments || [];
+        return assignedDepartments.includes("sales") && userRole !== "company_admin";
+    }, [session?.user]);
+
     const options = useMemo(() => (session?.accessToken ? {
         headers: {
             Authorization: `Bearer ${session.accessToken}`
@@ -265,27 +271,29 @@ export default function TransferList({ initialParams = {} }) {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <Button
-                            variant="contained"
-                            disabled
-                            startIcon={<Plus size={20} />}
-                            sx={{
-                                bgcolor: "#ff782d",
-                                "&:hover": { bgcolor: "#ea580c" },
-                                borderRadius: "12px",
-                                px: 3,
-                                py: 1.2,
-                                textTransform: "none",
-                                fontWeight: 700,
-                                boxShadow: "none",
-                                "&.Mui-disabled": {
-                                    bgcolor: "#f3f4f6",
-                                    color: "#9ca3af"
-                                }
-                            }}
-                        >
-                            {t("header.addTransfer")}
-                        </Button>
+                        {!isSalesWorker && (
+                            <Button
+                                variant="contained"
+                                disabled
+                                startIcon={<Plus size={20} />}
+                                sx={{
+                                    bgcolor: "#ff782d",
+                                    "&:hover": { bgcolor: "#ea580c" },
+                                    borderRadius: "12px",
+                                    px: 3,
+                                    py: 1.2,
+                                    textTransform: "none",
+                                    fontWeight: 700,
+                                    boxShadow: "none",
+                                    "&.Mui-disabled": {
+                                        bgcolor: "#f3f4f6",
+                                        color: "#9ca3af"
+                                    }
+                                }}
+                            >
+                                {t("header.addTransfer")}
+                            </Button>
+                        )}
                     </motion.div>
                 </Stack>
             </Stack>
@@ -320,6 +328,7 @@ export default function TransferList({ initialParams = {} }) {
                     <TransferTable
                         transfers={mappedTransfers}
                         loading={loading}
+                        canDelete={!isSalesWorker}
                     />
 
                     <Divider sx={{ borderColor: "#f3f4f6" }} />

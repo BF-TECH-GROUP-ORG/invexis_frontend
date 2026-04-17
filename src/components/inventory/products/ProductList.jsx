@@ -162,18 +162,20 @@ export default function ProductList({ initialParams = {} }) {
     ) : [];
   }, [productsResponse]);
 
+  const isSalesWorker = React.useMemo(() => {
+    const userRole = currentUser?.role;
+    const assignedDepartments = currentUser?.assignedDepartments || [];
+    return assignedDepartments.includes("sales") && userRole !== "company_admin";
+  }, [currentUser]);
+
   const products = useMemo(() => {
-    const user = currentUser;
-    const userRole = user?.role;
-    const assignedDepartments = user?.assignedDepartments || [];
-    const isSalesWorker = assignedDepartments.includes("sales") && userRole !== "company_admin";
-    const userShopId = user?.shops?.[0];
+    const userShopId = currentUser?.shops?.[0];
 
     if (isSalesWorker && userShopId) {
       return allProducts.filter(p => p.shopId === userShopId);
     }
     return allProducts;
-  }, [allProducts, currentUser]);
+  }, [allProducts, currentUser, isSalesWorker]);
 
   const categories = useMemo(() => Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : (Array.isArray(categoriesResponse) ? categoriesResponse : []), [categoriesResponse]);
   const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
@@ -336,7 +338,7 @@ export default function ProductList({ initialParams = {} }) {
                 className="w-full sm:w-96 pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
               />
             </div>
-            {selectedIds.length > 0 && (
+            {!isSalesWorker && selectedIds.length > 0 && (
               <button
                 onClick={handleBulkDelete}
                 className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
@@ -460,19 +462,20 @@ export default function ProductList({ initialParams = {} }) {
 
             <ExportDropdown onExport={handleExport} label={t("header.export")} />
 
-            <Link
-              id="add-product-btn"
-              prefetch={true}
-              href={routes.add}
-              className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
-            >
-              <Plus size={24} />
-              {t("header.addProduct")}
-            </Link>
+            {!isSalesWorker && (
+              <Link
+                id="add-product-btn"
+                prefetch={true}
+                href={routes.add}
+                className="flex items-center gap-2 px-4 py-3 bg-[#081422] text-white rounded-xl hover:bg-orange-600 transition font-medium"
+              >
+                <Plus size={24} />
+                {t("header.addProduct")}
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Product Table */}
         <ProductTable
           products={products}
           loading={productsLoading}
@@ -483,6 +486,8 @@ export default function ProductList({ initialParams = {} }) {
           editUrl={routes.edit}
           pagination={pagination}
           onPageChange={(p, l) => updateFilters({ page: p, limit: l })}
+          canEdit={!isSalesWorker}
+          canDelete={!isSalesWorker}
         />
       </div>
     </div>
