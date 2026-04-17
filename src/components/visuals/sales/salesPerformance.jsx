@@ -446,7 +446,7 @@ const SalesPerformance = ({
                     <div>
                         <h2 className="text-lg font-bold text-gray-800">{t('inventoryStatistics')}</h2>
                         <p className="text-sm text-gray-500">
-                            {t('inbound')} <span className="text-emerald-500 font-medium">{t('stockIn')}</span> {t('vs')} {t('outbound')} <span className="text-orange-400 font-medium">{t('stockOut')}</span>
+                            {t('inbound')} <span className="text-emerald-500 font-medium">{t('stockIn')}</span> {t('vs')} {t('outbound')} <span className="text-orange-500 font-medium">{t('stockOut')}</span>
                         </p>
                     </div>
                 </div>
@@ -483,8 +483,11 @@ const SalesPerformance = ({
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
-                                tickFormatter={(val) => (val >= 1000 ? `${val / 1000}k` : val)}
-                                domain={[0, 'auto']}
+                                tickFormatter={(val) => {
+                                    const absVal = Math.abs(val);
+                                    return absVal >= 1000 ? `${absVal / 1000}k` : absVal;
+                                }}
+                                domain={['auto', 'auto']}
                                 dx={-10}
                             />
 
@@ -498,15 +501,17 @@ const SalesPerformance = ({
                                 dataKey="in"
                                 name={t('stockIn')}
                                 barSize={32}
-                                fill="url(#stockInGradient)"
+                                fill="#10b981"
                                 radius={[18, 18, 0, 0]}
+                                stackId="stack"
                             />
                             <Bar
                                 dataKey="out"
                                 name={t('stockOut')}
                                 barSize={32}
-                                fill="url(#stockOutGradient)"
-                                radius={[18, 18, 0, 0]}
+                                fill="#f97316"
+                                radius={[0, 0, 18, 18]}
+                                stackId="stack"
                             />
                             <Line
                                 type="monotone"
