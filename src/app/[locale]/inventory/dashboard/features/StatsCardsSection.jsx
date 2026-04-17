@@ -70,8 +70,8 @@ export default async function StatsCardsSection({ companyId, params, options, lo
             history: ordersHistory
         },
         {
-            title: t("topProduct"),
-            value: rawProducts.length > 0 ? rawProducts[0].totalQuantity : 0,
+            title: t("unitsSold"),
+            value: rawProducts.reduce((acc, curr) => acc + (parseInt(curr.totalQuantity) || 0), 0),
             icon: <Boxes size={24} style={{ color: "#3b82f6" }} />,
             color: "#3b82f6",
             bgColor: "#eff6ff",
