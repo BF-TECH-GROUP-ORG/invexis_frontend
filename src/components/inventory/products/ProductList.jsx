@@ -162,7 +162,7 @@ export default function ProductList({ initialParams = {} }) {
     ) : [];
   }, [productsResponse]);
 
-  const isSalesWorker = React.useMemo(() => {
+  const isSalesWorker = useMemo(() => {
     const userRole = currentUser?.role;
     const assignedDepartments = currentUser?.assignedDepartments || [];
     return assignedDepartments.includes("sales") && userRole !== "company_admin";

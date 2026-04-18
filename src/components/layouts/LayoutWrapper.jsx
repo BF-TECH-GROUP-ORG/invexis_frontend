@@ -112,6 +112,10 @@ export default function LayoutWrapper({ children }) {
           "/inventory/notifications",
           "/inventory/sales",
           "/inventory/debts",
+          "/inventory/products",
+          "/inventory/transfer",
+          "/inventory/stock",
+          "/inventory/material-stock",
         ];
 
         // Normalise path by removing locale prefix if present

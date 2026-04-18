@@ -65,7 +65,7 @@ export default function TransferList({ initialParams = {} }) {
     const companyObj = session?.user?.companies?.[0];
     const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || initialCompanyId;
 
-    const isSalesWorker = React.useMemo(() => {
+    const isSalesWorker = useMemo(() => {
         const userRole = session?.user?.role;
         const assignedDepartments = session?.user?.assignedDepartments || [];
         return assignedDepartments.includes("sales") && userRole !== "company_admin";
