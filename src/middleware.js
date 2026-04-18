@@ -99,6 +99,10 @@ export default async function middleware(req) {
                 "/inventory/notifications",
                 "/inventory/sales",
                 "/inventory/debts",
+                "/inventory/products",
+                "/inventory/transfer",
+                "/inventory/stock",
+                "/inventory/material-stock",
             ];
 
             const isAllowed = allowedSalesPaths.some(path => normalizedPath.startsWith(path));

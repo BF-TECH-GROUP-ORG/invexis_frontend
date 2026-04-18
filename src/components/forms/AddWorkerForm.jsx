@@ -945,29 +945,29 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
                       </Box>
                     )}
                   >
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        color: index <= activeStep ? "#081422" : "#888",
-                        mb: 0.5,
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#666", fontSize: "0.8rem" }}
-                    >
-                      Step {index + 1} of {stepLabels.length}
-                    </Typography>
-                  </Box>
-                </StepLabel>
-              </Step>
-            );
-          })}
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          color: index <= activeStep ? "#081422" : "#888",
+                          mb: 0.5,
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#666", fontSize: "0.8rem" }}
+                      >
+                        Step {index + 1} of {stepLabels.length}
+                      </Typography>
+                    </Box>
+                  </StepLabel>
+                </Step>
+              );
+            })}
           </Stepper>
         </Box>
       </div>

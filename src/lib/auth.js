@@ -151,13 +151,34 @@ export const authOptions = {
                 // 1. Check for Pre-Seeded Session
                 if (credentials?.seedUser) {
                     try {
-                        const userPayload = typeof credentials.seedUser === "string"
+                        let userPayload = typeof credentials.seedUser === "string"
                             ? JSON.parse(credentials.seedUser)
                             : credentials.seedUser;
 
                         const accessToken = credentials.accessToken || userPayload?.accessToken;
 
                         if (!accessToken) throw new Error("Missing access token in seed");
+
+                        // Fetch the full profile to ensure we have all properties like assignedDepartments
+                        try {
+                            const userId = userPayload._id || userPayload.id || userPayload.username;
+                            const url = userId ? `${API_BASE}/auth/me?userId=${userId}` : `${API_BASE}/auth/me`;
+                            const meRes = await fetch(url, {
+                                headers: {
+                                    "Authorization": `Bearer ${accessToken}`,
+                                    "Content-Type": "application/json",
+                                    "ngrok-skip-browser-warning": "true",
+                                }
+                            });
+                            if (meRes.ok) {
+                                const meData = await meRes.json();
+                                if (meData.user) {
+                                    userPayload = { ...userPayload, ...meData.user };
+                                }
+                            }
+                        } catch (err) {
+                            console.warn("[Auth] Could not fetch full seeded profile:", err.message);
+                        }
 
                         return {
                             id: userPayload._id ?? userPayload.id ?? userPayload.username,

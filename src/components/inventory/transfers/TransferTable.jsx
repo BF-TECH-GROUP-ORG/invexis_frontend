@@ -37,7 +37,8 @@ import dayjs from "dayjs";
 
 export default function TransferTable({
     transfers = [],
-    loading = false
+    loading = false,
+    canDelete = true,
 }) {
     const router = useRouter();
     const locale = useLocale();
@@ -258,11 +259,15 @@ export default function TransferTable({
                     <ListItemIcon><FileText size={18} className="text-gray-500" /></ListItemIcon>
                     <ListItemText primary={t("downloadCsv")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
                 </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleCloseMenu} sx={{ py: 1.2, color: "error.main" }}>
-                    <ListItemIcon><Trash2 size={18} className="text-red-500" /></ListItemIcon>
-                    <ListItemText primary={t("cancelTransfer")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
-                </MenuItem>
+                {canDelete && (
+                    <>
+                        <Divider />
+                        <MenuItem onClick={handleCloseMenu} sx={{ py: 1.2, color: "error.main" }}>
+                            <ListItemIcon><Trash2 size={18} className="text-red-500" /></ListItemIcon>
+                            <ListItemText primary={t("cancelTransfer")} primaryTypographyProps={{ variant: "body2", fontWeight: 600 }} />
+                        </MenuItem>
+                    </>
+                )}
             </Menu>
         </motion.div>
     );
