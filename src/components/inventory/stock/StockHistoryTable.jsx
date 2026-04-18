@@ -96,36 +96,28 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   const changes = result?.data?.history || result?.history || result?.data || result || [];
   const total = result?.data?.pagination?.total || result?.pagination?.total || 0;
 
-  // Cache for resolved user details
-  const [userMap, setUserMap] = useState({});
+  // Fetch all workers for the company to map user IDs to names
+  const { data: workersRes } = useQuery({
+    queryKey: ["workers", companyId],
+    queryFn: () => {
+      const { getWorkersByCompanyId } = require("@/services/workersService");
+      return getWorkersByCompanyId(companyId, options);
+    },
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    const idsFromChanges = Array.from(new Set(changes.map((c) => c.userId || (c.user && (c.user.id || c.user)) || c.createdBy).filter(Boolean)));
-    const idsFromStats = Array.from(new Set((stats?.topUsers || []).map((u) => u.userId).filter(Boolean)));
-    const ids = Array.from(new Set([...idsFromChanges, ...idsFromStats]));
-    const missing = ids.filter((id) => !userMap[id]);
+  const workers = workersRes?.data || workersRes || [];
 
-    if (missing.length === 0) return;
-
-    (async () => {
-      try {
-        const promises = missing.map((id) =>
-          AuthService.getUserById(id)
-            .then((res) => ({ id, user: res?.user || res?.data?.user || res }))
-            .catch(() => ({ id, user: null }))
-        );
-        const results = await Promise.all(promises);
-        if (!mounted) return;
-        setUserMap((prev) => {
-          const copy = { ...prev };
-          results.forEach((r) => { if (r.user) copy[r.id] = r.user; });
-          return copy;
-        });
-      } catch (e) { }
-    })();
-    return () => (mounted = false);
-  }, [changes, stats, userMap]);
+  // Map user IDs to names for easy lookup
+  const userMap = useMemo(() => {
+    const map = {};
+    workers.forEach(w => {
+      const id = w._id || w.id;
+      if (id) map[id] = w;
+    });
+    return map;
+  }, [workers]);
 
   // Client-side filtering logic (in case API doesn't filter perfectly)
   const filteredChanges = useMemo(() => {
@@ -337,18 +329,21 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
                   const sku = change.sku || change.product?.sku || change.productSku || "N/A";
 
                   let by = t("table.system");
+                  const rawUserId = change.userId || change.createdBy || (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id);
+                  
                   if (change.user && typeof change.user === "object") {
-                    if (change.user.name) by = change.user.name;
-                    else if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
-                    else by = change.user.id || change.user.name || t("table.system");
-                  } else {
-                    const id = change.userId || change.user || change.createdBy;
-                    if (id && userMap[id]) {
-                      const u = userMap[id];
-                      by = u?.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u?.name || u?.email || id;
-                    } else if (id) {
-                      by = id;
-                    }
+                    if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
+                    else if (change.user.name) by = change.user.name;
+                    else if (change.user.username) by = change.user.username;
+                    else if (change.user.email) by = change.user.email;
+                  }
+                  
+                  // If we didn't get a name from the object, try the map
+                  if ((by === t("table.system") || by === rawUserId) && rawUserId && userMap[rawUserId]) {
+                    const u = userMap[rawUserId];
+                    by = u.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u.name || u.username || u.email || rawUserId;
+                  } else if (by === t("table.system") && rawUserId) {
+                    by = rawUserId; // Fallback to ID if no map entry yet
                   }
 
                   return (
