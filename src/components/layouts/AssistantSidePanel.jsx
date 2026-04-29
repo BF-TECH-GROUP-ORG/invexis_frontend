@@ -19,9 +19,10 @@ import { transcribeAudio, sendMessage } from "@/lib/assistant/aiClient";
 import { useVoiceRecorder } from "@/lib/assistant/useVoiceRecorder";
 import { useTextToSpeech } from "@/lib/assistant/useTextToSpeech";
 import { toast } from "react-hot-toast";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { startTour, TOUR_MAP, resolveTourKey } from "@/lib/assistant/tourService";
+import { getNavigationTarget, extractActions } from "@/lib/assistant/navigationUtils";
 import InaraResponse from "../Assistant/InaraResponse";
 import AssistantNetworkError from "../Assistant/AssistantNetworkError";
 import ReadAloudButton from "../Assistant/ReadAloudButton";
@@ -149,43 +150,21 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     const reply = await sendUserMessage(finalPrompt, { appLocale: locale }, finalImage);
 
     if (reply) {
-      if (reply.toLowerCase().includes("collect your details") || reply.toLowerCase().includes("registration request")) {
+      if (
+        reply.includes("START_REGISTRATION") ||
+        reply.toLowerCase().includes("collect your details") || 
+        reply.toLowerCase().includes("registration request")
+      ) {
         setShowRegistration(true);
       }
       
-      // 1. Check for manual navigation command in JSON
-      try {
-        let navData = null;
-        const fencedMatch = reply.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        if (fencedMatch) {
-          try {
-            const parsed = JSON.parse(fencedMatch[1].trim());
-            if (parsed.action === "navigate") navData = parsed;
-          } catch (e) {}
-        }
-        if (!navData) {
-          const rawMatch = reply.match(/\{[\s\S]*?"action"\s*:\s*"navigate"[\s\S]*?\}/);
-          if (rawMatch) {
-            try {
-              const parsed = JSON.parse(rawMatch[0]);
-              navData = parsed;
-            } catch (e) {}
-          }
-        }
-        if (navData && navData.path) {
-          setNavPending({ path: navData.path, label: navData.label || "Requested Module" });
-        }
-      } catch (err) {
-        console.error("Failed to parse navigation command:", err);
-      }
+      // Centralized Navigation & Intent Detection
+      const { actions } = extractActions(reply);
+      const navFromAI = actions.find(a => a.action === 'navigate');
+      const navTarget = getNavigationTarget(finalPrompt, navFromAI);
 
-      // 2. Intent-based tour detection (from documentation)
-      const tourKey = resolveTourKey(finalPrompt);
-      if (tourKey && TOUR_MAP[tourKey]) {
-        // Auto-show tour prompt after 600ms as per documentation
-        setTimeout(() => {
-          setNavPending({ path: tourKey, label: TOUR_MAP[tourKey].title });
-        }, 600);
+      if (navTarget) {
+        setNavPending(navTarget);
       }
     }
   };
@@ -269,25 +248,33 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
     }
   };
 
-  const confirmNavigation = async () => {
-    if (!navPending) return;
-    const targetPath = navPending.path;
+  const handleAutoNavigation = async (navData) => {
+    if (!navData || !navData.path) return;
+    const targetPath = navData.path;
+    
+    // Check authentication for protected paths
     if (!isAuthenticated && targetPath.startsWith('/inventory')) {
       router.push(`/${locale}/auth/login`);
-      setNavPending(null);
       onClose();
       return;
     }
-    const tour = tourMapping[targetPath];
+
     setIsNavigating(true);
     onClose(); 
-    if (tour) {
-      startTour(targetPath, () => { setIsNavigating(false); setNavPending(null); }, pathname, (p) => router.push(p));
+    
+    if (navData.startTour) {
+      startTour(targetPath, () => { setIsNavigating(false); }, pathname, (p) => router.push(p));
     } else {
       router.push(targetPath);
-      setIsNavigating(false);
-      setNavPending(null);
+      // Small delay to show navigating state if needed, then clear
+      setTimeout(() => setIsNavigating(false), 800);
     }
+  };
+
+  const confirmNavigation = async () => {
+    if (!navPending) return;
+    await handleAutoNavigation(navPending);
+    setNavPending(null);
   };
 
   const getTimeAgo = (date) => {
@@ -376,6 +363,21 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
               {/* Chat Area */}
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-8 bg-white relative">
                 
+                {isNavigating && (
+                  <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1400] flex flex-col items-center justify-center gap-4"
+                  >
+                    <div className="w-16 h-16 bg-[#081422] rounded-2xl flex items-center justify-center shadow-xl">
+                      <Compass size={32} className="text-[#ff782d] animate-pulse" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bold text-slate-900">Navigating...</p>
+                      <p className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Please wait a moment</p>
+                    </div>
+                  </motion.div>
+                )}
+
                 {view === 'memory' ? (
                   <MemoryManager userId={user?.id} onClose={() => setView('chat')} />
                 ) : view === 'history' ? (
@@ -439,12 +441,23 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                     )}
 
                     {messages.map((msg, idx) => (
-                      <div key={idx} className={`flex flex-col group ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                        <div className={`max-w-[85%] px-4 py-2 rounded-[2rem] relative transition-all ${msg.role === "user" ? "bg-black text-white rounded-tr-none" : "bg-slate-50 border border-slate-100 text-slate-800 rounded-tl-none"}`}>
-                          <div className="text-[14px] leading-relaxed">
+                      <motion.div 
+                        key={idx} 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.05 }}
+                        className={`flex flex-col group ${msg.role === "user" ? "items-end" : "items-start"}`}
+                      >
+                        <div className={`max-w-[88%] text-left py-2 px-4 rounded-xl relative transition-all duration-300 ${
+                          msg.role === "user" 
+                            ? "bg-[#081422] text-white rounded-tr-none shadow-lg shadow-slate-200" 
+                            : "bg-white/70 backdrop-blur-md border border-slate-100 text-slate-800 rounded-tl-none hover:bg-white hover:border-[#ff782d]/20 hover:shadow-2xl hover:shadow-slate-200/50 shadow-sm"
+                        }`}>
+                          <div className="text-[14px] leading-relaxed font-medium">
                               {msg.role === "assistant" 
                                 ? <InaraResponse 
                                     content={msg.content} 
+                                    onNavigate={handleAutoNavigation}
                                     onSuggestionsFound={(s) => {
                                       if (idx === messages.length - 1) {
                                         setCurrentSuggestions(s);
@@ -460,15 +473,14 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                         {/* Message Actions & Time */}
                         <div className={`flex items-center gap-3 mt-2 px-1 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-slate-400 font-medium">{getTimeAgo(msg.timestamp)}</span>
-                              {msg.usage && (
-                                <span className="text-[9px] text-slate-300 font-bold uppercase tracking-tighter">
-                                  {msg.usage.total_tokens || (msg.usage.input_tokens + msg.usage.output_tokens)} tokens
-                                </span>
-                              )}
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{getTimeAgo(msg.timestamp)}</span>
                             </div>
                             
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <motion.div 
+                              initial={{ opacity: 0 }}
+                              whileHover={{ opacity: 1 }}
+                              className="flex items-center gap-0.5 bg-white/80 backdrop-blur-sm border border-slate-100 rounded-lg p-0.5 opacity-0 group-hover:opacity-100 transition-all"
+                            >
                                 <button onClick={() => handleCopy(msg.content, idx)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all">
                                     {copiedId === idx ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                                 </button>
@@ -493,21 +505,56 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
                                         <ReadAloudButton text={msg.content} id={idx} tts={tts} lang={ttsLang} iconSize={13} />
                                     </>
                                 )}
-                                <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all" onClick={() => tts.speak(msg.content, ttsLang)}><Volume2 size={13} /></button>
-                            </div>
+                            </motion.div>
                         </div>
 
                         {msg.role === "assistant" && idx === messages.length - 1 && (
-                          <div className="mt-4 flex flex-wrap gap-2 justify-start w-full">
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="mt-4 flex flex-wrap gap-2 justify-start w-full"
+                          >
                             <SuggestionChips 
                               suggestions={currentSuggestions} 
                               visible={showSuggestions && !loading} 
                               onSelect={(text) => handleSend(null, text)}
                             />
-                          </div>
+                          </motion.div>
                         )}
-                      </div>
+                      </motion.div>
                     ))}
+
+                    {navPending && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        className="p-4 bg-orange-50 border border-orange-100 rounded-2xl flex flex-col gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#081422] rounded-lg flex items-center justify-center text-[#ff782d]">
+                            <Compass size={18} />
+                          </div>
+                          <div>
+                            <p className="text-[13px] font-bold text-[#081422]">Smart Suggestion</p>
+                            <p className="text-[11px] text-slate-500">I can take you to the <strong>{navPending.label}</strong>. Would you like to go there?</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={confirmNavigation}
+                            className="flex-1 py-2 bg-[#081422] text-white rounded-lg text-[11px] font-bold shadow-md hover:bg-black transition-all active:scale-95"
+                          >
+                            Yes, take me there
+                          </button>
+                          <button 
+                            onClick={() => setNavPending(null)}
+                            className="px-4 py-2 bg-white border border-slate-200 text-slate-500 rounded-lg text-[11px] font-bold hover:bg-slate-50 transition-all"
+                          >
+                            No thanks
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
 
                     {loading && (
                       <div className="flex justify-start">
@@ -532,125 +579,63 @@ export default function AssistantSidePanel({ isOpen, onClose }) {
 
               {/* Input Area */}
               {view === 'chat' && (
-                <div className="px-5 pb-5 pt-2 bg-white">
+                <div className="px-5 pb-5 pt-2 bg-white relative">
                   
-                  {/* Voice Recorder Card */}
-                  <AnimatePresence>
-                    {(isRecording || audioUrl) && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }} 
-                        animate={{ opacity: 1, y: 0, scale: 1 }} 
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="mb-4 p-4 bg-slate-900 rounded-2xl shadow-2xl border border-white/5 relative overflow-hidden"
-                      >
-                        <div className="flex items-center gap-4 relative z-10">
-                          <div className="w-10 h-10 rounded-full bg-[#ff782d] flex items-center justify-center text-white shadow-lg shadow-[#ff782d]/20">
-                            {isRecording ? (
-                              <div className="w-3 h-3 bg-white rounded-sm animate-pulse" />
-                            ) : (
-                              <button onClick={() => isAudioPlaying ? audioPlaybackRef.current.pause() : audioPlaybackRef.current.play()} className="hover:scale-110 transition-transform">
-                                {isAudioPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
-                                {isRecording ? "Recording..." : "Voice Message"}
-                              </span>
-                              <span className="text-[11px] font-bold text-[#ff782d] tabular-nums">
-                                {durationFormatted}
-                              </span>
-                            </div>
-                            
-                            {/* Waveform Visualization */}
-                            <div className="h-8 flex items-end gap-[2px]">
-                              {waveformData.map((h, i) => (
-                                <motion.div 
-                                  key={i} 
-                                  initial={{ height: 4 }}
-                                  animate={{ height: isRecording ? h : (audioUrl ? 4 : 4) }}
-                                  className="flex-1 bg-white/20 rounded-full min-h-[4px]"
-                                  style={{ background: i < (waveformData.length * 0.4) ? '#ff782d' : 'rgba(255,255,255,0.2)' }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <button onClick={clearRecording} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-colors">
-                              <Trash2 size={18} />
-                            </button>
-                            {isRecording ? (
-                              <button onClick={stopRecording} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-                                <Square size={18} fill="currentColor" />
-                              </button>
-                            ) : (
-                              <button onClick={() => handleSend(null)} className="w-10 h-10 rounded-full bg-[#ff782d] flex items-center justify-center text-white hover:bg-[#e66a25] shadow-lg shadow-[#ff782d]/20 transition-all active:scale-95">
-                                <Send size={18} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {audioUrl && (
-                          <audio 
-                            ref={audioPlaybackRef} 
-                            src={audioUrl} 
-                            onPlay={() => setIsAudioPlaying(true)} 
-                            onPause={() => setIsAudioPlaying(false)} 
-                            onEnded={() => setIsAudioPlaying(false)}
-                            className="hidden" 
+                  {showRegistration ? (
+                    <RegistrationForm
+                      onComplete={(data) => {
+                        setShowRegistration(false);
+                      }}
+                      onCancel={() => setShowRegistration(false)}
+                    />
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 py-1 px-1 bg-slate-50 border border-slate-100 rounded-4xl flex items-center gap-1 group transition-all focus-within:bg-white focus-within:border-[#ff782d]/30">
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileActive={{ scale: 0.9 }}
+                            className="p-2.5 hover:bg-white rounded-full text-slate-400 hover:text-[#ff782d] transition-colors"
+                            onClick={() => fileInputRef.current.click()}
+                          >
+                            <Paperclip size={18} />
+                          </motion.button>
+                          <input 
+                            type="text" 
+                            value={input} 
+                            onChange={(e) => setInput(e.target.value)} 
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend(e)} 
+                            placeholder="Type a message..." 
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-[14px] font-medium text-slate-800 placeholder:text-slate-400" 
+                            style={{ outline: "none", boxShadow: "none" }}
                           />
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Tour Prompt */}
-                  <AnimatePresence>
-                    {navPending && !isNavigating && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-4 bg-slate-900 text-white rounded-xl shadow-xl flex items-center justify-between gap-4" >
-                        <div className="flex items-center gap-3">
-                          <Compass size={20} className="text-[#ff782d]" />
-                          <p className="text-[12px] font-medium leading-tight">Start guided tour of <strong>{navPending.label}</strong>?</p>
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileActive={{ scale: 0.9 }}
+                            className={`p-2.5 rounded-full transition-all ${isRecording ? 'bg-red-50 text-red-500 animate-pulse' : 'text-slate-400 hover:text-[#ff782d] hover:bg-white'}`}
+                            onClick={isRecording ? stopRecording : startRecording}
+                          >
+                            <Mic size={18} />
+                          </motion.button>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setNavPending(null)} className="text-[11px] font-bold text-white/50 hover:text-white px-2 py-1 transition-colors uppercase">Skip</button>
-                          <button onClick={confirmNavigation} className="bg-[#ff782d] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-[#e66a25] transition-colors uppercase">Start</button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <motion.button 
+                          whileHover={{ scale: 1.05 }}
+                          whileActive={{ scale: 0.95 }}
+                          onClick={handleSend} 
+                          disabled={!input.trim() || loading} 
+                          className={`p-3 flex items-center justify-center rounded-full transition-all shadow-lg ${input.trim() ? "bg-[#081422] text-white hover:bg-black shadow-slate-200" : "bg-slate-100 text-slate-300 shadow-none"}`}
+                        >
+                          <Send size={20} />
+                        </motion.button>
+                        <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
+                      </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 p-2.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-2 group transition-all outline-none ring-0">
-                       <Paperclip size={18} className="text-slate-400 cursor-pointer hover:text-black ml-1" onClick={() => fileInputRef.current.click()} />
-                       <input 
-                        type="text" 
-                        value={input} 
-                        onChange={(e) => setInput(e.target.value)} 
-                        onKeyDown={(e) => e.key === 'Enter' && handleSend(e)} 
-                        placeholder="Ask me anything..." 
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-[14px] font-medium text-slate-800 placeholder:text-slate-400 py-1" 
-                       />
-                       <Mic size={18} className={`cursor-pointer transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-black'}`} onClick={isRecording ? stopRecording : startRecording} />
-                    </div>
-                    <button 
-                      onClick={handleSend} 
-                      disabled={!input.trim() || loading} 
-                      className={`p-3 rounded-xl transition-all shadow-sm ${input.trim() ? "bg-black text-white hover:bg-slate-900 scale-100" : "bg-slate-100 text-slate-300 scale-95"}`}
-                    >
-                      <Send size={18} />
-                    </button>
-                    <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
-                  </div>
-                  
-                  <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400 font-medium px-1">
-                    <Shield size={10} />
-                    <span>By chatting, you agree to our <span className="underline cursor-pointer hover:text-slate-600">privacy policy</span></span>
-                  </div>
+                      <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400 font-medium px-1">
+                        <Shield size={10} />
+                        <span>By chatting, you agree to our <span className="underline cursor-pointer hover:text-slate-600">privacy policy</span></span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </motion.div>

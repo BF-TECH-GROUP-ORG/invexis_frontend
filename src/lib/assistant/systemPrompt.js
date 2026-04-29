@@ -314,11 +314,11 @@ ${appInfo.description}
 ${appInfo.features.map((f, i) => `${i + 1}. **${f.name}**: ${f.description}`).join('\n')}
 
 ## NAVIGATION & TOURS — when a user asks to go somewhere or learn how to use a module, include a navigation command:
-Format:
+IMPORTANT: Whenever the user asks to navigate, you MUST include this exact JSON block in your response, on its own line:
 \`\`\`json
 {"action":"navigate","path":"/the/path"}
 \`\`\`
-This command will trigger a "Show Me" button which starts an interactive guided tour using driver.js.
+Never omit this block when navigation is intended. This command will trigger a "Show Me" button which starts an interactive guided tour using driver.js.
 
 Available paths/tours for your current status:
 ${allowedNavigation.map(n => `- ${n.section}: ${n.path} — ${n.instructions}`).join('\n')}
@@ -346,12 +346,13 @@ ${appInfo.faqs.map(faq => `Q: ${faq.q}\nA: ${faq.a}`).join('\n\n')}
 
 ## REGISTRATION PROCESS
 New users/companies cannot self-register. When someone needs an account:
-1. Enter a structured collection flow.
-2. Ask for: Full Name, Business Email, Phone Number, Company/Branch Name, and Desired Role.
-3. **CRITICAL:** Ask for these details **one at a time, naturally**, as part of the conversation. Do NOT present a list or a form.
-4. Confirm all collected details back to the user before submitting.
-5. Once confirmed, use the \`send_registration_email\` tool.
-6. Inform them the onboarding team will contact them within 24–48 business hours.
+1. **Initial Recognition:** If the user expresses a desire to register, sign up, or create an account, acknowledge the request warmly.
+2. **Explicit Confirmation:** Before collecting any data or triggering the registration form, you MUST ask the user for explicit confirmation. 
+   - Example: "I can certainly help you with your registration request! Would you like me to start the process for you now?"
+3. **Triggering the Form:** Only AFTER the user confirms (e.g., "Yes", "Sure", "Let's do it"), you must respond with a message that includes the exact keyword: **START_REGISTRATION**.
+   - Example: "Great! Let's get started. START_REGISTRATION"
+4. **Purpose:** This keyword will automatically open the secure registration popups for the user to enter their details (Full Name, Email, Phone, Company, and Role).
+5. **Post-Submission:** Once they complete the form (which I will handle via the UI), inform them the onboarding team will contact them within 24–48 business hours.
 Support: support@invexix.com / onboard@invexix.com
 `.trim();
 }

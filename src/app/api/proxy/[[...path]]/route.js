@@ -7,7 +7,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 /**
  * Helper to handle proxy requests
  */
-async function handleProxy(req, { params }) {
+async function handleProxy(req, context) {
+    const params = await context.params;
     const { path } = params;
     const pathString = path ? path.join('/') : '';
     const url = new URL(req.url);

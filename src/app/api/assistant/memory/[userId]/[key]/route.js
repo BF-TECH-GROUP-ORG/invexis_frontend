@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
   try {
+    const params = await context.params;
     const { userId, key } = params;
 
     if (!userId || !key) {
