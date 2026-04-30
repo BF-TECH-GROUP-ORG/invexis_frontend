@@ -85,6 +85,7 @@
     "distributionByPayment": "Usambazaji katika aina za malipo",
     "transactions": "miamala",
     "topProductsTitle": "Bidhaa Bora",
+    "unitsSold": "Bidhaa Zilizouzwa",
     "bestPerformingItems": "Vitu vinavyofanya vizuri zaidi",
     "inventoryStatistics": "Takwimu za Hesabu",
     "inbound": "Ingia",
@@ -237,11 +238,17 @@
       "previous": "Iliyopita",
       "next": "Inayofuata"
     },
+    "deleteConfirm": {
+      "title": "Futa Rasilimali ya Ndani?",
+      "message": "Je, una uhakika unataka kufuta kabisa rasilimali hii? Kitendo hiki hakiwezi kutuliwa.",
+      "confirm": "Futa Rasilimali"
+    },
     "reports": {
       "title": "Ripoti za Hisa za Nyenzo",
       "subtitle": "Maarifa ya kina kuhusu rasilimali za ndani, thamani na mienendo",
       "advancedFilters": "Vichujio vya Juu",
       "exportCsv": "Hamisha CSV",
+      "exportPdf": "Pakua PDF",
       "assetValue": "Thamani Jumla ya Rasilimali",
       "totalItems": "Jumla ya Vitu",
       "lowStockAssets": "Rasilimali za Hisa ya Chini",
@@ -270,7 +277,15 @@
       "inflow": "Ingia",
       "outflow": "Toka",
       "lowStockItems": "Vitu vya Hisa ya Chini",
-      "noRecords": "Hakuna rekodi za nyenzo zilizopatikana kwa kipindi hiki."
+      "noRecords": "Hakuna rekodi za nyenzo zilizopatikana kwa kipindi hiki.",
+      "branchTotals": "Jumla ya Matawi",
+      "allHealthy": "Bidhaa zote ziko sawa",
+      "shop": "Duka",
+      "materials": {
+        "table": {
+          "category": "Kategoria"
+        }
+      }
     },
     "wizard": {
       "purpose": "Bidhaa hii ni ya nini?",
@@ -400,7 +415,14 @@
     "active": "Inatumika",
     "inactive": "Haitumiki",
     "open": "Wazi",
-    "closed": "Imefungwa"
+    "closed": "Imefungwa",
+    "filters": {
+      "daily": "Kila Siku",
+      "weekly": "Kila Wiki",
+      "monthly": "Kila Mwezi",
+      "yearly": "Kila Mwaka",
+      "custom": "Kipindi Maalum"
+    }
   },
   "home": {
     "login": "Ingia",

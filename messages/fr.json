@@ -85,6 +85,7 @@
     "distributionByPayment": "Répartition par type de paiement",
     "transactions": "transactions",
     "topProductsTitle": "Meilleurs produits",
+    "unitsSold": "Unités Vendues",
     "bestPerformingItems": "Articles les plus performants",
     "inventoryStatistics": "Statistiques d'inventaire",
     "inbound": "Entrant",
@@ -235,11 +236,17 @@
       "previous": "Précédent",
       "next": "Suivant"
     },
+    "deleteConfirm": {
+      "title": "Supprimer l'actif interne ?",
+      "message": "Êtes-vous sûr de vouloir supprimer définitivement cet actif ? Cette action ne peut pas être annulée.",
+      "confirm": "Supprimer l'actif"
+    },
     "reports": {
       "title": "Rapports sur les stocks de matériaux",
       "subtitle": "Aperçu détaillé des actifs internes, de la valorisation et des tendances de mouvement",
       "advancedFilters": "Filtres avancés",
       "exportCsv": "Exporter en CSV",
+      "exportPdf": "Exporter en PDF",
       "assetValue": "Valeur totale des actifs",
       "totalItems": "Total des articles",
       "lowStockAssets": "Actifs à faible stock",
@@ -268,7 +275,15 @@
       "inflow": "Entrée",
       "outflow": "Sortie",
       "lowStockItems": "Articles à faible stock",
-      "noRecords": "Aucun enregistrement de matériel trouvé pour cette période."
+      "noRecords": "Aucun enregistrement de matériel trouvé pour cette période.",
+      "branchTotals": "Totaux par succursale",
+      "allHealthy": "Tous les articles sont en bon état",
+      "shop": "Magasin",
+      "materials": {
+        "table": {
+          "category": "Catégorie"
+        }
+      }
     },
     "wizard": {
       "purpose": "À quoi sert ce produit ?",
@@ -398,7 +413,14 @@
     "active": "Actif",
     "inactive": "Inactif",
     "open": "Ouvert",
-    "closed": "Fermé"
+    "closed": "Fermé",
+    "filters": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "custom": "Période personnalisée"
+    }
   },
   "home": {
     "login": "Connexion",

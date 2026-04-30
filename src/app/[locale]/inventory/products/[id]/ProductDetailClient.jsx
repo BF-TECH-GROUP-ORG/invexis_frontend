@@ -13,6 +13,8 @@ import { toast } from "react-hot-toast";
 import { fetchWarehouses } from "@/features/warehouses/warehousesSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import { getBranches } from "@/services/branches";
 import {
   ArrowLeft,
   Edit,
@@ -73,52 +75,29 @@ function DetailInner({ id }) {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [copiedRaw, setCopiedRaw] = useState(false);
   const [codeSubTab, setCodeSubTab] = useState("qr");
-  const [resolvedShopName, setResolvedShopName] = useState("");
+  const companyObj = session?.user?.companies?.[0];
+  const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || session?.user?.companyId || session?.user?.company?._id;
 
-  useEffect(() => {
-    const resolveShop = async () => {
-      if (!product?.shopId) {
-        setResolvedShopName("");
-        return;
-      }
+  const options = React.useMemo(() => session?.accessToken ? {
+    headers: { Authorization: `Bearer ${session.accessToken}` }
+  } : {}, [session?.accessToken]);
 
-      // 1. Try product data
-      if (product.shop?.name || product.branch?.name) {
-        setResolvedShopName(product.shop?.name || product.branch?.name);
-        return;
-      }
+  const { data: branchesRes } = useQuery({
+    queryKey: ["branches", companyId],
+    queryFn: () => getBranches(companyId, options),
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 30 * 1000 * 60,
+  });
 
-      // 2. Try Redux store
-      const foundInStore = warehouses.find(
-        (w) => w._id === product.shopId || w.id === product.shopId
-      );
-      if (foundInStore) {
-        setResolvedShopName(foundInStore.name);
-        return;
-      }
+  const shopNames = React.useMemo(() => {
+    const branches = branchesRes?.data || branchesRes || [];
+    return branches.reduce((acc, b) => {
+      acc[b._id || b.id] = b.name || b.branchName;
+      return acc;
+    }, {});
+  }, [branchesRes]);
 
-      // 3. API Fallback
-      try {
-        const companyObj = session?.user?.companies?.[0];
-        const companyId = typeof companyObj === "string" ? companyObj : companyObj?.id || companyObj?._id || session?.user?.companyId || session?.user?.company?._id;
-        const shopRes = await shopService.getShopById(product.shopId, companyId);
-
-        // Deep check for name in response
-        const name = shopRes?.name || shopRes?.data?.name || shopRes?.shop?.name;
-
-        if (name) {
-          setResolvedShopName(name);
-        } else {
-          // If we got a response but no name, maybe the field is different or it's just the ID
-          setResolvedShopName("Invexis Shop");
-        }
-      } catch (error) {
-        setResolvedShopName("Invexis Shop");
-      }
-    };
-
-    resolveShop();
-  }, [product, warehouses]);
+  const resolvedShopName = shopNames[product?.shopId] || product?.shop?.name || product?.branch?.name || "";
 
   useEffect(() => {
     if (id) {
@@ -602,7 +581,7 @@ function DetailInner({ id }) {
                       />
                       <Field
                         label={t("fields.shopId")}
-                        value={resolvedShopName || (product.shopId ? "Loading..." : t("fields.none"))}
+                        value={resolvedShopName || (product.shopId ? t("loading") : t("fields.none"))}
                       />
                       <Field label={t("fields.brand")} value={product.brand || t("fields.none")} />
                       <Field

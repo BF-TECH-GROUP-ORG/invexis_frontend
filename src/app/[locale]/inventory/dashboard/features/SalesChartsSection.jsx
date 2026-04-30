@@ -71,7 +71,7 @@ export default function SalesChartsSection({
     const stockMovement = rawMovement.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
         in: parseFloat(item.stockIn) || 0,
-        out: parseFloat(item.stockOut) || 0,
+        out: -Math.abs(parseFloat(item.stockOut) || 0),
         net: parseFloat(item.netFlow) || 0
     }));
 

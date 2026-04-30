@@ -1,131 +1,155 @@
 "use client";
 
-import {
-    Folder,
-    ShoppingCart,
-    Package,
-    Wallet,
-    Users,
-    BarChart3,
-    Trash2,
-    Archive,
-    ChevronLeft,
-    Menu
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { Folder, ShoppingCart, Package, Wallet, BarChart3, ChevronLeft, Menu, FileText, LayoutGrid, Plus } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function FolderNavigation({ onSelect, activeCategory }) {
+/**
+ * FolderNavigation - Premium Glassmorphic Navigation
+ */
+export default function FolderNavigation({ onSelect, activeCategory, filterType, onFilterSelect }) {
     const [isOpen, setIsOpen] = useState(true);
 
-    // Auto-collapse after 3 seconds
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsOpen(false);
-        }, 5000); // Increased slightly for better UX
-        return () => clearTimeout(timer);
-    }, []);
-
     const mainCategories = [
-        { id: "All Files", label: "All Files", icon: <Folder size={24} /> },
-        { id: "Sales & Orders", label: "Sales & Orders", icon: <ShoppingCart size={24} /> },
-        { id: "Inventory", label: "Inventory", icon: <Package size={24} /> },
-        { id: "Financial", label: "Financial", icon: <Wallet size={24} /> },
-        { id: "Human Resources", label: "Human Resources", icon: <Users size={24} /> },
-        { id: "Reports", label: "Reports", icon: <BarChart3 size={24} /> },
+        { id: "All Files", label: "All Files", icon: <Folder size={20} /> },
+        { id: "Sales & Orders", label: "Sales & Orders", icon: <ShoppingCart size={20} /> },
+        { id: "Inventory", label: "Inventory", icon: <Package size={20} /> },
+        { id: "Financial", label: "Financial", icon: <Wallet size={20} /> },
+        { id: "Reports", label: "Reports", icon: <BarChart3 size={20} /> },
     ];
 
-    const systemItems = [
-        { id: "Trash", label: "Trash", icon: <Trash2 size={24} /> },
-        { id: "Archived", label: "Archived", icon: <Archive size={24} /> },
-    ];
+
 
     return (
-        <div
-            className={`flex-shrink-0 flex flex-col bg-white border-r border-gray-100 h-full transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-20'}`}
+        <motion.div
+            layout
+            className={`shrink-0 flex flex-col bg-white/40 backdrop-blur-xl border-r border-slate-100 h-full transition-all duration-500 ease-[0.22, 1, 0.36, 1] relative ${isOpen ? 'w-72' : 'w-24'}`}
         >
-            {/* Header / Toggle */}
-            <div className={`p-4 flex items-center ${isOpen ? 'justify-between' : 'justify-center'}`}>
-                {isOpen && (
-                    <span className="font-bold text-gray-800 tracking-wide text-sm uppercase">
-                        Documents
-                    </span>
-                )}
-                <button
+            {/* Control Toggle */}
+            <div className={`p-6 mb-4 flex items-center ${isOpen ? 'justify-between' : 'justify-center'}`}>
+                <AnimatePresence mode="wait">
+                    {isOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="flex items-center gap-3"
+                        >
+                            <div className="w-8 h-8 bg-[#081422] rounded-lg flex items-center justify-center text-white shadow-lg">
+                                <Plus size={18} />
+                            </div>
+                            <span className="font-black text-[#081422] tracking-tight text-base uppercase">
+                                Workspace
+                            </span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
-                    title={isOpen ? "Collapse" : "Expand"}
+                    className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-orange-600 shadow-sm transition-all duration-300"
                 >
-                    {isOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
-                </button>
+                    {isOpen ? <ChevronLeft size={20} strokeWidth={2.5} /> : <Menu size={20} strokeWidth={2.5} />}
+                </motion.button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto py-2 space-y-8">
+            {/* Navigation Content */}
+            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-10 scrollbar-hide">
 
-                {/* My Drive */}
-                <div className="px-3">
-                    {isOpen && (
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                            My Drive
-                        </h3>
-                    )}
-                    <nav className="space-y-1">
+                {/* Main Section */}
+                <div>
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.h3
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-4"
+                            >
+                                Explorer
+                            </motion.h3>
+                        )}
+                    </AnimatePresence>
+                    <nav className="space-y-1.5">
                         {mainCategories.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => onSelect(item.id)}
-                                title={!isOpen ? item.label : ""}
-                                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${activeCategory === item.id
-                                        ? "bg-orange-50 text-orange-600 shadow-sm"
-                                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                                    } ${!isOpen && 'justify-center'}`}
+                                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group ${activeCategory === item.id
+                                    ? "bg-[#081422] text-white shadow-xl shadow-[#081422]/10"
+                                    : "text-slate-500 hover:bg-orange-50/50 hover:text-orange-600"
+                                } ${!isOpen && 'justify-center'}`}
                             >
-                                <span className={`transition-transform duration-200 ${!isOpen && 'group-hover:scale-110'}`}>
+                                <motion.span 
+                                    layout
+                                    className={`shrink-0 transition-transform duration-300 ${!isOpen && 'group-hover:scale-125'}`}
+                                >
                                     {item.icon}
-                                </span>
+                                </motion.span>
 
-                                {isOpen && (
-                                    <span className="font-medium text-sm whitespace-nowrap overflow-hidden">
-                                        {item.label}
-                                    </span>
+                                <AnimatePresence>
+                                    {isOpen && (
+                                        <motion.span
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="font-bold text-sm tracking-tight whitespace-nowrap"
+                                        >
+                                            {item.label}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
+
+                                {activeCategory === item.id && isOpen && (
+                                    <motion.div 
+                                        layoutId="active-indicator"
+                                        className="ml-auto w-1.5 h-1.5 bg-orange-500 rounded-full" 
+                                    />
                                 )}
                             </button>
                         ))}
                     </nav>
                 </div>
 
-                {/* System */}
-                <div className="px-3">
-                    {isOpen && (
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                            System
-                        </h3>
-                    )}
-                    <nav className="space-y-1">
-                        {systemItems.map((item) => (
+                {/* System Section - Filtering ASIDE */}
+                <div className="pt-6 border-t border-slate-50/50">
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.h3
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-4"
+                            >
+                                Filter By Type
+                            </motion.h3>
+                        )}
+                    </AnimatePresence>
+                    <nav className="space-y-1.5 px-2">
+                        {[
+                            { id: 'all', label: 'All Records', icon: <Menu size={18} /> },
+                            { id: 'invoice', label: 'Invoices', icon: <FileText size={18} /> },
+                            { id: 'media', label: 'Media', icon: <LayoutGrid size={18} /> }
+                        ].map((item) => (
                             <button
                                 key={item.id}
-                                onClick={() => onSelect(item.id)}
-                                title={!isOpen ? item.label : ""}
-                                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${activeCategory === item.id
-                                        ? "bg-orange-50 text-orange-600 shadow-sm"
-                                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                                    } ${!isOpen && 'justify-center'}`}
+                                onClick={() => onFilterSelect(item.id)}
+                                className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 group ${filterType === item.id
+                                    ? "bg-slate-100 text-[#081422] ring-1 ring-slate-200 shadow-sm"
+                                    : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                                } ${!isOpen && 'justify-center'}`}
                             >
-                                <span className={`transition-transform duration-200 ${!isOpen && 'group-hover:scale-110'}`}>
+                                <span className={`shrink-0 transition-colors duration-300 ${filterType === item.id ? 'text-orange-500' : 'group-hover:text-slate-600'}`}>
                                     {item.icon}
                                 </span>
-
                                 {isOpen && (
-                                    <span className="font-medium text-sm whitespace-nowrap overflow-hidden">
-                                        {item.label}
-                                    </span>
+                                    <span className="font-bold text-xs tracking-tight">{item.label}</span>
                                 )}
                             </button>
                         ))}
                     </nav>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
+

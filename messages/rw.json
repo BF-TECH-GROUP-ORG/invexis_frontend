@@ -88,6 +88,7 @@
     "distributionByPayment": "Ikwirakwizwa ry'uburyo bwo kwishyura",
     "transactions": "ibyakozwe",
     "topProductsTitle": "Ibyagurishijwe cyane",
+    "unitsSold": "Ibicuruzwa byagurishijwe",
     "bestPerformingItems": "Ibintu bikora neza cyane",
     "inventoryStatistics": "Imibare y'ububiko",
     "inbound": "Ibyinjiye",
@@ -240,11 +241,17 @@
       "previous": "Ibibanza",
       "next": "Ibikurikira"
     },
+    "deleteConfirm": {
+      "title": "Gusiba iki gikoresho?",
+      "message": "Ese wizeye neza ko ushaka gusiba burundu iki gikoresho? Ibi ntibishobora gusubirwamo.",
+      "confirm": "Siba Igikoresho"
+    },
     "reports": {
       "title": "Raporo z'Ububiko bw'Ibikoresho",
       "subtitle": "Incamake y'imitungo y'imbere, agaciro n'uko ibintu bigenda",
       "advancedFilters": "Akayunguruzo Gahanitse",
       "exportCsv": "Kohereza muri CSV",
+      "exportPdf": "Kuramo PDF",
       "assetValue": "Agaciro k'Imitungo Yose",
       "totalItems": "Ibicuruzwa Byose",
       "lowStockAssets": "Imitungo Iri Hafi Gushira",
@@ -273,7 +280,15 @@
       "inflow": "Ibyinjiye",
       "outflow": "Ibisohotse",
       "lowStockItems": "Ibicuruzwa biri hafi gushira",
-      "noRecords": "Nta makuru y'ibikoresho yabonetse muri iki gihe."
+      "noRecords": "Nta makuru y'ibikoresho yabonetse muri iki gihe.",
+      "branchTotals": "Igiteranyo cy'Amashami",
+      "allHealthy": "Ibicuruzwa byose bimeze neza",
+      "shop": "Iduka",
+      "materials": {
+        "table": {
+          "category": "Icyiciro"
+        }
+      }
     },
     "wizard": {
       "purpose": "Iki gikoresho kigenewe iki?",
@@ -403,7 +418,14 @@
     "active": "Birakora",
     "inactive": "Ntibikora",
     "open": "Birafunguye",
-    "closed": "Birafunze"
+    "closed": "Birafunze",
+    "filters": {
+      "daily": "Buri Munsi",
+      "weekly": "Buri Cyumweru",
+      "monthly": "Buri Kwezi",
+      "yearly": "Buri Mwaka",
+      "custom": "Igihe Cyihariye"
+    }
   },
   "home": {
     "login": "Injira",

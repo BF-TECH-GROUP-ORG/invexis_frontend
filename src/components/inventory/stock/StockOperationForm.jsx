@@ -13,6 +13,9 @@ export default function StockOperationForm({
   onSuccess = () => { },
   companyId,
   productsCache = [],
+  canPerformOperations = true,
+  batchItems = [],
+  setBatchItems = () => { },
 }) {
   const t = useTranslations("stockManagement.operations");
   const { user } = useAuth();
@@ -21,18 +24,22 @@ export default function StockOperationForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Batch state - products added for bulk in
-  const [batchItems, setBatchItems] = useState([]);
-
+  // Batch state lifted to parent
+  
   // When product prop changes, populate the form (but do not auto-add to batch)
   useEffect(() => {
     if (!product) {
       setQuantity("");
       return;
     }
-    // Default quantity empty so user must set it to add
-    setQuantity("");
-  }, [product]);
+    // If product is in batch, load its quantity
+    const inBatch = batchItems.find(item => item.productId === (product._id || product.id));
+    if (inBatch) {
+      setQuantity(String(inBatch.quantity));
+    } else {
+      setQuantity("");
+    }
+  }, [product, batchItems]);
 
   const addToBatch = () => {
     if (!product || !Number(quantity) || Number(quantity) <= 0) {
@@ -145,34 +152,22 @@ export default function StockOperationForm({
       const failed = results.filter((r) => !r.ok);
 
       if (failed.length === 0) {
-        showSnackbar(
-          t("errors.bulkSuccess", { count: successCount }),
-          "success"
-        );
-        setMessage({
-          type: "success",
-          text: t("errors.bulkSuccess", { count: successCount }),
-        });
+        const msg = t("errors.bulkSuccess", { count: itemsToSubmit.length });
+        showSnackbar(msg, "success");
+        setMessage({ type: "success", text: msg });
         setBatchItems([]);
         setQuantity("");
-        onSuccess();
+        onSuccess && onSuccess();
       } else {
         const firstErr = failed[0];
-        showSnackbar(t("errors.bulkPartial", { error: firstErr.error }), "error");
-        setMessage({
-          type: "error",
-          text: t("errors.bulkPartial", { error: firstErr.error }),
-        });
+        const msg = t("errors.bulkPartial", { error: firstErr.error });
+        showSnackbar(msg, "error");
+        setMessage({ type: "error", text: msg });
       }
     } catch (err) {
-      showSnackbar(
-        err.response?.data?.message || t("errors.bulkFailed"),
-        "error"
-      );
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || t("errors.bulkFailed"),
-      });
+      const msg = err.response?.data?.message || t("errors.bulkFailed");
+      showSnackbar(msg, "error");
+      setMessage({ type: "error", text: msg });
     } finally {
       setLoading(false);
     }
@@ -194,32 +189,7 @@ export default function StockOperationForm({
         </div>
       </div>
 
-      {/* Batch chips */}
-      {batchItems.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            {batchItems.map((b) => (
-              <div
-                key={b.productId}
-                className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2 text-sm"
-              >
-                <button
-                  onClick={() => loadBatchItem(b)}
-                  className="font-medium text-gray-800"
-                >
-                  {b.productName}
-                </button>
-                <button
-                  onClick={() => removeFromBatch(b.productId)}
-                  className="p-1 rounded-full hover:bg-gray-200"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Batch chips removed (now in right panel) */}
 
       {/* Selected Product */}
       {product ? (
@@ -245,6 +215,12 @@ export default function StockOperationForm({
         </div>
       )}
 
+      {!canPerformOperations && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-700 text-sm font-bold flex items-center gap-2">
+           <AlertCircle size={18} /> Read Only Mode: You do not have permission to perform operations on these items.
+        </div>
+      )}
+
       <form onSubmit={handleSubmitBatch} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -253,10 +229,11 @@ export default function StockOperationForm({
           <input
             type="number"
             min="1"
+            disabled={!canPerformOperations}
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             placeholder={t("qtyPlaceholder")}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 disabled:opacity-50"
           />
         </div>
 
@@ -275,8 +252,8 @@ export default function StockOperationForm({
           <button
             type="button"
             onClick={addToBatch}
-            disabled={!product || !Number(quantity) || Number(quantity) <= 0}
-            className={`flex-1 py-2.5 ${!product || !Number(quantity) || Number(quantity) <= 0
+            disabled={!canPerformOperations || !product || !Number(quantity) || Number(quantity) <= 0}
+            className={`flex-1 py-2.5 ${!canPerformOperations || !product || !Number(quantity) || Number(quantity) <= 0
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-orange-500 hover:bg-orange-600"
               } text-white rounded-lg transition-colors`}
@@ -286,11 +263,12 @@ export default function StockOperationForm({
           <button
             type="submit"
             disabled={
+              !canPerformOperations ||
               loading ||
               (batchItems.length === 0 &&
                 (!product || !Number(quantity) || Number(quantity) <= 0))
             }
-            className={`flex-1 py-2.5 ${loading ||
+            className={`flex-1 py-2.5 ${!canPerformOperations || loading ||
                 (batchItems.length === 0 &&
                   (!product || !Number(quantity) || Number(quantity) <= 0))
                 ? "bg-gray-300 cursor-not-allowed"

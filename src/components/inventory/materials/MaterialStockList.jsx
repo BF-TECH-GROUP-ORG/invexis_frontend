@@ -10,13 +10,13 @@ import { useSession } from "next-auth/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 
-import { getCategories } from "@/services/categoriesService";
+import { getBranches } from "@/services/branches";
 import { getCompanyAssets } from "@/services/organizationService";
+import { getCategories } from "@/services/categoriesService";
 import { deleteProduct } from "@/features/products/productsSlice";
 import apiClient from "@/lib/apiClient";
-
-import MaterialStockTable from "./MaterialStockTable";
 import MaterialStockStats from "./MaterialStockStats";
+import MaterialStockTable from "./MaterialStockTable";
 import ConfirmModal from "@/components/shared/ConfirmModal";
 
 /**
@@ -41,7 +41,7 @@ export default function MaterialStockList({ initialParams = {} }) {
   const limit = parseInt(searchParams.get("limit")) || initialParams.limit || 20;
   const searchTermFromUrl = searchParams.get("search") || initialParams.search || "";
   const currentCategory = searchParams.get("category") || initialParams.category || "";
-
+  
   const [searchTerm, setSearchTerm] = useState(searchTermFromUrl);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -52,6 +52,17 @@ export default function MaterialStockList({ initialParams = {} }) {
   const currentUser = useMemo(() => session?.user || initialParams?.user, [session?.user, initialParams?.user]);
   const companyId = currentUser?.companies?.[0] || initialParams?.companyId;
   const accessToken = session?.accessToken || initialParams?.accessToken;
+
+  // User privileges
+  const userRole = currentUser?.role;
+  const assignedDepartments = currentUser?.assignedDepartments || [];
+  const isCompanyAdmin = userRole === "company_admin" || userRole === "super_admin";
+  const isSalesWorker = assignedDepartments.includes("sales") && !isCompanyAdmin && !assignedDepartments.includes("management");
+  const isManagement = assignedDepartments.includes("management") && !isCompanyAdmin;
+  const canEdit = isCompanyAdmin || isManagement; 
+  const userShopId = currentUser?.shops?.[0] || currentUser?.branches?.[0];
+
+  const currentShopId = searchParams.get("shopId") || initialParams.shopId || (isSalesWorker ? userShopId : "");
 
   const options = useMemo(() => (accessToken ? {
     headers: { Authorization: `Bearer ${accessToken}` }
@@ -75,15 +86,23 @@ export default function MaterialStockList({ initialParams = {} }) {
     return () => clearTimeout(timer);
   }, [searchTerm, searchTermFromUrl, updateFilters]);
 
+  // Fetch Branches
+  const { data: branches = [] } = useQuery({
+    queryKey: ["branches", companyId],
+    queryFn: () => getBranches(companyId, options),
+    enabled: !!companyId && !!accessToken,
+  });
+
   // Data Fetching - FORCE isForSale: false
   const fetchParams = useMemo(() => ({
     page: currentPage,
     limit,
     search: searchTermFromUrl || undefined,
     category: currentCategory || undefined,
+    shopId: currentShopId || undefined,
     companyId,
     isForSale: "false", // Critical: Fetch only non-saleable items
-  }), [currentPage, limit, searchTermFromUrl, currentCategory, companyId]);
+  }), [currentPage, limit, searchTermFromUrl, currentCategory, currentShopId, companyId]);
 
   const { data: productsResponse, isLoading: productsLoading } = useQuery({
     queryKey: ["materials", fetchParams],
@@ -99,8 +118,13 @@ export default function MaterialStockList({ initialParams = {} }) {
 
   const products = useMemo(() => {
     const rawItems = productsResponse?.data || productsResponse || [];
-    return Array.isArray(rawItems) ? rawItems.filter(p => !p.isDeleted) : [];
-  }, [productsResponse]);
+    let filtered = Array.isArray(rawItems) ? rawItems.filter(p => !p.isDeleted) : [];
+
+    if (isSalesWorker && userShopId) {
+       filtered = filtered.filter(p => p.shopId === userShopId || p.branchId === userShopId);
+    }
+    return filtered;
+  }, [productsResponse, isSalesWorker, userShopId]);
 
   const categories = useMemo(() => Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [], [categoriesResponse]);
   const pagination = useMemo(() => productsResponse?.pagination || { page: 1, pages: 1 }, [productsResponse]);
@@ -183,30 +207,47 @@ export default function MaterialStockList({ initialParams = {} }) {
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-full transition font-bold text-sm ${currentCategory ? "border-black text-black bg-gray-50" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-full transition font-bold text-sm ${currentCategory || (currentShopId && currentShopId !== userShopId) ? "border-black text-black bg-gray-50" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}
               >
                 <Filter size={16} /> {tm("reports.advancedFilters")}
               </button>
               {isFilterOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl border border-gray-100 p-4 z-20 shadow-xl">
-                   <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{tm("reports.category") || "Category"}</label>
-                   <select
-                     value={currentCategory}
-                     onChange={(e) => { updateFilters({ category: e.target.value }); setIsFilterOpen(false); }}
-                     className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
-                   >
-                     <option value="">{tm("reports.allCategories") || "All Categories"}</option>
-                     {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                   </select>
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl border border-gray-100 p-4 z-20 shadow-xl space-y-3">
+                   <div>
+                       <label className="block text-xs font-bold text-gray-400 uppercase mb-2 text-left">{tm("reports.category") || "Category"}</label>
+                       <select
+                         value={currentCategory}
+                         onChange={(e) => { updateFilters({ category: e.target.value }); setIsFilterOpen(false); }}
+                         className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
+                       >
+                         <option value="">{tm("reports.allCategories") || "All Categories"}</option>
+                         {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                       </select>
+                   </div>
+                   {!isSalesWorker && (
+                       <div>
+                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2 text-left">{tm("reports.shop") || "Shop / Branch"}</label>
+                           <select
+                             value={currentShopId}
+                             onChange={(e) => { updateFilters({ shopId: e.target.value }); setIsFilterOpen(false); }}
+                             className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-700 outline-none focus:border-blue-500"
+                           >
+                             <option value="">All Shops</option>
+                             {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                           </select>
+                       </div>
+                   )}
                 </div>
               )}
             </div>
 
             <button onClick={handleRefresh} className="p-2 border border-gray-200 rounded-full hover:bg-gray-50 text-gray-400"><RefreshCw size={18} /></button>
 
-            <Link href={routes.add} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
-              <Plus size={20} /> {tf("add")} Material
-            </Link>
+            {canEdit && (
+                <Link href={routes.add} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#081422] text-white rounded-xl hover:bg-black transition font-bold shadow-lg shadow-gray-200">
+                  <Plus size={20} /> {tf("add")} Material
+                </Link>
+            )}
           </div>
         </div>
 
@@ -218,6 +259,7 @@ export default function MaterialStockList({ initialParams = {} }) {
           editUrl={routes.edit}
           pagination={pagination}
           onPageChange={(p) => updateFilters({ page: p })}
+          canEdit={canEdit}
         />
       </div>
 

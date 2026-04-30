@@ -144,7 +144,7 @@ const getNavItems = (t) => [
     tourId: "tour-documents",
     id: "sidebar-documents",
   },
-  {
+  /* {
     title: t("sidebar.logsAndAudits"),
     icon: <History size={20} />,
     path: "/inventory/logs",
@@ -152,7 +152,7 @@ const getNavItems = (t) => [
     prefetch: true,
     tourId: "tour-logs",
     id: "sidebar-logs",
-  },
+  }, */
 ];
 
 export default function SideBar({
@@ -396,30 +396,63 @@ export default function SideBar({
       if (forbiddenForIndustrial.includes(item.title)) return false;
     }
 
-    if (businessType === 'RETAIL') {
-      // Material Stock is now allowed for RETAIL internal assets/supplies
-      // if (item.title === t("sidebar.materialStock")) return false;
-    }
+    // 2. Admins see everything
+    if (userRole === "company_admin" || userRole === "super_admin") return true;
 
-    // 2. Role/Department Filtering (Existing Logic)
-    if (userRole === "company_admin") return true;
+    const itemTitle = item.title?.trim();
+    if (!itemTitle) return true;
 
-    const itemTitle = item.title.trim();
-    const isSales = assignedDepartments.includes("sales");
-    const isManagement = assignedDepartments.includes("management");
+    // Ensure safe, case-insensitive department matching
+    const safeDepartments = assignedDepartments.map((d) =>
+      String(d).toLowerCase().trim()
+    );
+    const isSales = safeDepartments.includes("sales");
+    const isManagement = safeDepartments.includes("management");
 
+    // 3. ── DEPARTMENT RULES (checked BEFORE role restrictions) ─────────────────
+    // Sales department users: strictly allowed list only, bypass role check
     if (isSales) {
-      const salesAllowedTitles = [
-        t("sidebar.notifications"),
+      // Overview: Notifications allowed
+      const salesOverview = [t("sidebar.notifications")];
+      if (salesOverview.includes(itemTitle)) return true;
+
+      // Management items for sales users
+      const salesAllowed = [
         t("sidebar.sales"),
         t("sidebar.salesHistory"),
         t("sidebar.stockOut"),
         t("sidebar.debts"),
+        t("sidebar.saleableStock"),
+        t("sidebar.products"),
+        t("sidebar.transfers"),
+        t("sidebar.stockOps"),
+        t("sidebar.materialStock"),
+        t("sidebar.assets"),
+        t("sidebar.operations"),
       ];
-      return salesAllowedTitles.includes(itemTitle);
+      return salesAllowed.includes(itemTitle);
     }
 
+    // Management department: see everything (except admin-only)
     if (isManagement) return true;
+
+    // 4. ── ROLE-BASED RESTRICTION (for workers without explicit department) ────
+    if (item.roles && item.roles.length > 0) {
+      if (!item.roles.includes(userRole)) return false;
+    }
+
+    // Default overview visible for all authenticated workers
+    const overviewTitles = [
+      t("sidebar.dashboard"),
+      t("sidebar.notifications"),
+      t("sidebar.reports"),
+    ];
+    // But ONLY grant this if they aren't part of sales/management (which have their own explicit rules above)
+    if (!isSales && !isManagement && overviewTitles.includes(itemTitle)) return true;
+
+    // Workers without specific departments see their role-permitted items
+    if (!isSales && !isManagement && (userRole === "worker" || userRole === "sales")) return true;
+
     return false;
   };
 
@@ -823,13 +856,13 @@ export default function SideBar({
                                 href={child.path}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (!isActive(child.path)) {
+                                  if (!isActive(child.path, true)) {
                                     setOptimisticPath(child.path);
                                     startNavigating();
                                     router.push(child.path);
                                   }
                                 }}
-                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path)
+                                className={`block px-3 py-2 text-sm transition-all duration-200 ${isActive(child.path, true)
                                   ? "bg-gray-100 font-bold border-l-3 border-blue-500 text-blue-500"
                                   : "text-gray-600 hover:bg-gray-100"
                                   }`}
@@ -887,13 +920,13 @@ export default function SideBar({
                   onClick={(e) => {
                     e.preventDefault();
                     setHoverItem(null);
-                    if (!isActive(child.path)) {
+                    if (!isActive(child.path, true)) {
                       setOptimisticPath(child.path);
                       startNavigating();
                       router.push(child.path);
                     }
                   }}
-                  className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+                  className={`block px-3 py-2 text-sm rounded-lg transition ${isActive(child.path, true) ? "bg-orange-50 text-orange-600 font-semibold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
                 >
                   {child.title}
                 </Link>

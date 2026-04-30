@@ -18,6 +18,7 @@ export default function MaterialStockTable({
   editUrl = () => "",
   pagination = { page: 1, pages: 1 },
   onPageChange = () => { },
+  canEdit = true, // ADDED canEdit prop
 }) {
   const t = useTranslations("materials.table");
   const commonT = useTranslations("common");
@@ -45,6 +46,11 @@ export default function MaterialStockTable({
           <table className="w-full text-left">
             <thead className="bg-[#fbfcff]">
               <tr>
+                {canEdit && (
+                  <th className="px-6 py-4">
+                    <div className="h-4 bg-gray-100 rounded animate-pulse w-4"></div>
+                  </th>
+                )}
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <th key={i} className="px-6 py-4">
                     <div className="h-4 bg-gray-100 rounded animate-pulse w-24"></div>
@@ -55,6 +61,11 @@ export default function MaterialStockTable({
             <tbody>
               {[1, 2, 3, 4, 5].map((i) => (
                 <tr key={i} className="border-t border-gray-50">
+                  {canEdit && (
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-50 rounded animate-pulse w-4"></div>
+                    </td>
+                  )}
                   {[1, 2, 3, 4, 5, 6].map((j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-gray-50 rounded animate-pulse w-full"></div>
@@ -75,14 +86,16 @@ export default function MaterialStockTable({
         <table className="w-full text-left">
           <thead className="bg-[#fbfcff] text-xs font-semibold text-gray-500 uppercase tracking-wider">
             <tr>
-              <th className="px-6 py-4">
-                <input
-                  type="checkbox"
-                  checked={products.length > 0 && selectedIds.length === products.length}
-                  onChange={toggleSelectAll}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                />
-              </th>
+              {canEdit && (
+                <th className="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    checked={products.length > 0 && selectedIds.length === products.length}
+                    onChange={toggleSelectAll}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                </th>
+              )}
               <th className="px-6 py-4">{t("product")}</th>
               <th className="px-6 py-4">{t("category")}</th>
               <th className="px-6 py-4">{t("brand")}</th>
@@ -108,14 +121,16 @@ export default function MaterialStockTable({
                       exit={{ opacity: 0 }}
                       className={`hover:bg-gray-50 transition-colors ${selectedIds.includes(product._id) ? "bg-gray-50" : ""}`}
                     >
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(product._id)}
-                          onChange={() => toggleSelect(product._id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                      </td>
+                      {canEdit && (
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(product._id)}
+                            onChange={() => toggleSelect(product._id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
@@ -179,20 +194,24 @@ export default function MaterialStockTable({
                           >
                             <Eye size={18} />
                           </Link>
-                          <Link
-                            href={editUrl(product._id)}
-                            className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                            title={t("edit")}
-                          >
-                            <Edit size={18} />
-                          </Link>
-                          <button
-                            onClick={() => onDelete(product._id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title={t("delete")}
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          {canEdit && (
+                            <>
+                              <Link
+                                href={editUrl(product._id)}
+                                className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                                title={t("edit")}
+                              >
+                                <Edit size={18} />
+                              </Link>
+                              <button
+                                onClick={() => onDelete(product._id)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title={t("delete")}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -200,7 +219,7 @@ export default function MaterialStockTable({
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center">
+                  <td colSpan={canEdit ? "7" : "6"} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <div className="p-3 rounded-full bg-gray-50 text-gray-400">
                         <Package size={32} />

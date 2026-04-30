@@ -277,7 +277,7 @@ const AnalyticsPage = () => {
 
     // Employee Performance
     const rawEmployees = employeeRes?.data || employeeRes || [];
-    const workers = workersRes || [];
+    const workers = workersRes?.data || workersRes || [];
     const employeePerformance = rawEmployees.map(item => {
         const worker = workers.find(w => (w._id || w.id) === item.employeeId);
         return {
@@ -291,7 +291,7 @@ const AnalyticsPage = () => {
     const stockMovement = rawMovement.map(item => ({
         name: dayjs(item.date).format('DD/MM'),
         in: parseFloat(item.stockIn) || 0,
-        out: parseFloat(item.stockOut) || 0,
+        out: -Math.abs(parseFloat(item.stockOut) || 0),
         net: parseFloat(item.netFlow) || 0
     }));
 

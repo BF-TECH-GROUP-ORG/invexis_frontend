@@ -86,7 +86,7 @@ const tourMapping = {
 /**
  * Wait for DOM to settle (adjustable delay)
  */
-function waitForDOM(ms = 400) {
+function waitForDOM(ms = 800) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -210,11 +210,10 @@ export const startTour = async (path, onComplete, currentPath, navigate) => {
     stageRadius: 10,
     popoverOffset: 12,
     popoverClass: 'inara-tour-popover',
-    showProgress: true,
-    progressText: 'Step {{current}} of {{total}}',
-    nextBtnText: 'Next →',
-    prevBtnText: '← Back',
-    doneBtnText: '✅ Done',
+    showProgress: false,
+    nextBtnText: 'OK',
+    prevBtnText: 'OK',
+    doneBtnText: 'OK',
 
     // ─── FIX: onNextClick for cross-page navigation ───
     onNextClick: async (element, step, opts) => {

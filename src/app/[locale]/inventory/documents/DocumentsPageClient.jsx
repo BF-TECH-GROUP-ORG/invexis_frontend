@@ -1,12 +1,13 @@
 "use client";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
 import FolderNavigation from '@/components/documents/FolderNavigation';
 import InvoicePreviewModal from '@/app/[locale]/inventory/billing/components/InvoicePreviewModal';
-import { Search, Menu, AlertCircle } from 'lucide-react';
-import { Alert, CircularProgress } from '@mui/material';
+import { Search, Menu, AlertCircle, Filter, MoreVertical } from 'lucide-react';
+import { Alert } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Explorer Components
 import YearGrid from '@/components/documents/explorer/YearGrid';
@@ -18,6 +19,9 @@ import YearGridSkeleton from '@/components/documents/explorer/skeletons/YearGrid
 import MonthGridSkeleton from '@/components/documents/explorer/skeletons/MonthGridSkeleton';
 import DocumentListSkeleton from '@/components/documents/explorer/skeletons/DocumentListSkeleton';
 
+/**
+ * DocumentsPageClient - Unified Premium Document Repository
+ */
 export default function DocumentsPageClient() {
     const { data: session } = useSession();
 
@@ -35,17 +39,19 @@ export default function DocumentsPageClient() {
 
     // Navigation State
     const [drillState, setDrillState] = useState({
-        category: "Sales & Orders", // Defaulting to the category we have data for
+        category: "Sales & Orders",
         year: null,
         month: null
     });
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState("all"); // 'all', 'invoice', 'media'
+    const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [showSidebar, setShowSidebar] = useState(false);
 
-    // 1. Fetch Invoices from Backend
+    // 1. Fetch Invoices
     const {
         data: invoicesData,
         isLoading: isInvoicesLoading,
@@ -58,7 +64,7 @@ export default function DocumentsPageClient() {
         staleTime: 5 * 60 * 1000,
     });
 
-    // 2. Fetch Inventory Media (Barcodes/QRs) from Backend
+    // 2. Fetch Inventory Media
     const {
         data: inventoryData,
         isLoading: isInventoryLoading,
@@ -68,18 +74,16 @@ export default function DocumentsPageClient() {
         queryKey: ['inventoryMedia', companyId],
         queryFn: () => getCompanyInventoryMedia(companyId, options),
         enabled: !!companyId && !!session?.accessToken,
-        staleTime: 10 * 60 * 1000, // Assets change less frequently
+        staleTime: 10 * 60 * 1000,
     });
 
     const isLoading = isInvoicesLoading || isInventoryLoading;
     const isError = isInvoicesError || isInventoryError;
     const error = invoicesError || inventoryError;
 
-    // Transform Backend Data to Explorer Format
+    // Transform Backend Data
     const allDocs = useMemo(() => {
         const docs = [];
-
-        // Map Invoices
         if (invoicesData?.data && Array.isArray(invoicesData.data)) {
             invoicesData.data.forEach(doc => {
                 const metadata = doc.metadata || {};
@@ -96,8 +100,6 @@ export default function DocumentsPageClient() {
                 });
             });
         }
-
-        // Map Inventory Media
         if (inventoryData?.data && Array.isArray(inventoryData.data)) {
             inventoryData.data.forEach(doc => {
                 const metadata = doc.metadata || {};
@@ -115,206 +117,194 @@ export default function DocumentsPageClient() {
                 });
             });
         }
-
         return docs;
     }, [invoicesData, inventoryData]);
 
-    // --- Derived Data Logic ---
     const filteredByCategory = useMemo(() => {
-        if (drillState.category === "All Files") return allDocs;
-        return allDocs.filter(d => d.category === drillState.category);
-    }, [allDocs, drillState.category]);
+        let docs = drillState.category === "All Files" ? allDocs : allDocs.filter(d => d.category === drillState.category);
+        
+        // Apply Type Filter
+        if (filterType !== "all") {
+            docs = docs.filter(d => d.type === filterType);
+        }
+
+        if (searchTerm) {
+            docs = docs.filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+        return docs;
+    }, [allDocs, drillState.category, searchTerm, filterType]);
 
     const availableYears = useMemo(() => {
-        const years = new Set(
-            filteredByCategory
-                .map(d => {
-                    const year = new Date(d.date).getFullYear();
-                    return isNaN(year) ? null : year;
-                })
-                .filter(y => y !== null)
-        );
+        const years = new Set(filteredByCategory.map(d => new Date(d.date).getFullYear()).filter(y => !isNaN(y)));
         return Array.from(years).sort((a, b) => b - a);
     }, [filteredByCategory]);
 
     const availableMonths = useMemo(() => {
         if (!drillState.year) return [];
-        const yearDocs = filteredByCategory.filter(d => new Date(d.date).getFullYear() === drillState.year);
-        const months = new Set(yearDocs.map(d => new Date(d.date).getMonth() + 1)); // 1-based
+        const months = new Set(filteredByCategory.filter(d => new Date(d.date).getFullYear() === drillState.year).map(d => new Date(d.date).getMonth() + 1));
         return Array.from(months).sort((a, b) => a - b);
     }, [filteredByCategory, drillState.year]);
 
     const currentDocs = useMemo(() => {
         if (!drillState.year || !drillState.month) return [];
-        const docs = filteredByCategory.filter(d => {
+        return filteredByCategory.filter(d => {
             const date = new Date(d.date);
             return date.getFullYear() === drillState.year && (date.getMonth() + 1) === drillState.month;
-        });
-        // Sort by date desc in the list
-        return docs.sort((a, b) => b - a);
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
     }, [filteredByCategory, drillState.year, drillState.month]);
 
-    // --- Handlers ---
     const handleCategorySelect = (cat) => {
         setDrillState({ category: cat, year: null, month: null });
-        setSelectedIds([]); // Clear selection on navigate
-    };
-
-    const handleToggleSelect = (id) => {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
-        );
-    };
-
-    const handleBulkAction = async (actionType) => {
-
-        // Real implementation would call a delete/archive service
-        setSelectedIds([]); // Clear after action
+        setSelectedIds([]);
     };
 
     return (
-        <div className="min-h-[calc(100vh-8rem)] sm:h-[calc(100vh-8rem)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-
+        <div className="min-h-[calc(100vh-8rem)] flex flex-col bg-slate-50/50 rounded-4xl border border-white/80 shadow-lg overflow-hidden backdrop-blur-sm">
             <div className="flex flex-1 overflow-hidden">
-
-                {/* Main Content Area (Dynamic Explorer) */}
-                <div className="flex-1 flex flex-col min-w-0 bg-white relative">
-
-                    {/* Top Bar / Breadcrumb / Simulator */}
-                    <div className="p-3 sm:p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center bg-gray-50/50">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            {/* Mobile: sidebar toggle */}
-                            <button
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col min-w-0 bg-white/40 relative">
+                    {/* Integrated Top Bar */}
+                    <div className="px-8 py-6 flex flex-col sm:flex-row gap-6 justify-between items-center z-20">
+                        <div className="flex items-center gap-4">
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
                                 onClick={() => setShowSidebar(true)}
-                                className="md:hidden p-2 rounded-md hover:bg-gray-100/50"
-                                aria-label="Open folders"
+                                className="md:hidden p-3 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-600"
                             >
-                                <Menu size={18} className="text-gray-700" />
-                            </button>
-                            <span className="font-bold text-gray-900 cursor-pointer hover:text-orange-600" onClick={() => setDrillState({ ...drillState, year: null, month: null })}>
-                                {drillState.category}
-                            </span>
-                            {drillState.year && (
-                                <>
-                                    <span>/</span>
-                                    <span className="cursor-pointer hover:text-orange-600" onClick={() => setDrillState({ ...drillState, month: null })}>{drillState.year}</span>
-                                </>
-                            )}
-                            {drillState.month && (
-                                <>
-                                    <span>/</span>
-                                    <span>{new Date(drillState.year, drillState.month - 1).toLocaleString('default', { month: 'long' })}</span>
-                                </>
-                            )}
-                        </div>
-                        <div className="relative w-full sm:w-auto">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search size={16} className="text-gray-400" />
+                                <Menu size={20} />
+                            </motion.button>
+                            
+                            <div className="flex flex-col">
+                                <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
+                                    <span className="cursor-pointer hover:text-orange-500 transition-colors" onClick={() => setDrillState({ ...drillState, year: null, month: null })}>
+                                        {drillState.category}
+                                    </span>
+                                    {(drillState.year || drillState.month) && <span className="text-slate-200">/</span>}
+                                    {drillState.year && (
+                                        <span className="cursor-pointer hover:text-orange-500 transition-colors" onClick={() => setDrillState({ ...drillState, month: null })}>
+                                            {drillState.year}
+                                        </span>
+                                    )}
+                                </nav>
+                                <h1 className="text-2xl font-black text-[#081422] tracking-tight">
+                                    {drillState.month 
+                                        ? new Date(drillState.year, drillState.month - 1).toLocaleString('default', { month: 'long' })
+                                        : drillState.year 
+                                            ? `${drillState.year} Records`
+                                            : "Repository"
+                                    }
+                                </h1>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Search documents..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full sm:w-72 pl-9 pr-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm bg-white"
-                            />
+                        </div>
+
+                        {/* Search & Global Actions */}
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:w-80 group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search documents..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/50 outline-none transition-all text-sm font-medium"
+                                />
+                            </div>
+                                <button onClick={() => setShowFilterMenu(!showFilterMenu)} className="p-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-[#081422] transition-all hidden">
+                                    <Menu size={20} />
+                                </button>
+                            <button className="p-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-[#081422] transition-all">
+                                <MoreVertical size={20} />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto">
-                        {/* Hierarchical Drill-down View */}
+                    <div className="flex-1 overflow-y-auto scrollbar-hide px-8 pb-12">
                         {isLoading ? (
-                            !drillState.year ? <YearGridSkeleton /> :
-                                !drillState.month ? <MonthGridSkeleton /> :
-                                    <DocumentListSkeleton />
+                            !drillState.year ? <YearGridSkeleton /> : !drillState.month ? <MonthGridSkeleton /> : <DocumentListSkeleton />
                         ) : isError ? (
-                            <div className="p-8">
-                                <Alert severity="error" icon={<AlertCircle size={20} />}>
-                                    {error?.message || "Failed to sync with document repository. Please check your connection."}
+                            <div className="p-12">
+                                <Alert severity="error" className="rounded-3xl border border-red-100 bg-red-50/50" icon={<AlertCircle size={24} />}>
+                                    <span className="font-bold text-red-900">Sync Error:</span> {error?.message || "Failed to reach document node."}
                                 </Alert>
                             </div>
                         ) : (
-                            <>
+                            <AnimatePresence mode="wait">
                                 {!drillState.year ? (
-                                    <YearGrid
-                                        years={availableYears}
-                                        onSelectYear={(y) => setDrillState(prev => ({ ...prev, year: y }))}
-                                    />
+                                    <YearGrid years={availableYears} onSelectYear={(y) => setDrillState(prev => ({ ...prev, year: y }))} />
                                 ) : !drillState.month ? (
-                                    <MonthGrid
-                                        year={drillState.year}
-                                        availableMonths={availableMonths}
-                                        onSelectMonth={(m) => setDrillState(prev => ({ ...prev, month: m }))}
-                                        onBack={() => setDrillState(prev => ({ ...prev, year: null }))}
-                                    />
+                                    <MonthGrid year={drillState.year} availableMonths={availableMonths} onSelectMonth={(m) => setDrillState(prev => ({ ...prev, month: m }))} onBack={() => setDrillState(prev => ({ ...prev, year: null }))} />
                                 ) : (
-                                    <DocumentList
-                                        documents={currentDocs}
-                                        year={drillState.year}
-                                        month={drillState.month}
-                                        onOpenValues={setSelectedDoc}
-                                        onBack={() => setDrillState(prev => ({ ...prev, month: null }))}
-                                        selectedIds={selectedIds}
-                                        onToggleSelect={handleToggleSelect}
-                                    />
+                                    <DocumentList documents={currentDocs} year={drillState.year} month={drillState.month} onOpenValues={setSelectedDoc} onBack={() => setDrillState(prev => ({ ...prev, month: null }))} selectedIds={selectedIds} onToggleSelect={(id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id])} />
                                 )}
-                            </>
+                            </AnimatePresence>
                         )}
                     </div>
 
-                    {/* Floating Bulk Action Toolbar */}
-                    {selectedIds.length > 0 && (
-                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-[#081422] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-6 z-40 animate-in slide-in-from-bottom-4 fade-in duration-300">
-                            <span className="text-sm font-medium border-r border-gray-600 pr-6">
-                                {selectedIds.length} Selected
-                            </span>
-
-                            <button
-                                onClick={() => handleBulkAction('archive')}
-                                className="flex items-center gap-2 text-sm font-bold hover:text-orange-400 transition-colors"
+                    {/* Premium Floating Selection Toolbar */}
+                    <AnimatePresence>
+                        {selectedIds.length > 0 && (
+                            <motion.div 
+                                initial={{ y: 100, x: "-50%" }}
+                                animate={{ y: 0, x: "-50%" }}
+                                exit={{ y: 100, x: "-50%" }}
+                                className="fixed bottom-10 left-1/2 p-2 bg-[#081422]/95 backdrop-blur-md rounded-3xl shadow-[0_30px_60px_-15px_rgba(8,20,34,0.4)] flex items-center gap-2 z-100 border border-white/10"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                                Archive
-                            </button>
-
-                            <button
-                                onClick={() => handleBulkAction('trash')}
-                                className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                Trash
-                            </button>
-
-                            <button
-                                onClick={() => setSelectedIds([])}
-                                className="ml-2 hover:bg-gray-700/50 p-1 rounded-full text-gray-400 hover:text-white transition-all"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                        </div>
-                    )}
-
+                                <div className="px-6 py-2 border-r border-white/10 flex flex-col">
+                                    <span className="text-xl font-black text-white">{selectedIds.length}</span>
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest -mt-1">Selected Items</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-1 p-1">
+                                    <button className="px-8 py-3 h-12 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                                        <ShoppingCart size={16} className="text-orange-400" />
+                                        Process Orders
+                                    </button>
+                                    <button onClick={() => setSelectedIds([])} className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-white transition-colors">
+                                        <AlertCircle size={20} className="rotate-45" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
-                {/* Right Pane: Folder Navigation (desktop) */}
-                <div className="hidden md:block border-l border-gray-200 bg-white shrink-0 transition-all duration-300 w-80">
-                    <FolderNavigation onSelect={handleCategorySelect} activeCategory={drillState.category} />
+                {/* Desktop Side Navigation */}
+                <div className="hidden md:block">
+                    <FolderNavigation 
+                        onSelect={handleCategorySelect} 
+                        activeCategory={drillState.category}
+                        filterType={filterType}
+                        onFilterSelect={setFilterType}
+                    />
                 </div>
-
-                {/* Mobile Slide-over Sidebar */}
-                {showSidebar && (
-                    <div className="fixed inset-0 z-50 md:hidden">
-                        <div className="absolute inset-0 bg-black/40" onClick={() => setShowSidebar(false)} />
-                        <div className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-lg p-4 overflow-y-auto">
-                            <button className="mb-4 text-sm text-gray-500" onClick={() => setShowSidebar(false)}>Close</button>
-                            <FolderNavigation onSelect={(cat) => { handleCategorySelect(cat); setShowSidebar(false); }} activeCategory={drillState.category} />
-                        </div>
-                    </div>
-                )}
-
             </div>
 
-            {/* Full-Screen Immersive Document Viewer */}
+            <AnimatePresence>
+                {showSidebar && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-100 md:hidden"
+                    >
+                        <div className="absolute inset-0 bg-[#081422]/60 backdrop-blur-sm" onClick={() => setShowSidebar(false)} />
+                        <motion.div 
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            className="absolute right-0 top-0 bottom-0 w-80 shadow-2xl"
+                        >
+                            <FolderNavigation 
+                                onSelect={(cat) => { handleCategorySelect(cat); setShowSidebar(false); }} 
+                                activeCategory={drillState.category}
+                                filterType={filterType}
+                                onFilterSelect={setFilterType}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <InvoicePreviewModal
                 invoice={selectedDoc}
                 open={!!selectedDoc}
@@ -323,3 +313,4 @@ export default function DocumentsPageClient() {
         </div>
     );
 }
+

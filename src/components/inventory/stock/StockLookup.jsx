@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Pause,
   Play,
+  TrendingDown,
 } from "lucide-react";
 import { lookupProduct, stockOut } from "@/services/stockService";
 import productsService from "@/services/productsService";
@@ -27,15 +28,28 @@ import {
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useTranslations } from "next-intl";
 
-const ProductCarousel = ({ images = [], productName = "" }) => {
+export const ProductCarousel = ({ images = [], productName = "" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+
+
   const slides = useMemo(() => {
-    if (images && images.length > 0) return images;
+    if (images && images.length > 0) {
+      return images.map(img => typeof img === 'string' ? img : img.url).filter(Boolean);
+    }
     // Fallback if no images
-    return ["https://via.placeholder.com/400x400?text=No+Image+Available"];
+    return [];
   }, [images]);
+
+  if (slides.length === 0) {
+    return (
+      <div className="w-full aspect-square bg-gray-50 rounded-xl flex flex-col items-center justify-center border border-gray-100 shadow-inner group transition-all hover:bg-gray-100">
+        <Package className="text-gray-200 mb-2 transition-transform group-hover:scale-110 duration-500" size={48} />
+        <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">No Media</p>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
@@ -59,7 +73,7 @@ const ProductCarousel = ({ images = [], productName = "" }) => {
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((url, i) => (
-          <div key={url + i} className="w-full h-full shrink-0">
+          <div key={`${url}-${i}`} className="w-full h-full shrink-0">
             <img
               src={url}
               alt={`${productName} - ${i + 1}`}
@@ -114,6 +128,10 @@ export default function StockLookup({
   productsLoading = false,
   companyId = null,
   displayMode = "default", // 'scanner' will render larger QR/barcode
+  canPerformOperations = true,
+  userShopId = null,
+  restrictToShop = false,
+  shopNames = {},
 }) {
   const t = useTranslations("stockManagement.scanner");
   const td = useTranslations("stockManagement.dialogs.confirmStockOut");
@@ -134,6 +152,12 @@ export default function StockLookup({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (outDialogOpen && product?.isForSale && outReason === "sale") {
+      setOutReason("damaged");
+    }
+  }, [outDialogOpen, product, outReason]);
 
   const { showSnackbar } = useSnackbar();
   // Filter suggestions from cached products by name / sku
@@ -174,6 +198,8 @@ export default function StockLookup({
             companyId,
             search: scanInput.trim(),
             limit: 20,
+            isForSale: "all",
+            shopId: restrictToShop ? userShopId : undefined,
           });
           const foundList = res?.data || res || [];
           if (foundList && foundList.length === 1) {
@@ -198,9 +224,18 @@ export default function StockLookup({
         }
       }
 
-      // fallback to server lookup for scanned codes
       const result = await lookupProduct({ code: scanInput.trim() });
       const foundProduct = result?.data || result;
+      
+      // Enforce shop isolation if needed
+      if (restrictToShop && userShopId) {
+        const prodShopId = foundProduct?.shopId || foundProduct?.metadata?.shopId;
+        if (prodShopId !== userShopId) {
+            setError(t("errorAccessDenied") || "This product belongs to another shop.");
+            return;
+        }
+      }
+
       setProduct(foundProduct);
       onProductFound(foundProduct);
     } catch (err) {
@@ -243,7 +278,6 @@ export default function StockLookup({
         reason: outReason,
       });
       setOutQty("");
-      setOutReason("sale");
       setOutDialogOpen(false);
       showSnackbar(td("success"), "success");
       onProductFound && onProductFound(product);
@@ -314,7 +348,7 @@ export default function StockLookup({
                         </div>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {s.stock?.available ?? s.stock?.total ?? s.stock ?? 0}
+                        {s.stock?.total ?? s.stock?.available ?? s.stock ?? s.inventory?.quantity ?? 0}
                       </div>
                     </div>
                   </li>
@@ -347,11 +381,11 @@ export default function StockLookup({
                         {s.identifiers?.sku || s.sku || ""}
                       </div>
                       <div className="text-xs text-gray-400">
-                        {t("shop")}: {s.shopId || s.metadata?.shopId || "-"}
+                        {t("shop")}: {shopNames[s.metadata?.shopId || s.shopId] || s.metadata?.shopId || s.shopId || "-"}
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
-                      {s.stock?.available ?? s.stock?.total ?? s.stock ?? 0}
+                      {s.stock?.total ?? s.stock?.available ?? s.stock ?? s.inventory?.quantity ?? 0}
                     </div>
                   </div>
                 </li>
@@ -421,7 +455,7 @@ export default function StockLookup({
               {/* Image Section */}
               <div className="w-full md:w-48 shrink-0">
                 <ProductCarousel
-                  images={product.images || product.Images}
+                  images={product.media?.images || product.images || product.Images}
                   productName={product.name || product.ProductName}
                 />
               </div>
@@ -442,25 +476,31 @@ export default function StockLookup({
                     <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("stock")}</p>
                       <p className="text-lg font-black text-orange-600">
-                        {product.stock?.available ?? product.stock ?? 0}
+                        {product.stock?.available ?? product.stock ?? product.inventory?.quantity ?? 0}
                       </p>
                     </div>
                     <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("shop")}</p>
-                      <p className="text-sm font-bold text-gray-700 truncate">
-                        {product.shopId || product.metadata?.shopId || "-"}
+                      <p className="text-sm font-bold text-gray-700 truncate" title={shopNames[product.metadata?.shopId || product.shopId] || product.metadata?.shopId || product.shopId}>
+                        {shopNames[product.metadata?.shopId || product.shopId] || product.metadata?.shopId || product.shopId || "-"}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <button
-                    onClick={() => setOutDialogOpen(true)}
-                    className="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-sm hover:shadow-red-200 active:scale-[0.98]"
-                  >
-                    {t("stockOutBtn")}
-                  </button>
+                  {canPerformOperations ? (
+                    <button
+                      onClick={() => setOutDialogOpen(true)}
+                      className="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-sm hover:shadow-red-200 active:scale-[0.98]"
+                    >
+                      {t("stockOutBtn")}
+                    </button>
+                  ) : (
+                    <div className="p-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold text-center border border-blue-100 flex items-center justify-center gap-2">
+                       <AlertCircle size={14} /> Read Only Mode
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -472,62 +512,145 @@ export default function StockLookup({
         <Dialog
           open={outDialogOpen}
           onClose={() => setOutDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            className: "rounded-2xl shadow-2xl border border-gray-100",
+            style: { borderRadius: '20px' }
+          }}
         >
-          <DialogTitle>{td("title")}</DialogTitle>
-          <DialogContent>
-            <div className="space-y-3 mt-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {td("qty")}
-                </label>
-                <TextField
-                  value={outQty}
-                  onChange={(e) => setOutQty(e.target.value)}
-                  type="number"
-                  inputProps={{ min: 1 }}
-                  fullWidth
-                  size="small"
-                />
-              </div>
+          <div className="p-1 min-h-[400px] flex flex-col">
+            <DialogTitle className="border-b border-gray-50 pb-4">
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                    <TrendingDown className="text-red-600" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{td("title")}</h2>
+                    <p className="text-xs text-gray-500 font-medium">Record stock removal for {product?.name}</p>
+                  </div>
+               </div>
+            </DialogTitle>
+            
+            <DialogContent className="py-6">
+              <div className="space-y-6">
+                <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 flex items-center justify-between">
+                   <div>
+                      <p className="text-[10px] font-bold text-orange-800 uppercase tracking-widest leading-none mb-1">Available Stock</p>
+                      <p className="text-2xl font-black text-orange-600 leading-none">
+                        {product?.stock?.available ?? product?.stock ?? product?.inventory?.quantity ?? 0}
+                      </p>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none mb-1">Current Shop</p>
+                      <p className="text-sm font-bold text-gray-800 leading-none">
+                        {shopNames[product?.metadata?.shopId || product?.shopId] || product?.metadata?.shopId || product?.shopId || "-"}
+                      </p>
+                   </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {td("reason")}
-                </label>
-                <TextField
-                  select
-                  value={outReason}
-                  onChange={(e) => setOutReason(e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  {["sale", "damaged", "expired", "transferOut", "other"].map((r) => (
-                    <MenuItem key={r} value={r}>
-                      {td(`reasons.${r}`)}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">
+                      {td("qty")}
+                    </label>
+                    <TextField
+                      value={outQty}
+                      onChange={(e) => setOutQty(e.target.value)}
+                      type="number"
+                      inputProps={{ min: 1 }}
+                      fullWidth
+                      placeholder="Enter quantity"
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          backgroundColor: '#f9fafb',
+                          height: '48px',
+                        }
+                      }}
+                    />
+                  </div>
 
-              {error && (
-                <div className="text-sm text-red-600">{error}</div>
-              )}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">
+                      {td("reason")}
+                    </label>
+                    <TextField
+                      select
+                      value={outReason}
+                      onChange={(e) => setOutReason(e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          backgroundColor: '#f9fafb',
+                          height: '48px',
+                        },
+                        '& .MuiSelect-select': {
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          height: '48px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          boxSizing: 'border-box'
+                        }
+                      }}
+                    >
+                      {["sale", "damaged", "expired", "other"]
+                        .filter(r => {
+                          if (r === "sale" && product?.isForSale) return false;
+                          return true;
+                        })
+                        .map((r) => (
+                          <MenuItem key={r} value={r}>
+                            {td(`reasons.${r}`)}
+                          </MenuItem>
+                        ))}
+                    </TextField>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 animate-shake">
+                    <AlertCircle size={16} className="text-red-500" />
+                    <p className="text-sm font-medium text-red-600">{error}</p>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+            
+            <div className="mt-auto border-t border-gray-50 p-6 flex gap-3">
+              <Button 
+                onClick={() => setOutDialogOpen(false)}
+                className="flex-1 py-3 normal-case font-bold text-gray-500 hover:bg-gray-100 rounded-xl"
+              >
+                {td("cancel")}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleStockOut}
+                disabled={outLoading}
+                className={`flex-1 py-3 normal-case font-bold rounded-xl shadow-lg border-none ${
+                    outLoading ? 'bg-gray-300' : 'bg-red-600 hover:bg-red-700 shadow-red-200'
+                }`}
+                style={{ backgroundColor: outLoading ? '#d1d5db' : '#dc2626' }}
+              >
+                {outLoading ? (
+                   <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {td("processing")}
+                   </div>
+                ) : td("confirm")}
+              </Button>
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOutDialogOpen(false)}>
-              {td("cancel")}
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleStockOut}
-            >
-              {outLoading ? td("processing") : td("confirm")}
-            </Button>
-          </DialogActions>
+          </div>
         </Dialog>
       )}
     </div>
   );
 }
+
+
+

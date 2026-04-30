@@ -88,6 +88,7 @@
     "distributionByPayment": "Distribution across payment types",
     "transactions": "transactions",
     "topProductsTitle": "Top Products",
+    "unitsSold": "Units Sold",
     "bestPerformingItems": "Best performing items",
     "inventoryStatistics": "Inventory Statistics",
     "inbound": "Inbound",
@@ -239,11 +240,17 @@
       "previous": "Previous",
       "next": "Next"
     },
+    "deleteConfirm": {
+      "title": "Delete Internal Asset?",
+      "message": "Are you sure you want to permanently delete this asset? This action cannot be undone.",
+      "confirm": "Delete Asset"
+    },
     "reports": {
       "title": "Material Stock Reports",
       "subtitle": "Deep insights into internal assets, valuation and movement trends",
       "advancedFilters": "Advanced Filters",
       "exportCsv": "Export CSV",
+      "exportPdf": "Export PDF",
       "assetValue": "Total Asset Value",
       "totalItems": "Total Items",
       "lowStockAssets": "Low Stock Assets",
@@ -256,6 +263,7 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "branch": "Branch / Shop",
+      "shop": "Shop",
       "allBranches": "All Branches",
       "allCategories": "All Categories",
       "insights": "Generating Material Insights...",
@@ -272,7 +280,14 @@
       "inflow": "Inflow",
       "outflow": "Outflow",
       "lowStockItems": "Low Stock Items",
-      "noRecords": "No material records found for this period."
+      "noRecords": "No material records found for this period.",
+      "branchTotals": "Branch Totals",
+      "allHealthy": "All items are healthy",
+      "materials": {
+        "table": {
+          "category": "Category"
+        }
+      }
     },
     "wizard": {
       "purpose": "What is this product for?",
@@ -405,7 +420,14 @@
     "active": "Active",
     "inactive": "Inactive",
     "open": "Open",
-    "closed": "Closed"
+    "closed": "Closed",
+    "filters": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "custom": "Custom Period"
+    }
   },
   "home": {
     "login": "Login",

@@ -31,6 +31,11 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   // Sync state with URL params
   const searchTerm = searchParams.get("search") || initialParams.search || "";
   const filterType = searchParams.get("type") || initialParams.type || "all";
+  const timeframe = searchParams.get("timeframe") || initialParams.timeframe || "all";
+  const startDate = searchParams.get("startDate") || initialParams.startDate || "";
+  const endDate = searchParams.get("endDate") || initialParams.endDate || "";
+  const reason = searchParams.get("reason") || initialParams.reason || "all";
+  
   const page = parseInt(searchParams.get("page") || initialParams.page || "0");
   const rowsPerPage = parseInt(searchParams.get("limit") || initialParams.limit || "10");
 
@@ -63,8 +68,26 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ["stock-change-history", { page: page + 1, limit: rowsPerPage, companyId }],
-    queryFn: () => getStockChangeHistory({ page: page + 1, limit: rowsPerPage, companyId }, options),
+    queryKey: ["stock-change-history", { 
+      page: page + 1, 
+      limit: rowsPerPage, 
+      companyId,
+      timeframe,
+      startDate,
+      endDate,
+      reason,
+      type: filterType
+    }],
+    queryFn: () => getStockChangeHistory({ 
+      page: page + 1, 
+      limit: rowsPerPage, 
+      companyId,
+      timeframe,
+      startDate,
+      endDate,
+      reason,
+      type: filterType === "all" ? undefined : filterType
+    }, options),
     enabled: !!companyId && !!session?.accessToken,
     staleTime: 5 * 1000 * 60,
   });
@@ -73,36 +96,28 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   const changes = result?.data?.history || result?.history || result?.data || result || [];
   const total = result?.data?.pagination?.total || result?.pagination?.total || 0;
 
-  // Cache for resolved user details
-  const [userMap, setUserMap] = useState({});
+  // Fetch all workers for the company to map user IDs to names
+  const { data: workersRes } = useQuery({
+    queryKey: ["workers", companyId],
+    queryFn: () => {
+      const { getWorkersByCompanyId } = require("@/services/workersService");
+      return getWorkersByCompanyId(companyId, options);
+    },
+    enabled: !!companyId && !!session?.accessToken,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    const idsFromChanges = Array.from(new Set(changes.map((c) => c.userId || (c.user && (c.user.id || c.user)) || c.createdBy).filter(Boolean)));
-    const idsFromStats = Array.from(new Set((stats?.topUsers || []).map((u) => u.userId).filter(Boolean)));
-    const ids = Array.from(new Set([...idsFromChanges, ...idsFromStats]));
-    const missing = ids.filter((id) => !userMap[id]);
+  const workers = workersRes?.data || workersRes || [];
 
-    if (missing.length === 0) return;
-
-    (async () => {
-      try {
-        const promises = missing.map((id) =>
-          AuthService.getUserById(id)
-            .then((res) => ({ id, user: res?.user || res?.data?.user || res }))
-            .catch(() => ({ id, user: null }))
-        );
-        const results = await Promise.all(promises);
-        if (!mounted) return;
-        setUserMap((prev) => {
-          const copy = { ...prev };
-          results.forEach((r) => { if (r.user) copy[r.id] = r.user; });
-          return copy;
-        });
-      } catch (e) { }
-    })();
-    return () => (mounted = false);
-  }, [changes, stats, userMap]);
+  // Map user IDs to names for easy lookup
+  const userMap = useMemo(() => {
+    const map = {};
+    workers.forEach(w => {
+      const id = w._id || w.id;
+      if (id) map[id] = w;
+    });
+    return map;
+  }, [workers]);
 
   // Client-side filtering logic (in case API doesn't filter perfectly)
   const filteredChanges = useMemo(() => {
@@ -140,37 +155,89 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              value={debouncedSearch}
-              onChange={(e) => setDebouncedSearch(e.target.value)}
-              className="w-full px-4 py-2.5 pl-10 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder={t("searchPlaceholder")}
+                value={debouncedSearch}
+                onChange={(e) => setDebouncedSearch(e.target.value)}
+                className="w-full px-4 py-2.5 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm transition-all"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filterType}
+                onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">{t("allTypes") || "All Types"}</option>
+                <option value="in">{t("table.stockIn")}</option>
+                <option value="out">{t("table.stockOut")}</option>
+              </select>
+
+              <select
+                value={timeframe}
+                onChange={(e) => updateFilters({ timeframe: e.target.value, page: 0, startDate: "", endDate: "" })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">Any Time</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+                <option value="custom">Custom Range</option>
+              </select>
+
+              <select
+                value={reason}
+                onChange={(e) => updateFilters({ reason: e.target.value, page: 0 })}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm font-medium"
+              >
+                <option value="all">All Reasons</option>
+                <option value="sale">Sale</option>
+                <option value="damaged">Damaged</option>
+                <option value="expired">Expired</option>
+                <option value="restock">Restock</option>
+                <option value="manual">Manual Adjustment</option>
+                <option value="other">Other</option>
+              </select>
+
+              <button
+                onClick={() => refetch()}
+                className="px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 active:scale-95 shadow-sm shadow-orange-200"
+              >
+                <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+                {t("refresh")}
+              </button>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <select
-              value={filterType}
-              onChange={(e) => updateFilters({ type: e.target.value, page: 0 })}
-              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 text-sm"
-            >
-              <option value="all">{t("allTypes") || "All Types"}</option>
-              <option value="in">{t("table.stockIn")}</option>
-              <option value="out">{t("table.stockOut")}</option>
-            </select>
-
-            <button
-              onClick={() => refetch()}
-              className="px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
-              {t("refresh")}
-            </button>
-          </div>
+          {timeframe === "custom" && (
+            <div className="flex items-center gap-3 p-3 bg-orange-50/50 border border-orange-100 rounded-xl animate-in fade-in slide-in-from-top-2">
+               <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-orange-800 uppercase tracking-widest mb-1 ml-1">Start Date</label>
+                  <input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => updateFilters({ startDate: e.target.value, page: 0 })}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+               </div>
+               <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-orange-800 uppercase tracking-widest mb-1 ml-1">End Date</label>
+                  <input 
+                    type="date" 
+                    value={endDate}
+                    onChange={(e) => updateFilters({ endDate: e.target.value, page: 0 })}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+               </div>
+            </div>
+          )}
         </div>
 
         {/* Stats summary */}
@@ -262,18 +329,21 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
                   const sku = change.sku || change.product?.sku || change.productSku || "N/A";
 
                   let by = t("table.system");
+                  const rawUserId = change.userId || change.createdBy || (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id);
+                  
                   if (change.user && typeof change.user === "object") {
-                    if (change.user.name) by = change.user.name;
-                    else if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
-                    else by = change.user.id || change.user.name || t("table.system");
-                  } else {
-                    const id = change.userId || change.user || change.createdBy;
-                    if (id && userMap[id]) {
-                      const u = userMap[id];
-                      by = u?.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u?.name || u?.email || id;
-                    } else if (id) {
-                      by = id;
-                    }
+                    if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
+                    else if (change.user.name) by = change.user.name;
+                    else if (change.user.username) by = change.user.username;
+                    else if (change.user.email) by = change.user.email;
+                  }
+                  
+                  // If we didn't get a name from the object, try the map
+                  if ((by === t("table.system") || by === rawUserId) && rawUserId && userMap[rawUserId]) {
+                    const u = userMap[rawUserId];
+                    by = u.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u.name || u.username || u.email || rawUserId;
+                  } else if (by === t("table.system") && rawUserId) {
+                    by = rawUserId; // Fallback to ID if no map entry yet
                   }
 
                   return (

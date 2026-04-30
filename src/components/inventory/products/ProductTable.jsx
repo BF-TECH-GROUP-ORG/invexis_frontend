@@ -47,6 +47,8 @@ export default function ProductTable({
   editUrl,
   pagination = {},
   onPageChange = () => { },
+  canEdit = true,
+  canDelete = true,
 }) {
   const t = useTranslations("products.table");
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -121,18 +123,20 @@ export default function ProductTable({
         <Table size="medium" sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selectedIds.length > 0 && selectedIds.length < rows.length
-                  }
-                  checked={
-                    rows.length > 0 && selectedIds.length === rows.length
-                  }
-                  onChange={handleSelectAll}
-                  size="small"
-                />
-              </TableCell>
+              {canDelete && (
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={
+                      selectedIds.length > 0 && selectedIds.length < rows.length
+                    }
+                    checked={
+                      rows.length > 0 && selectedIds.length === rows.length
+                    }
+                    onChange={handleSelectAll}
+                    size="small"
+                  />
+                </TableCell>
+              )}
               <TableCell sx={{ fontWeight: 600, color: "#4b5563" }}>
                 {t("productName")}
               </TableCell>
@@ -183,9 +187,11 @@ export default function ProductTable({
             {loading ? (
               [...Array(10)].map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell padding="checkbox">
-                    <Skeleton variant="rectangular" width={20} height={20} />
-                  </TableCell>
+                  {canDelete && (
+                    <TableCell padding="checkbox">
+                      <Skeleton variant="rectangular" width={20} height={20} />
+                    </TableCell>
+                  )}
                   <TableCell><Skeleton variant="text" width={150} /></TableCell>
                   <TableCell><Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1 }} /></TableCell>
                   <TableCell><Skeleton variant="text" width={100} /></TableCell>
@@ -278,13 +284,15 @@ export default function ProductTable({
                       cursor: "pointer",
                     }}
                   >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedIds.includes(id)}
-                        onChange={() => handleSelectOne(id)}
-                        size="small"
-                      />
-                    </TableCell>
+                    {canDelete && (
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(id)}
+                          onChange={() => handleSelectOne(id)}
+                          size="small"
+                        />
+                      </TableCell>
+                    )}
 
                     <TableCell>
                       <Box minWidth={0}>
@@ -496,32 +504,36 @@ export default function ProductTable({
           </MenuItem>
         )}
 
-        {editUrl ? (
-          <MenuItem
-            component={Link}
-            href={editUrl(menuRowId)}
-            onClick={closeMenu}
-          >
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("editProduct")}</ListItemText>
-          </MenuItem>
-        ) : (
-          <MenuItem onClick={handleEdit}>
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("editProduct")}</ListItemText>
-          </MenuItem>
+        {canEdit && (
+          editUrl ? (
+            <MenuItem
+              component={Link}
+              href={editUrl(menuRowId)}
+              onClick={closeMenu}
+            >
+              <ListItemIcon>
+                <EditIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{t("editProduct")}</ListItemText>
+            </MenuItem>
+          ) : (
+            <MenuItem onClick={handleEdit}>
+              <ListItemIcon>
+                <EditIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{t("editProduct")}</ListItemText>
+            </MenuItem>
+          )
         )}
 
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText>{t("deleteProduct")}</ListItemText>
-        </MenuItem>
+        {canDelete && (
+          <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+            <ListItemIcon>
+              <DeleteIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText>{t("deleteProduct")}</ListItemText>
+          </MenuItem>
+        )}
       </Menu>
 
       <div className="flex items-center justify-between px-4 py-4 border-t border-gray-200 mt-0 bg-white rounded-b-xl">
