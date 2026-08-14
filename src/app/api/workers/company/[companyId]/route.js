@@ -7,8 +7,9 @@ import { NextResponse } from 'next/server';
  * The frontend can call this Next.js API route instead of directly calling
  * the ngrok backend, avoiding CORS restrictions.
  */
-export async function GET(request, { params }) {
+export async function GET(request, context) {
     try {
+        const params = await context.params;
         const { companyId } = params;
 
         if (!companyId) {

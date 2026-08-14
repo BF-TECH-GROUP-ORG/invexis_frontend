@@ -137,27 +137,41 @@ const getFilteredSteps = (path, currentPath) => {
 export const TOUR_MAP = tourMapping;
 
 /**
+ * Simplified map of locations for the assistant to use for quick navigation
+ */
+export const LOCATION_MAP = Object.keys(tourMapping).reduce((acc, key) => {
+  const tour = tourMapping[key];
+  acc[tour.title.split(' ')[0].toLowerCase()] = { path: tour.path, label: tour.title };
+  // Add some common aliases
+  if (key === "/inventory/dashboard") acc["home"] = { path: tour.path, label: tour.title };
+  if (key === "/inventory/products") acc["inventory"] = { path: tour.path, label: tour.title };
+  if (key === "/inventory/sales/sellProduct/sale") acc["pos"] = { path: tour.path, label: tour.title };
+  return acc;
+}, {});
+
+/**
  * Maps natural language intent to a tour key from TOUR_MAP
  */
 export function resolveTourKey(text) {
   if (!text) return null;
-  const lower = text.toLowerCase();
+  const lower = text.toLowerCase().trim();
 
   const intents = [
-    { key: "/inventory/dashboard", keywords: ["dashboard", "overview", "stats", "kpi", "performance"] },
-    { key: "/inventory/notifications", keywords: ["notification", "alert", "announcement", "message"] },
-    { key: "/inventory/workers/list", keywords: ["staff", "worker", "employee", "team", "hire", "register staff"] },
-    { key: "/inventory/categories", keywords: ["category", "categories", "hierarchy", "classification"] },
-    { key: "/inventory/products", keywords: ["product", "item", "inventory", "catalog", "add item", "add product"] },
-    { key: "/inventory/sales/sellProduct/sale", keywords: ["sale", "sell", "pos", "point of sale", "stock-out", "transaction"] },
-    { key: "/inventory/transfer", keywords: ["transfer", "move stock", "send stock"] },
-    { key: "/inventory/debts", keywords: ["debt", "receivable", "owe", "credit"] },
-    { key: "/inventory/billing/invoices", keywords: ["invoice", "billing", "bill"] },
-    { key: "/inventory/logs", keywords: ["log", "audit", "history", "activity"] },
+    { key: "/inventory/dashboard", keywords: ["dashboard", "overview", "stats", "kpi", "performance", "home", "main page"] },
+    { key: "/inventory/notifications", keywords: ["notification", "alert", "announcement", "message", "updates"] },
+    { key: "/inventory/workers/list", keywords: ["staff", "worker", "employee", "team", "hire", "register staff", "manage users"] },
+    { key: "/inventory/categories", keywords: ["category", "categories", "hierarchy", "classification", "grouping"] },
+    { key: "/inventory/products", keywords: ["product", "item", "inventory", "catalog", "add item", "add product", "stock list"] },
+    { key: "/inventory/sales/sellProduct/sale", keywords: ["sale", "sell", "pos", "point of sale", "stock-out", "transaction", "checkout"] },
+    { key: "/inventory/transfer", keywords: ["transfer", "move stock", "send stock", "stock movement"] },
+    { key: "/inventory/debts", keywords: ["debt", "receivable", "owe", "credit", "payment due"] },
+    { key: "/inventory/billing/invoices", keywords: ["invoice", "billing", "bill", "receipt"] },
+    { key: "/inventory/logs", keywords: ["log", "audit", "history", "activity", "track actions"] },
   ];
 
+  // Try exact matches or multi-word matches first
   for (const intent of intents) {
-    if (intent.keywords.some(kw => lower.includes(kw))) {
+    if (intent.keywords.some(kw => lower === kw || lower.includes(kw))) {
       return intent.key;
     }
   }
