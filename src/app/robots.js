@@ -5,8 +5,16 @@ export default function robots() {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/api/', '/_next/'],
+            disallow: [
+                '/api/',
+                '/_next/',
+                '/*/inventory/',
+                '/*/account/',
+                '/inventory/',
+                '/account/',
+            ],
         },
         sitemap: `${baseUrl}/sitemap.xml`,
     };
 }
+
