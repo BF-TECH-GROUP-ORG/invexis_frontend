@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import StatsCardsSection from "./features/StatsCardsSection";
 import SalesChartsWrapper from "./features/SalesChartsWrapper";
 import ShopReportsWrapper from "./features/ShopReportsWrapper";
+import DashboardHeaderControls from "./features/DashboardHeaderControls";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = 'force-dynamic';
@@ -102,12 +103,12 @@ const DashboardPage = async ({ params, searchParams }) => {
 
   return (
     <section>
-      <div className="flex justify-between mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-xl font-bold">{t('title')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
           <h1 className="text-sm text-gray-500">{t('subtitle')}</h1>
         </div>
-        {/* Filter controls managed via URL */}
+        <DashboardHeaderControls timeRange={timeRange} selectedDate={customDate} />
       </div>
 
       <Suspense fallback={<CardsSkeleton />}>
