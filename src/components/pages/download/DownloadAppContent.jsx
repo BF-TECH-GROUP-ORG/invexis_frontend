@@ -8,17 +8,14 @@ import {
   Smartphone,
   Download,
   ShieldCheck,
-  CheckCircle2,
   ArrowLeft,
   QrCode,
   Sparkles,
-  ChevronRight,
-  Info,
   ExternalLink,
-  Layers,
   Zap,
   Lock,
-  Cpu
+  Cpu,
+  CheckCircle2
 } from "lucide-react";
 
 export default function DownloadAppContent({ locale }) {
@@ -45,7 +42,7 @@ export default function DownloadAppContent({ locale }) {
 
   const handleDownload = () => {
     setDownloadStarted(true);
-    // Path to the APK file (user will provide or place at /downloads/invexix-scanner.apk)
+    // Path to the APK file (placed at /downloads/invexix-scanner.apk)
     const apkUrl = "/downloads/invexix-scanner.apk";
     const link = document.createElement("a");
     link.href = apkUrl;
@@ -58,10 +55,10 @@ export default function DownloadAppContent({ locale }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between">
-      {/* Header Bar */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between">
+      {/* Header Bar - Clean & Shadowless, Logo hidden on small screens */}
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
               href={`/${locale}`}
@@ -70,23 +67,25 @@ export default function DownloadAppContent({ locale }) {
               <ArrowLeft size={18} />
               <span>Back to Home</span>
             </Link>
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-            <div className="flex items-center gap-2.5">
+
+            {/* Logo and App Title - Hidden on small mobile screens */}
+            <div className="h-5 w-px bg-slate-200 hidden md:block" />
+            <div className="hidden md:flex items-center gap-2.5">
               <Image
                 src="/logo/Invexix Logo - Dark Mode.svg"
                 alt="Invexix Logo"
-                width={32}
-                height={32}
+                width={30}
+                height={30}
                 className="object-contain"
               />
-              <span className="font-bold text-lg text-slate-900 tracking-tight">
-                Invexix <span className="text-orange-600 font-medium text-sm ml-1">Scanner App</span>
+              <span className="font-bold text-base text-slate-900 tracking-tight">
+                Invexix <span className="text-orange-600 font-medium text-sm ml-1">QR Scanner App</span>
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-200/60">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Direct Download
             </span>
@@ -95,25 +94,25 @@ export default function DownloadAppContent({ locale }) {
       </header>
 
       {/* Main Hero Section */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex-1 w-full">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 flex-1 w-full">
         {/* Intro Badge & Title */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 border border-orange-200/60 text-orange-700 text-xs font-semibold mb-4 shadow-2xs">
-            <Sparkles size={14} className="text-orange-500" />
-            <span>Official Mobile Hardware Companion</span>
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold mb-4">
+            <QrCode size={14} className="text-orange-500" />
+            <span>Dedicated Mobile Phone Companion</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
-            Download Invexix <span className="bg-linear-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">Scanning App</span>
+            Download Invexix <span className="bg-linear-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">QR Code Scanner</span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Scan product barcodes, manage instant stock-outs, and track inventory movements on your mobile device with zero latency.
+            Scan product QR codes on your mobile phone, manage instant stock-outs, and track inventory movements seamlessly.
           </p>
 
           {/* Device Detection Banner */}
           {detectedOS !== "detecting" && (
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-200 shadow-2xs text-xs sm:text-sm text-slate-700">
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-700">
               <Smartphone size={16} className="text-orange-500" />
               <span>
                 Detected device: <strong className="font-semibold text-slate-900 capitalize">{detectedOS}</strong>
@@ -124,12 +123,12 @@ export default function DownloadAppContent({ locale }) {
 
         {/* Platform Selector Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="bg-slate-200/70 p-1.5 rounded-2xl flex gap-2 max-w-md w-full border border-slate-300/60 shadow-inner">
+          <div className="bg-slate-200/70 p-1.5 rounded-2xl flex gap-2 max-w-md w-full border border-slate-300">
             <button
               onClick={() => setActiveTab("android")}
-              className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === "android"
-                  ? "bg-white text-slate-900 shadow-md border border-slate-200/80"
+                  ? "bg-white text-slate-900 border border-slate-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               }`}
             >
@@ -139,9 +138,9 @@ export default function DownloadAppContent({ locale }) {
 
             <button
               onClick={() => setActiveTab("ios")}
-              className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === "ios"
-                  ? "bg-white text-slate-900 shadow-md border border-slate-200/80"
+                  ? "bg-white text-slate-900 border border-slate-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               }`}
             >
@@ -151,7 +150,7 @@ export default function DownloadAppContent({ locale }) {
           </div>
         </div>
 
-        {/* Tab Content Cards */}
+        {/* Tab Content Cards - Clean & Shadowless */}
         <AnimatePresence mode="wait">
           {activeTab === "android" ? (
             <motion.div
@@ -162,37 +161,35 @@ export default function DownloadAppContent({ locale }) {
               transition={{ duration: 0.25 }}
               className="space-y-8"
             >
-              {/* Primary Download Card */}
-              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-
+              {/* Primary Download Card (Shadow Removed) */}
+              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 relative overflow-hidden">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                   <div className="space-y-3 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200/60">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
                       <ShieldCheck size={14} />
                       <span>Verified Package • Security Checked</span>
                     </div>
 
                     <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                      Invexix Barcode Scanner for Android
+                      Invexix QR Code Scanner for Android
                     </h2>
 
                     <p className="text-sm sm:text-base text-slate-600 max-w-xl">
-                      Direct APK installer for Android smartphones and handheld inventory scanners.
+                      Direct APK installer for Android smartphones to scan product QR codes instantly.
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-slate-500 pt-2">
-                      <span className="bg-slate-100 px-3 py-1 rounded-lg font-mono">Version 1.0.0</span>
-                      <span className="bg-slate-100 px-3 py-1 rounded-lg">Size: ~24.5 MB</span>
-                      <span className="bg-slate-100 px-3 py-1 rounded-lg">Android 8.0 or Higher</span>
+                      <span className="bg-slate-100 px-3 py-1 rounded-lg font-mono border border-slate-200">Version 1.0.0</span>
+                      <span className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Size: ~24.5 MB</span>
+                      <span className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Android 8.0 or Higher</span>
                     </div>
                   </div>
 
-                  {/* Download Action Box */}
+                  {/* Download Action Box (Shadow Removed) */}
                   <div className="flex flex-col items-center gap-3 w-full md:w-auto">
                     <button
                       onClick={handleDownload}
-                      className="w-full sm:w-auto min-w-[240px] px-8 py-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-base rounded-2xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3 transition-all cursor-pointer"
+                      className="w-full sm:w-auto min-w-[240px] px-8 py-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-base rounded-2xl flex items-center justify-center gap-3 transition-all cursor-pointer"
                     >
                       <Download size={22} className={downloadStarted ? "animate-bounce" : ""} />
                       <span>{downloadStarted ? "Starting Download..." : "Download APK File"}</span>
@@ -206,7 +203,7 @@ export default function DownloadAppContent({ locale }) {
               </div>
 
               {/* Step by Step Installation Guide */}
-              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">Installation Guide for Android</h3>
@@ -219,20 +216,20 @@ export default function DownloadAppContent({ locale }) {
                   {/* Step 1 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center">
                         1
                       </span>
                       <h4 className="font-bold text-slate-900 text-base">Download the File</h4>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed pl-11">
-                      Tap the <strong className="text-slate-900 font-semibold">"Download APK File"</strong> button above to save <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs">invexix-scanner.apk</code> to your device downloads.
+                      Tap the <strong className="text-slate-900 font-semibold">"Download APK File"</strong> button above to save <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs">invexix-scanner.apk</code> to your mobile phone.
                     </p>
                   </div>
 
                   {/* Step 2 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center">
                         2
                       </span>
                       <h4 className="font-bold text-slate-900 text-base">Allow Unknown Sources</h4>
@@ -245,7 +242,7 @@ export default function DownloadAppContent({ locale }) {
                   {/* Step 3 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center">
                         3
                       </span>
                       <h4 className="font-bold text-slate-900 text-base">Install the Application</h4>
@@ -258,13 +255,13 @@ export default function DownloadAppContent({ locale }) {
                   {/* Step 4 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                      <span className="w-8 h-8 rounded-xl bg-orange-500 text-white font-bold text-sm flex items-center justify-center">
                         4
                       </span>
-                      <h4 className="font-bold text-slate-900 text-base">Launch & Start Scanning</h4>
+                      <h4 className="font-bold text-slate-900 text-base">Launch & Start QR Scanning</h4>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed pl-11">
-                      Open the app icon on your home screen, log in with your company credentials, and begin scanning inventory immediately.
+                      Open the app icon on your mobile phone, log in with your company credentials, and begin scanning product QR codes immediately.
                     </p>
                   </div>
                 </div>
@@ -279,28 +276,28 @@ export default function DownloadAppContent({ locale }) {
               transition={{ duration: 0.25 }}
               className="space-y-8"
             >
-              {/* iOS Guide Card */}
-              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl relative overflow-hidden">
+              {/* iOS Guide Card (Shadow Removed) */}
+              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 relative overflow-hidden">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                   <div className="space-y-3 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                       <Smartphone size={14} />
-                      <span>iOS Progressive Web App & Safari Companion</span>
+                      <span>iOS Web App Companion</span>
                     </div>
 
                     <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                      Invexix Barcode Scanner for iPhone & iPad
+                      Invexix QR Code Scanner for iPhone & iPad
                     </h2>
 
                     <p className="text-sm sm:text-base text-slate-600 max-w-xl">
-                      Install Invexix as a native Progressive Web Application on your iOS home screen for camera barcode scanning.
+                      Install Invexix on your iOS home screen to scan product QR codes directly from your camera.
                     </p>
                   </div>
 
                   <div className="flex flex-col items-center gap-3 w-full md:w-auto">
                     <Link
                       href={`/${locale}/auth/login`}
-                      className="w-full sm:w-auto min-w-[240px] px-8 py-4 bg-slate-900 hover:bg-black active:scale-98 text-white font-bold text-base rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all"
+                      className="w-full sm:w-auto min-w-[240px] px-8 py-4 bg-slate-900 hover:bg-black active:scale-98 text-white font-bold text-base rounded-2xl flex items-center justify-center gap-3 transition-all"
                     >
                       <ExternalLink size={20} />
                       <span>Open Scanner in Safari</span>
@@ -310,18 +307,18 @@ export default function DownloadAppContent({ locale }) {
               </div>
 
               {/* iOS Installation Steps */}
-              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+              <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">Installation Guide for iOS</h3>
-                    <p className="text-sm text-slate-500">How to add Invexix Scanner to your iPhone Home Screen</p>
+                    <p className="text-sm text-slate-500">How to add Invexix QR Scanner to your iPhone Home Screen</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Step 1 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3 text-center sm:text-left">
-                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shadow-xs mx-auto sm:mx-0">
+                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center mx-auto sm:mx-0">
                       1
                     </span>
                     <h4 className="font-bold text-slate-900 text-base">Open in Safari</h4>
@@ -332,7 +329,7 @@ export default function DownloadAppContent({ locale }) {
 
                   {/* Step 2 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3 text-center sm:text-left">
-                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shadow-xs mx-auto sm:mx-0">
+                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center mx-auto sm:mx-0">
                       2
                     </span>
                     <h4 className="font-bold text-slate-900 text-base">Tap Share Icon</h4>
@@ -343,12 +340,12 @@ export default function DownloadAppContent({ locale }) {
 
                   {/* Step 3 */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3 text-center sm:text-left">
-                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shadow-xs mx-auto sm:mx-0">
+                    <span className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center mx-auto sm:mx-0">
                       3
                     </span>
                     <h4 className="font-bold text-slate-900 text-base">Add to Home Screen</h4>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      Scroll down and select <strong className="text-slate-900 font-semibold">"Add to Home Screen"</strong> to install the instant barcode scanner icon.
+                      Scroll down and select <strong className="text-slate-900 font-semibold">"Add to Home Screen"</strong> to install the QR code scanner app icon.
                     </p>
                   </div>
                 </div>
@@ -358,15 +355,15 @@ export default function DownloadAppContent({ locale }) {
         </AnimatePresence>
 
         {/* Feature Highlights Grid */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 flex items-start gap-4">
             <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
-              <Zap size={22} />
+              <QrCode size={22} />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-base mb-1">Instant Barcode Scanning</h4>
+              <h4 className="font-bold text-slate-900 text-base mb-1">Instant QR Code Scanning</h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Hardware & camera scanning support with real-time product lookup.
+                Scan product QR codes using your phone camera for real-time item lookup.
               </p>
             </div>
           </div>
@@ -385,12 +382,12 @@ export default function DownloadAppContent({ locale }) {
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 flex items-start gap-4">
             <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
-              <Layers size={22} />
+              <Zap size={22} />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-base mb-1">Offline Queue Sync</h4>
+              <h4 className="font-bold text-slate-900 text-base mb-1">Real-Time Stock Updates</h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Scan items offline and sync automatically when internet is restored.
+                Instantly syncs scanned QR code transactions directly to your dashboard.
               </p>
             </div>
           </div>
