@@ -46,7 +46,7 @@ const DashboardPage = async ({ params, searchParams }) => {
   const timeRange = resolvedParams.timeRange || '7d';
   const customDate = resolvedParams.date || dayjs().format('YYYY-MM-DD');
 
-  if (session?.accessToken) {
+  if (session?.accessToken && !session?.error) {
     const user = session.user;
     const companyObj = user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);

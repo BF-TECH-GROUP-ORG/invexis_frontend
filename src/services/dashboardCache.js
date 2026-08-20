@@ -15,7 +15,7 @@ const createCachedFetcher = (key, fetcher, companyId, params, tags = []) => {
         },
         [`analytics-${key}`, companyId, JSON.stringify(params)],
         {
-            revalidate: 300,
+            revalidate: 60,
             tags: ['analytics', `company-${companyId}`, ...tags]
         }
     )();

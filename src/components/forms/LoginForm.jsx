@@ -24,10 +24,16 @@ const LoginPage = () => {
 
   const searchParams = useSearchParams();
   const rawCallback = searchParams.get("callbackUrl") || "/inventory/dashboard";
-  // Ensure the callback is a relative path for the localized router
-  const callbackUrl = rawCallback.startsWith(`/${locale}`)
-    ? rawCallback.replace(`/${locale}`, "")
-    : rawCallback;
+  
+  // Clean query parameters (like ?expired=true) from the callback URL path
+  let cleanedCallback = rawCallback.split("?")[0];
+  if (cleanedCallback.startsWith(`/${locale}`)) {
+    cleanedCallback = cleanedCallback.replace(`/${locale}`, "");
+  }
+  if (!cleanedCallback || cleanedCallback === "/" || cleanedCallback.includes("/auth/")) {
+    cleanedCallback = "/inventory/dashboard";
+  }
+  const callbackUrl = cleanedCallback;
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
