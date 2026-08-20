@@ -14,6 +14,7 @@ const publicPages = [
     "/auth/otp-login/*",
     "/auth/unauthorized",
     "/welcome",
+    "/download-app",
     "/errors/*"
 ];
 

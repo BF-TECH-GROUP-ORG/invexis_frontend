@@ -369,15 +369,7 @@ function HomePageContent() {
           </div>
 
           <div className={styles.desktopOnly}>
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/${locale}/download-app`}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-700 bg-orange-50 hover:bg-orange-100 hover:text-orange-600 border border-orange-200/60 transition-all shadow-2xs"
-              >
-                <Smartphone size={16} className="text-orange-500" />
-                <span>Download Scanning App</span>
-              </Link>
-
+            <div className="flex items-center gap-4">
               {isAuthenticated ? (
                 <Link
                   href={`/${locale}/inventory/dashboard`}
@@ -439,14 +431,6 @@ function HomePageContent() {
           </div>
 
           <div className={styles.mobileAuthActions}>
-            <Link
-              href={`/${locale}/download-app`}
-              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-semibold text-orange-700 bg-orange-50 border border-orange-200/60 shadow-2xs transition-all mb-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Smartphone size={16} className="text-orange-500" />
-              <span>Download Scanning App</span>
-            </Link>
             {isAuthenticated ? (
               <Link
                 href={`/${locale}/inventory/dashboard`}
@@ -539,17 +523,25 @@ function HomePageContent() {
             {t("hero.subtitle")}
           </motion.p>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4 justify-center mt-2">
             <Link
               href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
               className={styles.joinWaitlist}
               style={{
-                padding: "1.25rem 3rem",
+                padding: "1.1rem 2.5rem",
                 fontSize: "1.125rem",
                 boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
               }}
             >
               {isAuthenticated ? t("cta.dashboard") : t("cta.startBtn")}
+            </Link>
+
+            <Link
+              href={`/${locale}/download-app`}
+              className="flex items-center justify-center gap-2.5 px-7 py-4 rounded-full text-base font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 shadow-md hover:shadow-lg transition-all active:scale-98"
+            >
+              <Smartphone size={20} className="text-orange-500" />
+              <span>Download Scanning App</span>
             </Link>
           </motion.div>
           <motion.div variants={itemVariants} className={styles.trustBadges}>
