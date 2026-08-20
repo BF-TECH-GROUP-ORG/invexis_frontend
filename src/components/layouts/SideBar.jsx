@@ -690,6 +690,7 @@ export default function SideBar({
                         <Link
                           href={item.path}
                           id={item.id}
+                          data-tour={item.tourId}
                           onMouseEnter={() => prefetchData(item)}
                           onClick={() => {
                             if (!isActive(item.path)) {
@@ -716,6 +717,7 @@ export default function SideBar({
                         <>
                           <div
                             id={item.id}
+                            data-tour={item.tourId}
                             onClick={(e) => {
                               if (expanded) {
                                 setOpenMenus((prev) =>

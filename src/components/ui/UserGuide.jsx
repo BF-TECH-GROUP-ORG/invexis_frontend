@@ -181,12 +181,11 @@ export default function UserGuide() {
       zIndex: 101,
     };
   } else {
-    // Desktop Center Fallback
+    // Desktop Fallback when target is not present: Anchor cleanly to Bottom-Right corner
     tooltipStyle = {
       position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
+      bottom: "32px",
+      right: "32px",
       width: `${CARD_WIDTH}px`,
       zIndex: 101,
     };
