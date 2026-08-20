@@ -39,23 +39,34 @@ export default function UserGuide() {
     { targetId: "tour-dashboard", title: t("steps.dashboard.title"), description: t("steps.dashboard.desc"), icon: LayoutDashboard, hideForSales: true },
     { targetId: "tour-search", title: t("steps.search.title"), description: t("steps.search.desc"), icon: Search, hideForSales: false },
     { targetId: "tour-notifications-sidebar", title: t("steps.notifications.title"), description: t("steps.notifications.desc"), icon: Bell, hideForSales: false },
-    { targetId: "tour-management", title: t("steps.management.title"), description: t("steps.management.desc"), icon: Users, hideForSales: true },
+    { targetId: "tour-management", title: t("steps.management.title"), description: t("steps.management.desc"), icon: Users, adminOnly: true, hideForSales: true },
     { targetId: "tour-inventory", title: t("steps.inventory.title"), description: t("steps.inventory.desc"), icon: Package, hideForSales: false },
     { targetId: "tour-sales", title: t("steps.sales.title"), description: t("steps.sales.desc"), icon: ShoppingCart, hideForSales: false },
-    { targetId: "tour-debts", title: t("steps.debts.title"), description: t("steps.debts.desc"), icon: Wallet, hideForSales: false },
-    { targetId: "tour-billing", title: t("steps.billing.title"), description: t("steps.billing.desc"), icon: Receipt, hideForSales: true },
-    { targetId: "tour-documents", title: t("steps.documents.title"), description: t("steps.documents.desc"), icon: Files, hideForSales: true },
-    { targetId: "tour-logs", title: t("steps.logs.title"), description: t("steps.logs.desc"), icon: History, hideForSales: true },
+    { targetId: "tour-debts", title: t("steps.debts.title"), description: t("steps.debts.desc"), icon: Wallet, roles: ["sales_manager", "company_admin"], hideForSales: false },
+    { targetId: "tour-billing", title: t("steps.billing.title"), description: t("steps.billing.desc"), icon: Receipt, roles: ["sales_manager", "company_admin"], hideForSales: true },
+    { targetId: "tour-documents", title: t("steps.documents.title"), description: t("steps.documents.desc"), icon: Files, roles: ["manager", "company_admin"], hideForSales: true },
+    { targetId: "tour-logs", title: t("steps.logs.title"), description: t("steps.logs.desc"), icon: History, adminOnly: true, hideForSales: true },
     { targetId: "tour-profile", title: t("steps.profile.title"), description: t("steps.profile.desc"), icon: UserCircle, hideForSales: false },
   ], [t]);
 
   // Filter tour steps based on user's active department & permissions
   const tourSteps = useMemo(() => {
-    if (isSalesOnly) {
-      return allTourSteps.filter(step => !step.hideForSales);
-    }
-    return allTourSteps;
-  }, [allTourSteps, isSalesOnly]);
+    return allTourSteps.filter((step) => {
+      // 1. Admin-only restriction
+      if (step.adminOnly && userRole !== "company_admin" && userRole !== "super_admin") {
+        return false;
+      }
+      // 2. Specific role restriction (e.g., debts requires sales_manager or company_admin)
+      if (step.roles && !step.roles.includes(userRole) && userRole !== "company_admin" && userRole !== "super_admin") {
+        return false;
+      }
+      // 3. Sales department restriction
+      if (isSalesOnly && step.hideForSales) {
+        return false;
+      }
+      return true;
+    });
+  }, [allTourSteps, isSalesOnly, userRole]);
 
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);

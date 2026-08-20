@@ -793,6 +793,8 @@ export default function SideBar({
                   {!item.children ? (
                     <Link
                       href={item.path}
+                      id={item.id}
+                      data-tour={item.tourId}
                       onClick={(e) => {
                         e.preventDefault();
                         if (!isActive(item.path)) {
@@ -814,6 +816,8 @@ export default function SideBar({
                   ) : (
                     <>
                       <div
+                        id={item.id}
+                        data-tour={item.tourId}
                         onClick={(e) => {
                           if (expanded) {
                             setOpenMenus(prev => prev.includes(item.title) ? prev.filter(x => x !== item.title) : [...prev, item.title]);
