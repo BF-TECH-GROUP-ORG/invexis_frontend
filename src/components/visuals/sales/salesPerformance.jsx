@@ -500,18 +500,16 @@ const SalesPerformance = ({
                             <Bar
                                 dataKey="in"
                                 name={t('stockIn')}
-                                barSize={32}
+                                barSize={24}
                                 fill="#10b981"
-                                radius={[18, 18, 0, 0]}
-                                stackId="stack"
+                                radius={[8, 8, 0, 0]}
                             />
                             <Bar
                                 dataKey="out"
                                 name={t('stockOut')}
-                                barSize={32}
+                                barSize={24}
                                 fill="#f97316"
-                                radius={[0, 0, 18, 18]}
-                                stackId="stack"
+                                radius={[8, 8, 0, 0]}
                             />
                             <Line
                                 type="monotone"
