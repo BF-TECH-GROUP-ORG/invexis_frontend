@@ -173,6 +173,7 @@ export default function LayoutWrapper({ children }) {
   const PUBLIC_ROUTES_PATTERNS = [
     /^\/[a-z]{2}\/?$/, // "/" with locale (e.g., /en, /fr)
     /^\/[a-z]{2}\/welcome/, // "/welcome" pages
+    /^\/[a-z]{2}\/download-app/, // "/download-app" page
     /^\/[a-z]{2}\/auth\//, // "/auth/*" pages
     /^\/[a-z]{2}\/errors\//, // "/errors/*" pages
     /^\/[a-z]{2}\/not-found$/, // "/not-found" page
