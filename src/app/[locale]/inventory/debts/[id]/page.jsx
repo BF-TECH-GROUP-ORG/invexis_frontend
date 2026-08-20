@@ -76,16 +76,7 @@ const DebtDetailPage = () => {
         ?? debt?.repayments?.reduce((acc, curr) => acc + (curr.amountPaid || 0), 0)
         ?? 0;
 
-    // Fetch shop details & all company shops to resolve names seamlessly
-    const debtShopId = typeof debt?.shopId === 'object' && debt?.shopId ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
-    const debtShopName = typeof debt?.shopId === 'object' && debt?.shopId?.name ? debt.shopId.name : null;
-
-    const { data: shop, isLoading: isShopLoading } = useQuery({
-        queryKey: ["shop", debtShopId, companyId],
-        queryFn: () => getShopById(debtShopId, companyId),
-        enabled: !!debtShopId && !!companyId,
-    });
-
+    // Fetch all company shops first (shared cache key with main debts table)
     const { data: allShops = [], isLoading: isShopsLoading } = useQuery({
         queryKey: ["allShops", companyId],
         queryFn: () => getAllShops(companyId),
@@ -114,6 +105,20 @@ const DebtDetailPage = () => {
         }
         return map;
     }, [allShops, branchesList]);
+
+    // Extract debt shop ID and embedded name
+    const debtShopId = typeof debt?.shopId === 'object' && debt?.shopId ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
+    const debtShopName = typeof debt?.shopId === 'object' && debt?.shopId?.name ? debt.shopId.name : null;
+
+    // Check if shopName is already resolved from map or debt object to avoid redundant/failing /shop/:id HTTP 500 requests
+    const hasShopInMap = debtShopId && !!shopMap[debtShopId];
+
+    const { data: shop, isLoading: isShopLoading } = useQuery({
+        queryKey: ["shop", debtShopId, companyId],
+        queryFn: () => getShopById(debtShopId, companyId),
+        enabled: !!debtShopId && !!companyId && !hasShopInMap && !debtShopName,
+        retry: false,
+    });
 
     // Mutations with Optimistic Updates
     const markAsPaidMutation = useMutation({
@@ -205,7 +210,7 @@ const DebtDetailPage = () => {
 
     if (isLoading) {
         return (
-            <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, margin: "0 auto" }}>
+            <Box sx={{ width: "100%", p: 0 }}>
                 <Skeleton variant="text" width={200} height={30} sx={{ mb: 1 }} />
                 <Skeleton variant="rectangular" width="100%" height={100} sx={{ mb: 3, borderRadius: 2 }} />
                 <Grid container spacing={3}>
@@ -244,7 +249,7 @@ const DebtDetailPage = () => {
     };
 
     return (
-        <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, margin: "0 auto" }}>
+        <Box sx={{ width: "100%", p: 0 }}>
             {/* Header & Breadcrumbs */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
                 <Box>
@@ -417,30 +422,30 @@ const DebtDetailPage = () => {
 
                 {/* Right Column: Summary & Actions */}
                 <Grid item xs={12} md={6}>
-                    <div className="ring ring-red-100 p-4 rounded-lg h-full w-full">
+                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", height: '100%', width: '100%' }}>
                         <CardContent sx={{ p: 3 }}>
-                            <Typography variant="h6" gutterBottom sx={{ opacity: 0.8 }} color="#000">Payment Summary</Typography>
-                            <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)", mb: 2 }} />
+                            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Payment Summary</Typography>
+                            <Divider sx={{ mb: 2 }} />
 
                             <Stack spacing={2}>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                    <Typography sx={{ opacity: 0.8 }} color="#000">Total Amount:</Typography>
-                                    <Typography fontWeight="bold" color="#000">{debt.totalAmount?.toLocaleString()} FRW</Typography>
+                                    <Typography color="text.secondary">Total Amount:</Typography>
+                                    <Typography fontWeight="bold" color="text.primary">{debt.totalAmount?.toLocaleString()} FRW</Typography>
                                 </Box>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                    <Typography sx={{ opacity: 0.8 }} color="#000">Total Paid:</Typography>
-                                    <Typography fontWeight="bold" color="#4caf50">{totalPaid.toLocaleString()} FRW</Typography>
+                                    <Typography color="text.secondary">Total Paid:</Typography>
+                                    <Typography fontWeight="bold" color="success.main">{totalPaid.toLocaleString()} FRW</Typography>
                                 </Box>
-                                <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
+                                <Divider />
                                 <Box sx={{ display: "flex", justifyContent: "space-between", pt: 1 }}>
-                                    <Typography variant="h6">Remaining:</Typography>
-                                    <Typography variant="h6" fontWeight="bold" color="#ff5252">
+                                    <Typography variant="h6" fontWeight="bold">Remaining:</Typography>
+                                    <Typography variant="h6" fontWeight="bold" color="error.main">
                                         {debt.balance?.toLocaleString()} FRW
                                     </Typography>
                                 </Box>
                             </Stack>
                         </CardContent>
-                    </div>
+                    </Card>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
