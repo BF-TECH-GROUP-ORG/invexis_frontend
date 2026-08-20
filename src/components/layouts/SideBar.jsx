@@ -163,7 +163,7 @@ export default function SideBar({
   const locale = useLocale();
   const t = useTranslations();
   const router = useRouter();
-  const { setLoading, setLoadingText } = useLoading();
+  const { setLoading, setLoadingText, isLoading } = useLoading();
   const { startNavigating } = useRouteLoading();
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
@@ -360,20 +360,14 @@ export default function SideBar({
       setLoadingText("Logging out...");
       setLoading(true);
 
-      // 1. Clear session with redirect: false so we handle navigation manually
-      await signOut({ redirect: false });
-
-      // 2. Clear all React Query caches if needed
+      // 1. Clear React Query cache
       queryClient.clear();
 
-      // 3. Force a full page redirect to Login to ensure all client state is purged
-      // This prevents the 'bounce' effect from SPA navigation
-      window.location.href = `/${locale}/auth/login`;
-
-      // We DON'T call setLoading(false) here because the page will refresh
+      // 2. Perform atomic NextAuth sign out with direct redirect
+      await signOut({ callbackUrl: `/${locale}/auth/login` });
     } catch (error) {
       console.error("Logout failed:", error);
-      setLoading(false); // Only clear loader on failure
+      setLoading(false);
       showNotification({
         severity: "error",
         message: "Logout failed. Please try again.",
@@ -883,7 +877,8 @@ export default function SideBar({
           <div className="p-4 border-t">
             <button
               onClick={handleLogout}
-              className={`flex items-center gap-3 w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-xl transition ${expanded ? "justify-start" : "justify-center"}`}
+              disabled={isLoading}
+              className={`flex items-center gap-3 w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-xl transition ${expanded ? "justify-start" : "justify-center"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <LogOut size={22} />
               {expanded && <span className="font-medium">{t("sidebar.logout")}</span>}

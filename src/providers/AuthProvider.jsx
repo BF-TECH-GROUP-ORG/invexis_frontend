@@ -1,11 +1,20 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useEffect } from "react";
+import { useLocale } from "next-intl";
 
 export default function AuthProvider({ children }) {
-  const { status } = useSession();
+  const { data: session } = useSession();
+  const locale = useLocale();
 
-  // Keep a simple wrapper — SessionProvider is added at the client providers level.
-  // We allow children to render while session is loading; components should guard if needed.
+  useEffect(() => {
+    if (session?.error === "RefreshAccessTokenError") {
+      console.warn("[Auth] RefreshAccessTokenError detected on client session. Signing out...");
+      signOut({ callbackUrl: `/${locale || "en"}/auth/login?expired=true` });
+    }
+  }, [session?.error, locale]);
+
   return <>{children}</>;
 }
+

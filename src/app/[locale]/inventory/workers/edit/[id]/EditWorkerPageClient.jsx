@@ -21,6 +21,10 @@ export default function EditWorkerPageClient({ id }) {
         queryKey: ["worker", id],
         queryFn: () => getWorkerById(id, options),
         enabled: !!id && !!session?.accessToken,
+        staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
+        gcTime: 5 * 60 * 1000,         // Keep cache for 5 min so navigating back is instant
+        refetchOnMount: 'always',       // Always background-refetch on visit
+        refetchOnWindowFocus: 'always', // Refetch when switching back to this tab
     });
 
     if (isLoading) {

@@ -32,7 +32,9 @@ export default function ProtectedRoute({ children, allowedRoles = [], allowedDep
   useEffect(() => {
     if (status === "loading") return; // wait for session
 
-    if (!authToken && !BYPASS) {
+    const hasSessionError = session?.error === "RefreshAccessTokenError";
+
+    if ((!authToken || hasSessionError) && !BYPASS) {
       // Build a localized login path. Prefer the next-intl locale hook when available
       const runtimeLocale = (() => {
         try {
@@ -57,7 +59,7 @@ export default function ProtectedRoute({ children, allowedRoles = [], allowedDep
       const effectiveLocale = runtimeLocale || fallbackLocale;
       const callbackUrl = window?.location?.pathname || "/";
       router.push(
-        `/${effectiveLocale}/auth/login?callbackUrl=${encodeURIComponent(
+        `/${effectiveLocale}/auth/login?expired=true&callbackUrl=${encodeURIComponent(
           callbackUrl
         )}`
       );

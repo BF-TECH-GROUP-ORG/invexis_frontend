@@ -101,6 +101,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     queryKey: ["branches", companyId],
     queryFn: () => getBranches(companyId, options),
     enabled: !!companyId && !!options,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   const availableShops = useMemo(() => {
@@ -116,6 +120,10 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
     queryKey: ["departments", companyId],
     queryFn: () => getDepartmentsByCompany(companyId, options),
     enabled: !!companyId && !!options,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   const availableDepartments = useMemo(() => {
@@ -312,9 +320,13 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         ? updateWorker(initialData.id || initialData._id, data)
         : createWorker(data),
     onSuccess: () => {
+      // Invalidate and reset React Query cache so newly registered worker shows up instantly
       queryClient.invalidateQueries({ queryKey: ["workers", companyId] });
-      // Invalidate broader patterns just in case
       queryClient.invalidateQueries({ queryKey: ["workers"] });
+      queryClient.resetQueries({ queryKey: ["workers"] });
+      if (isEditMode && (initialData?.id || initialData?._id)) {
+        queryClient.invalidateQueries({ queryKey: ["worker", initialData.id || initialData._id] });
+      }
 
       if (!isEditMode) {
         localStorage.removeItem("worker_wizard_data");
@@ -328,10 +340,8 @@ export default function AddWorkerForm({ initialData, isEditMode = false }) {
         severity: "success",
       });
 
-      // Force Next.js router refresh to pick up server-side changes
       router.refresh();
-
-      setTimeout(() => router.push(`/${locale}/inventory/workers/list`), 1500);
+      router.push(`/${locale}/inventory/workers/list`);
     },
     onError: (error) => {
       console.error("Worker save error:", error);

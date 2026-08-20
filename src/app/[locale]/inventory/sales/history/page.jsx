@@ -19,7 +19,7 @@ export default async function SalesPage({ searchParams }) {
   const shopId = resolvedParams.shopId || "";
   const month = resolvedParams.date || "";
 
-  if (session?.accessToken) {
+  if (session?.accessToken && !session?.error) {
     const user = session.user;
     const companyObj = user?.companies?.[0];
     const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);

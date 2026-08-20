@@ -90,8 +90,8 @@ export default function WorkersTable({ initialParams = {} }) {
     queryKey: ["workers", companyId],
     queryFn: () => getWorkersByCompanyId(companyId, options),
     enabled: !!companyId && !!session?.accessToken,
-    staleTime: Infinity,            // Never auto-stale → no races with optimistic updates
-    gcTime: 5 * 60 * 1000,         // Keep cache for 5 min
+    staleTime: 0,                   // Fresh data revalidation on mount and cache invalidation
+    gcTime: 5 * 60 * 1000,         // Keep cache for fast UI rendering during transitions
     refetchOnMount: 'always',       // Always background-refetch on visit
     refetchOnWindowFocus: 'always', // Refetch on focus
   });

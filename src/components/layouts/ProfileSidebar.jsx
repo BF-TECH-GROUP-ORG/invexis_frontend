@@ -175,7 +175,7 @@ export default function ProfileSidebar({ open, onClose, user, onLogout }) {
             <div className="p-6 border-t bg-gray-50/50">
               <button
                 onClick={onLogout}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-gray-200 text-red-600 font-bold rounded-2xl hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-95 group"
+                className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-gray-200 text-red-600 font-bold rounded-2xl hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-95 group cursor-pointer"
               >
                 <motion.div
                   whileHover={{ rotate: -15, x: -2 }}

@@ -3,7 +3,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 import { getWorkersByCompanyId } from "@/services/workersService";
+import { unstable_cache } from "next/cache";
 import WorkersProtectedWrapper from "@/components/clients/WorkersProtectedWrapper";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "Workers List",
@@ -24,7 +27,7 @@ export default async function WorkersList({ searchParams }) {
   const companyObj = user?.companies?.[0];
   const companyId = typeof companyObj === 'string' ? companyObj : (companyObj?.id || companyObj?._id);
 
-  if (session?.accessToken && companyId) {
+  if (session?.accessToken && !session?.error && companyId) {
     const options = {
       headers: {
         Authorization: `Bearer ${session.accessToken}`
@@ -55,3 +58,4 @@ export default async function WorkersList({ searchParams }) {
     </HydrationBoundary>
   );
 }
+

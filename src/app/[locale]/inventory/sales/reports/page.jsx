@@ -18,7 +18,7 @@ const SalesReportsPage = async ({ searchParams }) => {
     const timeRange = resolvedParams.timeRange || '7d';
     const customDate = resolvedParams.date || dayjs().format('YYYY-MM-DD');
 
-    if (!session?.accessToken) {
+    if (!session?.accessToken || session?.error) {
         return <div>Please log in to view sales reports.</div>;
     }
 

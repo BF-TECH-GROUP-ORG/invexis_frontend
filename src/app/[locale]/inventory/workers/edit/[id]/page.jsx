@@ -1,11 +1,14 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/queryClient";
 import { getWorkerById } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
 import { getDepartmentsByCompany } from "@/services/departmentsService";
 import { unstable_cache } from "next/cache";
 import EditWorkerPageClient from "./EditWorkerPageClient";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
     title: "Edit Worker",
@@ -14,7 +17,7 @@ export const metadata = {
 export default async function EditWorkerPage({ params }) {
     const { id } = await params;
     const session = await getServerSession(authOptions);
-    const queryClient = new QueryClient();
+    const queryClient = getQueryClient();
 
     const companyObj = session?.user?.companies?.[0];
     const companyId =
@@ -22,7 +25,7 @@ export default async function EditWorkerPage({ params }) {
             ? companyObj
             : companyObj?.id || companyObj?._id;
 
-    if (session?.accessToken && id) {
+    if (session?.accessToken && !session?.error && id) {
         const options = {
             headers: {
                 Authorization: `Bearer ${session.accessToken}`,
@@ -44,11 +47,11 @@ export default async function EditWorkerPage({ params }) {
             // Prefetch dependencies (shops/depts)
             companyId && queryClient.prefetchQuery({
                 queryKey: ["branches", companyId],
-                queryFn: () => getCached("branches", () => getBranches(companyId), ["branches"]),
+                queryFn: () => getCached("branches", () => getBranches(companyId, options), ["branches", "shops"]),
             }),
             companyId && queryClient.prefetchQuery({
                 queryKey: ["departments", companyId],
-                queryFn: () => getCached("departments", () => getDepartmentsByCompany(companyId), ["departments"]),
+                queryFn: () => getCached("departments", () => getDepartmentsByCompany(companyId, options), ["departments"]),
             }),
         ]);
     }
@@ -59,3 +62,4 @@ export default async function EditWorkerPage({ params }) {
         </HydrationBoundary>
     );
 }
+
