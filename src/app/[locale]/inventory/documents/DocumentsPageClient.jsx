@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { getCompanySalesInvoices, getCompanyInventoryMedia } from '@/services/documentService';
 import FolderNavigation from '@/components/documents/FolderNavigation';
 import InvoicePreviewModal from '@/app/[locale]/inventory/billing/components/InvoicePreviewModal';
-import { Search, Menu, AlertCircle, Filter, MoreVertical } from 'lucide-react';
+import { Search, Menu, AlertCircle, Filter, MoreVertical, ShoppingCart } from 'lucide-react';
 import { Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
