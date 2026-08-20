@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getDebtHistory, recordRepayment, markDebtAsPaid, cancelDebt } from "@/services/debts";
-import { getShopById } from "@/services/shopService";
+import { getShopById, getAllShops } from "@/services/shopService";
+import { getBranches } from "@/services/branches";
 import { useSession } from "next-auth/react";
 import {
     Box,
@@ -75,14 +76,44 @@ const DebtDetailPage = () => {
         ?? debt?.repayments?.reduce((acc, curr) => acc + (curr.amountPaid || 0), 0)
         ?? 0;
 
-    // Fetch shop details
-    const debtShopId = typeof debt?.shopId === 'object' ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
+    // Fetch shop details & all company shops to resolve names seamlessly
+    const debtShopId = typeof debt?.shopId === 'object' && debt?.shopId ? (debt.shopId._id || debt.shopId.id) : debt?.shopId;
+    const debtShopName = typeof debt?.shopId === 'object' && debt?.shopId?.name ? debt.shopId.name : null;
 
     const { data: shop, isLoading: isShopLoading } = useQuery({
         queryKey: ["shop", debtShopId, companyId],
         queryFn: () => getShopById(debtShopId, companyId),
         enabled: !!debtShopId && !!companyId,
     });
+
+    const { data: allShops = [], isLoading: isShopsLoading } = useQuery({
+        queryKey: ["allShops", companyId],
+        queryFn: () => getAllShops(companyId),
+        enabled: !!companyId,
+    });
+
+    const { data: shopsData = null } = useQuery({
+        queryKey: ["shops", companyId],
+        queryFn: () => getBranches(companyId),
+        enabled: !!companyId,
+    });
+
+    const branchesList = Array.isArray(shopsData) ? shopsData : (shopsData?.data || []);
+
+    const shopMap = useMemo(() => {
+        const map = {};
+        if (Array.isArray(allShops)) {
+            allShops.forEach((s) => {
+                if (s) map[s._id || s.id] = s.name;
+            });
+        }
+        if (Array.isArray(branchesList)) {
+            branchesList.forEach((s) => {
+                if (s) map[s._id || s.id] = s.name;
+            });
+        }
+        return map;
+    }, [allShops, branchesList]);
 
     // Mutations with Optimistic Updates
     const markAsPaidMutation = useMutation({
@@ -281,9 +312,13 @@ const DebtDetailPage = () => {
                                         <Box>
                                             <Typography variant="caption" color="text.secondary">Shop</Typography>
                                             <Typography variant="body1" fontWeight="medium">
-                                                {shop?.name ||
-                                                    (isShopLoading ? "Loading..." :
-                                                        (typeof debt.shopId === 'object' ? debt.shopId.name : (debt.shopId || "N/A")))}
+                                                {(() => {
+                                                    if (shop?.name) return shop.name;
+                                                    if (debtShopName) return debtShopName;
+                                                    if (debtShopId && shopMap[debtShopId]) return shopMap[debtShopId];
+                                                    if (isShopLoading || isShopsLoading) return "Loading...";
+                                                    return "N/A";
+                                                })()}
                                             </Typography>
                                         </Box>
                                     </Stack>
