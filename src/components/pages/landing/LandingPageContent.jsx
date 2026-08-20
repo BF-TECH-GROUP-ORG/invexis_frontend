@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Star,
+  Smartphone,
   ChevronDown,
   ArrowRight,
   Zap,
@@ -368,7 +369,15 @@ function HomePageContent() {
           </div>
 
           <div className={styles.desktopOnly}>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/${locale}/download-app`}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-700 bg-orange-50 hover:bg-orange-100 hover:text-orange-600 border border-orange-200/60 transition-all shadow-2xs"
+              >
+                <Smartphone size={16} className="text-orange-500" />
+                <span>Download Scanning App</span>
+              </Link>
+
               {isAuthenticated ? (
                 <Link
                   href={`/${locale}/inventory/dashboard`}
@@ -430,6 +439,14 @@ function HomePageContent() {
           </div>
 
           <div className={styles.mobileAuthActions}>
+            <Link
+              href={`/${locale}/download-app`}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-semibold text-orange-700 bg-orange-50 border border-orange-200/60 shadow-2xs transition-all mb-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Smartphone size={16} className="text-orange-500" />
+              <span>Download Scanning App</span>
+            </Link>
             {isAuthenticated ? (
               <Link
                 href={`/${locale}/inventory/dashboard`}
