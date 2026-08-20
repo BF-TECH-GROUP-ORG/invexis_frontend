@@ -17,7 +17,8 @@ import {
   Receipt,
   Files,
   History,
-  Users
+  Users,
+  Sparkles
 } from "lucide-react";
 
 export default function UserGuide() {
@@ -42,7 +43,10 @@ export default function UserGuide() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
-  const [windowSize, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 0, height: typeof window !== 'undefined' ? window.innerHeight : 0 });
+  const [windowSize, setWindowSize] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024, 
+    height: typeof window !== 'undefined' ? window.innerHeight : 768 
+  });
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
@@ -53,7 +57,6 @@ export default function UserGuide() {
     
     // Only show if the user hasn't seen the guide before
     if (!hasSeen) {
-      // Delay initialization slightly to wait for layout shifts to settle
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
     }
@@ -80,29 +83,24 @@ export default function UserGuide() {
       const el = document.querySelector(`[data-tour="${targetId}"]`);
       if (el) {
         const rect = el.getBoundingClientRect();
-        // Only update if it actually changed to prevent infinite loops or jitter
-        setTargetRect((prev) => {
-          if (!prev || prev.top !== rect.top || prev.left !== rect.left || prev.width !== rect.width || prev.height !== rect.height) {
-             return {
-              top: rect.top,
-              left: rect.left,
-              width: rect.width,
-              height: rect.height,
-              right: rect.right,
-              bottom: rect.bottom,
-            };
-          }
-          return prev;
-        });
-      } else {
-        setTargetRect(null); 
+        // Check if element is actually visible on screen
+        if (rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth) {
+          setTargetRect({
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            right: rect.right,
+            bottom: rect.bottom,
+          });
+          return;
+        }
       }
+      setTargetRect(null);
     };
 
     calculateRect();
-    
-    // Some elements animate, recalculate shortly after initial render
-    const timer = setTimeout(calculateRect, 400);
+    const timer = setTimeout(calculateRect, 350);
     return () => clearTimeout(timer);
 
   }, [currentStep, isVisible, windowSize, tourSteps]);
@@ -134,47 +132,75 @@ export default function UserGuide() {
   const currentFeature = tourSteps[currentStep];
   const Icon = currentFeature.icon;
   const isLastStep = currentStep === tourSteps.length - 1;
+  const isMobile = windowSize.width < 768;
 
-  // Tooltip Placement Logic
+  // Responsive Tooltip Positioning Logic
   let tooltipStyle = {};
-  
-  if (targetRect) {
-    const PADDING = 20;
-    const TOOLTIP_WIDTH = 340; 
-    
-    if (targetRect.right + TOOLTIP_WIDTH + PADDING < windowSize.width) {
-      // Place on Right
-      tooltipStyle = { top: Math.max(PADDING, targetRect.top - 20), left: targetRect.right + PADDING };
-    } else if (targetRect.left - TOOLTIP_WIDTH - PADDING > 0) {
-      // Place on Left
-      tooltipStyle = { top: Math.max(PADDING, targetRect.top - 20), left: targetRect.left - TOOLTIP_WIDTH - PADDING };
-    } else if (targetRect.bottom + PADDING + 200 < windowSize.height) {
-      // Place Bottom (Toolbox is below the target)
-      tooltipStyle = { top: targetRect.bottom + PADDING, left: Math.max(PADDING, targetRect.left - (TOOLTIP_WIDTH / 2) + (targetRect.width / 2)) };
-      if (tooltipStyle.left + TOOLTIP_WIDTH > windowSize.width - PADDING) tooltipStyle.left = windowSize.width - TOOLTIP_WIDTH - PADDING;
-    } else {
-      // Place Top
-      tooltipStyle = { bottom: windowSize.height - targetRect.top + PADDING, left: Math.max(PADDING, targetRect.left - (TOOLTIP_WIDTH / 2) + (targetRect.width / 2)) };
-      if (tooltipStyle.left + TOOLTIP_WIDTH > windowSize.width - PADDING) tooltipStyle.left = windowSize.width - TOOLTIP_WIDTH - PADDING;
-    }
-  } else {
-    // Fallback if target not found: Center the tooltip
+  const PADDING = 16;
+  const CARD_WIDTH = Math.min(360, windowSize.width - 32);
+
+  if (isMobile) {
+    // Mobile View: Anchor cleanly to bottom of screen (never clips or overflows edges)
     tooltipStyle = {
+      position: "fixed",
+      bottom: "24px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: `${CARD_WIDTH}px`,
+      maxWidth: "calc(100vw - 32px)",
+      zIndex: 101,
+    };
+  } else if (targetRect) {
+    // Desktop View: Calculate 4-directional placement with strict bounds
+    let left = targetRect.right + PADDING;
+    let top = targetRect.top;
+
+    if (left + CARD_WIDTH + PADDING > windowSize.width) {
+      // Place Left
+      left = targetRect.left - CARD_WIDTH - PADDING;
+    }
+    
+    if (left < PADDING || left + CARD_WIDTH > windowSize.width - PADDING) {
+      // Place Bottom
+      left = Math.max(PADDING, Math.min(targetRect.left + targetRect.width / 2 - CARD_WIDTH / 2, windowSize.width - CARD_WIDTH - PADDING));
+      top = targetRect.bottom + PADDING;
+      if (top + 220 > windowSize.height) {
+        top = Math.max(PADDING, targetRect.top - 220 - PADDING);
+      }
+    }
+
+    // Clamp values inside screen boundary
+    left = Math.max(PADDING, Math.min(left, windowSize.width - CARD_WIDTH - PADDING));
+    top = Math.max(PADDING, Math.min(top, windowSize.height - 240 - PADDING));
+
+    tooltipStyle = {
+      position: "fixed",
+      top: `${top}px`,
+      left: `${left}px`,
+      width: `${CARD_WIDTH}px`,
+      zIndex: 101,
+    };
+  } else {
+    // Desktop Center Fallback
+    tooltipStyle = {
+      position: "fixed",
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
+      width: `${CARD_WIDTH}px`,
+      zIndex: 101,
     };
   }
 
-  // Calculate SVG mask properties including slightly expanded dimensions
+  // Calculate SVG mask properties
   const maskX = targetRect ? Math.max(0, targetRect.left - 6) : 0;
   const maskY = targetRect ? Math.max(0, targetRect.top - 6) : 0;
   const maskW = targetRect ? targetRect.width + 12 : 0;
   const maskH = targetRect ? targetRect.height + 12 : 0;
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none">
-      {/* Dark overlay with SVG Mask */}
+    <div className="fixed inset-0 z-[999] pointer-events-none">
+      {/* Dark Overlay with Spotlight Hole */}
       <svg className="absolute inset-0 w-full h-full pointer-events-auto transition-opacity duration-300">
         <defs>
           <mask id="guide-hole">
@@ -185,71 +211,76 @@ export default function UserGuide() {
                 y={maskY} 
                 width={maskW} 
                 height={maskH} 
-                rx="6" 
+                rx="8" 
                 fill="black"
               />
             )}
           </mask>
         </defs>
-        {/* Fill color defines the dark overlay intensity */}
-        <rect width="100%" height="100%" fill="rgba(15, 23, 42, 0.75)" mask="url(#guide-hole)" />
+        <rect width="100%" height="100%" fill="rgba(15, 23, 42, 0.7)" mask="url(#guide-hole)" />
       </svg>
 
-      {/* The Tooltip Card (Horizontal Rectangle) */}
+      {/* The Responsive Tooltip Card */}
       <div 
-        className={`w-full max-w-[340px] bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-700 pointer-events-auto flex flex-col`}
-        style={{
-          position: "absolute",
-          ...tooltipStyle,
-          translate: targetRect ? '0 0' : '-50% -50%',
-          // CSS transitions to smoothly animate between targets
-          transition: "top 0.4s cubic-bezier(0.25, 1, 0.5, 1), left 0.4s cubic-bezier(0.25, 1, 0.5, 1), bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1)"
-        }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 pointer-events-auto flex flex-col overflow-hidden shadow-2xl transition-all duration-300 ease-out"
+        style={tooltipStyle}
       >
-        <div className="flex bg-gray-50 dark:bg-gray-800 rounded-t-xl px-4 py-2.5 items-center justify-between border-b border-gray-100 dark:border-gray-700">
-          <span className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">
+        {/* Progress Bar Indicator */}
+        <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 overflow-hidden">
+          <div 
+            className="bg-orange-500 h-full transition-all duration-300 ease-out"
+            style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
+          />
+        </div>
+
+        {/* Card Header */}
+        <div className="flex bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 items-center justify-between border-b border-slate-100 dark:border-slate-800">
+          <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles size={13} className="text-orange-500" />
             {t("step", { current: currentStep + 1, total: tourSteps.length })}
           </span>
           <button 
             onClick={handleClose}
-            className="text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-md transition"
-            aria-label="End Tour"
+            className="text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-lg transition-colors cursor-pointer"
+            aria-label="Close Tour"
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="p-4 md:p-5 flex gap-4">
-          <div className="shrink-0 mt-1">
-            <div className="p-2.5 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg shadow-sm">
-              <Icon size={22} />
+        {/* Card Body */}
+        <div className="p-4 sm:p-5 flex gap-3.5 items-start">
+          <div className="shrink-0 mt-0.5">
+            <div className="p-2.5 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-xl border border-orange-200/50">
+              <Icon size={20} />
             </div>
           </div>
           
-          <div className="flex-1">
-            <h3 className="text-[17px] font-bold text-gray-900 dark:text-white mb-1.5 leading-snug">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1 leading-snug">
               {currentFeature.title}
             </h3>
-            <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
               {currentFeature.description}
             </p>
 
-            <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <div className="flex gap-2 w-full justify-between">
-                <button
-                  onClick={handlePrev}
-                  disabled={currentStep === 0}
-                  className="px-3 py-1.5 hover:text-gray-500 text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition text-sm font-medium"
-                >
-                  {t("back")}
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition shadow flex items-center gap-1"
-                >
-                  {isLastStep ? t("finish") : t("next")} {!isLastStep && <ChevronRight size={16} />}
-                </button>
-              </div>
+            {/* Step Navigation Buttons */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={handlePrev}
+                disabled={currentStep === 0}
+                className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl disabled:opacity-30 transition-all cursor-pointer"
+              >
+                {t("back")}
+              </button>
+              
+              <button
+                onClick={handleNext}
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>{isLastStep ? t("finish") : t("next")}</span>
+                {!isLastStep && <ChevronRight size={16} />}
+              </button>
             </div>
           </div>
         </div>
