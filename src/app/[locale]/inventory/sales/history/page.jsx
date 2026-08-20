@@ -1,10 +1,9 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import SalesPageClient from "./SalesPageClient";
 import { getSalesHistory } from "@/services/salesService";
 import { getWorkersByCompanyId } from "@/services/workersService";
 import { getBranches } from "@/services/branches";
-import { unstable_cache } from "next/cache";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 
@@ -48,18 +47,10 @@ export default async function SalesPage({ searchParams }) {
       queryFn: () => getSalesHistory(companyId, filters, options),
     });
 
-    // Shops and workers are slow-changing — keep using unstable_cache for these
+    // Fetch shops and workers directly with current request options
     const [shops, workers] = await Promise.all([
-      unstable_cache(
-        async () => getBranches(companyId, options),
-        [`shops`, companyId],
-        { revalidate: 600, tags: ['shops', `company-${companyId}`] }
-      )(),
-      unstable_cache(
-        async () => getWorkersByCompanyId(companyId, options),
-        [`workers`, companyId],
-        { revalidate: 600, tags: ['workers', `company-${companyId}`] }
-      )()
+      getBranches(companyId, options),
+      getWorkersByCompanyId(companyId, options)
     ]);
 
     const initialData = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import SalesReportsClient from './SalesReportsClient';
 import AnalyticsService from '@/services/analyticsService';
 import { getBranches } from '@/services/branches';

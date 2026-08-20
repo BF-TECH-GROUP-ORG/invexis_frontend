@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/queryClient";
 import { getDebts } from "@/services/debts";

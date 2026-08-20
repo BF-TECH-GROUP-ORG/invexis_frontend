@@ -1,24 +1,8 @@
-import { unstable_cache } from "next/cache";
 import AnalyticsService from "@/services/analyticsService";
 
-// Helper to create a cached fetcher
-const createCachedFetcher = (key, fetcher, companyId, params, tags = []) => {
-    return unstable_cache(
-        async () => {
-            try {
-                const result = await fetcher();
-                return result;
-            } catch (error) {
-                console.error(`Error fetching ${key}:`, error);
-                return null; // Return null on error to handle gracefully in UI
-            }
-        },
-        [`analytics-${key}`, companyId, JSON.stringify(params)],
-        {
-            revalidate: 60,
-            tags: ['analytics', `company-${companyId}`, ...tags]
-        }
-    )();
+// Helper to execute fresh fetcher for real-time dashboard updates
+const createCachedFetcher = (key, fetcher, companyId, params) => {
+    return fetcher();
 };
 
 export const getCachedSummary = (companyId, params, options) =>
