@@ -420,9 +420,9 @@ const DebtDetailPage = () => {
                     </Card>
                 </Grid>
 
-                {/* Right Column: Summary & Actions */}
+                {/* Bottom Row: Summary & Actions */}
                 <Grid item xs={12} md={6}>
-                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", height: '100%', width: '100%' }}>
+                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", width: '100%' }}>
                         <CardContent sx={{ p: 3 }}>
                             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Payment Summary</Typography>
                             <Divider sx={{ mb: 2 }} />
@@ -450,7 +450,7 @@ const DebtDetailPage = () => {
 
                 <Grid item xs={12} md={6}>
                     {/* Actions */}
-                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", height: '100%', width: '100%' }}>
+                    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", width: '100%' }}>
                         <CardContent sx={{ p: 3 }}>
                             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Actions</Typography>
                             <Stack spacing={2}>
