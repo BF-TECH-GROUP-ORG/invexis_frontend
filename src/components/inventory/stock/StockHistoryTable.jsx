@@ -112,6 +112,11 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   // Map user IDs to names for easy lookup
   const userMap = useMemo(() => {
     const map = {};
+    if (session?.user) {
+      const sUser = session.user;
+      const sId = sUser.id || sUser._id;
+      if (sId) map[String(sId)] = sUser;
+    }
     workers.forEach(w => {
       if (w._id) map[String(w._id)] = w;
       if (w.id) map[String(w.id)] = w;
@@ -120,7 +125,7 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
       if (w.user?.id) map[String(w.user.id)] = w;
     });
     return map;
-  }, [workers]);
+  }, [workers, session?.user]);
 
   // Client-side filtering logic (in case API doesn't filter perfectly)
   const filteredChanges = useMemo(() => {
@@ -331,25 +336,44 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
                   const productName = change.product?.name || change.productName || "Unknown";
                   const sku = change.sku || change.product?.sku || change.productSku || "N/A";
 
-                  let by = t("table.system");
-                  const rawUserId = change.userId || change.createdBy || (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id) || change.performedBy;
-                  
-                  const matchedUser = (change.user && typeof change.user === "object")
-                    ? change.user 
-                    : (rawUserId ? userMap[String(rawUserId)] : null);
+                  let by = "";
+                  const rawUserId = 
+                    (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id) ||
+                    (typeof change.performedBy === 'string' ? change.performedBy : change.performedBy?.id || change.performedBy?._id) ||
+                    (typeof change.createdBy === 'string' ? change.createdBy : change.createdBy?.id || change.createdBy?._id) ||
+                    change.userId;
 
-                  if (matchedUser) {
-                    if (matchedUser.firstName || matchedUser.lastName) {
-                      by = `${matchedUser.firstName || ""} ${matchedUser.lastName || ""}`.trim();
-                    } else if (matchedUser.name) {
-                      by = matchedUser.name;
-                    } else if (matchedUser.username) {
-                      by = matchedUser.username;
-                    } else if (matchedUser.email) {
-                      by = matchedUser.email;
+                  const userObj = 
+                    (change.user && typeof change.user === 'object' ? change.user : null) ||
+                    (change.performedBy && typeof change.performedBy === 'object' ? change.performedBy : null) ||
+                    (change.createdBy && typeof change.createdBy === 'object' ? change.createdBy : null) ||
+                    (rawUserId ? userMap[String(rawUserId)] : null);
+
+                  if (userObj) {
+                    if (userObj.firstName || userObj.lastName) {
+                      by = `${userObj.firstName || ""} ${userObj.lastName || ""}`.trim();
+                    } else if (userObj.name) {
+                      by = userObj.name;
+                    } else if (userObj.username) {
+                      by = userObj.username;
+                    } else if (userObj.email) {
+                      by = userObj.email;
                     }
-                  } else if (typeof change.performedByName === "string" && change.performedByName) {
-                    by = change.performedByName;
+                  }
+
+                  if (!by) {
+                    by = change.performedByName || change.createdByName || change.userName || change.workerName || change.name || "";
+                  }
+
+                  if (!by && rawUserId && session?.user) {
+                    if (String(session.user.id || session.user._id) === String(rawUserId)) {
+                      const s = session.user;
+                      by = (s.firstName || s.lastName) ? `${s.firstName || ""} ${s.lastName || ""}`.trim() : (s.name || s.username || s.email || "");
+                    }
+                  }
+
+                  if (!by) {
+                    by = t("table.system");
                   }
 
                   return (
