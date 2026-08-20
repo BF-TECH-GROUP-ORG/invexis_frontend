@@ -51,10 +51,11 @@
 .navScrolled {
   position: fixed;
   /* Start following the user */
-  background: rgba(255, 255, 255, 0.6);
+  background: #ffffff;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   animation: slideNavDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
