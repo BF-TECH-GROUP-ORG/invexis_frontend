@@ -32,12 +32,16 @@ const THEME_COLORS = ["#081422", "#ea580c", "#fb923c", "#94a3b8", "#cbd5e1"];
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+        const uniquePayload = payload.filter((entry, index, self) =>
+            index === self.findIndex((e) => (e.dataKey || e.name) === (entry.dataKey || entry.name))
+        );
+
         return (
             <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl text-sm">
                 <p className="font-bold text-gray-900 dark:text-white mb-2 border-b border-gray-100 dark:border-gray-700 pb-1">
                     {label}
                 </p>
-                {payload.map((entry, index) => (
+                {uniquePayload.map((entry, index) => (
                     <div
                         key={index}
                         className="flex items-center justify-between gap-4 mb-1 last:mb-0"
@@ -64,9 +68,15 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const ModernLegend = (props) => {
     const { payload } = props;
+    if (!payload || !payload.length) return null;
+
+    const uniquePayload = payload.filter((entry, index, self) =>
+        index === self.findIndex((e) => (e.dataKey || e.value) === (entry.dataKey || entry.value))
+    );
+
     return (
         <div className="flex flex-wrap justify-center gap-4 mt-6">
-            {payload.map((entry, index) => {
+            {uniquePayload.map((entry, index) => {
                 // Determine display color (match user's reference image)
                 let iconColor = entry.color;
                 if (entry.dataKey === 'revenue') iconColor = '#fdba74'; // Light Orange
