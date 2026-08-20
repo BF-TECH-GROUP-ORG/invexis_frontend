@@ -113,8 +113,11 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
   const userMap = useMemo(() => {
     const map = {};
     workers.forEach(w => {
-      const id = w._id || w.id;
-      if (id) map[id] = w;
+      if (w._id) map[String(w._id)] = w;
+      if (w.id) map[String(w.id)] = w;
+      if (w.userId) map[String(w.userId)] = w;
+      if (w.user?._id) map[String(w.user._id)] = w;
+      if (w.user?.id) map[String(w.user.id)] = w;
     });
     return map;
   }, [workers]);
@@ -329,21 +332,24 @@ export default function StockHistoryTable({ companyId, initialParams = {}, updat
                   const sku = change.sku || change.product?.sku || change.productSku || "N/A";
 
                   let by = t("table.system");
-                  const rawUserId = change.userId || change.createdBy || (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id);
+                  const rawUserId = change.userId || change.createdBy || (typeof change.user === 'string' ? change.user : change.user?.id || change.user?._id) || change.performedBy;
                   
-                  if (change.user && typeof change.user === "object") {
-                    if (change.user.firstName) by = `${change.user.firstName} ${change.user.lastName || ""}`.trim();
-                    else if (change.user.name) by = change.user.name;
-                    else if (change.user.username) by = change.user.username;
-                    else if (change.user.email) by = change.user.email;
-                  }
-                  
-                  // If we didn't get a name from the object, try the map
-                  if ((by === t("table.system") || by === rawUserId) && rawUserId && userMap[rawUserId]) {
-                    const u = userMap[rawUserId];
-                    by = u.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : u.name || u.username || u.email || rawUserId;
-                  } else if (by === t("table.system") && rawUserId) {
-                    by = rawUserId; // Fallback to ID if no map entry yet
+                  const matchedUser = (change.user && typeof change.user === "object")
+                    ? change.user 
+                    : (rawUserId ? userMap[String(rawUserId)] : null);
+
+                  if (matchedUser) {
+                    if (matchedUser.firstName || matchedUser.lastName) {
+                      by = `${matchedUser.firstName || ""} ${matchedUser.lastName || ""}`.trim();
+                    } else if (matchedUser.name) {
+                      by = matchedUser.name;
+                    } else if (matchedUser.username) {
+                      by = matchedUser.username;
+                    } else if (matchedUser.email) {
+                      by = matchedUser.email;
+                    }
+                  } else if (typeof change.performedByName === "string" && change.performedByName) {
+                    by = change.performedByName;
                   }
 
                   return (
