@@ -1018,36 +1018,6 @@ function HomePageContent() {
         </div>
       </section >
 
-      {/* CTA Section */}
-      < section className={styles.ctaSection} >
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className={styles.ctaCard}
-        >
-          <h2 className={styles.ctaTitle}>
-            {t.rich("cta.final.title", {
-              spanClassName: (chunks) => <span className={styles.gradientText}>{chunks}</span>
-            })}
-          </h2>
-          <p className={styles.ctaSubtext}>
-            {t("cta.final.subtitle")}
-          </p>
-          <div className={styles.ctaBtns}>
-            <Link
-              href={isAuthenticated ? `/${locale}/inventory/dashboard` : `/${locale}/welcome`}
-              className={styles.ctaPrimary}
-            >
-              {isAuthenticated ? t("cta.final.openDashboard") : t("cta.final.startTrial")}
-            </Link>
-            <Link href="#contact" className={styles.ctaSecondary}>
-              {t("cta.demo")}
-            </Link>
-          </div>
-        </motion.div>
-      </section >
-
       {/* Waitlist Section */}
       < section className={styles.waitlistSection} >
         <div className={styles.waitlistContainer}>
