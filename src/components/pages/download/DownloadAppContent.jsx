@@ -43,6 +43,8 @@ export default function DownloadAppContent({ locale }) {
     }
   }, []);
 
+  const APK_RELEASE_URL = "https://github.com/BF-TECH-GROUP-ORG/invexis_frontend/releases/download/v1.0.0/invexis_stock.apk";
+
   const handleDownload = () => {
     if (downloadStatus === "downloading") return;
 
@@ -52,7 +54,7 @@ export default function DownloadAppContent({ locale }) {
 
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
-    xhr.open("GET", "/invexis_stock.apk", true);
+    xhr.open("GET", APK_RELEASE_URL, true);
     xhr.responseType = "blob";
 
     xhr.onprogress = (event) => {
@@ -98,8 +100,10 @@ export default function DownloadAppContent({ locale }) {
 
   const fallbackDirectDownload = () => {
     const link = document.createElement("a");
-    link.href = "/invexis_stock.apk";
+    link.href = APK_RELEASE_URL;
     link.download = "invexis_stock.apk";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
