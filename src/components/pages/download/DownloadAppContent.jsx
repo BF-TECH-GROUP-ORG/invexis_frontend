@@ -21,7 +21,10 @@ import {
 export default function DownloadAppContent({ locale }) {
   const [activeTab, setActiveTab] = useState("android");
   const [detectedOS, setDetectedOS] = useState("detecting");
-  const [downloadStarted, setDownloadStarted] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState("idle"); // "idle" | "downloading" | "completed"
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStats, setDownloadStats] = useState({ loadedMB: "0.0", totalMB: "119.0" });
+  const xhrRef = React.useRef(null);
 
   // Detect platform on mount
   useEffect(() => {
@@ -41,17 +44,71 @@ export default function DownloadAppContent({ locale }) {
   }, []);
 
   const handleDownload = () => {
-    setDownloadStarted(true);
-    // Path to the APK file (placed at /downloads/invexix-scanner.apk)
-    const apkUrl = "/downloads/invexix-scanner.apk";
+    if (downloadStatus === "downloading") return;
+
+    setDownloadStatus("downloading");
+    setDownloadProgress(0);
+    setDownloadStats({ loadedMB: "0.0", totalMB: "119.0" });
+
+    const xhr = new XMLHttpRequest();
+    xhrRef.current = xhr;
+    xhr.open("GET", "/invexis_stock.apk", true);
+    xhr.responseType = "blob";
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        const loadedMB = (event.loaded / (1024 * 1024)).toFixed(1);
+        const totalMB = (event.total / (1024 * 1024)).toFixed(1);
+        setDownloadProgress(percent);
+        setDownloadStats({ loadedMB, totalMB });
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const blob = xhr.response;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "invexis_stock.apk";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        setDownloadStatus("completed");
+        setDownloadProgress(100);
+
+        setTimeout(() => {
+          setDownloadStatus("idle");
+          setDownloadProgress(0);
+        }, 5000);
+      } else {
+        fallbackDirectDownload();
+      }
+    };
+
+    xhr.onerror = () => {
+      fallbackDirectDownload();
+    };
+
+    xhr.send();
+  };
+
+  const fallbackDirectDownload = () => {
     const link = document.createElement("a");
-    link.href = apkUrl;
-    link.download = "invexix-scanner.apk";
+    link.href = "/invexis_stock.apk";
+    link.download = "invexis_stock.apk";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    setTimeout(() => setDownloadStarted(false), 4000);
+    setDownloadStatus("completed");
+    setDownloadProgress(100);
+    setTimeout(() => {
+      setDownloadStatus("idle");
+      setDownloadProgress(0);
+    }, 5000);
   };
 
   return (
@@ -180,23 +237,66 @@ export default function DownloadAppContent({ locale }) {
 
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-slate-500 pt-2">
                       <span className="bg-slate-100 px-3 py-1 rounded-lg font-mono border border-slate-200">Version 1.0.0</span>
-                      <span className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Size: ~24.5 MB</span>
+                      <span className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Size: ~119 MB</span>
                       <span className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Android 8.0 or Higher</span>
                     </div>
                   </div>
 
-                  {/* Download Action Box (Shadow Removed) */}
-                  <div className="flex flex-col items-center gap-3 w-full md:w-auto">
-                    <button
-                      onClick={handleDownload}
-                      className="w-full sm:w-auto min-w-[240px] px-8 py-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-base rounded-2xl flex items-center justify-center gap-3 transition-all cursor-pointer"
-                    >
-                      <Download size={22} className={downloadStarted ? "animate-bounce" : ""} />
-                      <span>{downloadStarted ? "Starting Download..." : "Download APK File"}</span>
-                    </button>
+                  {/* Download Action Box with Real-Time Progress Bar */}
+                  <div className="flex flex-col items-center gap-3 w-full md:w-auto min-w-[280px]">
+                    {downloadStatus === "idle" && (
+                      <button
+                        onClick={handleDownload}
+                        className="w-full sm:w-auto min-w-[260px] px-8 py-4 bg-orange-600 hover:bg-orange-700 active:scale-98 text-white font-bold text-base rounded-2xl flex items-center justify-center gap-3 transition-all cursor-pointer"
+                      >
+                        <Download size={22} />
+                        <span>Download APK File</span>
+                      </button>
+                    )}
+
+                    {downloadStatus === "downloading" && (
+                      <div className="w-full min-w-[280px] sm:min-w-[320px] bg-slate-50 border border-orange-200 rounded-2xl p-4 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                          <span className="flex items-center gap-2 text-orange-600">
+                            <Download size={16} className="animate-bounce" />
+                            <span>Downloading APK...</span>
+                          </span>
+                          <span className="font-mono text-orange-600 font-extrabold text-sm">{downloadProgress}%</span>
+                        </div>
+
+                        {/* Progress Bar Track */}
+                        <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-linear-to-r from-orange-500 to-amber-500 h-full transition-all duration-200 rounded-full"
+                            style={{ width: `${downloadProgress}%` }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                          <span>{downloadStats.loadedMB} MB / {downloadStats.totalMB} MB</span>
+                          <button
+                            onClick={() => {
+                              if (xhrRef.current) xhrRef.current.abort();
+                              setDownloadStatus("idle");
+                              setDownloadProgress(0);
+                            }}
+                            className="text-xs text-slate-400 hover:text-red-500 font-sans transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {downloadStatus === "completed" && (
+                      <div className="w-full min-w-[280px] sm:min-w-[320px] bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-center gap-2.5 text-emerald-800 text-sm font-bold animate-in fade-in duration-300">
+                        <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                        <span>Download Complete! File Saved.</span>
+                      </div>
+                    )}
 
                     <p className="text-xs text-slate-400 text-center">
-                      Safe & Direct APK Download
+                      Safe & Direct Stream Download
                     </p>
                   </div>
                 </div>
@@ -222,7 +322,7 @@ export default function DownloadAppContent({ locale }) {
                       <h4 className="font-bold text-slate-900 text-base">Download the File</h4>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed pl-11">
-                      Tap the <strong className="text-slate-900 font-semibold">"Download APK File"</strong> button above to save <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs">invexix-scanner.apk</code> to your mobile phone.
+                      Tap the <strong className="text-slate-900 font-semibold">"Download APK File"</strong> button above to save <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs">invexis_stock.apk</code> to your mobile phone.
                     </p>
                   </div>
 
